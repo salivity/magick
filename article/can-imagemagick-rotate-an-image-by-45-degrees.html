@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can ImageMagick Rotate an Image by 45 Degrees? - magick</title>
+    <meta name="description" content="Yes, the ImageMagick convert command can easily rotate an image by any custom angle, including 45 degrees. This article provides a quick overview of how to perform this rotation, handles the background canvas artifacts that occur with custom angles, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/can-imagemagick-rotate-an-image-by-45-degrees">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Can ImageMagick Rotate an Image by 45 Degrees? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/can-imagemagick-rotate-an-image-by-45-degrees" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Yes, the ImageMagick convert command can easily rotate an image by any custom angle, including 45 degrees. This article provides a quick overview of how to perform this rotation, handles the background canvas artifacts that occur with custom angles, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="can-imagemagick-rotate-an-image-by-45-degrees">Can ImageMagick
+Rotate an Image by 45 Degrees?</h1>
+<p>Yes, the ImageMagick <code>convert</code> command can easily rotate
+an image by any custom angle, including 45 degrees. This article
+provides a quick overview of how to perform this rotation, handles the
+background canvas artifacts that occur with custom angles, and explores
+advanced options like high-quality resampling and automated
+cropping.</p>
+<h2 id="rotating-images-with-imagemagick">Rotating Images with
+ImageMagick</h2>
+<p>To rotate an image by a custom angle using ImageMagick, you utilize
+the <code>-rotate</code> option followed by the degrees of rotation.
+Positive numbers rotate the image clockwise, while negative numbers
+rotate it counterclockwise.</p>
+<p>The basic syntax for a 45-degree clockwise rotation is:</p>
+<p><code>convert input.jpg -rotate 45 output.jpg</code></p>
+<h2 id="managing-the-background-canvas">Managing the Background
+Canvas</h2>
+<p>When you rotate an image by an angle that is not a multiple of 90
+degrees, the corners of the original image will expand past the original
+boundaries. ImageMagick automatically enlarges the canvas to fit the new
+diamond shape and fills the empty corner triangles with a default
+background color (usually white or black).</p>
+<p>You can customize this background color using the
+<code>-background</code> setting before the rotate command.</p>
+<ul>
+<li><strong>To use a specific color (e.g., blue):</strong>
+<code>convert input.jpg -background blue -rotate 45 output.jpg</code></li>
+<li><strong>To make the background transparent (best for PNGs):</strong>
+<code>convert input.png -background none -rotate 45 output.png</code></li>
+</ul>
+<h2 id="advanced-rotation-techniques">Advanced Rotation Techniques</h2>
+<p>Beyond simple rotation, ImageMagick offers fine-grained control over
+how the image pixels are recalculated and how the final frame is
+shaped.</p>
+<h3 id="controlling-image-quality-with-interpolation">1. Controlling
+Image Quality with Interpolation</h3>
+<p>Rotating an image by 45 degrees requires the software to calculate
+new pixel values for coordinates that don’t align perfectly with the
+original grid. You can adjust the <code>-interpolate</code> or
+<code>-filter</code> settings to improve visual quality and reduce
+jagged edges.</p>
+<p><code>convert input.jpg -interpolate bicubic -rotate 45 output.jpg</code></p>
+<h3 id="rotating-without-changing-canvas-size">2. Rotating Without
+Changing Canvas Size</h3>
+<p>If you want to rotate the image 45 degrees but keep the original
+width and height dimensions—effectively cropping out the corners that
+rotate out of frame—you can use the <code>-distort</code> command
+instead of <code>-rotate</code>.</p>
+<p><code>convert input.jpg -background black -distort ScaleRotateTranslate 45 output.jpg</code></p>
+<h3 id="automatically-cropping-to-the-largest-inscribed-rectangle">3.
+Automatically Cropping to the Largest Inscribed Rectangle</h3>
+<p>If you want to rotate the image by 45 degrees and then automatically
+crop away the background triangles so that only the inner, untouched
+part of the photo remains, combine the rotation with <code>-trim</code>
+or a calculated crop. Because a pure 45-degree turn creates large
+background triangles, trimming the edges ensures a clean, professional
+rectangular result.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Stack Images Vertically with ImageMagick? - magick</title>
+    <meta name="description" content="This article provides a quick overview and practical guide on how to combine multiple images into a single vertical stack using the ImageMagick command-line tool. You will learn the exact syntax for the convert (or magick) command, understand how to mana">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-stack-images-vertically-with-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Stack Images Vertically with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-stack-images-vertically-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview and practical guide on how to combine multiple images into a single vertical stack using the ImageMagick command-line tool. You will learn the exact syntax for the convert (or magick) command, understand how to mana" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-stack-images-vertically-with-imagemagick">How to Stack
+Images Vertically with ImageMagick?</h1>
+<p>This article provides a quick overview and practical guide on how to
+combine multiple images into a single vertical stack using the
+ImageMagick command-line tool. You will learn the exact syntax for the
+<code>convert</code> (or <code>magick</code>) command, understand how to
+manage different image widths, and see examples of how to add spacing or
+padding between your stacked images.</p>
+<h2 id="the-basic-vertical-stacking-syntax">The Basic Vertical Stacking
+Syntax</h2>
+<p>To stack images vertically, ImageMagick uses the <code>-append</code>
+option. This option takes all the images currently loaded into the
+command and glues them together from top to bottom in the order they are
+listed.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.jpg image2.jpg image3.jpg <span class="at">-append</span> output_vertical.jpg</span></code></pre></div>
+<p>If you are using ImageMagick v7 or newer, the <code>convert</code>
+command has been replaced by the primary <code>magick</code> binary,
+though the syntax remains the same:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.jpg image2.jpg image3.jpg <span class="at">-append</span> output_vertical.jpg</span></code></pre></div>
+<h2 id="handling-images-of-different-widths">Handling Images of
+Different Widths</h2>
+<p>When you stack images that do not have the same width, ImageMagick’s
+default behavior is to align them to the left. The total width of the
+final output image will match the width of the widest input image. The
+narrower images will have empty canvas space filled in on their right
+side.</p>
+<p>To control how narrower images are positioned within the stack, you
+can use the <code>-gravity</code> setting before appending them.</p>
+<h3 id="centering-the-images">Centering the Images</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.jpg image2.jpg <span class="at">-gravity</span> Center <span class="at">-append</span> output_centered.jpg</span></code></pre></div>
+<h3 id="aligning-images-to-the-right">Aligning Images to the Right</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.jpg image2.jpg <span class="at">-gravity</span> East <span class="at">-append</span> output_right.jpg</span></code></pre></div>
+<h2 id="adding-space-between-stacked-images">Adding Space Between
+Stacked Images</h2>
+<p>If you do not want the images to touch directly, you can introduce a
+background color and expand the canvas of each image using the
+<code>-border</code> or <code>-splice</code> options before appending
+them.</p>
+<p>An easy way to add a uniform gap between every image is to add a
+bottom border to the images before they are joined together:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.jpg image2.jpg <span class="at">-background</span> white <span class="at">-splice</span> 0x10 <span class="at">-append</span> output_with_gaps.jpg</span></code></pre></div>
+<p>In this command, <code>-splice 0x10</code> adds a 10-pixel vertical
+gap above the images, using the color specified by the
+<code>-background</code> flag to fill the newly created space.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

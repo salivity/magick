@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can ImageMagick Convert Rotate Multiple Images at Once? - magick</title>
+    <meta name="description" content="Using a single execution of the ImageMagick convert command (or the magick command in newer versions) to rotate multiple images at once depends entirely on how you structure the syntax. While a basic convert input.jpg -rotate 90 output.jpg command only h">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/can-imagemagick-convert-rotate-multiple-images-at-once">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Can ImageMagick Convert Rotate Multiple Images at Once? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/can-imagemagick-convert-rotate-multiple-images-at-once" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Using a single execution of the ImageMagick convert command (or the magick command in newer versions) to rotate multiple images at once depends entirely on how you structure the syntax. While a basic convert input.jpg -rotate 90 output.jpg command only h" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="can-imagemagick-convert-rotate-multiple-images-at-once">Can
+ImageMagick Convert Rotate Multiple Images at Once?</h1>
+<p>Using a single execution of the ImageMagick <code>convert</code>
+command (or the <code>magick</code> command in newer versions) to rotate
+multiple images at once depends entirely on how you structure the
+syntax. While a basic
+<code>convert input.jpg -rotate 90 output.jpg</code> command only
+handles one image at a time, ImageMagick provides robust
+batch-processing capabilities. By utilizing wildcards, the
+<code>mogrify</code> tool, or inline loops, you can efficiently rotate
+entire directories of images in one go without writing complex
+scripts.</p>
+<h2 id="the-limitation-of-the-standard-convert-command">The Limitation
+of the Standard Convert Command</h2>
+<p>The standard <code>convert</code> command is designed for explicit
+input-to-output operations. If you pass multiple input files to a single
+<code>convert</code> command with a rotate flag, ImageMagick will
+attempt to combine or sequence them into a single output file (like a
+multi-page PDF or an animated GIF), rather than saving them back as
+individual rotated files.</p>
+<p>For example, this command will <strong>not</strong> work as expected
+for individual files:
+<code>convert *.jpg -rotate 90 rotated_*.jpg</code></p>
+<p>Instead of creating individual rotated files, it will likely result
+in an error or an unexpected combined file.</p>
+<h2 id="method-1-the-recommended-way-using-mogrify">Method 1: The
+Recommended Way (Using Mogrify)</h2>
+<p>If your goal is to rotate multiple images in a single command
+execution, ImageMagick includes a sister tool called
+<code>mogrify</code> specifically designed for batch processing. It
+shares the same syntax as <code>convert</code> but applies the operation
+to each file individually and overwrites the originals.</p>
+<p>To rotate all JPEG images in a folder 90 degrees clockwise:
+<code>mogrify -rotate 90 *.jpg</code></p>
+<blockquote>
+<p><strong>Note:</strong> Because <code>mogrify</code> overwrites the
+original files, it is highly recommended to back up your images before
+running the command, or use the <code>-path</code> flag to send the
+rotated images to a separate output directory:
+<code>mogrify -path ./rotated_output -rotate 90 *.jpg</code></p>
+</blockquote>
+<h2 id="method-2-using-the-modern-magick-tool-v7">Method 2: Using the
+Modern Magick Tool (v7+)</h2>
+<p>In ImageMagick version 7 and above, the <code>convert</code> command
+has been replaced by the unified <code>magick</code> command. You can
+use <code>magick mogrify</code> to achieve the same single-line batch
+rotation:</p>
+<p><code>magick mogrify -rotate 270 *.png</code></p>
+<h2
+id="method-3-using-imagemagick-v7-parentheses-for-specific-files">Method
+3: Using ImageMagick v7 Parentheses for Specific Files</h2>
+<p>If you are using ImageMagick v7 and only want to process a few
+specific files into distinct new filenames within a single command
+execution, you can use setting headers and parentheses to isolate the
+operations:</p>
+<p><code>magick ( input1.jpg -rotate 90 -write output1.jpg ) ( input2.jpg -rotate 90 -write output2.jpg ) null:</code></p>
+<p>This executes as a single command line process, reading and rotating
+each image independently before writing them to their respective new
+destinations.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Specify Image Output Format in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a quick overview and practical guide on how to define the output file format when using the ImageMagick convert command. You will learn the standard syntax for converting images, how to explicitly force a specific file format regard">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-specify-image-output-format-in-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Specify Image Output Format in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-specify-image-output-format-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview and practical guide on how to define the output file format when using the ImageMagick convert command. You will learn the standard syntax for converting images, how to explicitly force a specific file format regard" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-specify-image-output-format-in-imagemagick">How to
+Specify Image Output Format in ImageMagick</h1>
+<p>This article provides a quick overview and practical guide on how to
+define the output file format when using the ImageMagick
+<code>convert</code> command. You will learn the standard syntax for
+converting images, how to explicitly force a specific file format
+regardless of the file extension, and how to handle batch conversions
+efficiently.</p>
+<hr />
+<h3 id="the-standard-extension-method">The Standard Extension
+Method</h3>
+<p>The most common and intuitive way to specify the output format in
+ImageMagick is by simply changing the file extension of the target
+filename. ImageMagick automatically detects the desired format based on
+the extension you provide.</p>
+<p>The basic syntax follows this structure:</p>
+<p><code>convert input_image.ext1 output_image.ext2</code></p>
+<ul>
+<li><strong>To convert a PNG to a JPEG:</strong>
+<code>convert image.png image.jpg</code></li>
+<li><strong>To convert a TIFF to a WebP:</strong>
+<code>convert input.tiff output.webp</code></li>
+</ul>
+<h3 id="explicitly-forcing-a-format">Explicitly Forcing a Format</h3>
+<p>Sometimes you may want to save a file with a non-standard extension,
+or ensure ImageMagick strictly interprets the format without relying on
+the filename. You can explicitly force the output format by prefixing
+the output filename with the format name followed by a colon
+(<code>format:</code>).</p>
+<p>The syntax for explicit formatting looks like this:</p>
+<p><code>convert input_image.jpg FORMAT:output_image.custom</code></p>
+<ul>
+<li><strong>To force a JPEG output with a generic extension:</strong>
+<code>convert photo.png jpg:new_image.data</code></li>
+<li><strong>To ensure standard PNG encoding:</strong>
+<code>convert drawing.bmp png:result.png</code></li>
+</ul>
+<h3 id="specifying-format-during-batch-conversions">Specifying Format
+During Batch Conversions</h3>
+<p>When working with large groups of files, the <code>mogrify</code>
+command (a component of the ImageMagick suite) is often preferred over
+<code>convert</code> because it can process multiple files at once. To
+change the output format of an entire directory of images, use the
+<code>-format</code> flag.</p>
+<ul>
+<li><strong>To convert all JPEG images in a folder to PNG:</strong>
+<code>magick mogrify -format png *.jpg</code></li>
+</ul>
+<blockquote>
+<p><strong>Note for ImageMagick v7 Users:</strong> In ImageMagick
+version 7 and newer, the standalone <code>convert</code> command is
+replaced by the primary <code>magick</code> command, though
+<code>convert</code> still works as a legacy alias. The syntax remains
+exactly the same: <code>magick input.png output.jpg</code>.</p>
+</blockquote></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

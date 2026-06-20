@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Add a Drop Shadow in ImageMagick? - magick</title>
+    <meta name="description" content="Adding a professional drop shadow to an image using ImageMagick's convert command involves a specific sequence of duplicating the image, creating a blurred shadow mask, and compositing the original image on top. This guide breaks down the exact command-l">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-add-a-drop-shadow-in-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Add a Drop Shadow in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-add-a-drop-shadow-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adding a professional drop shadow to an image using ImageMagick's convert command involves a specific sequence of duplicating the image, creating a blurred shadow mask, and compositing the original image on top. This guide breaks down the exact command-l" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-add-a-drop-shadow-in-imagemagick">How to Add a Drop
+Shadow in ImageMagick?</h1>
+<p>Adding a professional drop shadow to an image using ImageMagick’s
+<code>convert</code> command involves a specific sequence of duplicating
+the image, creating a blurred shadow mask, and compositing the original
+image on top. This guide breaks down the exact command-line syntax,
+explains what each parameter does, and provides a practical example so
+you can add depth to your digital images instantly.</p>
+<h3 id="the-standard-drop-shadow-command">The Standard Drop Shadow
+Command</h3>
+<p>To create a clean, modern drop shadow, you need to use a single,
+chained ImageMagick command. Here is the standard syntax used to achieve
+this effect:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png <span class="dt">\(</span> +clone <span class="at">-background</span> black <span class="at">-shadow</span> 80x5+10+10 <span class="dt">\)</span> +swap <span class="at">-background</span> none <span class="at">-layers</span> merge +repage output.png</span></code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> If you are using ImageMagick v7 or newer, you
+can simply use <code>magick</code> instead of
+<code>magick convert</code>. If you are on Windows PowerShell, you do
+not need to escape the parentheses with backslashes, so use
+<code>(</code> and <code>)</code> instead of <code>\(</code> and
+<code>\)</code>.</p>
+</blockquote>
+<h3 id="breaking-down-the-parameters">Breaking Down the Parameters</h3>
+<p>Understanding how each flag works allows you to customize the
+intensity, blur, and position of your shadow:</p>
+<ul>
+<li><p><strong><code>\( +clone ... \)</code></strong>: This creates a
+copy of your original image in memory to work on. The operations inside
+the parentheses will only apply to this duplicate layer, which becomes
+the shadow.</p></li>
+<li><p><strong><code>-background black</code></strong>: Sets the color
+of the drop shadow. While black is standard, you can change this to gray
+or any hex color code.</p></li>
+<li><p><strong><code>-shadow 80x5+10+10</code></strong>: This is the
+core engine of the effect. It follows the geometry format:
+<strong><code>{opacity}x{sigma}+{x-offset}+{y-offset}</code></strong>.</p></li>
+<li><p><code>80</code>: The opacity of the shadow (0 to 100).</p></li>
+<li><p><code>5</code>: The softness or blur radius of the shadow. Higher
+numbers mean a softer, more spread-out shadow.</p></li>
+<li><p><code>+10</code>: The horizontal offset. Positive numbers move
+the shadow to the right.</p></li>
+<li><p><code>+10</code>: The vertical offset. Positive numbers move the
+shadow downward.</p></li>
+<li><p><strong><code>+swap</code></strong>: Swaps the layer order so
+that the original image sits on top of the newly created shadow
+layer.</p></li>
+<li><p><strong><code>-background none</code></strong>: Ensures that the
+background canvas behind the shadow remains transparent, preserving the
+image’s ability to overlay nicely on websites or documents.</p></li>
+<li><p><strong><code>-layers merge</code></strong>: Flattens the
+original image layer and the shadow layer into a single cohesive
+graphic.</p></li>
+<li><p><strong><code>+repage</code></strong>: Resets the canvas canvas
+geometry canvas to fit the new, slightly larger dimensions caused by the
+shadow offset.</p></li>
+</ul>
+<h3 id="customizing-your-shadow">Customizing Your Shadow</h3>
+<p>You can adjust the parameters to match different design
+aesthetics.</p>
+<p>For a subtle, modern “soft glow” look that lifts the image straight
+off the page rather than casting a directional light, you can set the
+offsets to zero and increase the blur:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png <span class="dt">\(</span> +clone <span class="at">-background</span> black <span class="at">-shadow</span> 60x10+0+0 <span class="dt">\)</span> +swap <span class="at">-background</span> none <span class="at">-layers</span> merge +repage output.png</span></code></pre></div>
+<p>For a hard, retro pop-art shadow, reduce the blur to zero and
+increase the opacity:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png <span class="dt">\(</span> +clone <span class="at">-background</span> <span class="kw">`</span><span class="co">#555555</span><span class="kw">`</span> <span class="at">-shadow</span> 100x0+15+15 <span class="dt">\)</span> +swap <span class="at">-background</span> none <span class="at">-layers</span> merge +repage output.png</span></code></pre></div></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

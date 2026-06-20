@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Convert Image Color Space to CMYK in ImageMagick? - magick</title>
+    <meta name="description" content="This article provides a quick overview and step-by-step guide on how to change an image's color space to CMYK using the ImageMagick command-line tool. You will learn the basic conversion commands, how to handle color profiles for professional printing, a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-convert-image-color-space-to-cmyk-in-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Convert Image Color Space to CMYK in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-convert-image-color-space-to-cmyk-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview and step-by-step guide on how to change an image's color space to CMYK using the ImageMagick command-line tool. You will learn the basic conversion commands, how to handle color profiles for professional printing, a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-convert-image-color-space-to-cmyk-in-imagemagick">How to
+Convert Image Color Space to CMYK in ImageMagick?</h1>
+<p>This article provides a quick overview and step-by-step guide on how
+to change an image’s color space to CMYK using the ImageMagick
+command-line tool. You will learn the basic conversion commands, how to
+handle color profiles for professional printing, and how to verify that
+your output image is correctly set to the CMYK color space.</p>
+<h3 id="basic-cmyk-conversion">Basic CMYK Conversion</h3>
+<p>To convert an image from its current color space (usually RGB) to
+CMYK, you use the <code>magick</code> command (or <code>convert</code>
+in older versions of ImageMagick) along with the
+<code>-colorspace</code> operator.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> CMYK output.jpg</span></code></pre></div>
+<p>This command performs a direct mathematical translation of the
+channels. While this works perfectly for general use cases, it may not
+perfectly match the exact ink profiles required by commercial
+printers.</p>
+<h3 id="professional-printing-with-color-profiles">Professional Printing
+with Color Profiles</h3>
+<p>For high-quality printing, it is highly recommended to use ICC color
+profiles instead of a generic colorspace conversion. This ensures the
+colors look exactly as intended when printed on paper. To do this, you
+use the <code>-profile</code> option.</p>
+<p>When using profiles, you must first define the input profile (usually
+sRGB) and then define the output CMYK profile (such as U.S. Web Coated
+SWOP v2 or Coated FOGRA39).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-profile</span> sRGB_Profile.icc <span class="at">-profile</span> USWebCoatedSWOP.icc output.jpg</span></code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> If your input image already contains an
+embedded color profile, you only need to specify the target CMYK profile
+in the command. ImageMagick will automatically handle the translation
+from the embedded profile to the new one.</p>
+</blockquote>
+<h3 id="verifying-the-color-space">Verifying the Color Space</h3>
+<p>After running your command, you can verify that the conversion was
+successful by inspecting the image metadata using the
+<code>identify</code> command.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[colorspace]&quot;</span> output.jpg</span></code></pre></div>
+<p>If the conversion was successful, the terminal will output
+<code>CMYK</code>.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

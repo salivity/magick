@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Coalesce a GIF with ImageMagick? - magick</title>
+    <meta name="description" content="When optimizing, resizing, or editing an animated GIF using ImageMagick, the frames often appear distorted, broken, or improperly layered if they are not prepared correctly. This issue happens because GIFs utilize a delta-compression technique where each">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-coalesce-a-gif-with-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Coalesce a GIF with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-coalesce-a-gif-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When optimizing, resizing, or editing an animated GIF using ImageMagick, the frames often appear distorted, broken, or improperly layered if they are not prepared correctly. This issue happens because GIFs utilize a delta-compression technique where each" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-coalesce-a-gif-with-imagemagick">How to Coalesce a GIF
+with ImageMagick?</h1>
+<p>When optimizing, resizing, or editing an animated GIF using
+ImageMagick, the frames often appear distorted, broken, or improperly
+layered if they are not prepared correctly. This issue happens because
+GIFs utilize a delta-compression technique where each frame only saves
+the pixels that change from the previous frame. To fix this, you must
+use the <code>coalesce</code> command to merge those changes and rebuild
+full, independent frames before applying any other image processing
+commands.</p>
+<h3 id="why-you-need-to-coalesce-gifs">Why You Need to Coalesce
+GIFs</h3>
+<p>Many animated GIFs save file space by layering transparent
+backgrounds and small image patches over a base image. If you attempt to
+crop, resize, or flip an uncoalesced GIF, ImageMagick applies the
+operation to these isolated, partial patches instead of the complete
+visual frame. The result is a broken animation with ghosting artifacts,
+strange trails, or blinking layers.</p>
+<h3 id="the-standard-coalesce-command-structure">The Standard Coalesce
+Command Structure</h3>
+<p>To properly process an animation, the <code>magick</code> command (or
+<code>convert</code> in older ImageMagick versions) requires a specific
+sequence: you input the original file, apply <code>-coalesce</code>,
+perform your desired image modifications, and then output the final
+product.</p>
+<p>Here is the fundamental syntax used to unpack the frames:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> output.gif</span></code></pre></div>
+<h3 id="combining-coalesce-with-processing-operations">Combining
+Coalesce with Processing Operations</h3>
+<p>For the best results, always place the <code>-coalesce</code>
+operator immediately after the input filename. This ensures that any
+subsequent operations—like resizing or re-optimizing—are performed on
+clean, fully rendered images.</p>
+<p><strong>Resizing a GIF Correctly:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-resize</span> 500x500 output.gif</span></code></pre></div>
+<p><strong>Cropping a GIF Correctly:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-crop</span> 300x300+10+10 +repage output.gif</span></code></pre></div>
+<h3 id="re-optimizing-the-output-file">Re-optimizing the Output
+File</h3>
+<p>Because the <code>coalesce</code> operation unpacks every frame into
+a full-sized image, the resulting file size will be significantly
+larger. To shrink the file size back down after your image processing is
+complete, you should append the <code>-layers Optimize</code> command
+right before defining your output file. This tells ImageMagick to
+re-compress the animation by calculating new pixel differences.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-resize</span> 400x <span class="op">&gt;</span> -layers Optimize output.gif</span></code></pre></div></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

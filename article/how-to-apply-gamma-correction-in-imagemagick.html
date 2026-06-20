@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Apply Gamma Correction in ImageMagick? - magick</title>
+    <meta name="description" content="Gamma correction is a crucial image processing technique used to adjust the luminance or brightness of an image, compensating for the way human eyes and digital displays perceive light. This article provides a straightforward guide on how to utilize the">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-apply-gamma-correction-in-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Apply Gamma Correction in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-apply-gamma-correction-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Gamma correction is a crucial image processing technique used to adjust the luminance or brightness of an image, compensating for the way human eyes and digital displays perceive light. This article provides a straightforward guide on how to utilize the" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-apply-gamma-correction-in-imagemagick">How to Apply Gamma
+Correction in ImageMagick?</h1>
+<p>Gamma correction is a crucial image processing technique used to
+adjust the luminance or brightness of an image, compensating for the way
+human eyes and digital displays perceive light. This article provides a
+straightforward guide on how to utilize the ImageMagick
+<code>convert</code> command to modify an image’s gamma values. You will
+learn the basic syntax, how to adjust individual color channels, and how
+to preview your results efficiently.</p>
+<h3 id="understanding-the-gamma-command-syntax">Understanding the Gamma
+Command Syntax</h3>
+<p>In ImageMagick, the <code>-gamma</code> operator adjusts the
+mid-tones of an image without altering the absolute black and white
+points. The basic command structure requires you to specify the input
+image, the gamma value, and the output file name.</p>
+<p>The standard syntax is as follows:</p>
+<p><code>magick convert input.jpg -gamma value output.jpg</code></p>
+<blockquote>
+<p><strong>Note:</strong> If you are using ImageMagick version 7 or
+later, the <code>convert</code> command is replaced by the primary
+<code>magick</code> command, though <code>magick convert</code> still
+works for backwards compatibility.</p>
+</blockquote>
+<h3 id="choosing-the-right-gamma-value">Choosing the Right Gamma
+Value</h3>
+<p>The gamma value you input acts as a multiplier for the image’s
+mid-tones. The default neutral gamma value is <span
+class="math inline">\(1.0\)</span>.</p>
+<ul>
+<li><strong>Values greater than 1.0 (e.g., 1.5, 2.2):</strong> These
+values brighten the image. They expand the darker tones and compress the
+highlights, making shadows appear lighter.</li>
+<li><strong>Values less than 1.0 (e.g., 0.7, 0.5):</strong> These values
+darken the image. They compress the darker tones and expand the
+highlights, making the overall image look richer but darker.</li>
+</ul>
+<p>For example, to brighten a dark photo, you might use:</p>
+<p><code>magick convert dark_photo.png -gamma 1.5 bright_photo.png</code></p>
+<h3 id="applying-channel-specific-gamma-correction">Applying
+Channel-Specific Gamma Correction</h3>
+<p>ImageMagick also allows you to target specific color channels (Red,
+Green, or Blue) instead of applying the correction globally. This is
+highly useful for correcting color casts or creative color grading.</p>
+<p>You can pass three comma-separated values representing the Red,
+Green, and Blue channels respectively:</p>
+<p><code>magick convert input.jpg -gamma 1.2,1.0,0.8 output.jpg</code></p>
+<p>In this specific example, the red channel is brightened (<span
+class="math inline">\(1.2\)</span>), the green channel remains unchanged
+(<span class="math inline">\(1.0\)</span>), and the blue channel is
+darkened (<span class="math inline">\(0.8\)</span>). This results in a
+warmer, more reddish-yellow tint in the mid-tones.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

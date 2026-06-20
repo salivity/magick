@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use ImageMagick Convert for Pixel Math? - magick</title>
+    <meta name="description" content="ImageMagick's convert command (or magick in newer versions) provides powerful tools for manipulating images by applying mathematical operations directly to pixel values. By leveraging operators like -fx, -evaluate, and -combine, users can perform basic a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-use-imagemagick-convert-for-pixel-math">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use ImageMagick Convert for Pixel Math? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-use-imagemagick-convert-for-pixel-math" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's convert command (or magick in newer versions) provides powerful tools for manipulating images by applying mathematical operations directly to pixel values. By leveraging operators like -fx, -evaluate, and -combine, users can perform basic a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-imagemagick-convert-for-pixel-math">How to Use
+ImageMagick Convert for Pixel Math?</h1>
+<p>ImageMagick’s <code>convert</code> command (or <code>magick</code> in
+newer versions) provides powerful tools for manipulating images by
+applying mathematical operations directly to pixel values. By leveraging
+operators like <code>-fx</code>, <code>-evaluate</code>, and
+<code>-combine</code>, users can perform basic arithmetic, evaluate
+complex expressions, or blend channels using precise formulas. This
+article walks through the primary methods for executing pixel-level
+math, ranging from simple global adjustments to complex, per-pixel
+custom equations.</p>
+<h3 id="the--evaluate-operator-for-simple-arithmetic">The
+<code>-evaluate</code> Operator for Simple Arithmetic</h3>
+<p>For straightforward mathematical operations applied uniformly to
+every pixel in an image, the <code>-evaluate</code> operator is the most
+efficient choice. It requires a method (such as Add, Subtract, Multiply,
+Divide, or Log) and a constant value.</p>
+<ul>
+<li><strong>Syntax:</strong>
+<code>magick input.jpg -evaluate &lt;operator&gt; &lt;value&gt; output.jpg</code></li>
+<li><strong>Example (Brightening an image by adding value):</strong>
+<code>magick input.jpg -evaluate Add 10% output.jpg</code></li>
+<li><strong>Example (Halving contrast/brightness via division):</strong>
+<code>magick input.jpg -evaluate Divide 2 output.jpg</code></li>
+</ul>
+<p>Using <code>-evaluate</code> is highly optimized and executes rapidly
+because the same calculation is applied identically across the entire
+image matrix.</p>
+<h3 id="the--fx-operator-for-complex-custom-formulas">The
+<code>-fx</code> Operator for Complex Custom Formulas</h3>
+<p>When an operation requires different logic per pixel, depends on
+pixel coordinates, or needs to reference multiple channels, the
+<code>-fx</code> operator is the ideal tool. It allows you to write
+custom mathematical expressions using a built-in mini-language.</p>
+<ul>
+<li><strong>Syntax:</strong>
+<code>magick input.jpg -fx "expression" output.jpg</code></li>
+</ul>
+<p>The expression can utilize various native variables and
+functions:</p>
+<ul>
+<li><code>u</code>: The first input image.</li>
+<li><code>i</code> and <code>j</code>: The current column and row
+coordinates.</li>
+<li><code>w</code> and <code>h</code>: The width and height of the
+image.</li>
+<li><code>r</code>, <code>g</code>, <code>b</code>: The red, green, and
+blue channel values of the current pixel (normalized between 0.0 and
+1.0).</li>
+</ul>
+<p>For example, to create a horizontal gradient by multiplying the red
+channel by its relative X-coordinate, you can use:</p>
+<p><code>magick input.jpg -fx "u.r * (i/w)" output.jpg</code></p>
+<blockquote>
+<p><strong>Note:</strong> While incredibly powerful, the
+<code>-fx</code> operator interprets expressions dynamically for every
+single pixel, making it significantly slower than native operators on
+large images.</p>
+</blockquote>
+<h3 id="multi-image-math-with-channel-operators">Multi-Image Math with
+Channel Operators</h3>
+<p>ImageMagick can also perform mathematical operations between two or
+more distinct images. The <code>-compose</code> operator combined with
+<code>-composite</code> allows you to add, subtract, or multiply the
+pixel values of one image against another.</p>
+<ul>
+<li><strong>To subtract one image from another (useful for finding
+differences):</strong>
+<code>magick image1.png image2.png -compose Subtract -composite difference.png</code></li>
+<li><strong>To multiply two images together (useful for masking and
+shading):</strong>
+<code>magick image1.png image2.png -compose Multiply -composite blended.png</code></li>
+</ul>
+<p>For advanced multi-image mathematics where you want to apply a
+specific formula to multiple inputs simultaneously, the
+<code>-poly</code> (polynomial) operator or
+<code>-evaluate-sequence</code> operator can be used to calculate sums,
+averages, or weighted totals across an entire stack of images.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

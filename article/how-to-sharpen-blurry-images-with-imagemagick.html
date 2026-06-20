@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Sharpen Blurry Images with ImageMagick? - magick</title>
+    <meta name="description" content="ImageMagick is a powerful command-line tool that can quickly restore clarity to soft or blurry photographs. By utilizing the convert command alongside specific image processing operators like -sharpen and -unsharp, you can enhance edge contrast and bring">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-sharpen-blurry-images-with-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Sharpen Blurry Images with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-sharpen-blurry-images-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick is a powerful command-line tool that can quickly restore clarity to soft or blurry photographs. By utilizing the convert command alongside specific image processing operators like -sharpen and -unsharp, you can enhance edge contrast and bring" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-sharpen-blurry-images-with-imagemagick">How to Sharpen
+Blurry Images with ImageMagick?</h1>
+<p>ImageMagick is a powerful command-line tool that can quickly restore
+clarity to soft or blurry photographs. By utilizing the
+<code>convert</code> command alongside specific image processing
+operators like <code>-sharpen</code> and <code>-unsharp</code>, you can
+enhance edge contrast and bring out hidden details in your digital
+images. This guide will walk you through the essential commands, syntax,
+and advanced techniques required to effectively sharpen your photos
+directly from the terminal.</p>
+<h3 id="the-basic-sharpen-command">The Basic Sharpen Command</h3>
+<p>The most straightforward way to fix a soft image in ImageMagick is by
+using the <code>-sharpen</code> operator. This built-in function applies
+a Gaussian enhancement filter to the image to increase the contrast
+along the edges.</p>
+<p>The basic syntax requires two parameters: <strong>radius</strong> and
+<strong>sigma</strong>.</p>
+<p><code>magick convert input.jpg -sharpen radiusxsigma output.jpg</code></p>
+<ul>
+<li><strong>Radius:</strong> The size of the pixel neighborhood the
+command looks at. You can often set this to <code>0</code>, which tells
+ImageMagick to automatically calculate the best radius based on your
+sigma value.</li>
+<li><strong>Sigma:</strong> The standard deviation of the Laplacian,
+which dictates how much blurring or sharpening is applied. This is the
+most crucial setting to tweak. A good starting point for a subtle
+sharpen is a sigma of <code>1</code> or <code>2</code>.</li>
+</ul>
+<p>For a standard, quick enhancement, you can run:</p>
+<p><code>magick convert blurry_photo.jpg -sharpen 0x1.5 sharpened_photo.jpg</code></p>
+<h3 id="the-advanced-unsharp-mask-command">The Advanced Unsharp Mask
+Command</h3>
+<p>While the basic sharpen command works well, professional image
+editors usually prefer the <code>-unsharp</code> operator. Despite its
+counterintuitive name, an unsharp mask is the gold standard for digital
+sharpening because it offers much greater control over the final look,
+preventing the image from looking overly pixelated or digital.</p>
+<p>The unsharp mask syntax takes four distinct parameters:</p>
+<p><code>magick convert input.jpg -unsharp radiusxsigma+amount+threshold output.jpg</code></p>
+<ul>
+<li><strong>Radius and Sigma:</strong> Just like the basic command,
+these control the width of the sharpening effect. Setting the radius to
+<code>0</code> and sigma to <code>1.0</code> is a reliable default.</li>
+<li><strong>Amount:</strong> The percentage of difference added back
+into the image. This controls the intensity of the sharpening. It is
+expressed as a fraction or a percentage, usually ranging from
+<code>0.5</code> to <code>2.0</code> (or 50% to 200%).</li>
+<li><strong>Threshold:</strong> The minimum contrast difference required
+to apply the sharpening. This is incredibly useful for preventing the
+command from sharpening background noise or film grain. A small
+threshold like <code>0.05</code> ensures only actual edges are
+targeted.</li>
+</ul>
+<p>An effective command for a noticeably blurry photo would look like
+this:</p>
+<p><code>magick convert blurry_photo.jpg -unsharp 0x1.5+1.2+0.02 sharpened_photo.jpg</code></p>
+<h3 id="tips-for-best-results">Tips for Best Results</h3>
+<p>When using ImageMagick to fix blurry photos, keep these best
+practices in mind to avoid introducing ugly artifacts or digital noise
+to your images:</p>
+<ul>
+<li><strong>Increment Slowly:</strong> Start with a low sigma (like
+<code>0.5</code> or <code>1.0</code>) and increase it by small fractions
+until you achieve the desired clarity.</li>
+<li><strong>Watch the Highlights:</strong> Over-sharpening will cause
+“halos”—bright white lines along dark edges. If you see these artifacts,
+reduce your amount or sigma value.</li>
+<li><strong>Batch Processing:</strong> If you have an entire folder of
+blurry photos taken under the same conditions, you can harness the power
+of the command line to sharpen them all at once using a wildcard
+loop.</li>
+</ul></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

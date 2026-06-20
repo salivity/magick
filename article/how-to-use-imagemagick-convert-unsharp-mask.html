@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to use ImageMagick convert unsharp mask? - magick</title>
+    <meta name="description" content="This article provides a quick overview and practical guide on how to use the ImageMagick convert command to apply an unsharp mask, a powerful digital image processing technique used to enhance sharpness and clarity. You will learn the specific syntax of">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-use-imagemagick-convert-unsharp-mask">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to use ImageMagick convert unsharp mask? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-use-imagemagick-convert-unsharp-mask" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview and practical guide on how to use the ImageMagick convert command to apply an unsharp mask, a powerful digital image processing technique used to enhance sharpness and clarity. You will learn the specific syntax of" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-imagemagick-convert-unsharp-mask">How to use
+ImageMagick convert unsharp mask?</h1>
+<p>This article provides a quick overview and practical guide on how to
+use the ImageMagick <code>convert</code> command to apply an unsharp
+mask, a powerful digital image processing technique used to enhance
+sharpness and clarity. You will learn the specific syntax of the
+<code>-unsharp</code> operator, understand how its various numerical
+parameters control the sharpening effect, and see concrete examples to
+achieve professional results on your images.</p>
+<p>Sharpening an image with ImageMagick relies on the
+<code>-unsharp</code> option, which actually uses a blurred (or
+“unsharp”) negative image to create a mask, adding contrast back into
+the original image’s edges. The command follows a standard structure
+where you pass a specific sequence of numbers to fine-tune the radius,
+sigma, gain, and threshold of the effect.</p>
+<p>The basic syntax for the command looks like this:</p>
+<p><code>magick convert input.jpg -unsharp radiusxsigma+gain+threshold output.jpg</code></p>
+<blockquote>
+<p><strong>Note:</strong> If you are using ImageMagick v7 or later, the
+standard command is simply <code>magick</code> instead of
+<code>magick convert</code>, but the parameters for the unsharp mask
+remain exactly the same.</p>
+</blockquote>
+<p>To get the best results, it helps to understand what each of these
+four parameters controls:</p>
+<ul>
+<li><strong>Radius:</strong> This determines the size of the blurring
+gaussion core. A value of 0 is often recommended because ImageMagick
+will automatically calculate the best radius based on your sigma
+value.</li>
+<li><strong>Sigma:</strong> This is the standard deviation of the
+Gaussian blur and is the most critical parameter. It dictates the width
+of the sharpening band around the edges. A good starting point for web
+images is usually between 0.5 and 1.5.</li>
+<li><strong>Gain (Amount):</strong> This controls the intensity or
+strength of the sharpening effect, expressed as a fraction or
+percentage. For example, 1.0 or 1.5 adds a noticeable amount of
+sharpness, while higher numbers can cause artifacts.</li>
+<li><strong>Threshold:</strong> This acts as a noise-reduction filter.
+It determines the minimum contrast difference required for an edge to be
+sharpened. A small threshold (like 0.05) ensures that minor digital
+noise or skin textures aren’t accidentally sharpened and ruined.</li>
+</ul>
+<p>Here are a few practical examples demonstrating how to combine these
+settings for different photography needs:</p>
+<h3 id="standard-web-sharpening">Standard Web Sharpening</h3>
+<p>For general images being prepared for a website, you want a subtle
+but noticeable boost in clarity without creating harsh artifacts.
+<code>magick convert photo.jpg -unsharp 0x1+1.0+0.05 sharp_photo.jpg</code></p>
+<h3 id="strong-edge-sharpening">Strong Edge Sharpening</h3>
+<p>If you are working with slightly blurry text, architectural
+photography, or images with distinct lines, you can increase the gain.
+<code>magick convert document.png -unsharp 0x1.2+2.0+0.02 sharp_document.png</code></p>
+<h3 id="softfine-detail-sharpening">Soft/Fine Detail Sharpening</h3>
+<p>For portraits or nature shots where you want to preserve soft
+gradients but sharpen fine details like hair or feathers, use a smaller
+sigma and lower gain.
+<code>magick convert portrait.jpg -unsharp 0x0.5+0.8+0.1 sharp_portrait.jpg</code></p>
+<p>When experimenting with ImageMagick sharpening, it is always best
+practice to test different sigma and gain combinations on a duplicate
+image until you find the perfect balance for your specific resolution
+and subject matter.</p></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

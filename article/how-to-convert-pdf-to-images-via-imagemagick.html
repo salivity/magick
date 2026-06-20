@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Convert PDF to Images via ImageMagick? - magick</title>
+    <meta name="description" content="Converting a multi-page PDF into individual image files is a common task that can be efficiently handled using the ImageMagick convert command. This article provides a straightforward guide on how to execute this command, manage image quality, and troubl">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-convert-pdf-to-images-via-imagemagick">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js" defer></script>
+    <script id="MathJax-script" src="/magick/js/mathjax.min.js" async></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Convert PDF to Images via ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-convert-pdf-to-images-via-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting a multi-page PDF into individual image files is a common task that can be efficiently handled using the ImageMagick convert command. This article provides a straightforward guide on how to execute this command, manage image quality, and troubl" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="https://github.com/salivity" title="Github" aria-label="Go To Github Profile Page"><svg class="svg-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27"></path></svg></a></li>
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-convert-pdf-to-images-via-imagemagick">How to Convert PDF
+to Images via ImageMagick?</h1>
+<p>Converting a multi-page PDF into individual image files is a common
+task that can be efficiently handled using the ImageMagick
+<code>convert</code> command. This article provides a straightforward
+guide on how to execute this command, manage image quality, and
+troubleshoot common permission issues that users frequently encounter
+during the conversion process.</p>
+<hr />
+<h3 id="the-basic-conversion-command">The Basic Conversion Command</h3>
+<p>To split a multi-page PDF into separate images, you use the
+<code>convert</code> command followed by the input PDF file name and the
+desired output file name. ImageMagick automatically detects multi-page
+inputs and appends a numbering sequence to the output files.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.pdf output-%d.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.pdf</code> is the source document.</li>
+<li><code>output-%d.jpg</code> specifies the format. The <code>%d</code>
+acts as a wildcard that inserts the page number (starting at 0),
+resulting in files like <code>output-0.jpg</code>,
+<code>output-1.jpg</code>, and so on. You can also use formats like
+<code>.png</code> or <code>.tiff</code>.</li>
+</ul>
+<h3 id="optimizing-image-quality-and-resolution">Optimizing Image
+Quality and Resolution</h3>
+<p>By default, ImageMagick may render PDF pages at a low resolution,
+resulting in blurry or pixelated text. To ensure high-quality output,
+you should specify the density (DPI) <strong>before</strong> loading the
+input file.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-density</span> 300 input.pdf <span class="at">-quality</span> 90 output-%d.jpg</span></code></pre></div>
+<ul>
+<li><code>-density 300</code>: Sets the horizontal and vertical
+resolution to 300 DPI, which is standard for high-quality viewing and
+printing.</li>
+<li><code>-quality 90</code>: Adjusts the compression level for JPEG
+images (on a scale of 1-100), ensuring a good balance between file size
+and visual clarity.</li>
+</ul>
+<h3 id="selecting-specific-pages">Selecting Specific Pages</h3>
+<p>If you do not want to convert the entire document, you can target
+specific pages by appending the page index in square brackets
+immediately after the PDF file name. Remember that ImageMagick uses
+zero-based indexing (page 1 is <code>[0]</code>).</p>
+<ul>
+<li><strong>Convert only the first page:</strong></li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-density</span> 300 input.pdf<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output-first.jpg</span></code></pre></div>
+<ul>
+<li><strong>Convert a range of pages (e.g., pages 2 to 4):</strong></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-density</span> 300 input.pdf<span class="pp">[</span><span class="ss">1</span><span class="pp">-</span><span class="ss">3</span><span class="pp">]</span> output-range-%d.jpg</span></code></pre></div>
+<h3 id="troubleshooting-fixing-the-policy-error">Troubleshooting: Fixing
+the Policy Error</h3>
+<p>Many modern Linux distributions disable PDF conversion by default in
+ImageMagick due to security vulnerabilities associated with Ghostscript
+(the engine ImageMagick uses to read PDFs). If you encounter an error
+resembling
+<code>attempt to perform an operation not allowed by the security policy 'PDF'</code>,
+you must edit the policy configuration file.</p>
+<ol type="1">
+<li>Open the ImageMagick policy file in a text editor with root
+privileges:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/ImageMagick-7/policy.xml</span></code></pre></div>
+<p><em>(Note: The path might be
+<code>/etc/ImageMagick-6/policy.xml</code> depending on your
+version).</em> 2. Locate the line that reads:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span></code></pre></div>
+<ol start="3" type="1">
+<li>Change the rights from <code>"none"</code> to <code>"read"</code> or
+<code>"read|write"</code>:</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read|write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span></code></pre></div>
+<ol start="4" type="1">
+<li>Save and close the file. The <code>convert</code> command will now
+function without security restrictions.</li>
+</ol></article>
+        <div id=comments-container></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'light' ? 'github-light' : 'github-dark'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

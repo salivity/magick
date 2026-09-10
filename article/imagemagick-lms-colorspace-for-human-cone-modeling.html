@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick LMS Colorspace for Human Cone Modeling - magick</title>
+    <meta name="description" content="In digital image processing, transforming standard RGB data into physiological representations is necessary to evaluate how human eyes actually perceive light and color. The ImageMagick -colorspace LMS setting maps pixel data into the LMS color space, di">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-lms-colorspace-for-human-cone-modeling">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick LMS Colorspace for Human Cone Modeling - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-lms-colorspace-for-human-cone-modeling" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In digital image processing, transforming standard RGB data into physiological representations is necessary to evaluate how human eyes actually perceive light and color. The ImageMagick -colorspace LMS setting maps pixel data into the LMS color space, di" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-lms-colorspace-for-human-cone-modeling">ImageMagick
+LMS Colorspace for Human Cone Modeling</h1>
+<p>In digital image processing, transforming standard RGB data into
+physiological representations is necessary to evaluate how human eyes
+actually perceive light and color. The ImageMagick
+<code>-colorspace LMS</code> setting maps pixel data into the LMS color
+space, directly corresponding to the spectral sensitivities of the human
+eye's three cone photoreceptors: Long (L), Medium (M), and Short (S)
+wavelengths. This article explains how this setting models biological
+cone responses, why it differs from standard display color spaces, and
+how it is applied in vision science, chromatic adaptation, and color
+vision deficiency simulation.</p>
+<h3 id="the-biological-basis-of-the-lms-color-space">The Biological
+Basis of the LMS Color Space</h3>
+<p>Human photopic (daylight) vision relies on three distinct classes of
+cone photoreceptors located in the retina:</p>
+<ul>
+<li><strong>L cones:</strong> Sensitive primarily to long-wavelength
+light, peaking around 560 nm (reddish spectrum).</li>
+<li><strong>M cones:</strong> Sensitive to medium-wavelength light,
+peaking around 530 nm (greenish spectrum).</li>
+<li><strong>S cones:</strong> Sensitive to short-wavelength light,
+peaking around 420 nm (bluish spectrum).</li>
+</ul>
+<p>Standard digital color spaces such as sRGB, Adobe RGB, or standard
+RGB define coordinates based on arbitrary display phosphor or LED
+emission spectra, not human retinal absorption curves. When the
+<code>-colorspace LMS</code> operator is applied in ImageMagick, the
+engine converts device-dependent trichromatic data (typically via an
+intermediate CIE XYZ profile) into three-channel outputs representing
+the calculated excitation levels of these three cone types.</p>
+<h3 id="the-transformation-process">The Transformation Process</h3>
+<p>When executing
+<code>magick input.png -colorspace LMS output.png</code>, ImageMagick
+performs a linear matrix transformation on the image data:</p>
+<ol type="1">
+<li><strong>Linearization:</strong> Non-linear gamma-corrected RGB
+values are linearized to ensure physical light intensity is
+conserved.</li>
+<li><strong>XYZ Conversion:</strong> The linear RGB values are projected
+into CIE XYZ tristimulus space, standardizing the colorimetry relative
+to a reference white point (usually D65).</li>
+<li><strong>LMS Projection:</strong> A transformation matrix (such as
+the CAT02 or Hunt-Pointer-Estevez matrix) multiplies the XYZ coordinates
+to obtain the biological L, M, and S excitation states.</li>
+</ol>
+<p>In the resulting file, the red, green, and blue channels no longer
+designate monitor output; instead, Channel 0 represents L-cone
+excitation, Channel 1 represents M-cone excitation, and Channel 2
+represents S-cone excitation.</p>
+<h3 id="key-functions-in-cone-response-modeling">Key Functions in Cone
+Response Modeling</h3>
+<h4 id="simulating-color-vision-deficiency-cvd">Simulating Color Vision
+Deficiency (CVD)</h4>
+<p>The primary functional utility of ImageMagick’s LMS conversion is
+simulating human color blindness, including protanopia (absence of L
+cones), deuteranopia (absence of M cones), and tritanopia (absence of S
+cones). Because standard RGB channels contain overlapping stimuli for
+both L and M cones, accurate deficiency modeling cannot be achieved
+through simple channel subtraction in RGB. In LMS space, an algorithm
+can mathematically flatten or project one cone axis onto the remaining
+operational axes before converting the image back to sRGB.</p>
+<h4 id="chromatic-adaptation-and-white-balancing">Chromatic Adaptation
+and White Balancing</h4>
+<p>The human visual system automatically adjusts perceived color based
+on the illumination source, a mechanism described by the von Kries
+adaptation model. The von Kries transform operates under the assumption
+that chromatic adaptation occurs independently within each cone class by
+scaling the L, M, and S responses. By isolating these channels using
+<code>-colorspace LMS</code>, researchers can scale individual cone
+channels to simulate how visual stimuli appear under varying illuminants
+(e.g., daylight versus incandescent lighting).</p>
+<h4 id="visual-perception-and-psychophysics">Visual Perception and
+Psychophysics</h4>
+<p>For computational models that evaluate perceived image difference,
+masking, or contrast sensitivity, processing images in LMS provides
+biologically grounded input data. Evaluating contrast across separate
+L-M (red-green opponent) and S-(L+M) (blue-yellow opponent) neural
+pathways requires LMS cone catch data as the initial computational
+step.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

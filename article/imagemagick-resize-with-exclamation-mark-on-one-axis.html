@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Resize With Exclamation Mark on One Axis - magick</title>
+    <meta name="description" content="When using ImageMagick’s resize geometry with an exclamation mark on only one axis (such as 500x! or x300!), the engine disables its standard aspect-ratio calculations and applies the explicit pixel target to the specified axis while leaving the omitte">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-resize-with-exclamation-mark-on-one-axis">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Resize With Exclamation Mark on One Axis - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-resize-with-exclamation-mark-on-one-axis" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When using ImageMagick’s resize geometry with an exclamation mark on only one axis (such as 500x! or x300!), the engine disables its standard aspect-ratio calculations and applies the explicit pixel target to the specified axis while leaving the omitte" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-resize-with-exclamation-mark-on-one-axis">ImageMagick
+Resize With Exclamation Mark on One Axis</h1>
+<p>When using ImageMagick’s resize geometry with an exclamation mark on
+only one axis (such as <code>500x!</code> or <code>x300!</code>), the
+engine disables its standard aspect-ratio calculations and applies the
+explicit pixel target to the specified axis while leaving the omitted
+axis at its original, unscaled dimension. This article details the
+geometry parser's internal mechanics, the calculation logic for the
+bounding dimensions, and how single-axis forced scaling behaves across
+different syntax variants.</p>
+<h2 id="default-proportional-behavior-vs-forced-geometry">Default
+Proportional Behavior vs. Forced Geometry</h2>
+<p>Under standard operation without an exclamation mark, ImageMagick
+preserves an image's aspect ratio. Specifying a single dimension, such
+as <code>-resize 500x</code>, tells the parser to set the width to 500
+pixels and calculate the missing height using the image's original
+proportions:</p>
+<p><span class="math display">\[\text{Target Height} = \text{Target
+Width} \times \left(\frac{\text{Original Height}}{\text{Original
+Width}}\right)\]</span></p>
+<p>The exclamation mark (<code>!</code>) sets the
+<code>AspectValue</code> flag in ImageMagick's geometry parser, which
+explicitly instructs the engine to ignore aspect ratios and force exact
+pixel dimensions.</p>
+<h2 id="calculation-logic-for-single-axis-forced-resizing">Calculation
+Logic for Single-Axis Forced Resizing</h2>
+<p>When ImageMagick evaluates a geometry string, it parses the input
+into distinct components: width, height, offsets, and operational flags
+(<code>WidthValue</code>, <code>HeightValue</code>, and
+<code>AspectValue</code>).</p>
+<p>When an exclamation mark is paired with only one defined dimension
+(e.g., <code>-resize 500x!</code>):</p>
+<ol type="1">
+<li><strong>Flag Detection:</strong> The parser registers
+<code>WidthValue</code> and <code>AspectValue</code>, while
+<code>HeightValue</code> remains unset.</li>
+<li><strong>Suppression of Proportional Scaling:</strong> Because
+<code>AspectValue</code> is active, ImageMagick bypasses the
+proportional calculation function that would normally compute the
+missing axis.</li>
+<li><strong>Fallback to Native Dimensions:</strong> Rather than
+assigning a zero or scaling the missing dimension to match the defined
+axis, ImageMagick falls back to the source image's existing dimension
+for the unspecified coordinate.</li>
+</ol>
+<p>As a result, the bounding box calculation resolves as:</p>
+<ul>
+<li><p><strong>For <code>[width]x!</code> (e.g.,
+<code>500x!</code>):</strong><br />
+<span class="math display">\[\text{Final Width} = \text{Specified Width
+(500 px)}\]</span><br />
+<span class="math display">\[\text{Final Height} = \text{Original Source
+Height}\]</span></p></li>
+<li><p><strong>For <code>x[height]!</code> (e.g.,
+<code>x300!</code>):</strong><br />
+<span class="math display">\[\text{Final Width} = \text{Original Source
+Width}\]</span><br />
+<span class="math display">\[\text{Final Height} = \text{Specified
+Height (300 px)}\]</span></p></li>
+</ul>
+<p>The resulting image is stretched or squashed exclusively along the
+targeted axis, while the untouched axis undergoes no resampling or
+dimensional change.</p>
+<h2 id="syntax-nuance-500x-versus-500">Syntax Nuance: <code>500x!</code>
+versus <code>500!</code></h2>
+<p>Geometry strings must be structured carefully when targeting a single
+axis.</p>
+<ul>
+<li><strong><code>500x!</code> explicitly defines the width separator
+(<code>x</code>).</strong> ImageMagick correctly identifies that only
+the horizontal axis is defined and leaves the vertical axis at its
+native resolution.</li>
+<li><strong><code>500!</code> omits the <code>x</code> separator
+entirely.</strong> In ImageMagick's geometry specification, a single
+integer without an <code>x</code> can be interpreted as defining a
+bounding square where both width and height default to the same value
+(<span class="math inline">\(500 \times 500\)</span>). With the
+<code>!</code> flag applied, <code>500!</code> forces the image into a
+<span class="math inline">\(500 \times 500\)</span> square rather than
+preserving the native height.</li>
+</ul>
+<p>To isolate scaling to a single dimension without affecting the other,
+always include the <code>x</code> delimiter to explicitly designate
+which axis is being targeted.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

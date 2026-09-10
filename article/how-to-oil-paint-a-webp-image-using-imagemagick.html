@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Oil Paint a WebP Image Using ImageMagick? - magick</title>
+    <meta name="description" content="ImageMagick provides a built-in -paint effect that simulates the look of an oil painting on raster images, including the WebP format. By adjusting the brush radius parameter alongside preprocessing techniques like contrast enhancement and edge sharpening">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-oil-paint-a-webp-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Oil Paint a WebP Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-oil-paint-a-webp-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides a built-in -paint effect that simulates the look of an oil painting on raster images, including the WebP format. By adjusting the brush radius parameter alongside preprocessing techniques like contrast enhancement and edge sharpening" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-oil-paint-a-webp-image-using-imagemagick">How to Oil
+Paint a WebP Image Using ImageMagick?</h1>
+<p>ImageMagick provides a built-in <code>-paint</code> effect that
+simulates the look of an oil painting on raster images, including the
+WebP format. By adjusting the brush radius parameter alongside
+preprocessing techniques like contrast enhancement and edge sharpening,
+you can transform flat WebP photos into rich, textured digital paintings
+directly from the command line.</p>
+<h2 id="prerequisites-and-setup">Prerequisites and Setup</h2>
+<p>Before processing WebP files, ensure your ImageMagick installation
+includes the WebP delegate library (<code>libwebp</code>). Modern
+distributions usually bundle this automatically.</p>
+<p>You can verify WebP support on your machine with:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> under the listed delegates. In modern
+versions (ImageMagick 7+), use the unified <code>magick</code> command
+instead of the legacy <code>convert</code> executable.</p>
+<h2 id="the-core-oil-paint-command">The Core Oil Paint Command</h2>
+<p>The primary operator for this effect is
+<code>-paint &lt;radius&gt;</code>. The radius value dictates the
+simulated stroke size: larger values smooth out fine details and mimic
+broad brush strokes, while smaller values preserve finer lines.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-paint</span> 4 output.webp</span></code></pre></div>
+<p>A radius between 3 and 8 works best for standard photography. A
+radius below 3 produces a subtle canvas stippling effect, whereas values
+above 10 can blur out facial features and fine subjects entirely.</p>
+<h2 id="enhancing-the-oil-paint-aesthetic">Enhancing the Oil Paint
+Aesthetic</h2>
+<p>A raw <code>-paint</code> pass can occasionally leave images looking
+flat or washed out. To produce a more convincing artistic medium, chain
+additional ImageMagick operators to boost brushstroke contrast, dynamic
+range, and texture.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 105,130,100 <span class="at">-paint</span> 5 <span class="at">-unsharp</span> 0x2+1.5+0.05 <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<p>This pipeline performs several steps in a single execution:</p>
+<ul>
+<li><strong><code>-modulate 105,130,100</code></strong>: Slightly lifts
+overall brightness (105%) and intensifies color saturation (130%) to
+mirror vibrant oil pigments.</li>
+<li><strong><code>-paint 5</code></strong>: Applies the paint filter
+using a 5-pixel circular sampling radius.</li>
+<li><strong><code>-unsharp 0x2+1.5+0.05</code></strong>: Runs an unsharp
+mask over the blended strokes, emphasizing simulated impasto ridges and
+stroke edges.</li>
+<li><strong><code>-define webp:lossless=true</code></strong>: Writes the
+resulting WebP using lossless compression so fine texture edges do not
+suffer from compression artifacts.</li>
+</ul>
+<h2 id="batch-processing-webp-directories">Batch Processing WebP
+Directories</h2>
+<p>To apply the oil painting transformation across an entire folder of
+WebP images, use a shell loop.</p>
+<p>On Linux or macOS using Bash:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.webp<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-paint</span> 4 <span class="at">-unsharp</span> 0x1+1+0.05 <span class="st">&quot;painted_</span><span class="va">${file}</span><span class="st">&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>On Windows Command Prompt:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="er">%f</span> <span class="er">in</span> <span class="er">(*.webp)</span> <span class="er">do</span> <span class="er">magick</span> <span class="er">&quot;%f&quot;</span> <span class="er">-paint</span> <span class="er">4</span> <span class="er">-unsharp</span> <span class="er">0x1+1+0.05</span> <span class="er">&quot;painted_%f&quot;</span></span></code></pre></div>
+<p>These loops process each WebP file sequentially, creating a new file
+prefixed with <code>painted_</code> while preserving your original
+source images.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

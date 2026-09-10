@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Contrast vs Contrast-Stretch Explained - magick</title>
+    <meta name="description" content="ImageMagick provides multiple methods to enhance the tonal quality of an image, with -contrast and -contrast-stretch being two distinct operators designed for different image processing tasks. In short, the -contrast operator modifies the tonal curve non">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-contrast-vs-contrast-stretch-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Contrast vs Contrast-Stretch Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-contrast-vs-contrast-stretch-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides multiple methods to enhance the tonal quality of an image, with -contrast and -contrast-stretch being two distinct operators designed for different image processing tasks. In short, the -contrast operator modifies the tonal curve non" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-contrast-vs-contrast-stretch-explained">ImageMagick
+Contrast vs Contrast-Stretch Explained</h1>
+<p>ImageMagick provides multiple methods to enhance the tonal quality of
+an image, with <code>-contrast</code> and <code>-contrast-stretch</code>
+being two distinct operators designed for different image processing
+tasks. In short, the <code>-contrast</code> operator modifies the tonal
+curve non-linearly to increase or decrease contrast without clipping
+values, while the <code>-contrast-stretch</code> operator dynamically
+expands the image's histogram to cover the full range between pure black
+and pure white by clipping specified amounts of shadow and highlight
+data.</p>
+<h3 id="the--contrast-operator">The <code>-contrast</code> Operator</h3>
+<p>The <code>-contrast</code> operator enhances the tonal difference
+between light and dark regions by applying a non-linear, S-curve
+transformation centered around the midtones.</p>
+<ul>
+<li><strong>Behavior:</strong> It increases the separation between light
+and dark pixels without shifting the absolute black or white endpoints
+of the dynamic range. Using <code>+contrast</code> performs the inverse
+operation, flattening the contrast.</li>
+<li><strong>Parameters:</strong> This operator accepts no arguments. To
+increase the effect, you must repeat the command flag sequentially
+(e.g., <code>-contrast -contrast</code>).</li>
+<li><strong>Use Case:</strong> Subtle, artistic adjustments where you
+want to boost vibrancy and tonal separation without blowing out
+highlights or crushing shadows to absolute black.</li>
+</ul>
+<h3 id="the--contrast-stretch-operator">The
+<code>-contrast-stretch</code> Operator</h3>
+<p>The <code>-contrast-stretch</code> operator performs a linear dynamic
+range expansion by manipulating the image histogram.</p>
+<ul>
+<li><strong>Behavior:</strong> It locates the darkest and brightest
+pixels and remaps them so the darkest value becomes pure black (0) and
+the brightest value becomes pure white (QuantumRange). During this
+process, it clips a defined percentage or count of pixels at the extreme
+ends of the spectrum to ensure washed-out images gain strong dynamic
+range.</li>
+<li><strong>Parameters:</strong> It requires arguments defining the
+black-point and white-point cutoffs, formatted as
+<code>black-point{xwhite-point}{%}</code> (for example,
+<code>-contrast-stretch 0.15x0.05%</code>).</li>
+<li><strong>Use Case:</strong> Correcting underexposed, overexposed, or
+low-contrast scans and photos by stretching the tonal scale to fill the
+full color spectrum.</li>
+</ul>
+<h3 id="key-differences">Key Differences</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>-contrast</code></th>
+<th style="text-align: left;"><code>-contrast-stretch</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Adjustment Method</strong></td>
+<td style="text-align: left;">Non-linear S-curve transformation</td>
+<td style="text-align: left;">Linear histogram stretching with
+clipping</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Range Expansion</strong></td>
+<td style="text-align: left;">Maintains existing minimum/maximum
+values</td>
+<td style="text-align: left;">Expands levels to pure black and pure
+white</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Parameters</strong></td>
+<td style="text-align: left;">None (stacked sequentially for greater
+effect)</td>
+<td style="text-align: left;">Explicit black-point and white-point
+values/percentages</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Reversibility</strong></td>
+<td style="text-align: left;">Can be reduced with
+<code>+contrast</code></td>
+<td style="text-align: left;">Irreversible due to clipped pixel
+data</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Goal</strong></td>
+<td style="text-align: left;">Enhancing visual punch without altering
+range</td>
+<td style="text-align: left;">Normalizing dynamic range across the full
+spectrum</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

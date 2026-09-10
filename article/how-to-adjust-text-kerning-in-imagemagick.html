@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Adjust Text Kerning in ImageMagick - magick</title>
+    <meta name="description" content="Adjusting letter spacing in ImageMagick is handled using the -kerning command-line option. This guide details the proper syntax for applying both positive and negative kerning adjustments when rendering text, complete with practical code examples for Ima">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-adjust-text-kerning-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Adjust Text Kerning in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-adjust-text-kerning-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting letter spacing in ImageMagick is handled using the -kerning command-line option. This guide details the proper syntax for applying both positive and negative kerning adjustments when rendering text, complete with practical code examples for Ima" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-adjust-text-kerning-in-imagemagick">How to Adjust Text
+Kerning in ImageMagick</h1>
+<p>Adjusting letter spacing in ImageMagick is handled using the
+<code>-kerning</code> command-line option. This guide details the proper
+syntax for applying both positive and negative kerning adjustments when
+rendering text, complete with practical code examples for ImageMagick v6
+and v7 using the <code>label:</code> and <code>-annotate</code>
+methods.</p>
+<h2 id="the--kerning-option">The <code>-kerning</code> Option</h2>
+<p>The <code>-kerning</code> option modifies the spacing between
+characters. It accepts an integer or a floating-point value:</p>
+<ul>
+<li><strong>Positive values</strong> (e.g., <code>-kerning 5</code>)
+expand the space between characters.</li>
+<li><strong>Negative values</strong> (e.g., <code>-kerning -2</code>)
+condense the space, pulling letters closer together.</li>
+<li><strong>Default value</strong> is <code>0</code>, which uses the
+font's native spacing metrics.</li>
+</ul>
+<p>The setting must be placed <strong>before</strong> the text rendering
+operator (such as <code>label:</code>, <code>caption:</code>, or
+<code>-annotate</code>) so ImageMagick can apply the metric before
+drawing the glyphs.</p>
+<h2 id="syntax-for-imagemagick-7">Syntax for ImageMagick 7</h2>
+<p>In ImageMagick 7, commands use the <code>magick</code> binary.</p>
+<h3 id="example-using-label">Example Using <code>label:</code></h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-font</span> Arial <span class="at">-pointsize</span> 48 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-kerning</span> 4 <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>       label:<span class="st">&quot;SPACED TEXT&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>       output_spaced.png</span></code></pre></div>
+<h3 id="example-using--annotate">Example Using
+<code>-annotate</code></h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x150 xc:white <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-font</span> Helvetica <span class="at">-pointsize</span> 36 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-kerning</span> <span class="at">-1.5</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">-gravity</span> center <span class="at">-annotate</span> 0 <span class="st">&quot;TIGHT TEXT&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>       output_tight.png</span></code></pre></div>
+<h2 id="syntax-for-imagemagick-6">Syntax for ImageMagick 6</h2>
+<p>In ImageMagick 6, use the legacy <code>convert</code> command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-background</span> lightblue <span class="at">-fill</span> navy <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">-font</span> DejaVu-Sans <span class="at">-pointsize</span> 40 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">-kerning</span> 8 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        label:<span class="st">&quot;EXPANDED&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        output_im6.png</span></code></pre></div>
+<h2 id="key-considerations">Key Considerations</h2>
+<ul>
+<li><strong>Font Compatibility:</strong> The <code>-kerning</code>
+option works with TrueType (<code>.ttf</code>) and OpenType
+(<code>.otf</code>) vector fonts.</li>
+<li><strong>Negative Kerning Limits:</strong> Excessive negative kerning
+can cause glyphs to overlap or clip against the image boundary if canvas
+sizes are tightly bounded.</li>
+<li><strong>Resetting Kerning:</strong> If rendering multiple text
+elements within the same command pipeline, reset the spacing back to
+default by setting <code>-kerning 0</code> before the subsequent text
+layer.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

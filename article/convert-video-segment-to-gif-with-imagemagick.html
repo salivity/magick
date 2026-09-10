@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Video Segment to GIF with ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to convert a specific video segment into an animated GIF using ImageMagick. You will learn the direct syntax for selecting frame ranges within ImageMagick, as well as the recommended command-line method for extracting time-based s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-video-segment-to-gif-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Video Segment to GIF with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-video-segment-to-gif-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to convert a specific video segment into an animated GIF using ImageMagick. You will learn the direct syntax for selecting frame ranges within ImageMagick, as well as the recommended command-line method for extracting time-based s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-video-segment-to-gif-with-imagemagick">Convert Video
+Segment to GIF with ImageMagick</h1>
+<p>This guide explains how to convert a specific video segment into an
+animated GIF using ImageMagick. You will learn the direct syntax for
+selecting frame ranges within ImageMagick, as well as the recommended
+command-line method for extracting time-based segments using FFmpeg
+piped directly into ImageMagick for optimal output quality.</p>
+<h2 id="direct-frame-based-conversion-syntax">Direct Frame-Based
+Conversion Syntax</h2>
+<p>ImageMagick can read video files by delegating decoding to system
+media handlers. To extract a specific segment based on frame numbers,
+specify the start and end frame indices in brackets after the input file
+name.</p>
+<h3 id="imagemagick-7-syntax">ImageMagick 7 Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4<span class="pp">[</span><span class="ss">100</span><span class="pp">-</span><span class="ss">200</span><span class="pp">]</span> <span class="at">-delay</span> 1x30 <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<h3 id="imagemagick-6-legacy-syntax">ImageMagick 6 (Legacy) Syntax</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.mp4<span class="pp">[</span><span class="ss">100</span><span class="pp">-</span><span class="ss">200</span><span class="pp">]</span> <span class="at">-delay</span> 1x30 <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<ul>
+<li><code>input.mp4[100-200]</code>: Extracts frames 100 through 200
+from the source file.</li>
+<li><code>-delay 1x30</code>: Sets the frame rate (e.g., 1/30th of a
+second per frame to match a 30 FPS video).</li>
+<li><code>-loop 0</code>: Ensures the resulting GIF loops
+indefinitely.</li>
+</ul>
+<hr />
+<h2 id="time-based-conversion-syntax-ffmpeg--imagemagick">Time-Based
+Conversion Syntax (FFmpeg + ImageMagick)</h2>
+<p>Because ImageMagick must load the entire video into memory to parse
+specific timecodes, piping a trimmed stream from FFmpeg into ImageMagick
+is the fastest and most memory-efficient method for time-based segment
+extraction.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-ss</span> 00:00:05 <span class="at">-to</span> 00:00:10 <span class="at">-i</span> input.mp4 <span class="at">-f</span> image2pipe <span class="at">-vcodec</span> ppm <span class="at">-</span> <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-</span> <span class="at">-delay</span> 1x24 <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<h3 id="breakdown-of-parameters">Breakdown of Parameters:</h3>
+<ul>
+<li><code>-ss 00:00:05</code>: The start timestamp of the segment
+(hours:minutes:seconds).</li>
+<li><code>-to 00:00:10</code>: The end timestamp of the segment.</li>
+<li><code>-i input.mp4</code>: The source video path.</li>
+<li><code>-f image2pipe -vcodec ppm -</code>: Outputs raw image frames
+to standard output (<code>stdout</code>).</li>
+<li><code>magick -</code>: Reads the piped frame data from standard
+input (<code>stdin</code>).</li>
+<li><code>-layers Optimize</code>: Applies color palette and
+frame-difference optimizations to reduce file size.</li>
+</ul>
+<hr />
+<h2 id="optimizing-the-output-gif">Optimizing the Output GIF</h2>
+<p>To reduce file size and improve playback performance, add resizing
+and color reduction parameters:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4<span class="pp">[</span><span class="ss">50</span><span class="pp">-</span><span class="ss">120</span><span class="pp">]</span> <span class="at">-resize</span> 480x <span class="at">-fuzz</span> 2% <span class="at">-layers</span> Optimize <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<ul>
+<li><code>-resize 480x</code>: Scales the output width to 480 pixels
+while preserving the aspect ratio.</li>
+<li><code>-fuzz 2%</code>: Treats colors within a 2% difference range as
+identical, improving compression.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

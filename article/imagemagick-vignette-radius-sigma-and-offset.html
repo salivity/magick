@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Vignette Radius Sigma and Offset - magick</title>
+    <meta name="description" content="This article provides a technical overview of how ImageMagick’s -vignette operator shades photo borders to create soft-focus edge effects. It explains the geometry string format—radiusxsigma{+-}x{+-}y—and details the precise roles that radius, sigm">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-vignette-radius-sigma-and-offset">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Vignette Radius Sigma and Offset - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-vignette-radius-sigma-and-offset" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a technical overview of how ImageMagick’s -vignette operator shades photo borders to create soft-focus edge effects. It explains the geometry string format—radiusxsigma{+-}x{+-}y—and details the precise roles that radius, sigm" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-vignette-radius-sigma-and-offset">ImageMagick
+Vignette Radius Sigma and Offset</h1>
+<p>This article provides a technical overview of how ImageMagick’s
+<code>-vignette</code> operator shades photo borders to create
+soft-focus edge effects. It explains the geometry string
+format—<code>radiusxsigma{+-}x{+-}y</code>—and details the precise roles
+that radius, sigma, and coordinate offsets play in controlling border
+falloff, blur feathering, and the shape of the visible frame.</p>
+<p>The <code>-vignette</code> command in ImageMagick simulates an
+optical vignette by generating an elliptical mask, shading the outer
+edges toward the current background color. The full argument takes the
+following geometry syntax:</p>
+<pre class="text"><code>-vignette {radius}x{sigma}{+-}x{+-}y</code></pre>
+<h3 id="radius-and-sigma-controlling-edge-feathering">Radius and Sigma:
+Controlling Edge Feathering</h3>
+<p>The <code>radius</code> and <code>sigma</code> arguments determine
+the softness and falloff curve of the vignette transition. They function
+identically to the parameters in ImageMagick’s Gaussian blur
+operator:</p>
+<ul>
+<li><strong>Sigma (<span
+class="math inline">\(\sigma\)</span>):</strong> Represents the standard
+deviation of the Gaussian blur applied to the vignette mask. It is the
+primary value controlling how softly the central, untouched image
+dissolves into the shaded border. A small sigma produces a sharp, abrupt
+edge, while a large sigma creates an expansive, gradual fade.</li>
+<li><strong>Radius (<span class="math inline">\(r\)</span>):</strong>
+Sets the physical pixel radius of the blur convolution kernel. While
+sigma dictates the blur profile, radius sets its mathematical limits. If
+<code>radius</code> is set to <code>0</code>, ImageMagick automatically
+calculates an optimal kernel radius based on the specified sigma
+(typically roughly three times the sigma value) to ensure a complete,
+smooth fade without unnecessary computation.</li>
+</ul>
+<h3 id="offset-parameters-x-and-y-defining-border-margins">Offset
+Parameters (X and Y): Defining Border Margins</h3>
+<p>The <code>x</code> and <code>y</code> offsets dictate the geometry
+and reach of the ellipse before feathering is applied. They measure
+inward from the outer borders of the image:</p>
+<ul>
+<li><strong>X Offset:</strong> Controls the horizontal inset from the
+left and right edges. Increasing this value pulls the vignette boundary
+further inward toward the center along the horizontal axis, narrowing
+the clear area of the photo.</li>
+<li><strong>Y Offset:</strong> Controls the vertical inset from the top
+and bottom edges. Increasing this value pulls the vignette boundary
+further inward from the top and bottom margins.</li>
+</ul>
+<p>Offsets can be expressed in absolute pixel values or as percentages
+by appending the <code>%</code> symbol (e.g., <code>+10+10</code> or
+<code>+5%+5%</code>). When offsets are omitted, ImageMagick defaults to
+an offset of 10% of the image's dimensions, producing a centered ellipse
+that fits neatly inside the frame.</p>
+<h3 id="how-the-parameters-work-together">How the Parameters Work
+Together</h3>
+<p>ImageMagick processes the command by first constructing a solid
+elliptical mask inscribed inside the boundaries determined by the image
+dimensions minus the <code>x</code> and <code>y</code> offsets. Once
+this base boundary is established, it applies a Gaussian blur defined by
+the <code>radius</code> and <code>sigma</code> values to the mask
+edges.</p>
+<p>The resulting blurred mask acts as an alpha map: pixels fully inside
+the boundary retain 100% of their original color, pixels outside the
+feather boundary take on the designated background color (defaulting to
+white or transparent depending on the image profile), and intermediate
+pixels are shaded smoothly between the original photo and the border
+color.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

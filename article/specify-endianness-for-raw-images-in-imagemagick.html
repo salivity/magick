@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specify Endianness for Raw Images in ImageMagick - magick</title>
+    <meta name="description" content="Raw medical imaging files—such as raw CT, MRI, or ultrasound data lacking standard DICOM headers—often store pixel data as multi-byte integers (typically 16-bit grayscale). When reading these headerless streams, ImageMagick cannot auto-detect the byt">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/specify-endianness-for-raw-images-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Specify Endianness for Raw Images in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/specify-endianness-for-raw-images-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Raw medical imaging files—such as raw CT, MRI, or ultrasound data lacking standard DICOM headers—often store pixel data as multi-byte integers (typically 16-bit grayscale). When reading these headerless streams, ImageMagick cannot auto-detect the byt" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="specify-endianness-for-raw-images-in-imagemagick">Specify
+Endianness for Raw Images in ImageMagick</h1>
+<p>Raw medical imaging files—such as raw CT, MRI, or ultrasound data
+lacking standard DICOM headers—often store pixel data as multi-byte
+integers (typically 16-bit grayscale). When reading these headerless
+streams, ImageMagick cannot auto-detect the byte ordering, leading to
+noisy or completely scrambled outputs if the wrong byte order is
+assumed. This guide explains how to properly configure pixel endianness
+using ImageMagick's command-line interface to ensure accurate image
+reconstruction.</p>
+<h2 id="understanding-pixel-endianness-in-raw-data">Understanding Pixel
+Endianness in Raw Data</h2>
+<p>Multi-byte pixel values (such as 16-bit unsigned or signed integers)
+are stored in memory in one of two formats:</p>
+<ul>
+<li><strong>Little-Endian (LSB):</strong> The least significant byte is
+stored first. This is common on x86/x64 systems and many modern
+DICOM/raw imaging exports.</li>
+<li><strong>Big-Endian (MSB):</strong> The most significant byte is
+stored first. This is often found in legacy medical hardware or
+network-standard formats.</li>
+</ul>
+<p>If a 16-bit raw image is interpreted with the wrong endianness,
+low-intensity pixel changes turn into massive value jumps, making the
+medical scan look like heavy static or high-contrast noise.</p>
+<h2 id="the--endian-option">The <code>-endian</code> Option</h2>
+<p>ImageMagick provides the <code>-endian</code> setting to define byte
+order. When dealing with raw image streams, this flag must be placed
+<strong>before</strong> specifying the input file so that ImageMagick
+applies the setting while decoding the binary data.</p>
+<p>Supported values include:</p>
+<ul>
+<li><code>LSB</code> (Least Significant Byte first / Little-Endian)</li>
+<li><code>MSB</code> (Most Significant Byte first / Big-Endian)</li>
+</ul>
+<h2 id="command-syntax-and-examples">Command Syntax and Examples</h2>
+<p>When importing raw grayscale medical images, you must explicitly
+provide the image dimensions (<code>-size</code>), bit depth
+(<code>-depth</code>), the pixel format (<code>gray:</code>), and the
+byte order (<code>-endian</code>).</p>
+<h3 id="reading-16-bit-little-endian-raw-data">Reading 16-Bit
+Little-Endian Raw Data</h3>
+<p>To convert a 512x512, 16-bit Little-Endian raw file to a readable PNG
+or TIFF:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="at">-depth</span> 16 <span class="at">-endian</span> LSB gray:scan_data.raw output.png</span></code></pre></div>
+<p>For ImageMagick v6, use <code>convert</code> instead of
+<code>magick</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-size</span> 512x512 <span class="at">-depth</span> 16 <span class="at">-endian</span> LSB gray:scan_data.raw output.png</span></code></pre></div>
+<h3 id="reading-16-bit-big-endian-raw-data">Reading 16-Bit Big-Endian
+Raw Data</h3>
+<p>If the raw data originates from a Big-Endian system:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="at">-depth</span> 16 <span class="at">-endian</span> MSB gray:scan_data.raw output.png</span></code></pre></div>
+<h2 id="handling-signed-vs-unsigned-pixels">Handling Signed vs. Unsigned
+Pixels</h2>
+<p>Many medical scans use 16-bit signed integers (Hounsfield units in CT
+scans often require signed data representations). If the resulting image
+appears washed out or clamped, pair the <code>-endian</code> flag with
+the <code>quantum:format</code> define:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="at">-depth</span> 16 <span class="at">-endian</span> LSB <span class="at">-define</span> quantum:format=signed gray:scan_data.raw output.png</span></code></pre></div>
+<p>For standard unsigned 16-bit integers:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="at">-depth</span> 16 <span class="at">-endian</span> LSB <span class="at">-define</span> quantum:format=unsigned gray:scan_data.raw output.png</span></code></pre></div>
+<p>By ensuring that <code>-size</code>, <code>-depth</code>,
+<code>-endian</code>, and <code>-define quantum:format</code> precede
+the raw input file argument, ImageMagick will parse the raw medical data
+into an accurate visual representation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

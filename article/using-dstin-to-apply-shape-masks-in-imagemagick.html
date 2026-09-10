@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using DstIn to Apply Shape Masks in ImageMagick - magick</title>
+    <meta name="description" content="The DstIn (Destination In) composition operator in ImageMagick allows you to mask an image using the shape and transparency of another image. By utilizing the Porter-Duff compositing model, DstIn retains the pixel content of the destination image only wh">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/using-dstin-to-apply-shape-masks-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using DstIn to Apply Shape Masks in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/using-dstin-to-apply-shape-masks-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The DstIn (Destination In) composition operator in ImageMagick allows you to mask an image using the shape and transparency of another image. By utilizing the Porter-Duff compositing model, DstIn retains the pixel content of the destination image only wh" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-dstin-to-apply-shape-masks-in-imagemagick">Using DstIn to
+Apply Shape Masks in ImageMagick</h1>
+<p>The <code>DstIn</code> (Destination In) composition operator in
+ImageMagick allows you to mask an image using the shape and transparency
+of another image. By utilizing the Porter-Duff compositing model,
+<code>DstIn</code> retains the pixel content of the destination image
+only where it overlaps with the non-transparent areas of the source
+image. This guide explains how the <code>DstIn</code> operator works and
+provides direct command-line examples to apply custom shape masks to
+your graphics.</p>
+<h3 id="understanding-the-dstin-operator">Understanding the DstIn
+Operator</h3>
+<p>In ImageMagick's composition workflow, the first image specified in
+the command is the <strong>Destination</strong> (the image you want to
+keep), and the second image is the <strong>Source</strong> (the
+mask).</p>
+<p>When you apply the <code>DstIn</code> composition method:</p>
+<ul>
+<li>The color and detail of the Destination image are preserved.</li>
+<li>The opacity of the Destination image is modified to match the alpha
+channel of the Source image.</li>
+<li>Any part of the Destination image that falls outside the opaque
+regions of the Source mask becomes completely transparent.</li>
+</ul>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>To apply a mask using <code>DstIn</code>, use the following
+structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> destination.png mask.png <span class="at">-compose</span> DstIn <span class="at">-composite</span> output.png</span></code></pre></div>
+<p><em>Note: For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<h3 id="applying-an-external-shape-mask">Applying an External Shape
+Mask</h3>
+<p>If you have a source photo (<code>photo.jpg</code>) and a transparent
+PNG containing your desired shape (<code>mask.png</code>), ensure both
+images are the same dimensions, then run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg mask.png <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> masked_result.png</span></code></pre></div>
+<ul>
+<li><code>-alpha set</code> ensures the destination image has an active
+transparency channel to receive the mask shape.</li>
+<li>The output format should support transparency (such as PNG, TIFF, or
+WebP).</li>
+</ul>
+<h3 id="creating-and-applying-a-mask-on-the-fly">Creating and Applying a
+Mask On the Fly</h3>
+<p>You can also generate a vector mask dynamically within a single
+command using ImageMagick's parenthetical expressions.</p>
+<h4 id="circular-shape-mask">Circular Shape Mask</h4>
+<p>To crop a 400x400 image into a perfect circle:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-alpha</span> set <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 400x400 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 200,200 200,0&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> DstIn <span class="at">-composite</span> circle_output.png</span></code></pre></div>
+<h4 id="rounded-rectangle-mask">Rounded Rectangle Mask</h4>
+<p>To apply a rounded rectangle shape to a 600x400 image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-alpha</span> set <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 600x400 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;roundrectangle 0,0 600,400 30,30&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> DstIn <span class="at">-composite</span> rounded_output.png</span></code></pre></div>
+<h3 id="key-considerations">Key Considerations</h3>
+<ul>
+<li><strong>Alpha Channel Requirement:</strong> The mask image must use
+an alpha channel to define the shape. White pixels without transparency
+will not create a cutout; non-transparent pixels define what remains
+visible, while transparent pixels (<code>xc:none</code> or transparent
+alpha) define the removed areas.</li>
+<li><strong>Grayscale Masks:</strong> If your mask is a black-and-white
+image without transparency (a luminance mask), you must first convert
+the grayscale values into an alpha channel using
+<code>-alpha copy</code> before applying the <code>DstIn</code>
+operation.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

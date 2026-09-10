@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick TIFF Compression Algorithms - magick</title>
+    <meta name="description" content="ImageMagick provides robust support for writing Tagged Image File Format (TIFF) files using a variety of compression algorithms to balance file size, image quality, and compatibility. By using the -compress command-line option, users can apply lossless,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-tiff-compression-algorithms">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick TIFF Compression Algorithms - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-tiff-compression-algorithms" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides robust support for writing Tagged Image File Format (TIFF) files using a variety of compression algorithms to balance file size, image quality, and compatibility. By using the -compress command-line option, users can apply lossless," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-tiff-compression-algorithms">ImageMagick TIFF
+Compression Algorithms</h1>
+<p>ImageMagick provides robust support for writing Tagged Image File
+Format (TIFF) files using a variety of compression algorithms to balance
+file size, image quality, and compatibility. By using the
+<code>-compress</code> command-line option, users can apply lossless,
+lossy, and specialized bi-level compression methods when generating TIFF
+images.</p>
+<h3 id="how-to-specify-tiff-compression-in-imagemagick">How to Specify
+TIFF Compression in ImageMagick</h3>
+<p>To set the compression algorithm when writing a TIFF file, pass the
+<code>-compress</code> flag followed by the algorithm name before
+specifying the output file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-compress</span> <span class="op">&lt;</span>type<span class="op">&gt;</span> output.tiff</span></code></pre></div>
+<hr />
+<h3 id="general-lossless-compression-algorithms">General Lossless
+Compression Algorithms</h3>
+<ul>
+<li><strong>LZW (<code>-compress LZW</code>)</strong>: Lempel-Ziv-Welch
+is one of the most widely supported lossless compression algorithms for
+TIFF. It works well on flat colors, graphics, and indexed palettes,
+making it universally compatible across older software.</li>
+<li><strong>Zip / Deflate (<code>-compress Zip</code>)</strong>: Uses
+the DEFLATE algorithm (the same standard used in ZIP files and PNGs). It
+typically achieves higher compression ratios than LZW on continuous-tone
+images without discarding any image data.</li>
+<li><strong>PackBits / RLE (<code>-compress RLE</code>)</strong>: A
+simple Run-Length Encoding scheme historically used in Macintosh
+systems. It offers fast encoding and decoding with minimal CPU overhead,
+though it yields lower compression ratios on photographic images.</li>
+<li><strong>LZMA (<code>-compress LZMA</code>)</strong>: Provides high
+lossless compression ratios at the expense of higher CPU usage and
+longer processing times. It requires an ImageMagick build linked against
+a <code>libtiff</code> version configured with LZMA support.</li>
+<li><strong>ZSTD (<code>-compress ZSTD</code>)</strong>: Zstandard
+compression offers modern, high-speed lossless compression with superior
+ratios and very fast decompression, available in modern
+<code>libtiff</code> builds.</li>
+</ul>
+<hr />
+<h3 id="bi-level-black-and-white-compression-algorithms">Bi-Level
+(Black-and-White) Compression Algorithms</h3>
+<p>These algorithms are tailored specifically for 1-bit monochrome
+images, such as scanned text documents, line art, and faxes:</p>
+<ul>
+<li><strong>Group4 / CCITT Fax 4
+(<code>-compress Group4</code>)</strong>: A two-dimensional encoding
+standard optimized for bi-level document imaging. It provides
+exceptionally high compression ratios for clean black-and-white
+documents and is standard in legal and archival workflows.</li>
+<li><strong>Group3 / CCITT Fax 3
+(<code>-compress Group3</code>)</strong>: A one-dimensional or
+two-dimensional standard used in traditional facsimile machines.</li>
+<li><strong>Fax (<code>-compress Fax</code>)</strong>: Standard CCITT
+Group 3 encoding used for legacy fax transmission compatibility.</li>
+<li><strong>JBIG (<code>-compress JBIG</code>)</strong>: Joint Bi-level
+Image Experts Group standard designed specifically for lossless bi-level
+image compression, outperforming Group 4 in compression efficiency.</li>
+</ul>
+<hr />
+<h3 id="lossy-compression-algorithms">Lossy Compression Algorithms</h3>
+<ul>
+<li><strong>JPEG (<code>-compress JPEG</code>)</strong>: Embeds standard
+lossy JPEG compression inside the TIFF container. This significantly
+reduces file size for photographic and continuous-tone imagery. You can
+control the compression level using the <code>-quality</code> flag
+(e.g., <code>-quality 85</code>).</li>
+<li><strong>WebP (<code>-compress WebP</code>)</strong>: Uses Google's
+WebP codec within the TIFF container for lossy or lossless compression,
+provided both ImageMagick and <code>libtiff</code> have been compiled
+with WebP delegate support.</li>
+</ul>
+<hr />
+<h3 id="uncompressed-tiff">Uncompressed TIFF</h3>
+<ul>
+<li><strong>None (<code>-compress None</code>)</strong>: Writes raw,
+uncompressed pixel data to the TIFF file. This produces the largest file
+sizes but avoids any CPU overhead and guarantees maximum compatibility
+across legacy systems.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -page Operator PostScript Geometry - magick</title>
+    <meta name="description" content="This article provides a concise guide to how ImageMagick's -page operator defines virtual page geometry for PostScript and PDF workflows. It covers the underlying geometry syntax, explains the relationship between virtual canvases and physical dimensions">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-page-operator-postscript-geometry">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -page Operator PostScript Geometry - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-page-operator-postscript-geometry" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise guide to how ImageMagick's -page operator defines virtual page geometry for PostScript and PDF workflows. It covers the underlying geometry syntax, explains the relationship between virtual canvases and physical dimensions" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--page-operator-postscript-geometry">ImageMagick
+-page Operator PostScript Geometry</h1>
+<p>This article provides a concise guide to how ImageMagick's
+<code>-page</code> operator defines virtual page geometry for PostScript
+and PDF workflows. It covers the underlying geometry syntax, explains
+the relationship between virtual canvases and physical dimensions, and
+illustrates how coordinate offsets position rasterized images within
+standard or custom PostScript page layouts.</p>
+<h3 id="what-is-virtual-page-geometry">What is Virtual Page
+Geometry?</h3>
+<p>In ImageMagick, "virtual page geometry" refers to the overall canvas
+dimensions and the relative placement coordinates of an image within
+that canvas. While formats like PNG or JPEG focus primarily on pixel
+dimensions, document and vector-oriented formats like PostScript (PS,
+EPS) and PDF require layout metadata.</p>
+<p>The <code>-page</code> operator establishes this layout by
+specifying:</p>
+<ol type="1">
+<li><strong>The Page Size (Canvas):</strong> The total printable or
+viewable boundary (such as Letter, A4, or custom point sizes).</li>
+<li><strong>The Offsets:</strong> The horizontal and vertical position
+where the image data will be placed on that designated page.</li>
+</ol>
+<h3 id="the-syntax-of-the--page-operator">The Syntax of the
+<code>-page</code> Operator</h3>
+<p>The <code>-page</code> operator uses standard ImageMagick geometry
+syntax:</p>
+<pre class="text"><code>-page widthxheight{+-}x{+-}y</code></pre>
+<ul>
+<li><strong><code>widthxheight</code></strong>: Defines the virtual page
+size. By default, PostScript interprets these units in typographical
+points (1/72 of an inch). Alternatively, predefined media names like
+<code>letter</code>, <code>legal</code>, or <code>a4</code> can be
+used.</li>
+<li><strong><code>{+-}x{+-}y</code></strong>: Defines the horizontal
+(<code>x</code>) and vertical (<code>y</code>) offsets from the
+origin.</li>
+</ul>
+<p>For example:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-page</span> A4+36+36 output.ps</span></code></pre></div>
+<p>This instructs ImageMagick to set the PostScript bounding dimensions
+to standard A4 paper size, placing the image with a 0.5-inch (36 points)
+margin from the top/left boundary depending on the rendering coordinate
+system.</p>
+<h3 id="coordinate-systems-in-postscript">Coordinate Systems in
+PostScript</h3>
+<p>PostScript natively places its origin <code>(0,0)</code> at the
+lower-left corner, measuring dimensions upward and to the right in
+points. ImageMagick generally uses an upper-left origin for digital
+raster manipulation.</p>
+<p>When generating PostScript via the <code>-page</code> operator:</p>
+<ul>
+<li>ImageMagick automatically converts the provided offsets into the
+PostScript coordinate system.</li>
+<li>The image's location on the page is written into the PostScript
+stream using standard operators such as <code>translate</code> and
+<code>scale</code>.</li>
+<li>The overall canvas size specified in <code>-page</code> writes the
+<code>%%BoundingBox</code> header comments (e.g.,
+<code>%%BoundingBox: 0 0 612 792</code> for Letter size) which
+PostScript interpreters rely on to clip or scale the output for
+printing.</li>
+</ul>
+<h3
+id="differences-between--page-and-other-sizing-operators">Differences
+Between <code>-page</code> and Other Sizing Operators</h3>
+<ul>
+<li><strong><code>-page</code> vs. <code>-size</code></strong>:
+<code>-size</code> defines the dimensions of a raw image being read into
+memory. <code>-page</code> defines the metadata container dimensions
+(the sheet of paper) in which the image resides.</li>
+<li><strong><code>-page</code> vs. <code>-crop</code> /
+<code>-repage</code></strong>: When cropping images, ImageMagick
+preserves the original virtual canvas as page offsets unless reset by
+<code>+repage</code>. When exporting to PostScript, those residual
+offsets are translated directly into positions on the printed page
+unless explicitly overwritten by a new <code>-page</code>
+specification.</li>
+</ul>
+<h3 id="practical-impact-on-output">Practical Impact on Output</h3>
+<p>Using the <code>-page</code> operator ensures that an image is
+properly scaled or placed without altering its source aspect ratio or
+native pixel density. By controlling the virtual canvas, you prevent
+default behavior where ImageMagick might otherwise wrap the PostScript
+bounding box tightly around the raw pixel dimensions, ensuring
+consistent margins and proper page handling by print drivers and
+document viewers.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Dust Artifacts by Area in ImageMagick - magick</title>
+    <meta name="description" content="Removing dust artifacts, speckles, and small blemishes from an image can be automated in ImageMagick by filtering connected pixel components based on their area. By utilizing the -connected-components operator alongside the area-threshold definition, you">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/remove-dust-artifacts-by-area-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remove Dust Artifacts by Area in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/remove-dust-artifacts-by-area-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Removing dust artifacts, speckles, and small blemishes from an image can be automated in ImageMagick by filtering connected pixel components based on their area. By utilizing the -connected-components operator alongside the area-threshold definition, you" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="remove-dust-artifacts-by-area-in-imagemagick">Remove Dust
+Artifacts by Area in ImageMagick</h1>
+<p>Removing dust artifacts, speckles, and small blemishes from an image
+can be automated in ImageMagick by filtering connected pixel components
+based on their area. By utilizing the <code>-connected-components</code>
+operator alongside the <code>area-threshold</code> definition, you can
+identify isolated clusters of pixels below a specific size threshold and
+merge them into the surrounding background color without degrading the
+larger structural elements of the image.</p>
+<h2 id="understanding-connected-components-labeling">Understanding
+Connected Components Labeling</h2>
+<p>ImageMagick provides a Connected Components Labeling (CCL) algorithm
+via the <code>-connected-components</code> operator. It groups adjacent
+pixels of similar colors into distinct objects (components) and
+calculates metrics such as bounding box, centroid, and total pixel
+area.</p>
+<p>To eliminate dust or "salt-and-pepper" noise, you can configure the
+operator to ignore or replace any component whose total area falls below
+a defined pixel count.</p>
+<h2 id="the-basic-dust-removal-command">The Basic Dust Removal
+Command</h2>
+<p>For grayscale, binary, or high-contrast scanned documents, you can
+remove small specs in a single pass using the following command
+structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=10 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:mean-color=true <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><code>-define connected-components:area-threshold=10</code>:
+Specifies the maximum size (in pixels) of an artifact to remove. Any
+connected region containing fewer than 10 pixels will be merged into the
+neighboring region.</li>
+<li><code>-define connected-components:mean-color=true</code>: Replaces
+the filtered components with the average color of the surrounding area
+rather than leaving empty holes.</li>
+<li><code>-connected-components 8</code>: Runs the analysis considering
+8-connectivity (diagonal and orthogonal neighbors). You can also use
+<code>4</code> for orthogonal-only connectivity.</li>
+</ul>
+<h2 id="removing-dust-from-scanned-documents-and-line-art">Removing Dust
+from Scanned Documents and Line Art</h2>
+<p>When dealing with scanned black-and-white documents or drawings, dust
+specs often appear as tiny black dots on a white background. To clean
+these effectively:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 80% <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=15 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:mean-color=true <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  cleaned_scan.png</span></code></pre></div>
+<ol type="1">
+<li><code>-threshold 80%</code> standardizes the paper texture to pure
+white and the text/dust to pure black.</li>
+<li>The <code>area-threshold=15</code> removes any isolated mark smaller
+than 15 pixels while preserving valid punctuation marks like periods or
+commas (adjust the threshold value to ensure punctuation is not
+erased).</li>
+</ol>
+<h2 id="removing-dust-from-continuous-tone-and-color-photos">Removing
+Dust from Continuous-Tone and Color Photos</h2>
+<p>For photographic images where pixel values vary smoothly, running CCL
+directly on the color data may not work directly because adjacent pixels
+do not share identical values. Instead, extract a mask of high-frequency
+defects, filter by area, and blend the result.</p>
+<h3 id="1-generate-an-artifact-mask">1. Generate an Artifact Mask</h3>
+<p>Identify potential dust specs by comparing the original image with a
+blurred or median-filtered version:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-statistic</span> Median 3x3 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 10% <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=20 <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:mean-color=false <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  dust_mask.png</span></code></pre></div>
+<h3 id="2-apply-the-mask-to-clean-the-original-image">2. Apply the Mask
+to Clean the Original Image</h3>
+<p>Use the generated <code>dust_mask.png</code> to replace defective
+areas on the original photo with pixels from a median-filtered base:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-statistic</span> Median 5x5 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  dust_mask.png <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  repaired_photo.jpg</span></code></pre></div>
+<h2 id="tuning-area-thresholds">Tuning Area Thresholds</h2>
+<ul>
+<li><strong>Start Small:</strong> Begin with an
+<code>area-threshold</code> of <code>5</code> to <code>10</code> pixels
+to avoid accidentally removing genuine image details like stars in night
+skies, catchlights in eyes, or thin line intersections.</li>
+<li><strong>Inspect Component Data:</strong> To see a text report of all
+detected components and their pixel sizes prior to filtering, output the
+component analysis directly to the terminal:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-connected-components</span> 8 <span class="at">-write-mask</span> mask.png null:</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

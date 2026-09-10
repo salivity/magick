@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Image Mosaic with Coordinates in ImageMagick - magick</title>
+    <meta name="description" content="Creating an image mosaic using coordinate-positioned layers in ImageMagick allows you to arrange multiple images across a single canvas using precise pixel offsets. This guide explains how to define individual layer coordinates using the page geometry op">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-image-mosaic-with-coordinates-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Image Mosaic with Coordinates in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-image-mosaic-with-coordinates-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating an image mosaic using coordinate-positioned layers in ImageMagick allows you to arrange multiple images across a single canvas using precise pixel offsets. This guide explains how to define individual layer coordinates using the page geometry op" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-image-mosaic-with-coordinates-in-imagemagick">Create
+Image Mosaic with Coordinates in ImageMagick</h1>
+<p>Creating an image mosaic using coordinate-positioned layers in
+ImageMagick allows you to arrange multiple images across a single canvas
+using precise pixel offsets. This guide explains how to define
+individual layer coordinates using the page geometry operator and merge
+them into a composite mosaic using both modern ImageMagick 7 and legacy
+ImageMagick 6 commands.</p>
+<h3 id="the-core-concept-page-offsets">The Core Concept: Page
+Offsets</h3>
+<p>In ImageMagick, coordinates for mosaic layers are defined using the
+<code>-page +X+Y</code> geometry operator. The <code>+X</code>
+represents the horizontal pixel offset from the left edge of the canvas,
+while <code>+Y</code> represents the vertical pixel offset from the top
+edge.</p>
+<p>When you assign a <code>-page</code> offset immediately before
+loading an image file, ImageMagick tags that image with those canvas
+coordinates.</p>
+<h3 id="basic-syntax-using-the-mosaic-operator">Basic Syntax Using the
+Mosaic Operator</h3>
+<p>The <code>-mosaic</code> operator automatically determines the
+overall canvas size required to contain all positioned layers,
+initializes a canvas using the current <code>-background</code> color,
+and composites each image in sequential order.</p>
+<p>In ImageMagick 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +0+0 image1.jpg <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +150+50 image2.png <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +300+200 image3.png <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-mosaic</span> output_mosaic.jpg</span></code></pre></div>
+<p>In ImageMagick 6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +0+0 image1.jpg <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +150+50 image2.png <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +300+200 image3.png <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-mosaic</span> output_mosaic.jpg</span></code></pre></div>
+<h3 id="creating-a-mosaic-with-a-fixed-canvas-size">Creating a Mosaic
+with a Fixed Canvas Size</h3>
+<p>If you need a canvas with predefined dimensions rather than an
+automatically calculated size, declare an explicit canvas size using
+<code>-size</code> and create a blank base layer (such as
+<code>xc:none</code> for transparency or <code>xc:white</code> for solid
+white):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 xc:white <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +100+100 layer1.png <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +600+100 layer2.png <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +1100+400 layer3.png <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-layers</span> merge output_fixed.png</span></code></pre></div>
+<h3 id="using--layers-merge-vs--mosaic">Using <code>-layers merge</code>
+vs. <code>-mosaic</code></h3>
+<p>While <code>-mosaic</code> works consistently across versions,
+<code>-layers merge</code> is the modern and preferred approach in
+ImageMagick 7.</p>
+<ul>
+<li><strong><code>-mosaic</code></strong>: Always expands the canvas to
+fit the bounding box of all images, anchored at <code>(0,0)</code>,
+filling empty space with the defined <code>-background</code>.</li>
+<li><strong><code>-layers merge</code></strong>: Respects negative
+offsets and canvas definitions set by base images, making it more
+flexible for complex layering pipelines.</li>
+</ul>
+<p>Example with transparency using <code>-layers merge</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> none <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +0+0 tile_top_left.png <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +256+0 tile_top_right.png <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +0+256 tile_bottom_left.png <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +256+256 tile_bottom_right.png <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-layers</span> merge mosaic_transparent.png</span></code></pre></div>
+<h3 id="layer-order-and-overlapping">Layer Order and Overlapping</h3>
+<p>Images are rendered in the order they are listed in the command.
+Subsequent layers will overlap earlier layers if their coordinate bounds
+intersect. To preserve image transparency when overlapping, ensure input
+formats support alpha channels (such as PNG or TIFF) and set
+<code>-background none</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

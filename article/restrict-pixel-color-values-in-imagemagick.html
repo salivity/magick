@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restrict Pixel Color Values in ImageMagick - magick</title>
+    <meta name="description" content="Restricting pixel color values in ImageMagick allows you to limit the dynamic range of an image, prevent color clipping, or create specific tonal effects. This guide covers the exact syntax and commands needed to cap, clamp, or remap pixel color values t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/restrict-pixel-color-values-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Restrict Pixel Color Values in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/restrict-pixel-color-values-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Restricting pixel color values in ImageMagick allows you to limit the dynamic range of an image, prevent color clipping, or create specific tonal effects. This guide covers the exact syntax and commands needed to cap, clamp, or remap pixel color values t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="restrict-pixel-color-values-in-imagemagick">Restrict Pixel Color
+Values in ImageMagick</h1>
+<p>Restricting pixel color values in ImageMagick allows you to limit the
+dynamic range of an image, prevent color clipping, or create specific
+tonal effects. This guide covers the exact syntax and commands needed to
+cap, clamp, or remap pixel color values to a specific minimum and
+maximum threshold using ImageMagick version 7 (<code>magick</code>) and
+version 6 (<code>convert</code>).</p>
+<h3 id="1-hard-clipping-with--evaluate-max-and--evaluate-min">1. Hard
+Clipping with <code>-evaluate Max</code> and
+<code>-evaluate Min</code></h3>
+<p>If you want to cut off pixel values so that anything below a minimum
+threshold or above a maximum threshold is clipped to those boundaries,
+use the <code>-evaluate</code> operator.</p>
+<ul>
+<li><strong><code>-evaluate Max &lt;value&gt;</code></strong>: Sets a
+lower bound. Any pixel value lower than this value is raised to it.</li>
+<li><strong><code>-evaluate Min &lt;value&gt;</code></strong>: Sets an
+upper bound. Any pixel value higher than this value is lowered to
+it.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> Max 20% <span class="at">-evaluate</span> Min 80% output.png</span></code></pre></div>
+<p>In this example, all pixels with a brightness below 20% become 20%,
+and all pixels above 80% are capped at 80%. Values between 20% and 80%
+remain unchanged.</p>
+<h3 id="2-scaling-values-to-a-range-with-level">2. Scaling Values to a
+Range with <code>+level</code></h3>
+<p>If you want to compress the entire tonal range into a specific
+minimum and maximum bracket rather than clipping the highlights and
+shadows, use the <code>+level</code> operator (note the plus sign).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +level 20%,80% output.png</span></code></pre></div>
+<ul>
+<li><strong>Syntax</strong>:
+<code>+level &lt;black_point&gt;,&lt;white_point&gt;%</code></li>
+<li>Pure black (0%) becomes 20%.</li>
+<li>Pure white (100%) becomes 80%.</li>
+<li>All intermediate values are scaled linearly to fit inside the
+20%–80% range.</li>
+</ul>
+<h3 id="3-restricting-values-on-specific-color-channels">3. Restricting
+Values on Specific Color Channels</h3>
+<p>To apply range restrictions to a specific channel (such as red,
+green, blue, or alpha), combine the channel selector with the evaluation
+or level commands:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> R <span class="at">-evaluate</span> Max 10% <span class="at">-evaluate</span> Min 90% +channel output.png</span></code></pre></div>
+<p>This command restricts only the red channel to values between 10% and
+90%, leaving the green and blue channels unmodified.</p>
+<h3 id="4-clamping-to-the-standard-quantum-range-with--clamp">4.
+Clamping to the Standard Quantum Range with <code>-clamp</code></h3>
+<p>If operations (such as color space conversions or mathematical
+evaluations in HDRI mode) produce out-of-bounds pixel values (below 0 or
+above the standard Quantum range), you can restrict them back to the
+valid 0–100% display range using <code>-clamp</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-clamp</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

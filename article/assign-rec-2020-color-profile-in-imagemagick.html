@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Rec.2020 Color Profile in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to assign an untagged photograph the Rec.2020 (ITU-R BT.2020) wide-gamut color profile using ImageMagick. You will learn the difference between assigning and converting color profiles, the exact ImageMagick commands required for u">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/assign-rec-2020-color-profile-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Assign Rec.2020 Color Profile in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/assign-rec-2020-color-profile-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to assign an untagged photograph the Rec.2020 (ITU-R BT.2020) wide-gamut color profile using ImageMagick. You will learn the difference between assigning and converting color profiles, the exact ImageMagick commands required for u" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="assign-rec2020-color-profile-in-imagemagick">Assign Rec.2020
+Color Profile in ImageMagick</h1>
+<p>This guide explains how to assign an untagged photograph the Rec.2020
+(ITU-R BT.2020) wide-gamut color profile using ImageMagick. You will
+learn the difference between assigning and converting color profiles,
+the exact ImageMagick commands required for untagged images, and how to
+verify that the ICC profile has been successfully embedded into the
+output file.</p>
+<h2 id="assigning-vs-converting-profiles">Assigning vs. Converting
+Profiles</h2>
+<p>When an image is untagged, image viewers typically assume the image
+is in the standard sRGB color space.</p>
+<ul>
+<li><strong>Assigning a profile</strong> attaches color space metadata
+to an image without changing its underlying RGB pixel values. It tells
+software to interpret the existing pixel values using the Rec.2020 color
+coordinates.</li>
+<li><strong>Converting a profile</strong> recalculates pixel values to
+preserve visual appearance when moving from one color space to
+another.</li>
+</ul>
+<p>Because your image is untagged, you need to assign the profile so
+color-managed applications render the wide-gamut colors correctly.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To assign the profile, you must have an official Rec.2020 ICC file on
+your system (often named <code>Rec2020.icc</code>,
+<code>BT2020.icc</code>, or <code>ITUR_2020.icc</code>). These can be
+obtained from standard ICC profile repositories or your operating
+system's color management directory.</p>
+<h2 id="the-imagemagick-command">The ImageMagick Command</h2>
+<p>In ImageMagick, the <code>-profile</code> operator assigns a profile
+when used on an image that contains no existing embedded profile.</p>
+<h3 id="imagemagick-7-recommended">ImageMagick 7 (Recommended)</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> untagged_photo.jpg <span class="at">-profile</span> /path/to/Rec2020.icc tagged_photo.jpg</span></code></pre></div>
+<h3 id="imagemagick-6">ImageMagick 6</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> untagged_photo.jpg <span class="at">-profile</span> /path/to/Rec2020.icc tagged_photo.jpg</span></code></pre></div>
+<h3 id="how-imagemagick-processes--profile">How ImageMagick Processes
+<code>-profile</code></h3>
+<ul>
+<li>When an image <strong>has no</strong> embedded profile, the first
+<code>-profile</code> option simply embeds the specified ICC profile (an
+assignment).</li>
+<li>If you run a second <code>-profile</code> flag in the same command,
+ImageMagick will transform the pixel data to that second color space (a
+conversion).</li>
+</ul>
+<p>If you are unsure whether the input file is completely free of color
+profile metadata, you can strip existing profiles prior to assigning
+Rec.2020:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> untagged_photo.jpg +profile <span class="st">&quot;icc,icm&quot;</span> <span class="at">-profile</span> /path/to/Rec2020.icc tagged_photo.jpg</span></code></pre></div>
+<h2 id="verifying-the-embedded-profile">Verifying the Embedded
+Profile</h2>
+<p>To confirm that the Rec.2020 profile has been successfully embedded
+into the file, inspect the image metadata using the
+<code>identify</code> tool:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> tagged_photo.jpg <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="st">&quot;Profile-icc&quot;</span></span></code></pre></div>
+<p>You can also display the full profile description to confirm the
+Rec.2020 designation:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[icc:description]\n&quot;</span> tagged_photo.jpg</span></code></pre></div>
+<p>If the profile was applied correctly, the output will display the
+name of your Rec.2020 profile.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

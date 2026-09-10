@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjust Lanczos Filter Blur in ImageMagick - magick</title>
+    <meta name="description" content="Adjusting the blur factor of a Lanczos filter in ImageMagick allows you to fine-tune image sharpness or softness when resizing. By default, the Lanczos filter provides a balanced, sharp result, but you can alter its support radius using the filter:blur d">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/adjust-lanczos-filter-blur-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Adjust Lanczos Filter Blur in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/adjust-lanczos-filter-blur-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting the blur factor of a Lanczos filter in ImageMagick allows you to fine-tune image sharpness or softness when resizing. By default, the Lanczos filter provides a balanced, sharp result, but you can alter its support radius using the filter:blur d" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="adjust-lanczos-filter-blur-in-imagemagick">Adjust Lanczos Filter
+Blur in ImageMagick</h1>
+<p>Adjusting the blur factor of a Lanczos filter in ImageMagick allows
+you to fine-tune image sharpness or softness when resizing. By default,
+the Lanczos filter provides a balanced, sharp result, but you can alter
+its support radius using the <code>filter:blur</code> definition. This
+guide explains how to apply and modify this parameter directly in your
+ImageMagick commands.</p>
+<h2 id="the-filterblur-setting">The <code>filter:blur</code>
+Setting</h2>
+<p>ImageMagick controls the blur factor of resampling filters through
+the <code>-define filter:blur=value</code> option. This option scales
+the filter's support size along the x-axis before sampling:</p>
+<ul>
+<li><strong>Value = 1.0:</strong> The default setting with standard
+Lanczos behavior.</li>
+<li><strong>Value &lt; 1.0 (e.g., 0.8 to 0.95):</strong> Narrows the
+filter radius, producing a sharper output (note that values that are too
+low can introduce aliasing or ringing artifacts).</li>
+<li><strong>Value &gt; 1.0 (e.g., 1.05 to 1.3):</strong> Widens the
+filter radius, introducing additional blurring to smooth out noise or
+reduce moiré patterns.</li>
+</ul>
+<h2 id="basic-command-syntax">Basic Command Syntax</h2>
+<p>To adjust the blur factor during a resize operation in ImageMagick 7,
+place the filter selection and define options before the
+<code>-resize</code> argument:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.85 <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<p>For ImageMagick 6 (legacy), use the <code>convert</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.85 <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="sharper-downscaling">Sharper Downscaling</h3>
+<p>To downscale an image while retaining crisp details:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.8 <span class="at">-resize</span> 50% sharp_output.png</span></code></pre></div>
+<h3 id="softened-downscaling-artifact-reduction">Softened Downscaling
+(Artifact Reduction)</h3>
+<p>To reduce ringing artifacts or soften sharp transitions:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=1.15 <span class="at">-resize</span> 50% soft_output.png</span></code></pre></div>
+<h3 id="applying-blur-to-2-lobe-or-3-lobe-variants">Applying Blur to
+2-Lobe or 3-Lobe Variants</h3>
+<p>You can pair the blur definition with specific Lanczos variants, such
+as <code>Lanczos2</code> (a 2-lobe windowed sinc filter):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos2 <span class="at">-define</span> filter:blur=0.9 <span class="at">-resize</span> 1024x768 output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Bartlett Filter vs Polynomials - magick</title>
+    <meta name="description" content="ImageMagick provides a wide range of reconstruction filters for scaling and transforming images, ranging from simple linear interpolations to complex, higher-order polynomials. While higher-order filters such as Catmull-Rom, Mitchell-Netravali, or Lanczo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-bartlett-filter-vs-polynomials">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Bartlett Filter vs Polynomials - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-bartlett-filter-vs-polynomials" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides a wide range of reconstruction filters for scaling and transforming images, ranging from simple linear interpolations to complex, higher-order polynomials. While higher-order filters such as Catmull-Rom, Mitchell-Netravali, or Lanczo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-bartlett-filter-vs-polynomials">ImageMagick Bartlett
+Filter vs Polynomials</h1>
+<p>ImageMagick provides a wide range of reconstruction filters for
+scaling and transforming images, ranging from simple linear
+interpolations to complex, higher-order polynomials. While higher-order
+filters such as Catmull-Rom, Mitchell-Netravali, or Lanczos provide
+superior sharpness for photographic content, the Bartlett (triangular)
+filter is often preferred in specific engineering and data-sensitive
+workflows. This article explores the scenarios where the Bartlett
+filter’s compact support, non-negative kernel, and computational
+efficiency make it the superior choice over higher-order
+alternatives.</p>
+<h3 id="prevention-of-ringing-and-halo-artifacts">Prevention of Ringing
+and Halo Artifacts</h3>
+<p>Higher-order polynomial and sinc-based filters feature negative lobes
+in their mathematical curves to increase perceived edge sharpness.
+However, these negative lobes induce the Gibbs phenomenon—visible as
+dark and light halos (ringing) around sharp, high-contrast
+transitions.</p>
+<p>The Bartlett filter is a positive-definite, linear tent function with
+a support radius of 1.0. Because its weight never drops below zero, it
+is mathematically incapable of causing undershoot or overshoot. It is
+preferred when resizing high-contrast line art, text, technical
+diagrams, and pixel-aligned graphics where haloing degrades quality.</p>
+<h3
+id="preserving-valid-data-ranges-masks-depth-and-normal-maps">Preserving
+Valid Data Ranges (Masks, Depth, and Normal Maps)</h3>
+<p>When processing non-color visual data, values often represent strict
+physical metrics rather than human-perceived luminance:</p>
+<ul>
+<li><strong>Alpha and Transparency Masks:</strong> Ringing can push
+values below 0.0 or above 1.0, requiring clamping that distorts edge
+transitions.</li>
+<li><strong>Depth Maps and Heightmaps:</strong> Higher-order filters can
+create false local minima or maxima along steep gradients, causing
+geometric spikes or gouges when displaced into 3D meshes.</li>
+<li><strong>Normal Maps:</strong> Interpolating vector normals using
+negative-lobed polynomials can invert vector directions or produce
+non-normalized values that break lighting shaders.</li>
+</ul>
+<p>The Bartlett filter guarantees strict monotonicity between adjacent
+samples, ensuring output values never exceed the local bounding box of
+the input values.</p>
+<h3 id="high-throughput-and-low-latency-environments">High-Throughput
+and Low-Latency Environments</h3>
+<p>Higher-order filters require evaluating a wider neighborhood of
+surrounding pixels. For example, a 2D bicubic filter operates over a 4x4
+grid (16 taps), and windowed sinc filters often require a 6x6 or larger
+grid (36+ taps).</p>
+<p>The Bartlett filter evaluates only a 2x2 footprint (4 taps) in two
+dimensions:</p>
+<ul>
+<li><strong>Memory Bandwidth:</strong> Far fewer memory lookups are
+required per output pixel, reducing cache misses.</li>
+<li><strong>Execution Speed:</strong> The linear arithmetic requires
+fewer floating-point operations.</li>
+</ul>
+<p>In batch-processing pipelines handling millions of transformations
+per day, or in edge computing environments with limited CPU capacity,
+the Bartlett filter yields a massive performance gain with acceptable
+quality loss.</p>
+<h3 id="replicating-real-time-gpu-bilinear-filtering">Replicating
+Real-Time GPU Bilinear Filtering</h3>
+<p>Standard 3D rendering engines and GPU graphics pipelines rely on
+fixed-function hardware bilinear filtering for texture mapping. The
+Bartlett filter in ImageMagick produces mathematically equivalent
+results to hardware bilinear interpolation.</p>
+<p>When preparing pre-processed assets, mipmaps, or reference test
+frames designed to match what a real-time game engine or WebGL pipeline
+displays natively, higher-order filters introduce filtering
+discrepancies. Bartlett ensures deterministic visual parity between
+offline ImageMagick assets and hardware-rendered output.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

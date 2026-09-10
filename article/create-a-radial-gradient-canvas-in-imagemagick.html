@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Radial Gradient Canvas in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a quick guide on generating radial gradient canvases using ImageMagick's built-in radial-gradient: primitive. You will learn the core syntax, how to specify inner and outer colors, and how to customize the center position and radius">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-a-radial-gradient-canvas-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create a Radial Gradient Canvas in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-a-radial-gradient-canvas-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick guide on generating radial gradient canvases using ImageMagick's built-in radial-gradient: primitive. You will learn the core syntax, how to specify inner and outer colors, and how to customize the center position and radius" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-a-radial-gradient-canvas-in-imagemagick">Create a Radial
+Gradient Canvas in ImageMagick</h1>
+<p>This article provides a quick guide on generating radial gradient
+canvases using ImageMagick's built-in <code>radial-gradient:</code>
+primitive. You will learn the core syntax, how to specify inner and
+outer colors, and how to customize the center position and radius to
+generate smooth, circular, or elliptical gradient backgrounds directly
+from the command line.</p>
+<h2 id="basic-radial-gradient-syntax">Basic Radial Gradient Syntax</h2>
+<p>ImageMagick utilizes the <code>radial-gradient:</code> protocol to
+generate a gradient transitioning outward from a central point. The
+basic syntax requires specifying the canvas dimensions via the
+<code>-size</code> option and declaring the start (center) and end
+(outer) colors separated by a hyphen.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 radial-gradient:white-black radial_output.png</span></code></pre></div>
+<p>In this example, ImageMagick creates a 600x400 canvas where the
+gradient begins as white in the center and smoothly blends into black at
+the edges.</p>
+<h2 id="specifying-colors">Specifying Colors</h2>
+<p>You can use standard color names, hex codes, RGB values, or RGBA
+values (for gradients with transparency).</p>
+<ul>
+<li><strong>Hex values:</strong>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 radial-gradient:<span class="st">&quot;#ff7e5f-#feb47b&quot;</span> sunset_gradient.png</span></code></pre></div></li>
+<li><strong>Transparency (RGBA):</strong>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 radial-gradient:<span class="st">&quot;rgba(255,0,0,1)-rgba(255,0,0,0)&quot;</span> glow.png</span></code></pre></div></li>
+</ul>
+<h2 id="adjusting-gradient-center-and-extent">Adjusting Gradient Center
+and Extent</h2>
+<p>ImageMagick provides specialized <code>-define</code> settings to
+control the geometry, position, and bounding extent of the radial
+gradient.</p>
+<h3 id="changing-the-center-point">Changing the Center Point</h3>
+<p>By default, the gradient originates at the center of the canvas
+(<code>50%,50%</code>). You can reposition the origin using
+<code>radial-gradient:center</code>.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 <span class="at">-define</span> radial-gradient:center=150,100 radial-gradient:yellow-blue offcenter_gradient.png</span></code></pre></div>
+<h3 id="controlling-the-gradient-extent">Controlling the Gradient
+Extent</h3>
+<p>The <code>radial-gradient:extent</code> definition dictates how far
+the gradient stretches before reaching the final color:</p>
+<ul>
+<li><code>circle</code>: Forces the gradient to remain a true circle
+regardless of canvas dimensions.</li>
+<li><code>diagonal</code>: Extends the gradient to the furthest corner
+of the canvas.</li>
+<li><code>minimum</code>: Extends the gradient only to the closest
+edge.</li>
+<li><code>maximum</code>: Extends the gradient to the furthest
+edge.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 800x400 <span class="at">-define</span> radial-gradient:extent=circle radial-gradient:cyan-navy circular_extent.png</span></code></pre></div>
+<h2 id="creating-elliptical-vs-circular-gradients">Creating Elliptical
+vs. Circular Gradients</h2>
+<p>When the canvas is non-square (such as 800x400), ImageMagick
+automatically stretches a standard radial gradient into an ellipse to
+fit the aspect ratio. If you want a perfectly circular gradient on a
+rectangular canvas, combine
+<code>-define radial-gradient:extent=circle</code> or use square
+dimensions and crop/resize the output as needed.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

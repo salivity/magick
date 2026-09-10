@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Force 24-Bit RGB PNG Without Alpha - magick</title>
+    <meta name="description" content="This article explains how to force ImageMagick to output 24-bit RGB PNG files without transparency or an alpha channel. By default, ImageMagick automatically selects the most compact or appropriate PNG subtype, which can result in unwanted 8-bit indexed">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-force-24-bit-rgb-png-without-alpha">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Force 24-Bit RGB PNG Without Alpha - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-force-24-bit-rgb-png-without-alpha" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to force ImageMagick to output 24-bit RGB PNG files without transparency or an alpha channel. By default, ImageMagick automatically selects the most compact or appropriate PNG subtype, which can result in unwanted 8-bit indexed" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-force-24-bit-rgb-png-without-alpha">ImageMagick
+Force 24-Bit RGB PNG Without Alpha</h1>
+<p>This article explains how to force ImageMagick to output 24-bit RGB
+PNG files without transparency or an alpha channel. By default,
+ImageMagick automatically selects the most compact or appropriate PNG
+subtype, which can result in unwanted 8-bit indexed palettes or 32-bit
+RGBA formats. Using the <code>-define png:color-type=2</code> or
+<code>-define png:format=png24</code> options alongside proper alpha
+management guarantees a strictly truecolor 24-bit RGB file.</p>
+<h3 id="the-define-options">The Define Options</h3>
+<p>ImageMagick provides two primary define options to enforce an 8-bit
+per channel RGB PNG with no alpha channel:</p>
+<ol type="1">
+<li><p><strong><code>-define png:color-type=2</code></strong><br />
+In the PNG specification, Color Type 2 represents Truecolor (RGB), where
+each pixel is an R, G, B triple without an alpha channel. Setting this
+define forces the encoder to write color type 2.</p></li>
+<li><p><strong><code>-define png:format=png24</code></strong><br />
+This define directly restricts the PNG encoder sub-format to PNG24,
+which is 8-bit RGB without transparency.</p></li>
+</ol>
+<h3 id="disabling-the-alpha-channel">Disabling the Alpha Channel</h3>
+<p>Defining the color type alone may result in an error or unexpected
+output if the source image still carries active transparency data. To
+guarantee the alpha channel is stripped before encoding, use the
+<code>-alpha off</code> operator before defining the PNG parameters.</p>
+<h3 id="command-examples">Command Examples</h3>
+<p>Using ImageMagick version 7 (using <code>magick</code>):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-alpha</span> off <span class="at">-define</span> png:color-type=2 output.png</span></code></pre></div>
+<p>Alternatively, using the sub-format define:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-alpha</span> off <span class="at">-define</span> png:format=png24 output.png</span></code></pre></div>
+<p>If using ImageMagick version 6 (using <code>convert</code>):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-alpha</span> off <span class="at">-define</span> png:color-type=2 output.png</span></code></pre></div>
+<h3 id="alternative-format-prefix">Alternative Format Prefix</h3>
+<p>ImageMagick also supports format prefixes on the output filename,
+which functionally mirrors the <code>-define png:format=png24</code>
+directive:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-alpha</span> off PNG24:output.png</span></code></pre></div>
+<h3 id="verifying-the-output">Verifying the Output</h3>
+<p>To verify that the output file is strictly 24-bit RGB with no alpha
+channel, inspect the file metadata using the <code>identify</code>
+command:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.png</span></code></pre></div>
+<p>Check the properties output:</p>
+<ul>
+<li><strong>Type:</strong> <code>TrueColor</code></li>
+<li><strong>Depth:</strong> <code>8-bit</code></li>
+<li><strong>Alpha:</strong> Not listed under Channels (only
+<code>Red</code>, <code>Green</code>, <code>Blue</code> should
+appear)</li>
+<li><strong>png:IHDR.color-type-str:</strong> <code>2 (RGB)</code></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using ImageMagick Colorspace Log for Cineon Scans - magick</title>
+    <meta name="description" content="This article examines the role of the ImageMagick -colorspace Log operator when handling Cineon film scans, focusing on how logarithmic transfer functions interpret density data from digitized motion picture film. You will learn the mechanics behind loga">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/using-imagemagick-colorspace-log-for-cineon-scans">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using ImageMagick Colorspace Log for Cineon Scans - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/using-imagemagick-colorspace-log-for-cineon-scans" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines the role of the ImageMagick -colorspace Log operator when handling Cineon film scans, focusing on how logarithmic transfer functions interpret density data from digitized motion picture film. You will learn the mechanics behind loga" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-imagemagick-colorspace-log-for-cineon-scans">Using
+ImageMagick Colorspace Log for Cineon Scans</h1>
+<p>This article examines the role of the ImageMagick
+<code>-colorspace Log</code> operator when handling Cineon film scans,
+focusing on how logarithmic transfer functions interpret density data
+from digitized motion picture film. You will learn the mechanics behind
+logarithmic curve mapping, why linearization is essential for accurate
+digital compositing, and how to implement this command correctly within
+archival and post-production workflows.</p>
+<h2 id="understanding-cineon-and-logarithmic-film-data">Understanding
+Cineon and Logarithmic Film Data</h2>
+<p>Developed by Kodak in the early 1990s, the Cineon file format
+(<code>.cin</code>) was designed to capture the wide dynamic range and
+optical density characteristics of motion picture film negatives. Cineon
+relies on a 10-bit logarithmic quantization scheme that maps
+photographic transmission density directly into digital code values
+(ranging from 0 to 1023).</p>
+<p>Unlike standard display-referred formats (such as sRGB) that use
+power-law gamma curves, or scene-referred formats that use linear light
+values, Cineon files store image data logarithmically. When viewed on
+standard computer displays without tone management, unprocessed Cineon
+scans appear flat, low-contrast, and visually milky.</p>
+<h2 id="the-function-of--colorspace-log-in-imagemagick">The Function of
+<code>-colorspace Log</code> in ImageMagick</h2>
+<p>The primary role of the <code>-colorspace Log</code> operator in
+ImageMagick is to manage the transformation between logarithmic density
+data and other target color spaces. ImageMagick applies a
+logarithmic-to-linear (or inverse) transfer curve to translate the
+relative scene density into code values compatible with subsequent
+digital processing.</p>
+<p>Specifically, the command serves two critical operational roles:</p>
+<ol type="1">
+<li><strong>Transforming Linear/Display Data to Logarithmic:</strong>
+When prepending or appending <code>-colorspace Log</code> to a standard
+or linear image, ImageMagick applies a logarithmic transfer function.
+This compresses highlight information and redistributes tonal values to
+emulate traditional film density encoding, making the data suitable for
+export to film recorders or legacy Cineon pipelines.</li>
+<li><strong>Facilitating Linearization from Cineon Scans:</strong> Most
+mathematical image operations—such as scaling, blurring, compositing,
+and color grading—require linear light values to yield physically
+accurate results. When paired with ImageMagick's colorspace
+transformation pipeline, recognizing or converting the logarithmic space
+allows the software to calculate intermediate values in linear light
+before converting to an output space like sRGB.</li>
+</ol>
+<h2 id="practical-processing-mechanics">Practical Processing
+Mechanics</h2>
+<p>In Cineon workflows, proper handling depends on whether ImageMagick
+recognizes the native file headers:</p>
+<ul>
+<li><strong>Automatic Interpretation:</strong> Native <code>.cin</code>
+or Cineon-encoded <code>.dpx</code> files typically contain metadata
+identifying their logarithmic transfer characteristics. When converting
+such a scan to a monitor-ready format, specifying a display target like
+<code>-colorspace sRGB</code> instructs ImageMagick to convert from
+logarithmic density directly to display gamma.</li>
+<li><strong>Explicit Tagging and Conversion:</strong> If a raw film scan
+is stored in a generic format (such as an uncompressed 16-bit TIFF) that
+stripped the Cineon metadata, ImageMagick may mistakenly assume the
+input is linear or sRGB. In this scenario, declaring
+<code>-set colorspace Log</code> overrides the default metadata, forcing
+ImageMagick to recognize that the pixel values represent film density
+curves. A subsequent <code>-colorspace sRGB</code> or
+<code>-colorspace RGB</code> (linear) command then transforms the
+logarithmic values accurately.</li>
+</ul>
+<h2 id="bit-depth-and-dynamic-range-considerations">Bit Depth and
+Dynamic Range Considerations</h2>
+<p>Cineon's 10-bit logarithmic encoding can represent density ranges
+well beyond standard 8-bit monitor capabilities. When applying the
+<code>-colorspace Log</code> operator or converting out of it:</p>
+<ul>
+<li><strong>Compilation Architecture:</strong> Processing Cineon scans
+should be executed using an ImageMagick build compiled with at least
+16-bit quantum depth (Q16) or high dynamic range floating-point imaging
+(HDRI). A standard 8-bit (Q8) build will cause severe quantization and
+banding in shadow and highlight regions during logarithmic-to-linear
+conversion.</li>
+<li><strong>White and Black Points:</strong> The standard Cineon
+specification places 90% white at code value 685 and 2% black at code
+value 95. Standard logarithmic transforms apply generic mathematical log
+curves; precise photometric mastering may require adjusting levels or
+black/white point parameters alongside the colorspace command to avoid
+clipping specular highlights or crushing shadow details stored in the
+film negative's toe and shoulder.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

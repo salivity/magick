@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Black Point Compensation Explained - magick</title>
+    <meta name="description" content="The -black-point-compensation (BPC) option in ImageMagick is a color management setting used during color profile conversions to preserve shadow details. When converting an image between different color spaces (such as RGB to CMYK), this option adjusts t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-black-point-compensation-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Black Point Compensation Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-black-point-compensation-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -black-point-compensation (BPC) option in ImageMagick is a color management setting used during color profile conversions to preserve shadow details. When converting an image between different color spaces (such as RGB to CMYK), this option adjusts t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-black-point-compensation-explained">ImageMagick
+Black Point Compensation Explained</h1>
+<p>The <code>-black-point-compensation</code> (BPC) option in
+ImageMagick is a color management setting used during color profile
+conversions to preserve shadow details. When converting an image between
+different color spaces (such as RGB to CMYK), this option adjusts the
+dynamic range so that the darkest black of the source profile
+corresponds to the darkest black of the destination profile. This
+prevents shadow clipping, muddy dark tones, and loss of detail in the
+darkest areas of an image.</p>
+<h3 id="the-purpose-of-black-point-compensation">The Purpose of Black
+Point Compensation</h3>
+<p>Different color spaces and physical media (such as monitors versus
+offset printers) have varying capabilities for reproducing deep blacks.
+For example, a digital display can typically produce a much darker black
+than ink on standard paper.</p>
+<p>When converting an image without Black Point Compensation:</p>
+<ul>
+<li>If the destination color space cannot produce a black as deep as the
+source, all source values darker than the destination’s black limit are
+clipped to the same flat, dark tone.</li>
+<li>Alternatively, shadows may become washed out, and high-contrast
+transitions in dark areas are lost.</li>
+</ul>
+<p>Enabling <code>-black-point-compensation</code> solves this problem
+by scaling the entire tonal range. It maps the darkest point of the
+source image to the darkest reproducible point of the destination
+target, smoothly compressing the intermediate shadow tones rather than
+abruptly cutting them off.</p>
+<h3 id="when-to-use-it">When to Use It</h3>
+<p>The <code>-black-point-compensation</code> option is primarily used
+in workflows involving LittleCMS (lcms) and ICC profile transformations.
+It is most effective when:</p>
+<ol type="1">
+<li><strong>Converting RGB to CMYK for Print:</strong> Commercial
+printing processes generally have a narrower dynamic range than digital
+monitors. BPC ensures that gradients in dark backgrounds or clothing
+retain their subtle variations on paper.</li>
+<li><strong>Using Relative Colorimetric Rendering Intent:</strong> BPC
+is specifically designed to work alongside the <code>Relative</code>
+colorimetric intent (<code>-intent Relative</code>), which matches white
+points between profiles but does not inherently adjust black
+points.</li>
+<li><strong>Cross-Media Publishing:</strong> When the same asset must be
+converted to multiple output devices with differing contrast
+ratios.</li>
+</ol>
+<h3 id="usage-in-imagemagick">Usage in ImageMagick</h3>
+<p>To use this feature, the flag is typically placed alongside ICC
+profile assignments and rendering intent specifications:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-intent</span> Relative <span class="at">-black-point-compensation</span> <span class="at">-profile</span> destination_profile.icc output.jpg</span></code></pre></div>
+<p>By adding <code>-black-point-compensation</code>, ImageMagick ensures
+that the contrast and shadow gradients of the original image remain
+visually consistent across diverse color targets.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

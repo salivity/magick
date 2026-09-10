@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retain Soft Proofing Profiles in ImageMagick - magick</title>
+    <meta name="description" content="Soft-proofing allows digital artists and prepress professionals to simulate how an image will appear on a physical print or specific output device directly on a display. In ImageMagick, retaining and accurately applying soft-proofing profiles requires ch">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/retain-soft-proofing-profiles-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Retain Soft Proofing Profiles in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/retain-soft-proofing-profiles-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Soft-proofing allows digital artists and prepress professionals to simulate how an image will appear on a physical print or specific output device directly on a display. In ImageMagick, retaining and accurately applying soft-proofing profiles requires ch" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="retain-soft-proofing-profiles-in-imagemagick">Retain Soft
+Proofing Profiles in ImageMagick</h1>
+<p>Soft-proofing allows digital artists and prepress professionals to
+simulate how an image will appear on a physical print or specific output
+device directly on a display. In ImageMagick, retaining and accurately
+applying soft-proofing profiles requires chaining multiple ICC color
+profiles using the <code>-profile</code> operator to map source colors
+to a destination proofing space and then to a monitor-viewable space.
+This guide outlines how to handle color management, configure rendering
+intents, and preserve color fidelity when generating soft-proofed
+renders using ImageMagick command-line tools.</p>
+<h2 id="understanding-imagemagicks-profile-mechanism">Understanding
+ImageMagick's Profile Mechanism</h2>
+<p>ImageMagick handles color conversions through sequential
+<code>-profile</code> arguments. The behavior depends on whether the
+image already contains an embedded profile:</p>
+<ul>
+<li><strong>First <code>-profile</code> call:</strong> If the source
+image lacks an embedded ICC profile, the first <code>-profile</code>
+call assigns (tags) a source color space without altering raw pixel
+values. If a profile already exists, this call converts the image data
+to the target profile.</li>
+<li><strong>Subsequent <code>-profile</code> calls:</strong> Every
+following <code>-profile</code> call transforms the image pixels from
+the current color space into the specified profile's color space.</li>
+</ul>
+<h2 id="the-two-step-soft-proofing-transformation">The Two-Step
+Soft-Proofing Transformation</h2>
+<p>Soft-proofing requires simulating the output medium's gamut and
+dynamic range on an sRGB or monitor profile. This involves a two-step
+profile conversion:</p>
+<ol type="1">
+<li><strong>Source to Output Device (Proof Profile):</strong> Transform
+the working space (e.g., Adobe RGB, sRGB) into the target output profile
+(e.g., a specific CMYK press profile like GRACoL2006 or SWOP).</li>
+<li><strong>Output Device to Screen (Display Profile):</strong>
+Transform the proofing color space into a standard display space (e.g.,
+sRGB) to view the simulated results accurately on standard
+monitors.</li>
+</ol>
+<h3 id="basic-soft-proofing-command">Basic Soft-Proofing Command</h3>
+<p>To render an image with a soft-proof simulation applied:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/source_profile.icc <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/printer_proof.icc <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/sRGB.icc <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  output_softproof.jpg</span></code></pre></div>
+<p>If the input file already has an embedded profile, you only need to
+specify the proof profile followed by the display profile:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_with_profile.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/printer_proof.icc <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/sRGB.icc <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  output_softproof.jpg</span></code></pre></div>
+<h2 id="configuring-rendering-intents">Configuring Rendering
+Intents</h2>
+<p>The rendering intent determines how out-of-gamut colors are mapped
+between color spaces. You can specify this using the
+<code>-intent</code> option before applying a profile:</p>
+<ul>
+<li><strong>Relative Colorimetric
+(<code>-intent Relative</code>):</strong> Matches colors that fall
+within both gamuts and shifts out-of-gamut colors to the nearest
+reproducible hue. It scales the white point to the target space, making
+it standard for general soft-proofing.</li>
+<li><strong>Absolute Colorimetric
+(<code>-intent Absolute</code>):</strong> Preserves exact color values
+without adjusting the white point. This simulates the exact tint of the
+paper stock or substrate.</li>
+<li><strong>Perceptual (<code>-intent Perceptual</code>):</strong>
+Compresses the entire gamut to maintain visual relationships between
+colors, often used for photographic images.</li>
+</ul>
+<p>Example using Absolute Colorimetric to simulate paper color:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Absolute <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/printer_proof.icc <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Relative <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/sRGB.icc <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  proof_simulated_paper.jpg</span></code></pre></div>
+<h2 id="key-considerations-for-profile-retention">Key Considerations for
+Profile Retention</h2>
+<ul>
+<li><strong>Avoid <code>-strip</code>:</strong> Running
+<code>-strip</code> removes all embedded metadata, including ICC
+profiles. Only use this if you want to discard profiles after rendering
+pixels to sRGB.</li>
+<li><strong>Order of Execution:</strong> ImageMagick reads flags in
+order. Always place <code>-intent</code> flags immediately prior to the
+<code>-profile</code> conversion they are meant to govern.</li>
+<li><strong>Bit Depth:</strong> To avoid banding during multiple
+sequential color conversions, set the processing depth to 16-bit using
+<code>-depth 16</code> before applying profiles.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

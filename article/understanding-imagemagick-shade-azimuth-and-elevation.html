@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick Shade Azimuth and Elevation - magick</title>
+    <meta name="description" content="The ImageMagick -shade operator creates a 3D embossed or relief effect by simulating a distant directional light source cast across an image's brightness surface. This lighting is controlled entirely by two spherical coordinate parameters: azimuth and el">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-shade-azimuth-and-elevation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick Shade Azimuth and Elevation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-shade-azimuth-and-elevation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -shade operator creates a 3D embossed or relief effect by simulating a distant directional light source cast across an image's brightness surface. This lighting is controlled entirely by two spherical coordinate parameters: azimuth and el" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="understanding-imagemagick-shade-azimuth-and-elevation">Understanding
+ImageMagick Shade Azimuth and Elevation</h1>
+<p>The ImageMagick <code>-shade</code> operator creates a 3D embossed or
+relief effect by simulating a distant directional light source cast
+across an image's brightness surface. This lighting is controlled
+entirely by two spherical coordinate parameters:
+<strong>azimuth</strong> and <strong>elevation</strong>, formatted as
+<code>-shade &lt;azimuth&gt;x&lt;elevation&gt;</code>. Together, these
+values position an infinite parallel light source in 3D space,
+determining the direction and intensity of highlights and shadows across
+the image.</p>
+<h2 id="azimuth-horizontal-light-direction">Azimuth: Horizontal Light
+Direction</h2>
+<p>Azimuth configures the horizontal direction of the light source
+within the 2D plane of the image (the X-Y plane). It is measured in
+degrees, typically ranging from 0° to 360°, rotating counterclockwise
+from the positive X-axis:</p>
+<ul>
+<li><strong>0° (East / Right):</strong> The light originates from the
+right edge of the image, casting shadows to the left.</li>
+<li><strong>90° (North / Top):</strong> The light originates from the
+top edge, casting shadows downward.</li>
+<li><strong>180° (West / Left):</strong> The light originates from the
+left edge, casting shadows to the right.</li>
+<li><strong>270° (South / Bottom):</strong> The light originates from
+the bottom edge, casting shadows upward.</li>
+</ul>
+<p>Intermediate values position the light at diagonal angles. For
+example, an azimuth of <code>135°</code> places the light in the
+top-left quadrant (North-West), which is a common convention in user
+interface design and cartography.</p>
+<h2 id="elevation-vertical-light-angle">Elevation: Vertical Light
+Angle</h2>
+<p>Elevation defines the vertical angle of the light source relative to
+the image surface (the Z-axis), extending from the horizon up to the
+zenith. It is measured in degrees, ranging from 0° to 90°:</p>
+<ul>
+<li><strong>0° (Surface / Horizon):</strong> The light shines completely
+parallel to the image surface. This grazing angle exaggerates every
+surface variation, resulting in extreme contrast and long, harsh
+shadows.</li>
+<li><strong>45° (Mid-Angle):</strong> A balanced position providing
+natural highlights and soft, legible shading suitable for general relief
+rendering.</li>
+<li><strong>90° (Overhead / Zenith):</strong> The light source is
+positioned directly above the image, perpendicular to the surface. At
+this angle, horizontal directional shading disappears, leaving only
+flat, uniform illumination.</li>
+</ul>
+<h2 id="how-the-parameters-work-together">How the Parameters Work
+Together</h2>
+<p>ImageMagick treats the grayscale intensity of the input image as a
+height map, calculating surface normal vectors for each pixel based on
+localized brightness gradients. The <code>-shade</code> operator then
+calculates the dot product between the calculated surface normal and the
+3D directional light vector established by the azimuth and elevation
+settings.</p>
+<p>A standard configuration such as <code>-shade 120x45</code> instructs
+ImageMagick to shine light from the upper-left (120° azimuth) at a 45°
+angle above the image plane (45° elevation), generating intuitive depth
+and defined surface contours.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

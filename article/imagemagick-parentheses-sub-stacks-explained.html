@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Parentheses: Sub-Stacks Explained - magick</title>
+    <meta name="description" content="In ImageMagick, parentheses allow you to create isolated image processing sub-stacks, enabling you to load, generate, or modify specific images without altering the rest of your sequence. By sequestering operations inside a parenthetical block, you can p">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-parentheses-sub-stacks-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Parentheses: Sub-Stacks Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-parentheses-sub-stacks-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, parentheses allow you to create isolated image processing sub-stacks, enabling you to load, generate, or modify specific images without altering the rest of your sequence. By sequestering operations inside a parenthetical block, you can p" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-parentheses-sub-stacks-explained">ImageMagick
+Parentheses: Sub-Stacks Explained</h1>
+<p>In ImageMagick, parentheses allow you to create isolated image
+processing sub-stacks, enabling you to load, generate, or modify
+specific images without altering the rest of your sequence. By
+sequestering operations inside a parenthetical block, you can perform
+targeted tasks—such as generating masks, applying blurs, or resizing
+individual elements—and then merge the final result back into the main
+image sequence. This article explains how ImageMagick manages image
+stacks, how parentheses establish isolation, and how to properly use
+them in command-line workflows.</p>
+<h3 id="the-imagemagick-stack-model">The ImageMagick Stack Model</h3>
+<p>ImageMagick processes commands sequentially from left to right,
+maintaining an internal list of images known as the image stack or
+sequence. When you specify an operator—such as <code>-resize</code>,
+<code>-negate</code>, or <code>-blur</code>—ImageMagick applies that
+operation to every image currently loaded into the stack.</p>
+<p>Without a mechanism to isolate images, applying an effect to one
+image would require writing it to a temporary file on disk, modifying it
+in a separate command, and reloading it. Parentheses solve this by
+introducing local scopes directly within a single command.</p>
+<h3 id="how-parentheses-create-a-sub-stack">How Parentheses Create a
+Sub-Stack</h3>
+<p>When ImageMagick encounters an opening parenthesis, it pushes a new,
+empty sub-stack on top of the current stack. Any images loaded or
+operations defined immediately after the opening parenthesis exist
+exclusively inside this isolated environment.</p>
+<ol type="1">
+<li><strong>Isolation:</strong> Global operations inside the parentheses
+only affect the images present within that specific sub-stack. The
+images residing in the parent stack remain untouched and inactive.</li>
+<li><strong>Execution:</strong> All image generators, filters, color
+corrections, or dimension changes execute within the boundaries of the
+parentheses.</li>
+<li><strong>Merging:</strong> When the closing parenthesis is
+encountered, the sub-stack collapses. The resulting processed image (or
+images) is popped off the sub-stack and appended to the end of the
+parent image sequence.</li>
+</ol>
+<h3 id="typical-use-cases-for-sub-stacks">Typical Use Cases for
+Sub-Stacks</h3>
+<p>Sub-stacks are essential whenever you need to prepare an asset for
+composition without modifying the base asset.</p>
+<h4 id="1-branching-with--clone">1. Branching with
+<code>-clone</code></h4>
+<p>The most common pattern combines parentheses with the
+<code>-clone</code> operator. This allows you to copy an image from the
+parent stack into the sub-stack, alter it, and composite it back onto
+the original:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-background</span> black <span class="at">-shadow</span> 80x3+5+5 <span class="dt">\)</span> +swap <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li><code>input.jpg</code> is read into the main stack (index 0).</li>
+<li><code>\(</code> begins the sub-stack.</li>
+<li><code>+clone</code> makes a duplicate of the last image (index 0)
+inside the sub-stack.</li>
+<li><code>-background black -shadow 80x3+5+5</code> applies only to the
+cloned image.</li>
+<li><code>\)</code> ends the sub-stack, returning the shadow image to
+the main stack (now containing the original image and the shadow).</li>
+<li><code>+swap</code> and <code>-composite</code> merge the two
+layers.</li>
+</ul>
+<h4 id="2-independent-asset-loading">2. Independent Asset Loading</h4>
+<p>You can also use sub-stacks to load and prep an entirely separate
+file before layering it:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> background.png <span class="dt">\(</span> logo.png <span class="at">-resize</span> 50% <span class="at">-alpha</span> set <span class="at">-channel</span> A <span class="at">-evaluate</span> set 50% <span class="dt">\)</span> <span class="at">-gravity</span> center <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>Here, <code>logo.png</code> is resized and made semi-transparent
+without affecting <code>background.png</code>.</p>
+<h3 id="shell-escaping-rules">Shell Escaping Rules</h3>
+<p>Because parentheses are reserved characters in most operating system
+shells, they must be handled correctly to avoid syntax errors:</p>
+<ul>
+<li><strong>Linux / macOS (Bash, Zsh):</strong> Parentheses must be
+escaped with backslashes and separated from other arguments by spaces:
+<code>\( ... \)</code></li>
+<li><strong>Windows Command Prompt (cmd.exe):</strong> Parentheses do
+not require backslashes, but they still require spaces:
+<code>( ... )</code></li>
+<li><strong>PowerShell:</strong> Parentheses must either be escaped with
+backticks or enclosed in quotes: <code>`( ... `)</code> or
+<code>'(' ... ')'</code></li>
+</ul>
+<p>Failing to include spaces around the parentheses will cause
+ImageMagick to misinterpret them as part of an adjacent file name or
+parameter.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

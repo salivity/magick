@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick In Compositing Operator Output - magick</title>
+    <meta name="description" content="This article provides an explanation of the visual result produced when using the ImageMagick In compositing operator on two overlapping shapes. It covers how the Porter-Duff Src In Dst rule functions, which shape's color is retained, and why all non-ove">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-in-compositing-operator-output">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick In Compositing Operator Output - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-in-compositing-operator-output" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an explanation of the visual result produced when using the ImageMagick In compositing operator on two overlapping shapes. It covers how the Porter-Duff Src In Dst rule functions, which shape's color is retained, and why all non-ove" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-in-compositing-operator-output">ImageMagick In
+Compositing Operator Output</h1>
+<p>This article provides an explanation of the visual result produced
+when using the ImageMagick <code>In</code> compositing operator on two
+overlapping shapes. It covers how the Porter-Duff
+<code>Src In Dst</code> rule functions, which shape's color is retained,
+and why all non-overlapping areas become completely transparent.</p>
+<p>When applying the <code>In</code> compositing operator in ImageMagick
+(often written as <code>-compose In -composite</code>), the software
+uses the classic Porter-Duff "Source In Destination" rule. In
+ImageMagick workflows, the first specified image serves as the
+<strong>Destination</strong> (the background), while the second image
+serves as the <strong>Source</strong> (the overlay).</p>
+<h3 id="the-resulting-visual-output">The Resulting Visual Output</h3>
+<p>When two shapes overlap using the <code>In</code> operator:</p>
+<ol type="1">
+<li><p><strong>The Overlapping Region:</strong> The only visible output
+is the intersection where both shapes occupy the same pixel coordinates.
+The visual appearance—such as color, pattern, and texture—of this
+intersecting area is taken entirely from the <strong>Source</strong>
+(the second shape). The Destination shape merely acts as a stencil or
+clipping mask.</p></li>
+<li><p><strong>The Non-Overlapping Regions:</strong> All non-overlapping
+areas of both shapes are completely discarded.</p>
+<ul>
+<li>The portion of the Destination shape that does not touch the Source
+disappears.</li>
+<li>The portion of the Source shape that extends outside the Destination
+disappears.</li>
+<li>These empty areas are rendered as fully transparent pixels.</li>
+</ul></li>
+</ol>
+<h3 id="transparency-and-alpha-channels">Transparency and Alpha
+Channels</h3>
+<p>The resulting opacity (alpha channel) is calculated by multiplying
+the alpha values of the two shapes:</p>
+<ul>
+<li><strong>Full Opacity:</strong> If both overlapping shapes are 100%
+opaque in the intersecting area, the resulting output will be 100%
+opaque, showing only the Source shape's color.</li>
+<li><strong>Partial Opacity:</strong> If either shape has partial
+transparency (anti-aliased edges or semi-transparent fills), the output
+alpha is reduced proportionally (<span
+class="math inline">\(Alpha_{result} = Alpha_{source} \times
+Alpha_{destination}\)</span>). This ensures smooth, anti-aliased edges
+along the clipping boundary.</li>
+</ul>
+<h3 id="concrete-example">Concrete Example</h3>
+<p>Consider a composite operation where a solid red circle is the
+Destination image and a solid blue square is the Source image placed
+partially over the circle.</p>
+<p>Running the <code>In</code> composite operator produces an image
+containing only a blue curved segment: the exact portion of the blue
+square that sat inside the boundary of the red circle. All red pixels
+vanish, and the rest of the blue square outside the circle vanishes,
+leaving the surrounding canvas entirely transparent.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Tile an Image in ImageMagick - magick</title>
+    <meta name="description" content="Creating a tiled pattern from a small input square is a fast and efficient process using ImageMagick. By leveraging built-in operators like the tile: protocol or memory registers, you can seamlessly repeat a single square image across any desired canvas">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-tile-an-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Tile an Image in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-tile-an-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a tiled pattern from a small input square is a fast and efficient process using ImageMagick. By leveraging built-in operators like the tile: protocol or memory registers, you can seamlessly repeat a single square image across any desired canvas" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-tile-an-image-in-imagemagick">How to Tile an Image in
+ImageMagick</h1>
+<p>Creating a tiled pattern from a small input square is a fast and
+efficient process using ImageMagick. By leveraging built-in operators
+like the <code>tile:</code> protocol or memory registers, you can
+seamlessly repeat a single square image across any desired canvas
+dimensions. This guide explains the most effective command-line methods
+for both ImageMagick v7 and legacy ImageMagick v6.</p>
+<h3 id="the-standard-tile-method">The Standard <code>tile:</code>
+Method</h3>
+<p>The simplest way to create a pattern is to define a canvas size and
+use the <code>tile:</code> prefix with your input filename.</p>
+<p>For ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 tile:input.png output.png</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-size</span> 1920x1080 tile:input.png output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-size 1920x1080</code> sets the dimensions of the final
+canvas.</li>
+<li><code>tile:input.png</code> instructs ImageMagick to repeat the
+input image until the canvas area is completely filled.</li>
+<li><code>output.png</code> is the resulting tiled image.</li>
+</ul>
+<hr />
+<h3 id="in-memory-tiling-mpr">In-Memory Tiling (<code>mpr:</code>)</h3>
+<p>If you want to modify the source square (such as resizing it,
+adjusting colors, or changing opacity) before tiling it in a single
+command, use the Memory Program Register (<code>mpr:</code>).</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 50x50 <span class="at">-write</span> mpr:tile +delete <span class="at">-size</span> 1200x800 tile:mpr:tile output.png</span></code></pre></div>
+<p>How this works:</p>
+<ol type="1">
+<li><code>input.png -resize 50x50</code> scales the source image to the
+desired tile size.</li>
+<li><code>-write mpr:tile +delete</code> saves the modified square to
+temporary memory named "tile" and removes it from the current
+sequence.</li>
+<li><code>-size 1200x800 tile:mpr:tile</code> creates a canvas filled
+with the cached square.</li>
+</ol>
+<hr />
+<h3 id="fixed-grid-tiling-with-montage">Fixed-Grid Tiling with
+<code>montage</code></h3>
+<p>If you need a specific number of rows and columns rather than
+absolute pixel dimensions, the <code>montage</code> tool provides a
+grid-based approach:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage <span class="at">-duplicate</span> 15 input.png <span class="at">-geometry</span> +0+0 <span class="at">-tile</span> 4x4 output.png</span></code></pre></div>
+<ul>
+<li><code>-duplicate 15</code> duplicates the single input image 15
+times (for a total of 16 images).</li>
+<li><code>-geometry +0+0</code> removes any default border spacing
+between tiles.</li>
+<li><code>-tile 4x4</code> arranges the 16 images into a 4x4 grid.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure ImageMagick Mean-Shift Parameters - magick</title>
+    <meta name="description" content="ImageMagick’s mean-shift filter is an edge-preserving smoothing operator commonly used for image segmentation, noise removal, and artistic posterization effects. Configuring the mean-shift algorithm effectively requires tuning two core values: the spat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-imagemagick-mean-shift-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure ImageMagick Mean-Shift Parameters - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-imagemagick-mean-shift-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s mean-shift filter is an edge-preserving smoothing operator commonly used for image segmentation, noise removal, and artistic posterization effects. Configuring the mean-shift algorithm effectively requires tuning two core values: the spat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-imagemagick-mean-shift-parameters">Configure
+ImageMagick Mean-Shift Parameters</h1>
+<p>ImageMagick’s mean-shift filter is an edge-preserving smoothing
+operator commonly used for image segmentation, noise removal, and
+artistic posterization effects. Configuring the mean-shift algorithm
+effectively requires tuning two core values: the spatial radius, which
+defines the physical pixel neighborhood to inspect, and the color radius
+(or color distance), which sets the threshold for grouping similar color
+values. This guide explains the exact syntax and best practices for
+setting both parameters.</p>
+<h3 id="mean-shift-command-syntax">Mean-Shift Command Syntax</h3>
+<p>In ImageMagick (version 7+), the mean-shift operation is invoked
+using the <code>-mean-shift</code> operator followed by a geometry
+string:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-mean-shift</span> {width}x{height}+{color_distance}<span class="pp">[</span><span class="ss">%</span><span class="pp">]</span> output.jpg</span></code></pre></div>
+<p>For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h3 id="configuring-the-spatial-radius">Configuring the Spatial
+Radius</h3>
+<p>The spatial radius is defined by the <code>{width}x{height}</code>
+portion of the geometry argument. It determines the pixel window
+(neighborhood) examined around each pixel during each iteration of the
+algorithm.</p>
+<ul>
+<li><strong>Format:</strong> Typically specified as a square, such as
+<code>7x7</code>, <code>10x10</code>, or <code>21x21</code>.</li>
+<li><strong>Behavior:</strong> Smaller spatial dimensions (e.g.,
+<code>3x3</code> to <code>7x7</code>) preserve finer structural details
+and small textures. Larger values (e.g., <code>15x15</code> to
+<code>31x31</code>) group larger regions together, significantly
+smoothing out texture across broader surfaces.</li>
+<li><strong>Performance Impact:</strong> Computational cost scales
+dramatically with larger spatial dimensions. Keep the spatial window as
+small as possible to achieve your desired smoothing effect without
+excessive processing time.</li>
+</ul>
+<h3 id="configuring-the-color-radius-distance">Configuring the Color
+Radius (Distance)</h3>
+<p>The color radius is specified after the <code>+</code> sign and
+defines the maximum distance in color space for two pixels to be
+considered part of the same cluster.</p>
+<ul>
+<li><strong>Absolute Values vs. Percentages:</strong> Color distance can
+be set as an absolute value or as a percentage using the <code>%</code>
+symbol. Using percentages (e.g., <code>+10%</code>) is strongly
+recommended because absolute values depend on your build's quantum depth
+(Q8, Q16, or Q32). A value like <code>+10%</code> works consistently
+across all installations.</li>
+<li><strong>Behavior:</strong>
+<ul>
+<li>Low values (e.g., <code>+2%</code> to <code>+5%</code>) only merge
+pixels that are nearly identical in color, preserving subtle
+gradients.</li>
+<li>Moderate values (e.g., <code>+10%</code> to <code>+15%</code>) merge
+similar tones, creating flat color fields while preserving sharp
+edges.</li>
+<li>High values (e.g., <code>+25%</code> and above) aggressively merge
+distinct colors, leading to high-contrast posterization.</li>
+</ul></li>
+</ul>
+<h3 id="practical-examples">Practical Examples</h3>
+<p><strong>Subtle Denoising and Texture Smoothing:</strong> To remove
+noise while keeping edges and fine details intact, use a small spatial
+radius and a low color threshold:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-mean-shift</span> 5x5+5% denoised.jpg</span></code></pre></div>
+<p><strong>Flat Color Segmentation (Cartoon Effect):</strong> To
+eliminate textures and create uniform color regions suitable for
+segmentation or graphic illustration, increase both parameters:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-mean-shift</span> 15x15+12% segmented.jpg</span></code></pre></div>
+<p><strong>Aggressive Stylization:</strong> For broad, abstract color
+pooling across wide areas of the image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-mean-shift</span> 25x25+20% posterized.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

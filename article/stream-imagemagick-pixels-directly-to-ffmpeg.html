@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream ImageMagick Pixels Directly to FFmpeg - magick</title>
+    <meta name="description" content="Streaming processed pixel data directly from ImageMagick into FFmpeg allows you to generate, manipulate, and encode video frames in memory without creating temporary files on your disk. By leveraging standard input and output streams (stdout and stdin),">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/stream-imagemagick-pixels-directly-to-ffmpeg">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Stream ImageMagick Pixels Directly to FFmpeg - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/stream-imagemagick-pixels-directly-to-ffmpeg" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Streaming processed pixel data directly from ImageMagick into FFmpeg allows you to generate, manipulate, and encode video frames in memory without creating temporary files on your disk. By leveraging standard input and output streams (stdout and stdin)," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="stream-imagemagick-pixels-directly-to-ffmpeg">Stream ImageMagick
+Pixels Directly to FFmpeg</h1>
+<p>Streaming processed pixel data directly from ImageMagick into FFmpeg
+allows you to generate, manipulate, and encode video frames in memory
+without creating temporary files on your disk. By leveraging standard
+input and output streams (<code>stdout</code> and <code>stdin</code>),
+you can pipe raw or formatted pixel arrays directly between the two
+command-line utilities for efficient, high-performance video
+generation.</p>
+<h3 id="raw-pixel-data-stream-rgbrgba">Raw Pixel Data Stream
+(RGB/RGBA)</h3>
+<p>When streaming raw, uncompressed pixel arrays, you must specify the
+pixel format directly to ImageMagick using the standard output
+identifier <code>-</code> and explicitly define the input parameters in
+FFmpeg (such as dimensions, frame rate, and pixel format), since raw
+streams lack container metadata.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 1920x1080 <span class="at">-depth</span> 8 rgb:- <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-y</span> <span class="at">-f</span> rawvideo <span class="at">-pixel_format</span> rgb24 <span class="at">-video_size</span> 1920x1080 <span class="at">-framerate</span> 30 <span class="at">-i</span> <span class="at">-</span> <span class="at">-c:v</span> libx264 <span class="at">-pix_fmt</span> yuv420p output.mp4</span></code></pre></div>
+<h4 id="syntax-breakdown">Syntax Breakdown:</h4>
+<ul>
+<li><strong><code>rgb:-</code> (ImageMagick):</strong> Instructs
+ImageMagick to output raw 8-bit RGB byte data to standard output. Use
+<code>rgba:-</code> if transparency data is required.</li>
+<li><strong><code>-f rawvideo</code> (FFmpeg):</strong> Forces FFmpeg to
+interpret the incoming standard input stream as raw video data.</li>
+<li><strong><code>-pixel_format rgb24</code> (FFmpeg):</strong> Defines
+the incoming raw pixel layout (<code>rgba</code> if using
+<code>rgba:-</code>).</li>
+<li><strong><code>-video_size 1920x1080</code> (FFmpeg):</strong>
+Required for raw video streams so FFmpeg knows frame boundaries.</li>
+<li><strong><code>-framerate 30</code> (FFmpeg):</strong> Defines the
+playback rate of the incoming raw frames.</li>
+<li><strong><code>-i -</code> (FFmpeg):</strong> Tells FFmpeg to read
+the source data from <code>stdin</code>.</li>
+</ul>
+<hr />
+<h3 id="self-describing-pixel-streams-pam--ppm">Self-Describing Pixel
+Streams (PAM / PPM)</h3>
+<p>To avoid manually setting dimensions and pixel formats in FFmpeg for
+every run, stream self-describing formats like Portable Arbitrary Map
+(<code>PAM</code>) or Portable Pixmap (<code>PPM</code>). These formats
+include simple headers with dimension and color depth data for each
+frame.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame<span class="pp">*</span>.png <span class="at">-resize</span> 1280x720 pam:- <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-y</span> <span class="at">-f</span> image2pipe <span class="at">-c:v</span> pam <span class="at">-framerate</span> 24 <span class="at">-i</span> <span class="at">-</span> <span class="at">-c:v</span> libx264 <span class="at">-pix_fmt</span> yuv420p output.mp4</span></code></pre></div>
+<h4 id="syntax-breakdown-1">Syntax Breakdown:</h4>
+<ul>
+<li><strong><code>pam:-</code> (ImageMagick):</strong> Writes a
+continuous PAM stream with embedded frame dimensions and channel layout
+directly to standard output.</li>
+<li><strong><code>-f image2pipe</code> (FFmpeg):</strong> Reads a
+continuous stream of concatenated image formats from standard
+input.</li>
+<li><strong><code>-c:v pam</code> (FFmpeg):</strong> Explicitly
+specifies the PAM image codec for parsing incoming headers.</li>
+</ul>
+<hr />
+<h3 id="looping-and-dynamic-frame-generation">Looping and Dynamic Frame
+Generation</h3>
+<p>You can dynamically generate and pipe programmatic patterns,
+animations, or composite frames into an encoded video output in a single
+pipeline:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 640x360 xc:blue <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 320,180 320,220&quot;</span> rgb:- <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-y</span> <span class="at">-f</span> rawvideo <span class="at">-pixel_format</span> rgb24 <span class="at">-video_size</span> 640x360 <span class="at">-framerate</span> 1 <span class="at">-loop</span> 1 <span class="at">-t</span> 10 <span class="at">-i</span> <span class="at">-</span> <span class="at">-c:v</span> libx264 <span class="at">-pix_fmt</span> yuv420p output.mp4</span></code></pre></div>
+<p>This syntax creates a static image directly in memory, pipes the raw
+RGB pixel data, and commands FFmpeg to loop that incoming raw frame for
+10 seconds into an H.264 video.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

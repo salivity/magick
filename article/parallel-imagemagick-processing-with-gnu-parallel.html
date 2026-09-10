@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel ImageMagick Processing with GNU Parallel - magick</title>
+    <meta name="description" content="Batch processing thousands of images using ImageMagick can be slow because standard loops process files sequentially on a single thread. This guide demonstrates how to combine ImageMagick with GNU Parallel to distribute image manipulation tasks across al">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/parallel-imagemagick-processing-with-gnu-parallel">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Parallel ImageMagick Processing with GNU Parallel - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/parallel-imagemagick-processing-with-gnu-parallel" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Batch processing thousands of images using ImageMagick can be slow because standard loops process files sequentially on a single thread. This guide demonstrates how to combine ImageMagick with GNU Parallel to distribute image manipulation tasks across al" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="parallel-imagemagick-processing-with-gnu-parallel">Parallel
+ImageMagick Processing with GNU Parallel</h1>
+<p>Batch processing thousands of images using ImageMagick can be slow
+because standard loops process files sequentially on a single thread.
+This guide demonstrates how to combine ImageMagick with GNU Parallel to
+distribute image manipulation tasks across all available CPU cores,
+dramatically reducing processing time for resizing, converting, and
+optimizing images.</p>
+<hr />
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Ensure both packages are installed on your Linux or macOS system:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ubuntu / Debian</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update <span class="kw">&amp;&amp;</span> <span class="fu">sudo</span> apt install imagemagick parallel</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># macOS (Homebrew)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install imagemagick parallel</span></code></pre></div>
+<hr />
+<h3 id="understanding-the-openmp-conflict">Understanding the OpenMP
+Conflict</h3>
+<p>ImageMagick natively uses OpenMP to multithread single operations
+across multiple cores. When running multiple ImageMagick tasks
+simultaneously with GNU Parallel, these threads compete, causing CPU
+throttling and context-switching overhead.</p>
+<p>To achieve maximum throughput, restrict ImageMagick to one thread per
+process so GNU Parallel can allocate one image task per CPU core:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_THREAD_LIMIT</span><span class="op">=</span>1</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>1</span></code></pre></div>
+<p>Add these environment variables to your script or
+<code>.bashrc</code> file before running parallel jobs.</p>
+<hr />
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>GNU Parallel replaces standard Bash loops by piping file lists
+directly into commands:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> input_dir <span class="at">-type</span> f <span class="at">-name</span> <span class="st">&quot;*.jpg&quot;</span> <span class="kw">|</span> <span class="ex">parallel</span> magick {} <span class="at">-resize</span> 800x600 output_dir/{/}</span></code></pre></div>
+<ul>
+<li><code>{}</code>: Represents the full input path (e.g.,
+<code>input_dir/photo.jpg</code>).</li>
+<li><code>{/}</code>: Extracts the filename without the directory path
+(e.g., <code>photo.jpg</code>).</li>
+<li><code>{.}</code>: Extracts the path without the file extension.</li>
+<li><code>{/.}</code>: Extracts the filename without the path or
+extension.</li>
+</ul>
+<hr />
+<h3 id="practical-examples">Practical Examples</h3>
+<h4 id="1-batch-image-resizing">1. Batch Image Resizing</h4>
+<p>Resize all <code>.png</code> files in a directory to a maximum width
+of 1920 pixels while maintaining aspect ratio:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> magick {} <span class="at">-resize</span> 1920x<span class="dt">\&gt;</span> resized/{/} ::: <span class="pp">*</span>.png</span></code></pre></div>
+<h4 id="2-format-conversion-png-to-webp">2. Format Conversion (PNG to
+WebP)</h4>
+<p>Convert a directory of PNG images to optimized WebP format:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> magick {} <span class="at">-quality</span> 85 converted/{/.}.webp ::: <span class="pp">*</span>.png</span></code></pre></div>
+<h4 id="3-image-optimization-and-compression">3. Image Optimization and
+Compression</h4>
+<p>Strip metadata and compress JPEG files:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> images/ <span class="at">-type</span> f <span class="at">-name</span> <span class="st">&quot;*.jpg&quot;</span> <span class="kw">|</span> <span class="ex">parallel</span> magick {} <span class="at">-strip</span> <span class="at">-quality</span> 80 optimized/{/}</span></code></pre></div>
+<h4 id="4-applying-complex-filters">4. Applying Complex Filters</h4>
+<p>Apply auto-orient, sharpen, and grayscale adjustments
+concurrently:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> magick {} <span class="at">-auto-orient</span> <span class="at">-colorspace</span> Gray <span class="at">-sharpen</span> 0x1 processed/{/} ::: <span class="pp">*</span>.jpg</span></code></pre></div>
+<hr />
+<h3 id="advanced-flags-for-performance-and-control">Advanced Flags for
+Performance and Control</h3>
+<ul>
+<li><p><strong>Control Core Usage (<code>-j</code>):</strong> By
+default, GNU Parallel uses 100% of available CPU cores. To limit
+resource usage (e.g., using only 4 cores):</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> <span class="at">-j</span> 4 magick {} <span class="at">-resize</span> 50% out/{/} ::: <span class="pp">*</span>.jpg</span></code></pre></div></li>
+<li><p><strong>Progress Bar (<code>--bar</code>):</strong> Display an
+estimated time of completion and real-time progress:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> <span class="at">--bar</span> magick {} <span class="at">-resize</span> 1280x720 out/{/} ::: <span class="pp">*</span>.jpg</span></code></pre></div></li>
+<li><p><strong>Prevent Memory Exhaustion
+(<code>--memfree</code>):</strong> For very large files (like RAW or
+high-resolution TIFFs), prevent out-of-memory crashes by ensuring a
+minimum amount of free RAM is available before spawning a new task:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">parallel</span> <span class="at">--memfree</span> 2G magick {} <span class="at">-resize</span> 50% out/{/} ::: <span class="pp">*</span>.tif</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

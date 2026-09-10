@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Extent vs Resize Differences - magick</title>
+    <meta name="description" content="ImageMagick provides distinct tools for manipulating image dimensions, with -resize and -extent serving fundamentally different purposes. While the -resize operation scales the visual content up or down by resampling pixels, the -extent operation modifie">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-extent-vs-resize-differences">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Extent vs Resize Differences - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-extent-vs-resize-differences" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides distinct tools for manipulating image dimensions, with -resize and -extent serving fundamentally different purposes. While the -resize operation scales the visual content up or down by resampling pixels, the -extent operation modifie" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-extent-vs-resize-differences">ImageMagick Extent vs
+Resize Differences</h1>
+<p>ImageMagick provides distinct tools for manipulating image
+dimensions, with <code>-resize</code> and <code>-extent</code> serving
+fundamentally different purposes. While the <code>-resize</code>
+operation scales the visual content up or down by resampling pixels, the
+<code>-extent</code> operation modifies the canvas boundary around the
+image by cropping or adding padding without altering the scale of the
+original pixels. Understanding how these two commands function ensures
+precise control over image geometry, aspect ratios, and composition.</p>
+<h2 id="what-is-the-resize-operation">What is the Resize Operation?</h2>
+<p>The <code>-resize</code> operator changes the actual dimensions and
+resolution of the image content. When you resize an image, ImageMagick
+uses interpolation algorithms to add or remove pixel data, making the
+visual subject larger or smaller.</p>
+<p>By default, <code>-resize</code> maintains the original aspect ratio
+to prevent distortion. For instance, resizing a 1920x1080 image to fit
+inside a 500x500 boundary will produce an image sized 500x281 unless
+forced to stretch with special geometry flags.</p>
+<p>Key characteristics of <code>-resize</code>:</p>
+<ul>
+<li><strong>Resamples Pixels:</strong> Re-renders the image at a new
+resolution.</li>
+<li><strong>Scales Content:</strong> Shrinks or magnifies the visual
+elements within the file.</li>
+<li><strong>Aspect Ratio Preservation:</strong> Maintains proportion
+unless overridden by flags like <code>!</code>.</li>
+</ul>
+<p>Example usage:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<h2 id="what-is-the-extent-operation">What is the Extent Operation?</h2>
+<p>The <code>-extent</code> operator adjusts the size of the image
+canvas. It does not scale, zoom, or stretch the visual content. Instead,
+it either expands the outer borders (adding empty or colored space
+around the image) or clips the outer edges (cropping the image) to match
+the target width and height.</p>
+<p>When combined with the <code>-gravity</code> setting,
+<code>-extent</code> determines where the original image sits relative
+to the new canvas size (e.g., centered, top-left, bottom-right). If the
+new canvas is larger than the original image, empty areas are filled
+with the color defined by <code>-background</code>.</p>
+<p>Key characteristics of <code>-extent</code>:</p>
+<ul>
+<li><strong>Modifies Canvas Area:</strong> Alters outer boundaries
+without resampling existing pixels.</li>
+<li><strong>No Pixel Scaling:</strong> Visual elements remain at their
+exact 1:1 original scale.</li>
+<li><strong>Pads or Crops:</strong> Adds border space if larger than the
+original; crops edges if smaller.</li>
+</ul>
+<p>Example usage:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> white <span class="at">-gravity</span> center <span class="at">-extent</span> 800x600 output.jpg</span></code></pre></div>
+<h2 id="direct-comparison">Direct Comparison</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>-resize</code></th>
+<th style="text-align: left;"><code>-extent</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Primary Function</strong></td>
+<td style="text-align: left;">Scales image content</td>
+<td style="text-align: left;">Modifies canvas area</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pixel Interpolation</strong></td>
+<td style="text-align: left;">Yes (resamples image data)</td>
+<td style="text-align: left;">No (preserves original pixel scale)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Aspect Ratio Impact</strong></td>
+<td style="text-align: left;">Fits or stretches visual content</td>
+<td style="text-align: left;">Pads or crops borders</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Background Color</strong></td>
+<td style="text-align: left;">Unused during standard scaling</td>
+<td style="text-align: left;">Used to fill extra canvas area</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gravity Awareness</strong></td>
+<td style="text-align: left;">Irrelevant for standard scaling</td>
+<td style="text-align: left;">Dictates image position on the canvas</td>
+</tr>
+</tbody>
+</table>
+<h2 id="combining-resize-and-extent">Combining Resize and Extent</h2>
+<p>A common workflow involves combining both operations to fit images
+into standard thumbnail dimensions with fixed aspect ratios (like square
+product thumbnails) without cropping visual detail or distorting
+shapes.</p>
+<p>In this workflow, you first <code>-resize</code> the image so that
+its longest side fits within the target dimensions, then apply
+<code>-extent</code> to pad the shorter side with a background
+color:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 300x300 <span class="at">-background</span> black <span class="at">-gravity</span> center <span class="at">-extent</span> 300x300 output.jpg</span></code></pre></div>
+<p>This ensures the entire subject remains visible while outputting a
+standardized, uniform file size across a collection of images.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

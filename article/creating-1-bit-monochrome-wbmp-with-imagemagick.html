@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating 1-Bit Monochrome WBMP with ImageMagick - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick processes, quantizes, and encodes 1-bit monochrome Wireless Application Protocol Bitmap (WBMP) files for low-bandwidth mobile devices. It covers the internal structure of the WBMP format, the image pro">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/creating-1-bit-monochrome-wbmp-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Creating 1-Bit Monochrome WBMP with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/creating-1-bit-monochrome-wbmp-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick processes, quantizes, and encodes 1-bit monochrome Wireless Application Protocol Bitmap (WBMP) files for low-bandwidth mobile devices. It covers the internal structure of the WBMP format, the image pro" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="creating-1-bit-monochrome-wbmp-with-imagemagick">Creating 1-Bit
+Monochrome WBMP with ImageMagick</h1>
+<p>This article provides an overview of how ImageMagick processes,
+quantizes, and encodes 1-bit monochrome Wireless Application Protocol
+Bitmap (WBMP) files for low-bandwidth mobile devices. It covers the
+internal structure of the WBMP format, the image processing pipeline
+required to reduce color depth to a single bit, the CLI commands used to
+generate these files, and how ImageMagick packs binary pixel data to
+minimize file size.</p>
+<h3 id="the-wbmp-format-specification">The WBMP Format
+Specification</h3>
+<p>The Wireless Application Protocol Bitmap format is a lightweight
+raster format designed specifically for resource-constrained mobile
+devices operating on WAP networks. ImageMagick writes WBMP "Type 0"
+images, which are strictly uncompressed, 1-bit monochrome bitmaps.</p>
+<p>Unlike larger formats such as BMP or PNG, WBMP does not contain
+metadata blocks, color profiles, or palettes. The header consists
+of:</p>
+<ul>
+<li><strong>Type Field</strong>: A multi-byte variable-length integer
+(<code>uintvar</code>) set to <code>0</code> representing standard
+monochrome.</li>
+<li><strong>FixHeaderField</strong>: A byte set to <code>0</code>
+reserving vendor-specific flags.</li>
+<li><strong>Width</strong>: Encoded as a <code>uintvar</code>.</li>
+<li><strong>Height</strong>: Encoded as a <code>uintvar</code>.</li>
+</ul>
+<p>Following this minimal header, the raster data contains 1 bit per
+pixel, where a value of <code>0</code> represents black and
+<code>1</code> represents white.</p>
+<h3 id="the-color-quantization-and-binarization-pipeline">The Color
+Quantization and Binarization Pipeline</h3>
+<p>To write a valid WBMP file, ImageMagick must first reduce any
+multi-channel color or grayscale input image to a binary representation
+(bilevel). ImageMagick accomplishes this through two primary stages:</p>
+<ol type="1">
+<li><strong>Grayscale Conversion</strong>: ImageMagick converts input
+RGB values into luminance values using standard color matrices
+(typically Rec. 709 or Rec. 601 luma calculations).</li>
+<li><strong>Thresholding or Dithering</strong>:
+<ul>
+<li><strong>Thresholding</strong>: Divides pixel intensities across a
+set cutoff (traditionally 50%). Pixels brighter than the threshold
+become white (<code>1</code>), while darker pixels become black
+(<code>0</code>).</li>
+<li><strong>Error Diffusion (Dithering)</strong>: Distributes
+quantization errors to neighboring pixels using the Floyd-Steinberg or
+Riemersma algorithms. This preserves visual gradients and structural
+details in photographic imagery.</li>
+</ul></li>
+</ol>
+<h3 id="imagemagick-command-syntax">ImageMagick Command Syntax</h3>
+<p>To generate a fully compliant WBMP file, you instruct ImageMagick to
+set the image depth, color space, and output format.</p>
+<p>Using modern ImageMagick (v7):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-dither</span> FloydSteinberg <span class="at">-monochrome</span> output.wbmp</span></code></pre></div>
+<p>For hard-thresholding without dithering (ideal for text or sharp line
+art):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-type</span> bilevel output.wbmp</span></code></pre></div>
+<p>Key arguments include:</p>
+<ul>
+<li><code>-colorspace Gray</code>: Ensures color data is reduced to a
+single luminance channel prior to binarization.</li>
+<li><code>-dither FloydSteinberg</code>: Uses error diffusion to
+simulate tonal variation across binary pixels.</li>
+<li><code>-monochrome</code>: Forces the pixel data into two colors
+(black and white) and sets the internal storage class to pseudo-class
+bilevel.</li>
+<li><code>-type bilevel</code>: Confirms that the output canvas
+restricts itself to 1-bit data per channel.</li>
+</ul>
+<h3 id="bit-packing-and-data-optimization">Bit-Packing and Data
+Optimization</h3>
+<p>Once pixels are converted to binary values, ImageMagick's WBMP
+encoder serializes the image rows:</p>
+<ul>
+<li><strong>Horizontal Bit-Packing</strong>: Pixels are read
+sequentially from left to right. The encoder packs eight adjacent 1-bit
+pixels into a single byte. The most significant bit (MSB) corresponds to
+the leftmost pixel in the group.</li>
+<li><strong>Byte Alignment</strong>: If the image width is not evenly
+divisible by 8, the remaining bits in the final byte of that row are
+padded with trailing zeros to align the start of the next row with a new
+byte boundary.</li>
+<li><strong>Header Efficiency</strong>: Using <code>uintvar</code>
+encoding for the dimensions allows smaller images to occupy fewer bytes
+in the header, keeping overhead to as little as 4 to 5 bytes for typical
+mobile screen resolutions (such as 96x65 or 128x128).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

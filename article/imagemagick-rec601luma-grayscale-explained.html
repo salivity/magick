@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Rec601Luma Grayscale Explained - magick</title>
+    <meta name="description" content="In ImageMagick, the Rec601Luma intensity option converts a full-color image to grayscale by weighting the red, green, and blue channels according to the legacy ITU-R BT.601 standard. This article explains how the Rec601Luma setting calculates gray values">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-rec601luma-grayscale-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Rec601Luma Grayscale Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-rec601luma-grayscale-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the Rec601Luma intensity option converts a full-color image to grayscale by weighting the red, green, and blue channels according to the legacy ITU-R BT.601 standard. This article explains how the Rec601Luma setting calculates gray values" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-rec601luma-grayscale-explained">ImageMagick
+Rec601Luma Grayscale Explained</h1>
+<p>In ImageMagick, the <code>Rec601Luma</code> intensity option converts
+a full-color image to grayscale by weighting the red, green, and blue
+channels according to the legacy ITU-R BT.601 standard. This article
+explains how the <code>Rec601Luma</code> setting calculates gray values
+directly from non-linear color data, the specific mathematical formula
+it uses, how it differs from linear luminance, and practical examples of
+its use in image processing workflows.</p>
+<h3 id="understanding-rec601luma">Understanding Rec601Luma</h3>
+<p>When ImageMagick processes a color image into a single-channel
+grayscale image, it needs a rule to determine how much each color
+channel (Red, Green, and Blue) contributes to the final gray tone. The
+human eye does not perceive all wavelengths of light with equal
+brightness; it is significantly more sensitive to green light than to
+red or blue light.</p>
+<p>The <code>Rec601Luma</code> option instructs ImageMagick to calculate
+grayscale values using the ITU-R Recommendation BT.601 standard, which
+was originally developed for standard-definition television (SDTV).</p>
+<h3 id="the-rec601luma-formula">The Rec601Luma Formula</h3>
+<p>The <code>Rec601Luma</code> intensity method applies the following
+weighting formula to determine the gray value (<span
+class="math inline">\(Y&#39;\)</span>):</p>
+<p><span class="math display">\[Y&#39; = 0.299 \times R&#39; + 0.587
+\times G&#39; + 0.114 \times B&#39;\]</span></p>
+<p>In this formula:</p>
+<ul>
+<li><strong>Green</strong> contributes roughly 58.7% of the total
+intensity.</li>
+<li><strong>Red</strong> contributes roughly 29.9%.</li>
+<li><strong>Blue</strong> contributes only 11.4%.</li>
+</ul>
+<p>Because green contributes the most, bright green areas in a source
+image will produce much brighter gray tones than pure blue or red areas
+of identical pixel value.</p>
+<h3 id="luma-vs-luminance">Luma vs. Luminance</h3>
+<p>The critical distinction in <code>Rec601Luma</code> is the word
+<strong>Luma</strong> (represented by the prime symbol <span
+class="math inline">\(Y&#39;\)</span>).</p>
+<ul>
+<li><strong>Luma (<span class="math inline">\(Y&#39;\)</span>)</strong>:
+Operates directly on non-linear, gamma-corrected RGB values. It does not
+convert the pixel values back into linear light space before applying
+the weights.</li>
+<li><strong>Luminance (<span class="math inline">\(Y\)</span>)</strong>:
+Decodes the gamma curve to convert the image into linear physical light
+values, applies the channel weights, and then reapplies gamma
+encoding.</li>
+</ul>
+<p>Because <code>Rec601Luma</code> skips the linear decoding and
+re-encoding steps, it is computationally faster than
+<code>Rec601Luminance</code>. However, because it calculates brightness
+on gamma-compressed values, it is mathematically an approximation rather
+than a physically accurate representation of light energy.</p>
+<h3 id="usage-in-imagemagick">Usage in ImageMagick</h3>
+<p>To use <code>Rec601Luma</code>, define the intensity method prior to
+running operations that rely on pixel intensity, such as
+<code>-colorspace gray</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-intensity</span> Rec601Luma <span class="at">-colorspace</span> gray output.jpg</span></code></pre></div>
+<p>It can also be used in thresholding, color reduction, or extracting
+an intensity mask:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-intensity</span> Rec601Luma <span class="at">-grayscale</span> Rec601Luma output.png</span></code></pre></div>
+<h3 id="when-to-use-rec601luma">When to Use Rec601Luma</h3>
+<p><code>Rec601Luma</code> is the ideal intensity choice when:</p>
+<ol type="1">
+<li>You require compatibility with legacy video, broadcast formats, or
+older graphic software that defaults to the classic BT.601 luma
+formula.</li>
+<li>You want high-speed conversion without the mathematical overhead of
+linear-space gamma transformations.</li>
+<li>You prefer the traditional, contrast-heavy look of standard
+television grayscale conversions over modern high-definition standards
+like BT.709 or BT.2020.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

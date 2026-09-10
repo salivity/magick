@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using ImageMagick logo: to Verify Installation - magick</title>
+    <meta name="description" content="This article explains the purpose and practical application of ImageMagick's built-in logo: image protocol as an installation sanity check. You will learn why this built-in resource is the standard method for confirming that the software, its core depend">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/using-imagemagick-logo-to-verify-installation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using ImageMagick logo: to Verify Installation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/using-imagemagick-logo-to-verify-installation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the purpose and practical application of ImageMagick's built-in logo: image protocol as an installation sanity check. You will learn why this built-in resource is the standard method for confirming that the software, its core depend" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-imagemagick-logo-to-verify-installation">Using ImageMagick
+logo: to Verify Installation</h1>
+<p>This article explains the purpose and practical application of
+ImageMagick's built-in <code>logo:</code> image protocol as an
+installation sanity check. You will learn why this built-in resource is
+the standard method for confirming that the software, its core
+dependencies, and its image-encoding delegates are working correctly
+without relying on external assets.</p>
+<h3 id="what-is-the-logo-protocol">What is the <code>logo:</code>
+Protocol?</h3>
+<p>ImageMagick includes several built-in image formats that exist
+directly within its codebase, such as <code>rose:</code>,
+<code>granite:</code>, and <code>logo:</code>. When referenced, the
+<code>logo:</code> protocol instructs the software to generate the
+official ImageMagick wizard logo entirely from internal memory. Because
+the image data is compiled directly into the binary, it requires no
+external file paths, network access, or external graphic files to
+load.</p>
+<h3 id="purpose-in-verifying-installation-sanity">Purpose in Verifying
+Installation Sanity</h3>
+<p>When setting up ImageMagick on a server, workstation, or container,
+verifying the installation requires isolating software health from user
+error or broken input assets. The <code>logo:</code> protocol serves
+this purpose in several ways:</p>
+<ol type="1">
+<li><strong>Elimination of External Variables:</strong> Using an
+arbitrary test image introduces risks such as corrupted files, missing
+read permissions, or unsupported color profiles. The <code>logo:</code>
+protocol guarantees that the input image itself is 100% valid and always
+available.</li>
+<li><strong>Verification of the Executable and PATH:</strong> Executing
+a command referencing <code>logo:</code> instantly confirms whether the
+operating system can find and execute the <code>magick</code> (or legacy
+<code>convert</code>) binary.</li>
+<li><strong>Testing Delegate Libraries:</strong> ImageMagick relies on
+external libraries, known as delegates, to encode formats like PNG,
+JPEG, or TIFF. Converting <code>logo:</code> to a target format tests
+whether the required delegate (such as <code>libpng</code>) is properly
+compiled, linked, and functioning.</li>
+<li><strong>Validating Filesystem Write Permissions:</strong> Writing
+the generated logo to disk verifies that the user or process running
+ImageMagick has adequate write permissions in the working
+directory.</li>
+</ol>
+<h3 id="basic-sanity-check-syntax">Basic Sanity Check Syntax</h3>
+<p>To verify an ImageMagick 7 installation, run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> logo: logo.png</span></code></pre></div>
+<p>For legacy ImageMagick 6 environments, the syntax is:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> logo: logo.png</span></code></pre></div>
+<h3 id="interpreting-the-results">Interpreting the Results</h3>
+<ul>
+<li><strong>Success:</strong> If the command executes without output and
+generates a readable <code>logo.png</code> containing the ImageMagick
+logo, the core installation, internal memory handlers, and target format
+encoder are completely sound.</li>
+<li><strong>Command Not Found:</strong> Indicates that ImageMagick is
+either not installed or not present in the system's <code>PATH</code>
+environment variable.</li>
+<li><strong>No Decode Delegate / No Encode Delegate:</strong> Indicates
+that ImageMagick was built without support for the requested output
+format, requiring installation of the missing delegate library (e.g.,
+<code>libpng-dev</code>, <code>libjpeg-turbo</code>) and recompilation
+or reinstallation.</li>
+<li><strong>Permission Denied:</strong> Indicates that while ImageMagick
+works, the execution context lacks write permissions for the destination
+directory.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

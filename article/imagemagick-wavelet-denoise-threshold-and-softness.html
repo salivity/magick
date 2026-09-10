@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Wavelet Denoise Threshold and Softness - magick</title>
+    <meta name="description" content="ImageMagick features a built-in wavelet noise reduction filter that separates an image into multiple frequency layers to strip away sensor noise and grain while preserving sharp edges. The behavior of this filter is governed by two parameters: threshold,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-wavelet-denoise-threshold-and-softness">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Wavelet Denoise Threshold and Softness - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-wavelet-denoise-threshold-and-softness" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick features a built-in wavelet noise reduction filter that separates an image into multiple frequency layers to strip away sensor noise and grain while preserving sharp edges. The behavior of this filter is governed by two parameters: threshold," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-wavelet-denoise-threshold-and-softness">ImageMagick
+Wavelet Denoise Threshold and Softness</h1>
+<p>ImageMagick features a built-in wavelet noise reduction filter that
+separates an image into multiple frequency layers to strip away sensor
+noise and grain while preserving sharp edges. The behavior of this
+filter is governed by two parameters: <code>threshold</code>, which sets
+the noise detection cutoff, and <code>softness</code>, which determines
+how abruptly those noise frequencies are attenuated. Fine-tuning both
+settings allows you to eliminate high-frequency artifacts without
+causing unnatural blurring or halo artifacts.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>The wavelet denoising operator uses the following command
+structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-wavelet-denoise</span> threshold<span class="pp">[</span><span class="ss">%</span><span class="pp">][</span><span class="ss">xsoftness</span><span class="pp">]</span> output.jpg</span></code></pre></div>
+<p>If you are using ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>. The parameters are passed as a single argument
+where <code>threshold</code> is optionally followed by a percentage sign
+and separated from <code>softness</code> by an <code>x</code>.</p>
+<h3 id="configuring-the-threshold">Configuring the Threshold</h3>
+<p>The <code>threshold</code> parameter defines the cutoff level for
+high-frequency coefficients. Any coefficient with an amplitude lower
+than this value is treated as noise.</p>
+<ul>
+<li><strong>Format:</strong> Can be expressed as an absolute value or a
+percentage (recommended, such as <code>3%</code> or
+<code>5%</code>).</li>
+<li><strong>Low Values (1% – 3%):</strong> Ideal for subtle luminance
+noise or low-ISO digital grain. It leaves fine textures, such as fabric
+weaves or skin pores, completely intact.</li>
+<li><strong>High Values (5% – 10%+):</strong> Targets aggressive
+high-ISO noise or heavy scanner artifacts. Setting the threshold too
+high removes legitimate image detail and results in a flat, plastic, or
+"watercolor" look.</li>
+</ul>
+<h3 id="configuring-the-softness">Configuring the Softness</h3>
+<p>The <code>softness</code> parameter determines the attenuation curve
+applied to details near the threshold boundary, acting as a transition
+between hard and soft thresholding.</p>
+<ul>
+<li><strong>Format:</strong> Expressed as a floating-point number (e.g.,
+<code>0.0</code>, <code>0.5</code>, <code>1.0</code>), appended to the
+threshold with an <code>x</code>.</li>
+<li><strong>Value of 0.0 (Hard Thresholding):</strong> Any wavelet
+coefficient below the threshold is set directly to zero, while
+coefficients above it remain untouched. This maximizes edge sharpness
+but frequently produces speckling, ringing, or blocky artifacts in
+smooth gradient areas like skies.</li>
+<li><strong>Values between 0.2 and 0.8 (Partial Soft
+Thresholding):</strong> Gradually shrinks coefficients near the
+threshold rather than cutting them off immediately. This is the optimal
+range for photographic cleanup, offering a balance between edge
+retention and smooth background transitions.</li>
+<li><strong>Value of 1.0 (Full Soft Thresholding):</strong> Subtracts
+the threshold value from all retained coefficients. This eliminates all
+harsh artifacts but introduces a moderate reduction in overall edge
+contrast.</li>
+</ul>
+<h3 id="practical-examples">Practical Examples</h3>
+<p><strong>Subtle Denoising for High-Detail Photos:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-wavelet-denoise</span> 2%x0.2 output.jpg</span></code></pre></div>
+<p>This configuration uses a low threshold to retain micro-textures,
+with just enough softness to prevent edge halos.</p>
+<p><strong>Standard Clean-Up for Low-Light Grain:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-wavelet-denoise</span> 5%x0.5 output.jpg</span></code></pre></div>
+<p>This serves as a reliable baseline for images with noticeable grain
+in shadow regions, smoothing out mid-level noise without destroying
+primary edges.</p>
+<p><strong>Aggressive Noise Suppression:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-wavelet-denoise</span> 8%x0.75 output.jpg</span></code></pre></div>
+<p>Use this when dealing with severe digital sensor noise. The higher
+softness setting compensates for the elevated threshold by preventing
+banding and posterization in uniform areas.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Net Protocol and Canvas Patterns - magick</title>
+    <meta name="description" content="ImageMagick does not have an official built-in net: protocol for generating canvas patterns, and invoking it directly results in an unrecognized format error. This guide clarifies the misconception surrounding the net: prefix, explains the error ImageMag">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-net-protocol-and-canvas-patterns">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Net Protocol and Canvas Patterns - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-net-protocol-and-canvas-patterns" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick does not have an official built-in net: protocol for generating canvas patterns, and invoking it directly results in an unrecognized format error. This guide clarifies the misconception surrounding the net: prefix, explains the error ImageMag" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-net-protocol-and-canvas-patterns">ImageMagick Net
+Protocol and Canvas Patterns</h1>
+<p>ImageMagick does not have an official built-in <code>net:</code>
+protocol for generating canvas patterns, and invoking it directly
+results in an unrecognized format error. This guide clarifies the
+misconception surrounding the <code>net:</code> prefix, explains the
+error ImageMagick produces when it is called, and demonstrates how to
+properly generate net and mesh patterns using ImageMagick's legitimate
+built-in canvas protocols.</p>
+<h3 id="the-behavior-of-the-net-protocol">The Behavior of the
+<code>net:</code> Protocol</h3>
+<p>In ImageMagick, protocols (or pseudo-image formats) are predefined
+prefixes followed by a colon that instruct the engine to generate images
+dynamically or read from special inputs (such as <code>xc:</code>,
+<code>canvas:</code>, or <code>pattern:</code>).</p>
+<p>There is no registered coder or protocol named <code>net:</code> in
+ImageMagick. If you attempt to invoke <code>net:</code> via the command
+line:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> net: output.png</span></code></pre></div>
+<p>ImageMagick will interpret <code>net</code> as an explicit file
+format specification or look for a local file named <code>net:</code>.
+Because neither a file nor a corresponding decoding delegate exists,
+ImageMagick terminates execution with an error similar to:</p>
+<pre class="text"><code>magick: no decode delegate for this image format `NET&#39; @ error/constitute.c/ReadImage/...</code></pre>
+<h3 id="generating-net-patterns-with-the-pattern-protocol">Generating
+Net Patterns with the <code>pattern:</code> Protocol</h3>
+<p>Users seeking a built-in canvas net pattern are typically looking for
+ImageMagick's built-in bitmap tile patterns, which are accessed via the
+<code>pattern:</code> protocol rather than a standalone
+<code>net:</code> prefix.</p>
+<p>ImageMagick provides two primary built-in net patterns:</p>
+<ol type="1">
+<li><strong><code>pattern:fishnet</code></strong>: Generates a classic
+tiled net or mesh pattern composed of diagonal interlocking lines.</li>
+<li><strong><code>pattern:smallfishnet</code></strong>: Generates a
+higher-density, smaller-scale variation of the fishnet pattern suitable
+for tighter textures.</li>
+</ol>
+<h4 id="syntax-and-examples">Syntax and Examples</h4>
+<p>To generate a net pattern canvas, specify the desired image
+dimensions using the <code>-size</code> flag and supply the pattern
+name:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a standard fishnet canvas</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 pattern:fishnet net_canvas.png</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a high-density fishnet canvas</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 pattern:smallfishnet small_net_canvas.png</span></code></pre></div>
+<h3 id="alternative-mesh-and-grid-patterns">Alternative Mesh and Grid
+Patterns</h3>
+<p>If the fishnet patterns do not suit your requirements, ImageMagick
+includes several related geometric cross-line patterns under the
+<code>pattern:</code> protocol:</p>
+<ul>
+<li><strong><code>pattern:crosshatch</code></strong>: Creates a standard
+perpendicular horizontal and vertical grid.</li>
+<li><strong><code>pattern:crosshatch45</code></strong>: Creates a
+45-degree angled crosshatch resembling diamond wire netting.</li>
+<li><strong><code>pattern:hexagons</code></strong>: Creates a hexagonal
+chicken-wire style mesh.</li>
+</ul>
+<p>Example usage:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 pattern:crosshatch45 wire_mesh.png</span></code></pre></div>
+<h3 id="standard-built-in-canvas-protocols-summary">Standard Built-In
+Canvas Protocols Summary</h3>
+<p>To avoid protocol naming errors in ImageMagick, use the established
+prefixes for procedural image generation:</p>
+<ul>
+<li><strong><code>canvas:&lt;color&gt;</code></strong> or
+<strong><code>xc:&lt;color&gt;</code></strong>: Creates a blank canvas
+filled with a solid color.</li>
+<li><strong><code>pattern:&lt;name&gt;</code></strong>: Tiles a named
+built-in geometric pattern across the canvas.</li>
+<li><strong><code>gradient:&lt;color1&gt;-&lt;color2&gt;</code></strong>:
+Generates a linear color gradient.</li>
+<li><strong><code>plasma:</code></strong>: Produces a randomized fractal
+plasma texture.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

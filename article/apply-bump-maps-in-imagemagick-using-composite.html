@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Bump Maps in ImageMagick Using Composite - magick</title>
+    <meta name="description" content="This guide explains how to apply a bump map to a 2D surface using ImageMagick's built-in composite operations. By using a grayscale heightmap to represent surface depth, you can simulate realistic 3D lighting, highlights, and textures directly on flat im">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-bump-maps-in-imagemagick-using-composite">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Bump Maps in ImageMagick Using Composite - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-bump-maps-in-imagemagick-using-composite" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to apply a bump map to a 2D surface using ImageMagick's built-in composite operations. By using a grayscale heightmap to represent surface depth, you can simulate realistic 3D lighting, highlights, and textures directly on flat im" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-bump-maps-in-imagemagick-using-composite">Apply Bump Maps
+in ImageMagick Using Composite</h1>
+<p>This guide explains how to apply a bump map to a 2D surface using
+ImageMagick's built-in composite operations. By using a grayscale
+heightmap to represent surface depth, you can simulate realistic 3D
+lighting, highlights, and textures directly on flat images via
+command-line operations.</p>
+<h3 id="understanding-the-inputs">Understanding the Inputs</h3>
+<p>Bump mapping requires two primary image files:</p>
+<ol type="1">
+<li><strong>Base Image:</strong> The flat 2D color surface, texture, or
+pattern you want to emboss.</li>
+<li><strong>Heightmap (Bump Map):</strong> A grayscale image where white
+represents the highest elevations, black represents the lowest depths,
+and mid-gray represents neutral, flat areas.</li>
+</ol>
+<h3 id="method-1-the-direct-bumpmap-composite-operator">Method 1: The
+Direct Bumpmap Composite Operator</h3>
+<p>ImageMagick provides a native <code>Bumpmap</code> composition
+method. In ImageMagick 7, this operator uses the luminance values of the
+overlay image to modulate the shading of the destination image.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png heightmap.png <span class="at">-compose</span> Bumpmap <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>If you are using legacy ImageMagick (version 6), use the
+<code>composite</code> tool syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">composite</span> <span class="at">-compose</span> Bumpmap heightmap.png base.png output.png</span></code></pre></div>
+<p>In this operation, <code>heightmap.png</code> dictates the surface
+variation applied across <code>base.png</code>.</p>
+<h3
+id="method-2-shaded-relief-composite-recommended-for-controlled-lighting">Method
+2: Shaded Relief Composite (Recommended for Controlled Lighting)</h3>
+<p>For more realistic and customizable depth, create a directional light
+source using the <code>-shade</code> operator before blending the result
+with a composite mode like <code>Hardlight</code> or
+<code>Overlay</code>.</p>
+<p>The <code>-shade</code> operator takes the format
+<code>&lt;Azimuth&gt;x&lt;Elevation&gt;</code>:</p>
+<ul>
+<li><strong>Azimuth:</strong> The direction of the light source in
+degrees (e.g., <code>120</code> for top-left lighting).</li>
+<li><strong>Elevation:</strong> The angle of the light above the horizon
+in degrees (e.g., <code>45</code> for standard diffuse light).</li>
+</ul>
+<p>You can chain this process into a single command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png <span class="er">(</span> <span class="ex">heightmap.png</span> <span class="at">-shade</span> 120x45 <span class="kw">)</span> <span class="ex">-compose</span> Hardlight <span class="at">-composite</span> output.png</span></code></pre></div>
+<h3 id="fine-tuning-the-results">Fine-Tuning the Results</h3>
+<ul>
+<li><strong>Adjust Lighting Angles:</strong> Modify the azimuth and
+elevation parameters (such as <code>135x30</code> for longer, dramatic
+shadows) to change the direction and intensity of highlights.</li>
+<li><strong>Vary the Blend Mode:</strong> If <code>Hardlight</code>
+produces excessive contrast, switch <code>-compose Hardlight</code> to
+<code>-compose Overlay</code> for softer integration or
+<code>-compose Multiply</code> for a darker, etched finish.</li>
+<li><strong>Pre-blur the Heightmap:</strong> Sharp edges in the
+heightmap can cause harsh, pixelated ridges. Adding
+<code>-blur 0x1</code> to the heightmap sub-command smoothens the
+transitions across the surface:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png <span class="er">(</span> <span class="ex">heightmap.png</span> <span class="at">-blur</span> 0x1 <span class="at">-shade</span> 120x45 <span class="kw">)</span> <span class="ex">-compose</span> Hardlight <span class="at">-composite</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

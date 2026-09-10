@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Sqrt in HDRI Buffers - magick</title>
+    <meta name="description" content="This article examines how ImageMagick's -evaluate Sqrt operator processes pixel data within high-dynamic-range (HDRI) floating-point buffers. It details the underlying mathematical transformations, quantum scaling conventions, and edge-case behaviors suc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-sqrt-in-hdri-buffers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Sqrt in HDRI Buffers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-sqrt-in-hdri-buffers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines how ImageMagick's -evaluate Sqrt operator processes pixel data within high-dynamic-range (HDRI) floating-point buffers. It details the underlying mathematical transformations, quantum scaling conventions, and edge-case behaviors suc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-sqrt-in-hdri-buffers">ImageMagick Evaluate
+Sqrt in HDRI Buffers</h1>
+<p>This article examines how ImageMagick's <code>-evaluate Sqrt</code>
+operator processes pixel data within high-dynamic-range (HDRI)
+floating-point buffers. It details the underlying mathematical
+transformations, quantum scaling conventions, and edge-case behaviors
+such as super-white expansion, negative value handling, and tonality
+shifts across unbounded dynamic ranges.</p>
+<h3 id="quantum-normalization-and-core-mathematics">Quantum
+Normalization and Core Mathematics</h3>
+<p>ImageMagick processes pixel intensity through its
+<code>Quantum</code> architecture. In an HDRI build, pixel values are
+stored as floating-point numbers (typically 32-bit floats) rather than
+clamped integers. However, arithmetic evaluate operators still adhere to
+quantum normalization logic.</p>
+<p>When applying <code>-evaluate Sqrt</code>, the operator does not
+simply take the raw buffer value <span
+class="math inline">\(\sqrt{x}\)</span>. Instead, it computes the square
+root relative to the compile-time <code>QuantumRange</code> (e.g., 65535
+for Q16-HDRI):</p>
+<p><span class="math display">\[\text{Result} = \text{QuantumRange}
+\times \sqrt{\frac{\text{Pixel}}{\text{QuantumRange}}}\]</span></p>
+<p>In normalized terminology (where <span
+class="math inline">\(1.0\)</span> represents white and <span
+class="math inline">\(0.0\)</span> represents black), this simplifies
+directly to:</p>
+<p><span class="math display">\[\text{Output} =
+\sqrt{\text{Input}}\]</span></p>
+<p>Because HDRI does not clamp values to the standard range of <span
+class="math inline">\([0, \text{QuantumRange}]\)</span>, the
+mathematical behavior branches depending on where the pixel falls across
+the unbounded spectrum.</p>
+<h3
+id="behavior-on-sub-quantum-and-standard-range-pixels-00-le-x-le-10">Behavior
+on Sub-Quantum and Standard Range Pixels (<span
+class="math inline">\(0.0 \le x \le 1.0\)</span>)</h3>
+<p>For values in the standard range <span class="math inline">\([0,
+1.0]\)</span>, the square root function acts as a non-linear transfer
+function similar to a strong gamma expansion (gamma 2.0).</p>
+<ul>
+<li><strong>Midtones and Shadows:</strong> Values between <span
+class="math inline">\(0\)</span> and <span
+class="math inline">\(1.0\)</span> increase in magnitude. For example,
+an input of <span class="math inline">\(0.25\)</span> yields <span
+class="math inline">\(\sqrt{0.25} = 0.50\)</span>, significantly
+brightening shadows and lower midtones.</li>
+<li><strong>Anchors:</strong> True black (<span
+class="math inline">\(0.0\)</span>) and nominal peak white (<span
+class="math inline">\(1.0\)</span>, or equal to
+<code>QuantumRange</code>) remain unchanged (<span
+class="math inline">\(0.0 \to 0.0\)</span> and <span
+class="math inline">\(1.0 \to 1.0\)</span>).</li>
+</ul>
+<h3 id="processing-super-white-pixels-x--10">Processing Super-White
+Pixels (<span class="math inline">\(x &gt; 1.0\)</span>)</h3>
+<p>In high-dynamic-range buffers, values frequently exceed <span
+class="math inline">\(1.0\)</span> (representing luminance levels above
+nominal diffuse white, such as direct light sources, specular
+highlights, and emissive materials).</p>
+<p>Because the HDRI pipeline avoids clipping:</p>
+<ul>
+<li>Pixels with <span class="math inline">\(\text{Input} &gt;
+1.0\)</span> continue to follow the <span
+class="math inline">\(\sqrt{x}\)</span> curve.</li>
+<li>The square root curve yields a fractional power (<span
+class="math inline">\(x^{0.5}\)</span>), meaning the rate of increase
+attenuates as values grow larger.</li>
+<li>An input of <span class="math inline">\(4.0\)</span> (four times
+nominal white) drops to <span class="math inline">\(2.0\)</span>. An
+input of <span class="math inline">\(16.0\)</span> drops to <span
+class="math inline">\(4.0\)</span>.</li>
+<li>As a result, super-whites undergo dynamic range compression. Extreme
+dynamic ranges are pulled closer to the standard display baseline
+without hard clamping or detail loss.</li>
+</ul>
+<h3 id="handling-negative-pixel-values-x--00">Handling Negative Pixel
+Values (<span class="math inline">\(x &lt; 0.0\)</span>)</h3>
+<p>HDRI environments can produce negative pixel values as artifacts of
+floating-point filtering, convolution kernels (such as unsharp masking),
+color space conversions, or difference blending.</p>
+<p>Mathematically, the square root of a negative number produces an
+imaginary number (<span class="math inline">\(\mathbb{C}\)</span>).
+Standard pixel pipelines operate strictly on real numbers (<span
+class="math inline">\(\mathbb{R}\)</span>).</p>
+<ul>
+<li>When a negative pixel encounters <code>-evaluate Sqrt</code>, the
+underlying C library returns <code>NaN</code> (Not a Number) or
+zero.</li>
+<li>ImageMagick typically catches non-finite floating-point conditions
+or enforces domain validation, resulting in negative values being forced
+to <span class="math inline">\(0.0\)</span>.</li>
+<li>This creates a hard floor at zero, extinguishing any negative
+out-of-gamut coordinate values or undershoot artifacts present in the
+floating-point buffer.</li>
+</ul>
+<h3 id="channel-independence-and-color-imbalance">Channel Independence
+and Color Imbalance</h3>
+<p>The <code>-evaluate</code> operator processes color channels
+independently unless an explicit <code>-channel</code> mask is
+specified. Because the square root is non-linear:</p>
+<ul>
+<li>Ratios between separate RGB channels change unevenly.</li>
+<li>For saturated colors, where one channel might be high and another
+low, taking the square root pushes the lower value upward at a faster
+rate than the higher value.</li>
+<li>This causes a noticeable desaturation effect on standard-range
+colors while altering the hue ratios of out-of-range specular highlights
+in the HDR space.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

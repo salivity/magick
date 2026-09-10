@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posterize Images Using ImageMagick HardMix - magick</title>
+    <meta name="description" content="This article provides a practical guide on using the HardMix composition operator in ImageMagick to produce high-contrast, posterized graphic outputs. You will learn how the HardMix operator evaluates color channels, the core command-line syntax for both">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/posterize-images-using-imagemagick-hardmix">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Posterize Images Using ImageMagick HardMix - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/posterize-images-using-imagemagick-hardmix" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on using the HardMix composition operator in ImageMagick to produce high-contrast, posterized graphic outputs. You will learn how the HardMix operator evaluates color channels, the core command-line syntax for both" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="posterize-images-using-imagemagick-hardmix">Posterize Images
+Using ImageMagick HardMix</h1>
+<p>This article provides a practical guide on using the
+<code>HardMix</code> composition operator in ImageMagick to produce
+high-contrast, posterized graphic outputs. You will learn how the
+<code>HardMix</code> operator evaluates color channels, the core
+command-line syntax for both single-image and multi-image processing,
+and effective techniques to control the intensity and color balance of
+the final posterized effect.</p>
+<h2 id="understanding-the-hardmix-operator">Understanding the HardMix
+Operator</h2>
+<p>The <code>HardMix</code> composition operator evaluates the sum of
+the color values of the source and destination images on a per-channel
+basis. For each channel (Red, Green, Blue):</p>
+<ul>
+<li>If <code>Source + Destination &gt;= QuantumRange</code> (100%
+brightness), the output channel is set to maximum value (255 in
+8-bit).</li>
+<li>If <code>Source + Destination &lt; QuantumRange</code>, the output
+channel is set to minimum value (0).</li>
+</ul>
+<p>Because each RGB channel is forced to either 0% or 100%, the result
+is a strictly limited palette of up to eight colors: Black, White, Red,
+Green, Blue, Cyan, Magenta, and Yellow. This mechanical thresholding
+produces a flat, high-impact posterization effect.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick v7, composition is applied using the
+<code>-compose</code> and <code>-composite</code> operators within the
+<code>magick</code> command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> HardMix <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="techniques-for-posterizing-a-single-image">Techniques for
+Posterizing a Single Image</h2>
+<p>To posterize a single image using <code>HardMix</code>, you must
+blend the image against a secondary reference layer.</p>
+<h3 id="1-the-8-color-threshold-blending-with-50-gray">1. The 8-Color
+Threshold (Blending with 50% Gray)</h3>
+<p>Blending an image with a solid 50% gray layer forces each channel to
+act as a 50% threshold switch. Any channel value above 50% turns fully
+on; anything below turns fully off.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-fill</span> <span class="st">&quot;rgb(128,128,128)&quot;</span> <span class="at">-colorize</span> 100% <span class="dt">\)</span> <span class="at">-compose</span> HardMix <span class="at">-composite</span> posterized_classic.png</span></code></pre></div>
+<h3 id="2-edge-aware-posterization-blending-with-a-blurred-clone">2.
+Edge-Aware Posterization (Blending with a Blurred Clone)</h3>
+<p>Blending an image with a blurred version of itself retains macro
+composition and lighting while flattening fine details into posterized
+blocks:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x6 <span class="dt">\)</span> <span class="at">-compose</span> HardMix <span class="at">-composite</span> posterized_artistic.png</span></code></pre></div>
+<p>Adjust the blur radius (<code>0x6</code>) to increase or decrease the
+broadness of the posterized shapes.</p>
+<h3 id="3-self-blending-with-contrast-adjustment">3. Self-Blending with
+Contrast Adjustment</h3>
+<p>You can blend an image directly against itself after applying a
+contrast curve to pull out specific highlights and shadows:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-brightness-contrast</span> 10x30 <span class="dt">\)</span> <span class="at">-compose</span> HardMix <span class="at">-composite</span> posterized_contrast.png</span></code></pre></div>
+<h2 id="fine-tuning-the-posterized-output">Fine-Tuning the Posterized
+Output</h2>
+<p>Because pure <code>HardMix</code> can be visually jarring, you can
+control the output using the following methods:</p>
+<ul>
+<li><strong>Pre-adjusting Brightness/Contrast</strong>: Modifying levels
+before the composite changes which regions tip over into primary colors:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-modulate</span> 100,120,100 <span class="dt">\(</span> +clone <span class="at">-fill</span> gray50 <span class="at">-colorize</span> 100% <span class="dt">\)</span> <span class="at">-compose</span> HardMix <span class="at">-composite</span> output.png</span></code></pre></div></li>
+<li><strong>Reducing Effect Opacity</strong>: To retain underlying
+photographic texture, blend the posterized layer back onto the original
+with partial transparency:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="dt">\(</span> +clone <span class="at">-fill</span> gray50 <span class="at">-colorize</span> 100% <span class="dt">\)</span> <span class="at">-compose</span> HardMix <span class="at">-composite</span> <span class="at">-set</span> option:compose:args 60% <span class="dt">\)</span> <span class="at">-compose</span> Blend <span class="at">-composite</span> final_tuned.png</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

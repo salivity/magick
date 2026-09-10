@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick: Bilinear vs Bicubic vs Lanczos - magick</title>
+    <meta name="description" content="Resizing images with ImageMagick requires selecting a resampling filter to determine how new pixel values are calculated. This article explores the differences between Bilinear, Bicubic, and Lanczos interpolation filters, comparing their underlying mathe">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-bilinear-vs-bicubic-vs-lanczos">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick: Bilinear vs Bicubic vs Lanczos - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-bilinear-vs-bicubic-vs-lanczos" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Resizing images with ImageMagick requires selecting a resampling filter to determine how new pixel values are calculated. This article explores the differences between Bilinear, Bicubic, and Lanczos interpolation filters, comparing their underlying mathe" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-bilinear-vs-bicubic-vs-lanczos">ImageMagick:
+Bilinear vs Bicubic vs Lanczos</h1>
+<p>Resizing images with ImageMagick requires selecting a resampling
+filter to determine how new pixel values are calculated. This article
+explores the differences between Bilinear, Bicubic, and Lanczos
+interpolation filters, comparing their underlying mathematical
+approaches, visual quality, processing speed, and optimal use cases to
+help you choose the right filter for your image processing
+workflows.</p>
+<hr />
+<h3 id="understanding-resampling-in-imagemagick">Understanding
+Resampling in ImageMagick</h3>
+<p>When an image is scaled up or down, ImageMagick reconstructs pixel
+data using spatial filtering algorithms. You specify these filters using
+the <code>-filter</code> or <code>-interpolate</code> operators. The
+primary trade-off among these filters is computational speed versus
+sharpness and the prevention of visual artifacts.</p>
+<hr />
+<h3 id="1-bilinear-filter">1. Bilinear Filter</h3>
+<ul>
+<li><strong>ImageMagick Filter Name:</strong> <code>Triangle</code> or
+<code>Bilinear</code></li>
+<li><strong>Sample Area:</strong> 2x2 grid (4 adjacent pixels)</li>
+</ul>
+<p><strong>How It Works:</strong><br />
+The Bilinear filter computes the color value of a new pixel by taking a
+weighted average of the four closest pixels in a 2x2 grid. It performs
+linear interpolation first along the horizontal axis, then along the
+vertical axis.</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li><strong>Speed:</strong> Extremely fast with minimal CPU
+overhead.</li>
+<li><strong>Sharpness:</strong> Low; results in noticeably soft or
+blurry edges when scaling up.</li>
+<li><strong>Artifacts:</strong> Rarely produces ringing artifacts
+(halos), but can cause jagged edges (aliasing) on high-contrast
+lines.</li>
+</ul>
+<p><strong>Best Used For:</strong></p>
+<ul>
+<li>Real-time image generation and thumbnail generation where speed is
+prioritized over visual fidelity.</li>
+<li>Slight downscaling tasks where computational resources are strictly
+limited.</li>
+</ul>
+<hr />
+<h3 id="2-bicubic-filter">2. Bicubic Filter</h3>
+<ul>
+<li><strong>ImageMagick Filter Name:</strong> <code>Cubic</code>,
+<code>Catrom</code>, or <code>Mitchell</code></li>
+<li><strong>Sample Area:</strong> 4x4 grid (16 adjacent pixels)</li>
+</ul>
+<p><strong>How It Works:</strong><br />
+The Bicubic filter uses cubic polynomial curves to sample 16 surrounding
+pixels. By considering a wider area and utilizing non-linear curves, it
+preserves image gradients and fine details far better than linear
+interpolation. ImageMagick includes several bicubic variations, with
+<code>Catrom</code> (Catmull-Rom) offering high sharpness and
+<code>Mitchell</code> offering a balance between blurring and
+ringing.</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li><strong>Speed:</strong> Moderate; computationally heavier than
+Bilinear but still very efficient.</li>
+<li><strong>Sharpness:</strong> Balanced; produces smooth transitions,
+continuous gradients, and crisp edges.</li>
+<li><strong>Artifacts:</strong> Minimal ringing; strikes a reliable
+balance between softness and overshooting.</li>
+</ul>
+<p><strong>Best Used For:</strong></p>
+<ul>
+<li>General-purpose photographic resizing.</li>
+<li>Continuous-tone imagery where smooth transitions across gradients
+are critical.</li>
+</ul>
+<hr />
+<h3 id="3-lanczos-filter">3. Lanczos Filter</h3>
+<ul>
+<li><strong>ImageMagick Filter Name:</strong> <code>Lanczos</code>
+(default standard is 3-lobe)</li>
+<li><strong>Sample Area:</strong> Typically 6x6 grid (36 pixels) or
+larger</li>
+</ul>
+<p><strong>How It Works:</strong><br />
+Lanczos filtering is based on a windowed sinc mathematical function. It
+evaluates a larger neighborhood of pixels (usually 3 lobes in each
+direction) to accurately reconstruct high-frequency image data,
+simulating theoretically optimal band-limited interpolation.</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li><strong>Speed:</strong> Slowest of the three; requires significant
+processing power due to the larger sample window.</li>
+<li><strong>Sharpness:</strong> High; delivers the sharpest results,
+maximum contrast retention, and preserved fine textures.</li>
+<li><strong>Artifacts:</strong> Can introduce visible "ringing" (halo
+artifacts) around high-contrast edges and text due to the nature of the
+sinc function.</li>
+</ul>
+<p><strong>Best Used For:</strong></p>
+<ul>
+<li>High-quality photographic downscaling where preserving fine texture
+and sharpness is mandatory.</li>
+<li>Upscaling high-detail photos where softness is unacceptable.</li>
+</ul>
+<hr />
+<h3 id="comparison-summary">Comparison Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Filter</th>
+<th style="text-align: left;">Sample Size</th>
+<th style="text-align: left;">Sharpness</th>
+<th style="text-align: left;">Speed</th>
+<th style="text-align: left;">Primary Trade-Off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Bilinear</strong></td>
+<td style="text-align: left;">2x2 (4 pixels)</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">Fastest</td>
+<td style="text-align: left;">Fast execution, but produces blurry
+results</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Bicubic</strong></td>
+<td style="text-align: left;">4x4 (16 pixels)</td>
+<td style="text-align: left;">Medium</td>
+<td style="text-align: left;">Fast</td>
+<td style="text-align: left;">Balanced quality without prominent
+artifacts</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Lanczos</strong></td>
+<td style="text-align: left;">6x6 (36 pixels)</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Slower</td>
+<td style="text-align: left;">High sharpness, but potential for edge
+ringing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="imagemagick-command-examples">ImageMagick Command Examples</h3>
+<p>To apply these filters during a resize operation in ImageMagick:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bilinear (Triangle)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Triangle <span class="at">-resize</span> 800x600 output_bilinear.jpg</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Bicubic (Catmull-Rom variant)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Catrom <span class="at">-resize</span> 800x600 output_bicubic.jpg</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Lanczos</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-resize</span> 800x600 output_lanczos.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

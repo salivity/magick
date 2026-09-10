@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Plus vs Minus Compose Operators - magick</title>
+    <meta name="description" content="This article explains the core differences between the Plus and Minus composition operators in ImageMagick, focusing on their mathematical formulas, clipping behaviors, and practical applications in image processing. The primary difference between the Pl">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-plus-vs-minus-compose-operators">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Plus vs Minus Compose Operators - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-plus-vs-minus-compose-operators" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the core differences between the Plus and Minus composition operators in ImageMagick, focusing on their mathematical formulas, clipping behaviors, and practical applications in image processing. The primary difference between the Pl" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-plus-vs-minus-compose-operators">ImageMagick Plus vs
+Minus Compose Operators</h1>
+<p>This article explains the core differences between the Plus and Minus
+composition operators in ImageMagick, focusing on their mathematical
+formulas, clipping behaviors, and practical applications in image
+processing.</p>
+<h3 id="mathematical-functionality">Mathematical Functionality</h3>
+<p>The primary difference between the <code>Plus</code> and
+<code>Minus</code> operators lies in the arithmetic used to combine the
+pixel values of the source (overlay) and destination (background)
+images.</p>
+<ul>
+<li><strong>Plus (<code>-compose Plus</code>):</strong> Adds the channel
+values of the source image directly to the destination image. The
+formula applied per channel is:<br />
+<code>Output = Destination + Source</code></li>
+<li><strong>Minus (<code>-compose Minus</code> or
+<code>Minus_Dst</code>):</strong> Subtracts the source image channel
+values from the destination image values. The formula applied per
+channel is:<br />
+<code>Output = Destination - Source</code><br />
+<em>(Note: ImageMagick also provides <code>Minus_Src</code>, which
+reverses the order to <code>Source - Destination</code>.)</em></li>
+</ul>
+<h3 id="value-bounds-and-clipping">Value Bounds and Clipping</h3>
+<p>Digital color channels are bounded by ImageMagick's
+<code>QuantumRange</code> (typically 0 to 255 for 8-bit images or 0 to
+65535 for 16-bit images).</p>
+<ul>
+<li><strong>Plus Operator:</strong> Because adding two values often
+exceeds the maximum limit, any resulting channel value greater than
+<code>QuantumRange</code> is clamped to the maximum value. This leads to
+<strong>white clipping</strong> (blown-out highlights).</li>
+<li><strong>Minus Operator:</strong> Because subtracting values often
+results in numbers below zero, any negative result is clamped to 0. This
+leads to <strong>black clipping</strong> (crushed shadows).</li>
+</ul>
+<h3 id="alpha-channel-handling">Alpha Channel Handling</h3>
+<p>Both operators take pixel transparency into account during
+blending:</p>
+<ul>
+<li>In <code>Plus</code>, overlapping semi-transparent areas combine
+their color energies and add their alpha values together.</li>
+<li>In <code>Minus</code>, the subtraction is proportional to the
+opacity of the source image. Transparent source pixels leave the
+destination unchanged, while fully opaque source pixels apply the full
+subtraction.</li>
+</ul>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><p><strong>Use the Plus operator for:</strong></p>
+<ul>
+<li><strong>Additive lighting:</strong> Simulating lens flares, glows,
+neon effects, or projector beams.</li>
+<li><strong>Double exposures:</strong> Merging two images to combine
+their overall light information.</li>
+<li><strong>Render pass compositing:</strong> Combining separate
+diffuse, specular, and emissive lighting layers in 3D rendering.</li>
+</ul></li>
+<li><p><strong>Use the Minus operator for:</strong></p>
+<ul>
+<li><strong>Background removal:</strong> Subtracting a static background
+capture from a scene to isolate newly introduced foreground
+subjects.</li>
+<li><strong>Defect detection:</strong> Subtracting an expected reference
+image from a captured frame to highlight missing or altered areas.</li>
+<li><strong>Shadow generation:</strong> Darkening specific regions of an
+image proportionally based on a shadow mask.</li>
+</ul></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

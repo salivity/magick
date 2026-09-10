@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Create Beveled Photo Frames in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to add a three-dimensional beveled picture frame around any photo using ImageMagick. You will learn how to use the built-in -frame and -raise command-line operators, configure bevel dimensions and light angles, and combine matte b">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-create-beveled-photo-frames-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Create Beveled Photo Frames in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-create-beveled-photo-frames-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to add a three-dimensional beveled picture frame around any photo using ImageMagick. You will learn how to use the built-in -frame and -raise command-line operators, configure bevel dimensions and light angles, and combine matte b" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-create-beveled-photo-frames-in-imagemagick">How to Create
+Beveled Photo Frames in ImageMagick</h1>
+<p>This guide explains how to add a three-dimensional beveled picture
+frame around any photo using ImageMagick. You will learn how to use the
+built-in <code>-frame</code> and <code>-raise</code> command-line
+operators, configure bevel dimensions and light angles, and combine
+matte borders to produce professional framing effects.</p>
+<h2 id="method-1-using-the--frame-operator">Method 1: Using the
+<code>-frame</code> Operator</h2>
+<p>The most efficient way to generate a beveled frame is the
+<code>-frame</code> operator. This command creates a bordered area
+around your photo with automatically shaded top-left highlights and
+bottom-right shadows to simulate depth.</p>
+<h3 id="basic-command">Basic Command</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-mattecolor</span> <span class="st">&quot;#5A3D28&quot;</span> <span class="at">-frame</span> 20x20+4+4 output.jpg</span></code></pre></div>
+<p><em>(Note: If you are using ImageMagick v6, replace
+<code>magick</code> with <code>convert</code>.)</em></p>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-mattecolor &lt;color&gt;</code></strong>: Sets the
+base color of the frame. You can use standard color names (like
+<code>gray</code>, <code>navy</code>, <code>black</code>) or hex codes
+(such as <code>#5A3D28</code> for a wooden tone).</li>
+<li><strong><code>-frame &lt;width&gt;x&lt;height&gt;+&lt;outer_bevel&gt;+&lt;inner_bevel&gt;</code></strong>:
+<ul>
+<li><code>20x20</code>: Sets the total thickness of the horizontal and
+vertical frame borders in pixels.</li>
+<li><code>+4</code>: Defines the pixel width of the outer bevel
+edge.</li>
+<li><code>+4</code>: Defines the pixel width of the inner bevel edge
+(adjacent to the photo).</li>
+</ul></li>
+</ul>
+<p>To create a flat frame with only an outer bevel, set the inner bevel
+to zero:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-mattecolor</span> <span class="st">&quot;#222222&quot;</span> <span class="at">-frame</span> 25x25+5+0 output.jpg</span></code></pre></div>
+<hr />
+<h2 id="method-2-applying-a-direct-bevel-with--raise">Method 2: Applying
+a Direct Bevel with <code>-raise</code></h2>
+<p>If you want to apply a 3D bevel directly onto the edges of the image
+itself without expanding its canvas dimensions, use the
+<code>-raise</code> operator.</p>
+<h3 id="raised-extruded-bevel">Raised (Extruded) Bevel</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-raise</span> 10 output.jpg</span></code></pre></div>
+<p>This lightens the top and left borders by 10 pixels and darkens the
+bottom and right borders, making the image appear raised toward the
+viewer.</p>
+<h3 id="sunken-inset-bevel">Sunken (Inset) Bevel</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +raise 10 output.jpg</span></code></pre></div>
+<p>Using a plus sign (<code>+raise</code>) reverses the light source,
+darkening the top and left edges to make the image appear pressed into
+the background.</p>
+<hr />
+<h2 id="method-3-multi-layer-picture-frame-with-matte">Method 3:
+Multi-Layer Picture Frame with Matte</h2>
+<p>To achieve a realistic gallery look, combine a flat inner photo mat
+with an outer beveled wooden or metal frame.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-bordercolor</span> <span class="st">&quot;#F5F5F0&quot;</span> <span class="at">-border</span> 20 <span class="at">-mattecolor</span> <span class="st">&quot;#2E1A0F&quot;</span> <span class="at">-frame</span> 30x30+6+6 output.jpg</span></code></pre></div>
+<h3 id="how-it-works">How It Works:</h3>
+<ol type="1">
+<li><strong><code>-bordercolor "#F5F5F0" -border 20</code></strong>:
+Adds a 20-pixel off-white inner mat directly around the photo.</li>
+<li><strong><code>-mattecolor "#2E1A0F" -frame 30x30+6+6</code></strong>:
+Wraps the matted image in a 30-pixel dark brown frame featuring 6-pixel
+outer and inner bevels.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

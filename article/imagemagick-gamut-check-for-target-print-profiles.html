@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Gamut Check for Target Print Profiles - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick identifies out-of-gamut colors when preparing digital assets for physical print workflows. By integrating with the LittleCMS (lcms2) engine and utilizing International Color Consortium (ICC) profiles,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gamut-check-for-target-print-profiles">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Gamut Check for Target Print Profiles - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gamut-check-for-target-print-profiles" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick identifies out-of-gamut colors when preparing digital assets for physical print workflows. By integrating with the LittleCMS (lcms2) engine and utilizing International Color Consortium (ICC) profiles," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gamut-check-for-target-print-profiles">ImageMagick
+Gamut Check for Target Print Profiles</h1>
+<p>This article provides an overview of how ImageMagick identifies
+out-of-gamut colors when preparing digital assets for physical print
+workflows. By integrating with the LittleCMS (lcms2) engine and
+utilizing International Color Consortium (ICC) profiles, ImageMagick
+allows users to simulate target print profiles, detect clipping, and map
+color shifts between wide-gamut RGB spaces and restricted CMYK printing
+conditions.</p>
+<h2 id="the-role-of-littlecms-in-imagemagick">The Role of LittleCMS in
+ImageMagick</h2>
+<p>ImageMagick does not use a proprietary color-matching module.
+Instead, it relies on the open-source LittleCMS color management engine
+to interpret ICC profiles and perform color transformations. When an
+image contains colors that cannot be physically reproduced by a specific
+printer, ink set, and paper combination, LittleCMS calculates how those
+colors are mapped or clipped based on standard mathematical models of
+color spaces (such as CIELAB).</p>
+<h2 id="how-gamut-checking-operates">How Gamut Checking Operates</h2>
+<p>Gamut checking evaluates whether the coordinates of an input color
+(typically in an RGB space like sRGB or Adobe RGB) fall within the
+three-dimensional boundary of the target output color space (typically a
+CMYK profile like GRACoL or ISO Coated).</p>
+<p>When evaluating gamut limits in ImageMagick, the process hinges on
+three main components:</p>
+<ol type="1">
+<li><strong>Input Profile:</strong> The source profile defining the
+current image's color limits (e.g., <code>sRGB.icc</code>).</li>
+<li><strong>Target Output Profile:</strong> The print profile defining
+the reproduction limits (e.g., <code>USWebCoatedSWOP.icc</code>).</li>
+<li><strong>Rendering Intent:</strong> The mathematical algorithm
+(<code>-intent</code>) used to handle out-of-gamut colors (Perceptual,
+Relative Colorimetric, Absolute Colorimetric, or Saturation).</li>
+</ol>
+<h2 id="performing-gamut-checks-and-soft-proofing">Performing Gamut
+Checks and Soft-Proofing</h2>
+<p>To determine which colors will shift or clip during the transition to
+print, ImageMagick uses sequential profile transformations or
+differential image analysis.</p>
+<h3 id="1-direct-conversion-and-visual-proofing">1. Direct Conversion
+and Visual Proofing</h3>
+<p>Applying profiles sequentially transforms the image from the source
+color space to the destination space:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> USWebCoatedSWOP.icc output_cmyk.tif</span></code></pre></div>
+<p>If LittleCMS encounters colors outside the CMYK gamut, it compresses
+or clips them according to the selected rendering intent. Perceptual
+intent re-scales all colors to preserve relationships, whereas Relative
+Colorimetric clips only the out-of-gamut colors to the nearest
+reproducible shade on the gamut boundary.</p>
+<h3 id="2-differential-gamut-masking">2. Differential Gamut Masking</h3>
+<p>Because ImageMagick's command-line interface does not have a single
+native "gamut alarm highlight" toggle like some desktop GUI software, a
+common automated method to highlight out-of-gamut pixels is the
+<strong>round-trip difference check</strong>:</p>
+<ol type="1">
+<li>Convert the image from the source RGB profile to the target CMYK
+print profile.</li>
+<li>Immediately convert that CMYK data back to the original RGB
+profile.</li>
+<li>Compute the difference between the original image and the round-trip
+image.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> TargetPrint.icc <span class="at">-profile</span> sRGB.icc <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="at">-threshold</span> 1% gamut_mask.png</span></code></pre></div>
+<p>In this process:</p>
+<ul>
+<li>Pixels that are <strong>in-gamut</strong> undergo negligible change
+during the conversion and return black in the difference mask.</li>
+<li>Pixels that are <strong>out-of-gamut</strong> are modified by the
+print profile's boundary constraints, creating a non-zero value that is
+highlighted by the threshold operation.</li>
+</ul>
+<h2 id="key-considerations-for-accurate-verification">Key Considerations
+for Accurate Verification</h2>
+<ul>
+<li><strong>Embedded Profiles:</strong> Always ensure the input image
+has an embedded ICC profile or explicitly declare one using
+<code>-profile</code>. Assuming default values can skew gamut boundary
+calculations.</li>
+<li><strong>Black Point Compensation:</strong> Ensure black point
+compensation settings align with your prepress expectations, as improper
+handling of the darkest tones can falsely trigger out-of-gamut warnings
+in shadow areas.</li>
+<li><strong>Bit Depth:</strong> Conduct gamut checks using 16-bit images
+(Q16 build of ImageMagick) to avoid false-positive gamut warnings caused
+by rounding errors inherent to 8-bit color quantization.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

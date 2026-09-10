@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Encodes Multi-Spectral Bands to FITS - magick</title>
+    <meta name="description" content="ImageMagick encodes multi-spectral imaging bands into the Flexible Image Transport System (FITS) format by structuring multi-channel or multi-frame raster data into a three-dimensional data cube or sequential Header and Data Units (HDUs). By reading disc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-encodes-multi-spectral-bands-to-fits">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Encodes Multi-Spectral Bands to FITS - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-encodes-multi-spectral-bands-to-fits" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick encodes multi-spectral imaging bands into the Flexible Image Transport System (FITS) format by structuring multi-channel or multi-frame raster data into a three-dimensional data cube or sequential Header and Data Units (HDUs). By reading disc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-encodes-multi-spectral-bands-to-fits">How
+ImageMagick Encodes Multi-Spectral Bands to FITS</h1>
+<p>ImageMagick encodes multi-spectral imaging bands into the Flexible
+Image Transport System (FITS) format by structuring multi-channel or
+multi-frame raster data into a three-dimensional data cube or sequential
+Header and Data Units (HDUs). By reading discrete spectral bands—whether
+supplied as separate input files or as native multi-channel images like
+RGB—the coder serializes pixel matrices into a planar array, updates
+structural FITS header keywords such as <code>NAXIS</code>, and scales
+quantum pixel values to fit standard astronomical bit depths.</p>
+<h3 id="the-fits-dimensional-hierarchy-and-naxis-mapping">The FITS
+Dimensional Hierarchy and NAXIS Mapping</h3>
+<p>The FITS standard organizes data using the <code>NAXIS</code> keyword
+family within a standardized 2880-byte header block. When ImageMagick
+encounters multi-spectral data, it organizes the data using a 3D
+volume:</p>
+<ul>
+<li><strong>NAXIS = 3</strong>: Informs the FITS reader that the file
+contains a three-dimensional data cube rather than a flat 2D image.</li>
+<li><strong>NAXIS1</strong>: Represents the width (X-dimension or number
+of columns) of the spatial grid.</li>
+<li><strong>NAXIS2</strong>: Represents the height (Y-dimension or
+number of rows) of the spatial grid.</li>
+<li><strong>NAXIS3</strong>: Represents the depth, which ImageMagick
+maps to the number of spectral bands or image channels (for example, 3
+for standard RGB, or <span class="math inline">\(N\)</span> for an
+arbitrary sequence of narrow-band filters).</li>
+</ul>
+<h3 id="planar-pixel-ordering-band-sequential-encoding">Planar Pixel
+Ordering (Band-Sequential Encoding)</h3>
+<p>Standard raster image formats typically interleave color channels per
+pixel (RGBRGB...). FITS, conversely, requires contiguous spatial planes
+(band-sequential order).</p>
+<p>ImageMagick extracts each spectral channel into an independent memory
+plane. During the encoding process, it writes the entire spatial array
+of the first band (<code>NAXIS3 = 1</code>) row by row, followed
+immediately by the entire array of the second band
+(<code>NAXIS3 = 2</code>), and continues sequentially until all spectral
+bands are serialized into the data segment.</p>
+<h3 id="bit-depth-mapping-and-normalization-bitpix">Bit Depth Mapping
+and Normalization (BITPIX)</h3>
+<p>ImageMagick normalizes its internal <code>Quantum</code> depth to one
+of the standard FITS data types defined by the <code>BITPIX</code>
+keyword:</p>
+<ul>
+<li><strong>BITPIX = 8</strong>: 8-bit unsigned integers.</li>
+<li><strong>BITPIX = 16</strong>: 16-bit signed integers (using
+<code>BZERO = 32768</code> and <code>BSCALE = 1</code> offsets to store
+unsigned 16-bit image data without clipping).</li>
+<li><strong>BITPIX = 32</strong>: 32-bit signed integers.</li>
+<li><strong>BITPIX = -32 or -64</strong>: Single- or double-precision
+IEEE floating-point values, utilized when compiling ImageMagick with
+high-dynamic-range imaging (HDRI) enabled.</li>
+</ul>
+<p>Pixel intensities are transformed linearly from ImageMagick’s
+internal representation to fit the target <code>BITPIX</code> range,
+preserving the dynamic range across all spectral bands uniformly.</p>
+<h3 id="image-sequence-aggregation">Image Sequence Aggregation</h3>
+<p>When converting multiple distinct mono-spectral files (such as
+individual narrowband captures: H-alpha, OIII, and SII) into a unified
+FITS file, ImageMagick stacks the inputs as an image list:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> band_red.tif band_green.tif band_blue.tif <span class="at">-combine</span> multispectral.fits</span></code></pre></div>
+<p>Or using an image stack directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> band1.fits band2.fits band3.fits <span class="at">-append-slices</span> output_cube.fits</span></code></pre></div>
+<p>In this mode, ImageMagick verifies that all input dimensions
+(<code>NAXIS1</code> and <code>NAXIS2</code>) match, assigns each input
+frame an index along the third axis (<code>NAXIS3</code>), and pads the
+trailing data block with null bytes (<code>0x00</code>) to conform to
+the standard 2880-byte record requirement of the FITS standard.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

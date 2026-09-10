@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trace ImageMagick Coder and Resource Events - magick</title>
+    <meta name="description" content="ImageMagick provides robust logging capabilities that allow you to monitor internal operations, troubleshoot format decoding errors, and monitor system resource limits. This guide explains how to isolate and trace ImageMagick coder and resource events us">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/trace-imagemagick-coder-and-resource-events">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Trace ImageMagick Coder and Resource Events - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/trace-imagemagick-coder-and-resource-events" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides robust logging capabilities that allow you to monitor internal operations, troubleshoot format decoding errors, and monitor system resource limits. This guide explains how to isolate and trace ImageMagick coder and resource events us" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="trace-imagemagick-coder-and-resource-events">Trace ImageMagick
+Coder and Resource Events</h1>
+<p>ImageMagick provides robust logging capabilities that allow you to
+monitor internal operations, troubleshoot format decoding errors, and
+monitor system resource limits. This guide explains how to isolate and
+trace ImageMagick coder and resource events using the
+<code>-debug</code> command-line argument, along with formatting and
+logging options to capture detailed execution data.</p>
+<h2 id="understanding-imagemagick-debug-flags">Understanding ImageMagick
+Debug Flags</h2>
+<p>The <code>-debug</code> argument instructs ImageMagick to output
+diagnostic messages to the standard error console or a configured log
+file. You can target specific subsystems rather than logging all
+internal events, which prevents log noise.</p>
+<ul>
+<li><strong>Coder</strong>: Traces the decoding and encoding processes
+of image file formats (such as JPEG, PNG, TIFF, or WebP). It outputs
+data regarding file headers, color profiles, compression methods, and
+delegate calls.</li>
+<li><strong>Resource</strong>: Traces memory, map, disk, pixel cache,
+and thread limits. It logs whenever resources are allocated, extended,
+or freed.</li>
+</ul>
+<h2 id="tracing-coder-events">Tracing Coder Events</h2>
+<p>To track how ImageMagick reads or writes a specific file format, pass
+the <code>coder</code> event type to the <code>-debug</code> option.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> coder input.jpg output.png</span></code></pre></div>
+<p>For legacy ImageMagick versions (v6), use the <code>convert</code>
+command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-debug</span> coder input.jpg output.png</span></code></pre></div>
+<h3 id="what-to-look-for-in-coder-traces">What to Look For in Coder
+Traces</h3>
+<ul>
+<li><strong>Decoder/Encoder Resolution</strong>: Shows which delegate or
+internal module is invoked to handle the image format.</li>
+<li><strong>Color and Geometry Parsing</strong>: Displays image
+dimensions, bit depth, and color space read from headers.</li>
+<li><strong>Corrupt Data Warnings</strong>: Helps identify where a
+truncated or corrupted file causes the read process to fail.</li>
+</ul>
+<h2 id="tracing-resource-events">Tracing Resource Events</h2>
+<p>Resource tracing helps debug memory leaks, temporary file usage, or
+unexpected disk caching. Set <code>-debug</code> to
+<code>resource</code> to inspect allocations:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> resource large_image.tif <span class="at">-resize</span> 50% output.tif</span></code></pre></div>
+<h3 id="what-to-look-for-in-resource-traces">What to Look For in
+Resource Traces</h3>
+<ul>
+<li><strong>Pixel Cache Allocations</strong>: Indicates whether the
+image pixels are stored in RAM or mapped to a temporary disk file.</li>
+<li><strong>Memory Limits</strong>: Displays total memory consumption
+against the limits defined in your <code>policy.xml</code>
+configuration.</li>
+<li><strong>Thread Usage</strong>: Details how many OpenMP threads are
+spawned for processing.</li>
+</ul>
+<h2 id="combining-multiple-debug-events">Combining Multiple Debug
+Events</h2>
+<p>You can trace both coder and resource events simultaneously by
+providing a comma-separated list to the <code>-debug</code> option:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> <span class="st">&quot;coder,resource&quot;</span> input.png <span class="at">-resize</span> 200% output.jpg</span></code></pre></div>
+<p>To capture all system events alongside coder and resource metrics,
+you can use the <code>all</code> flag, though this produces extensive
+output:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> all input.png output.jpg</span></code></pre></div>
+<h2 id="formatting-and-redirecting-debug-output">Formatting and
+Redirecting Debug Output</h2>
+<p>By default, ImageMagick prints debug logs to standard error
+(<code>stderr</code>). You can customize the log output format using the
+<code>-log</code> flag and direct it to a file.</p>
+<h3 id="customizing-log-format">Customizing Log Format</h3>
+<p>Use standard format specifiers with <code>-log</code> to append
+timestamps, event types, or thread IDs:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-log</span> <span class="st">&quot;%t %e: %m&quot;</span> <span class="at">-debug</span> <span class="st">&quot;coder,resource&quot;</span> input.png output.jpg</span></code></pre></div>
+<ul>
+<li><code>%t</code>: Current time</li>
+<li><code>%e</code>: Event name (e.g., Coder, Resource)</li>
+<li><code>%m</code>: Detailed log message</li>
+</ul>
+<h3 id="redirecting-output-to-a-file">Redirecting Output to a File</h3>
+<p>To save the output for later analysis, redirect standard error in
+your terminal shell:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> <span class="st">&quot;coder,resource&quot;</span> input.png output.jpg <span class="dv">2</span><span class="op">&gt;</span> imagemagick_trace.log</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

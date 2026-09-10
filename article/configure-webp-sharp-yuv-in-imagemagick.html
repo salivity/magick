@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure WebP Sharp-YUV in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a straightforward guide on how to configure WebP preprocessing filters—specifically the sharp-yuv algorithm—in ImageMagick. You will learn the exact command-line syntax required to pass WebP encoder definitions, what prerequisit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-webp-sharp-yuv-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure WebP Sharp-YUV in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-webp-sharp-yuv-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a straightforward guide on how to configure WebP preprocessing filters—specifically the sharp-yuv algorithm—in ImageMagick. You will learn the exact command-line syntax required to pass WebP encoder definitions, what prerequisit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-webp-sharp-yuv-in-imagemagick">Configure WebP
+Sharp-YUV in ImageMagick</h1>
+<p>This article provides a straightforward guide on how to configure
+WebP preprocessing filters—specifically the <code>sharp-yuv</code>
+algorithm—in ImageMagick. You will learn the exact command-line syntax
+required to pass WebP encoder definitions, what prerequisites are
+needed, and how to combine <code>sharp-yuv</code> with other WebP
+filtering and preprocessing parameters to optimize output quality.</p>
+<h3 id="understanding-sharp-yuv">Understanding Sharp-YUV</h3>
+<p>The <code>sharp-yuv</code> feature (provided by Google's
+<code>libwebp</code>) is an advanced color conversion algorithm that
+minimizes chroma distortion during RGB-to-YUV420 conversion. By default,
+downsampling color channels can cause noticeable color bleeding or
+artifacts around high-contrast edges and text. Enabling
+<code>sharp-yuv</code> produces sharper, cleaner color transitions at
+the expense of a slight increase in encoding time.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To use <code>sharp-yuv</code> within ImageMagick:</p>
+<ul>
+<li><strong>ImageMagick 7+</strong> (recommended) or ImageMagick 6.</li>
+<li><strong>libwebp 1.3.0 or higher</strong> compiled with
+<code>libsharpyuv</code> support.</li>
+</ul>
+<p>You can verify your current delegate version using:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> under the delegates list to ensure support
+is present.</p>
+<h3 id="enabling-sharp-yuv-in-imagemagick">Enabling Sharp-YUV in
+ImageMagick</h3>
+<p>ImageMagick exposes internal <code>libwebp</code> encoder flags via
+the <code>-define</code> argument. To enable Sharp-YUV, use the
+<code>webp:use-sharp-yuv</code> flag set to <code>true</code> or
+<code>1</code>.</p>
+<h4 id="basic-syntax">Basic Syntax</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:use-sharp-yuv=true output.webp</span></code></pre></div>
+<p>If using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> webp:use-sharp-yuv=true output.webp</span></code></pre></div>
+<h3 id="additional-webp-preprocessing-and-filtering-flags">Additional
+WebP Preprocessing and Filtering Flags</h3>
+<p>You can pair <code>sharp-yuv</code> with other <code>libwebp</code>
+preprocessing and filtering parameters to fine-tune compression and
+artifact handling.</p>
+<h4 id="1-in-loop-deblocking-filter-strength-webpfilter-strength">1.
+In-Loop Deblocking Filter Strength
+(<code>webp:filter-strength</code>)</h4>
+<p>Controls the strength of the WebP deblocking filter. Values range
+from <code>0</code> (filtering off) to <code>100</code> (maximum
+filtering).</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> webp:use-sharp-yuv=true <span class="at">-define</span> webp:filter-strength=60 output.webp</span></code></pre></div>
+<h4 id="2-filter-sharpness-webpfilter-sharpness">2. Filter Sharpness
+(<code>webp:filter-sharpness</code>)</h4>
+<p>Sets the sharpness reduction of the filter. The value ranges from
+<code>0</code> (least sharp) to <code>7</code> (most sharp).</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> webp:use-sharp-yuv=true <span class="at">-define</span> webp:filter-sharpness=4 output.webp</span></code></pre></div>
+<h4 id="3-filter-type-webpfilter-type">3. Filter Type
+(<code>webp:filter-type</code>)</h4>
+<p>Specifies the filter algorithm: <code>0</code> for simple filtering
+or <code>1</code> for strong filtering (default).</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> webp:use-sharp-yuv=true <span class="at">-define</span> webp:filter-type=1 output.webp</span></code></pre></div>
+<h4 id="4-general-preprocessing-webppreprocessing">4. General
+Preprocessing (<code>webp:preprocessing</code>)</h4>
+<p>Applies built-in image preprocessing before encoding. Values
+include:</p>
+<ul>
+<li><code>0</code>: None (default)</li>
+<li><code>1</code>: Segment-smooth</li>
+<li><code>2</code>: Pseudo-random dithering</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> webp:use-sharp-yuv=true <span class="at">-define</span> webp:preprocessing=1 output.webp</span></code></pre></div>
+<h3 id="complete-production-example">Complete Production Example</h3>
+<p>For high-contrast images, UI elements, or illustrations where color
+clarity and edge definition are critical, use a combined set of
+defines:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-quality</span> 85 <span class="dt">\</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> webp:lossless=false <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> webp:use-sharp-yuv=true <span class="dt">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> webp:filter-strength=25 <span class="dt">\</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> webp:filter-sharpness=5 <span class="dt">\</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> webp:method=6 <span class="dt">\</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  output.webp</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-quality 85</code> sets standard lossy compression.</li>
+<li><code>-define webp:use-sharp-yuv=true</code> preserves edge
+chroma.</li>
+<li><code>-define webp:method=6</code> forces the encoder to use the
+highest compression effort for the smallest file size.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

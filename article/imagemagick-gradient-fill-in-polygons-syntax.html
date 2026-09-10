@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Gradient Fill in Polygons Syntax - magick</title>
+    <meta name="description" content="Rendering gradient fills inside vector polygons in ImageMagick can be accomplished directly using Magick Vector Graphics (MVG) within the -draw operator or by masking a generated gradient using a polygon alpha mask. This guide provides the exact command-">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gradient-fill-in-polygons-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Gradient Fill in Polygons Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gradient-fill-in-polygons-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rendering gradient fills inside vector polygons in ImageMagick can be accomplished directly using Magick Vector Graphics (MVG) within the -draw operator or by masking a generated gradient using a polygon alpha mask. This guide provides the exact command-" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gradient-fill-in-polygons-syntax">ImageMagick
+Gradient Fill in Polygons Syntax</h1>
+<p>Rendering gradient fills inside vector polygons in ImageMagick can be
+accomplished directly using Magick Vector Graphics (MVG) within the
+<code>-draw</code> operator or by masking a generated gradient using a
+polygon alpha mask. This guide provides the exact command-line syntax
+for applying linear and radial gradients to custom vector polygons in
+ImageMagick.</p>
+<hr />
+<h3 id="method-1-using-mvg-gradient-definitions-in--draw">Method 1:
+Using MVG Gradient Definitions in <code>-draw</code></h3>
+<p>ImageMagick's Magick Vector Graphics (MVG) allows you to define a
+gradient object inside a definition block
+(<code>push defs ... pop defs</code>) and reference it using
+<code>url(#gradient_id)</code> as a fill pattern.</p>
+<h4 id="linear-gradient-syntax">Linear Gradient Syntax</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:transparent <span class="at">-draw</span> <span class="st">&#39;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">  push defs</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">    push gradient &quot;polyGradient&quot; linear 50,50 350,350</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">      stop-color &quot;crimson&quot; 0%</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">      stop-color &quot;gold&quot; 100%</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="st">    pop gradient</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="st">  pop defs</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="st">  fill &quot;url(#polyGradient)&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="st">  stroke &quot;#333333&quot;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="st">  stroke-width 2</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">  polygon 50,50 350,80 300,350 100,300</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> output.png</span></code></pre></div>
+<ul>
+<li><strong><code>linear x1,y1 x2,y2</code></strong>: Defines the start
+and end coordinates of the gradient vector.</li>
+<li><strong><code>stop-color &lt;color&gt; &lt;offset&gt;%</code></strong>:
+Sets the color and percentage stop points along the gradient line.</li>
+<li><strong><code>fill "url(#polyGradient)"</code></strong>: Applies the
+defined gradient ID to subsequent shapes.</li>
+<li><strong><code>polygon x1,y1 x2,y2 ...</code></strong>: Specifies the
+vertex coordinates for the polygon.</li>
+</ul>
+<h4 id="radial-gradient-syntax">Radial Gradient Syntax</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:transparent <span class="at">-draw</span> <span class="st">&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">  push defs</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">    push gradient &quot;radialGrad&quot; radial 200,200 200,200 150</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">      stop-color &quot;cyan&quot; 0%</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">      stop-color &quot;darkblue&quot; 100%</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">    pop gradient</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="st">  pop defs</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="st">  fill &quot;url(#radialGrad)&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">  polygon 200,30 360,150 300,350 100,350 40,150</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> output_radial.png</span></code></pre></div>
+<ul>
+<li><strong><code>radial cx,cy fx,fy r</code></strong>: Defines the
+center coordinates (<code>cx,cy</code>), focal coordinates
+(<code>fx,fy</code>), and the radius (<code>r</code>) of the radial
+gradient.</li>
+</ul>
+<hr />
+<h3 id="method-2-masking-a-gradient-canvas-composite-method">Method 2:
+Masking a Gradient Canvas (Composite Method)</h3>
+<p>An alternative approach generates a standalone gradient canvas and
+applies a polygon shape as an opacity mask. This approach offers easier
+control over complex gradients (such as multi-point or angled
+gradients).</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 gradient:deepskyblue-indigo <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 400x400 xc:black <span class="at">-fill</span> white <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-draw</span> <span class="st">&quot;polygon 50,50 350,80 300,350 100,300&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  output_masked.png</span></code></pre></div>
+<ol type="1">
+<li><strong><code>gradient:color1-color2</code></strong>: Generates a
+gradient across the entire bounding box.</li>
+<li><strong><code>\( ... -draw "polygon ..." \)</code></strong>: Creates
+a grayscale mask where the polygon area is pure white and the background
+is black.</li>
+<li><strong><code>-compose CopyOpacity -composite</code></strong>:
+Converts the grayscale mask into the alpha channel of the gradient
+image.</li>
+</ol>
+<hr />
+<h3 id="method-3-inline-svg-parsing">Method 3: Inline SVG Parsing</h3>
+<p>ImageMagick can also render standard inline SVG code, allowing full
+SVG gradient specifications directly from the command line:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 <span class="st">&#39;svg:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;svg width=&quot;400&quot; height=&quot;400&quot;&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;defs&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;linearGradient id=&quot;grad&quot; x1=&quot;0%&quot; y1=&quot;0%&quot; x2=&quot;100%&quot; y2=&quot;100%&quot;&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">      &lt;stop offset=&quot;0%&quot; stop-color=&quot;#ff7e5f&quot; /&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">      &lt;stop offset=&quot;100%&quot; stop-color=&quot;#feb47b&quot; /&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;/linearGradient&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;/defs&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;polygon points=&quot;100,50 350,100 280,350 80,300&quot; fill=&quot;url(#grad)&quot; /&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;/svg&gt;&#39;</span> output_svg.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

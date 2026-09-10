@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mirror and Tile Images in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick provides powerful command-line tools to transform, mirror, and repeat patterns across any canvas size. This guide demonstrates the exact syntax needed to create a 2x2 mirrored (quad-reflection) base pattern from a single input image and seaml">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/mirror-and-tile-images-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mirror and Tile Images in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/mirror-and-tile-images-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides powerful command-line tools to transform, mirror, and repeat patterns across any canvas size. This guide demonstrates the exact syntax needed to create a 2x2 mirrored (quad-reflection) base pattern from a single input image and seaml" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="mirror-and-tile-images-in-imagemagick">Mirror and Tile Images in
+ImageMagick</h1>
+<p>ImageMagick provides powerful command-line tools to transform,
+mirror, and repeat patterns across any canvas size. This guide
+demonstrates the exact syntax needed to create a 2x2 mirrored
+(quad-reflection) base pattern from a single input image and seamlessly
+tile it across a large canvas.</p>
+<h3 id="the-complete-command">The Complete Command</h3>
+<p>To create a quad-mirrored pattern and tile it over a defined canvas
+size (e.g., 1920x1080), use the following ImageMagick 7 command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-flop</span> <span class="dt">\)</span> +append <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-flip</span> <span class="dt">\)</span> <span class="at">-append</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-write</span> mpr:mirrortile +delete <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-size</span> 1920x1080 tile:mpr:mirrortile output.png</span></code></pre></div>
+<p>If you are using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h3 id="syntax-breakdown">Syntax Breakdown</h3>
+<ol type="1">
+<li><strong><code>magick input.png</code></strong>: Loads the original
+source image into memory at index <code>0</code>.</li>
+<li><strong><code>\( -clone 0 -flop \) +append</code></strong>: Clones
+the original image, mirrors it horizontally with <code>-flop</code>, and
+combines both horizontally side-by-side using <code>+append</code>. This
+forms the top half of the mirrored unit.</li>
+<li><strong><code>\( -clone 0 -flip \) -append</code></strong>: Clones
+the newly created top row, flips it vertically using <code>-flip</code>,
+and stacks it underneath using <code>-append</code>. This completes a
+four-quadrant, perfectly seamless 2x2 mirrored tile.</li>
+<li><strong><code>-write mpr:mirrortile +delete</code></strong>: Writes
+the mirrored composite into ImageMagick's temporary Memory Program
+Register (<code>mpr:</code>) named <code>mirrortile</code>, then removes
+the working image from the current sequence using
+<code>+delete</code>.</li>
+<li><strong><code>-size 1920x1080 tile:mpr:mirrortile output.png</code></strong>:
+Creates a new canvas of the specified dimensions
+(<code>1920x1080</code>), fills it repeatedly using the cached mirrored
+pattern (<code>tile:mpr:mirrortile</code>), and writes the final image
+to <code>output.png</code>.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

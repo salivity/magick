@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible High Frequency Watermark in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to embed an imperceptible, high-frequency digital watermark into an image using ImageMagick. By taking advantage of the human visual system's low sensitivity to high-frequency spatial variations, you can embed identifiable tex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/invisible-high-frequency-watermark-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Invisible High Frequency Watermark in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/invisible-high-frequency-watermark-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to embed an imperceptible, high-frequency digital watermark into an image using ImageMagick. By taking advantage of the human visual system's low sensitivity to high-frequency spatial variations, you can embed identifiable tex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="invisible-high-frequency-watermark-in-imagemagick">Invisible
+High Frequency Watermark in ImageMagick</h1>
+<p>This guide demonstrates how to embed an imperceptible, high-frequency
+digital watermark into an image using ImageMagick. By taking advantage
+of the human visual system's low sensitivity to high-frequency spatial
+variations, you can embed identifiable text or logos directly into the
+fine noise or edge spectrum of an image. The resulting watermark remains
+invisible under standard viewing conditions but can be easily verified
+using high-pass filtering or contrast normalization.</p>
+<h3 id="understanding-high-frequency-watermarking">Understanding
+High-Frequency Watermarking</h3>
+<p>Digital images consist of low frequencies (smooth gradients, large
+shapes) and high frequencies (fine textures, sharp edges, and sensor
+noise). Embedding data into low frequencies causes noticeable color or
+brightness shifts. In contrast, embedding data into high frequencies
+blends the watermark into microscopic surface variations, ensuring
+complete invisibility while maintaining survivability against minor
+color adjustments.</p>
+<h3 id="step-1-generate-the-watermark-pattern">Step 1: Generate the
+Watermark Pattern</h3>
+<p>First, create a high-contrast binary source image containing the text
+or logo you want to embed. The dimensions should match your base
+image.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 xc:black <span class="at">-fill</span> white <span class="at">-gravity</span> center <span class="at">-pointsize</span> 72 <span class="at">-annotate</span> 0 <span class="st">&quot;CONFIDENTIAL&quot;</span> watermark_raw.png</span></code></pre></div>
+<h3 id="step-2-convert-the-watermark-to-a-high-frequency-layer">Step 2:
+Convert the Watermark to a High-Frequency Layer</h3>
+<p>To prevent hard edges that the eye could detect, turn the watermark
+into a subtle, high-frequency pattern. This is achieved by creating an
+edge-detected or difference-of-gaussians (DoG) layer centered on a
+neutral 50% gray base.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> watermark_raw.png <span class="at">-morphology</span> Edge Diamond <span class="at">-evaluate</span> divide 20 <span class="at">-bias</span> 50% watermark_hf.png</span></code></pre></div>
+<p>This step produces an image where the watermark outlines exist as
+minuscule deviations around mid-gray, ready for frequency
+modulation.</p>
+<h3 id="step-3-embed-the-watermark-into-the-target-image">Step 3: Embed
+the Watermark into the Target Image</h3>
+<p>To apply the high-frequency watermark invisibly, combine it with the
+source image using the <code>SoftLight</code> or <code>Overlay</code>
+composition operators at a strongly attenuated intensity.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> source.png watermark_hf.png <span class="at">-compose</span> SoftLight <span class="at">-composite</span> watermarked_output.png</span></code></pre></div>
+<p>Alternatively, you can add the high-frequency values directly into
+the color values using mathematics:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> source.png <span class="dt">\(</span> watermark_raw.png <span class="at">-morphology</span> Edge Diamond <span class="at">-evaluate</span> divide 100 <span class="dt">\)</span> <span class="at">-compose</span> Plus <span class="at">-composite</span> watermarked_output.png</span></code></pre></div>
+<p>Dividing the high-frequency mask by a large factor (such as 100 or
+150) shifts the pixel brightness by only 1–2 levels in an 8-bit image
+channel, rendering it mathematically present but completely
+imperceptible.</p>
+<h3 id="step-4-extract-and-verify-the-invisible-watermark">Step 4:
+Extract and Verify the Invisible Watermark</h3>
+<p>Because the watermark is embedded as a persistent high-frequency
+pattern, it can be extracted without requiring the original base image.
+Applying an edge detection filter followed by extreme contrast
+stretching reveals the hidden signature:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> watermarked_output.png <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> Edge Diamond <span class="at">-auto-level</span> revealed_watermark.png</span></code></pre></div>
+<p>If the original unaltered source image is available, a simple
+differential subtraction provides an even clearer verification:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-compose</span> src watermarked_output.png source.png <span class="at">-highlight-color</span> red <span class="at">-lowlight-color</span> black difference.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

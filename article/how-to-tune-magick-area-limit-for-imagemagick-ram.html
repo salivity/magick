@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Tune MAGICK_AREA_LIMIT for ImageMagick RAM - magick</title>
+    <meta name="description" content="This article provides a practical guide on tuning the MAGICKAREALIMIT environment variable to prevent memory exhaustion and optimize RAM consumption in ImageMagick. You will learn what the area limit controls, how ImageMagick calculates pixel cache sizes">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-tune-magick-area-limit-for-imagemagick-ram">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Tune MAGICK_AREA_LIMIT for ImageMagick RAM - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-tune-magick-area-limit-for-imagemagick-ram" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on tuning the MAGICKAREALIMIT environment variable to prevent memory exhaustion and optimize RAM consumption in ImageMagick. You will learn what the area limit controls, how ImageMagick calculates pixel cache sizes" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-tune-magick_area_limit-for-imagemagick-ram">How to Tune
+MAGICK_AREA_LIMIT for ImageMagick RAM</h1>
+<p>This article provides a practical guide on tuning the
+<code>MAGICK_AREA_LIMIT</code> environment variable to prevent memory
+exhaustion and optimize RAM consumption in ImageMagick. You will learn
+what the area limit controls, how ImageMagick calculates pixel cache
+sizes, how to determine the ideal limit based on your hardware capacity,
+and the specific methods used to apply these settings across your system
+or application environment.</p>
+<h2 id="what-is-magick_area_limit">What is MAGICK_AREA_LIMIT?</h2>
+<p>ImageMagick processes images by loading raw pixel data into memory.
+The <code>MAGICK_AREA_LIMIT</code> sets the maximum allowable image
+dimensions (width × height in pixels) that ImageMagick is permitted to
+hold in RAM.</p>
+<p>When an image's total pixel area exceeds this threshold, ImageMagick
+stops trying to allocate main system memory (RAM) for the uncompressed
+pixel cache. Instead, it streams the pixel data to a temporary file on
+disk using a memory-mapped disk cache. This mechanism acts as a circuit
+breaker to prevent high-resolution images or "decompression bombs" from
+consuming all available RAM and triggering operating system
+Out-Of-Memory (OOM) process termination.</p>
+<h2 id="how-to-calculate-the-ideal-value">How to Calculate the Ideal
+Value</h2>
+<p>ImageMagick stores pixels in an uncompressed format (RGBA), typically
+using either 8 bits (1 byte) or 16 bits (2 bytes) per channel depending
+on whether your build is Q8 or Q16.</p>
+<p>A standard Q16 build requires approximately 8 bytes per pixel (4
+channels × 2 bytes). If an image has dimensions of 10,000 × 10,000
+pixels:</p>
+<ul>
+<li><strong>Pixel Area:</strong> 100,000,000 pixels (100
+Megapixels)</li>
+<li><strong>RAM Required:</strong> 100,000,000 × 8 bytes ≈ 800 MB</li>
+</ul>
+<p>To determine your limit:</p>
+<ol type="1">
+<li><strong>Identify Available RAM:</strong> Determine how much physical
+RAM is dedicated exclusively to image processing tasks.</li>
+<li><strong>Account for Concurrency:</strong> Divide your allocated RAM
+by the maximum number of concurrent ImageMagick processes running at
+peak load.</li>
+<li><strong>Compute Safe Area:</strong> Divide that per-process RAM
+allocation by your build's pixel size (usually 8 bytes for Q16).</li>
+</ol>
+<p>For example, on a server with 8 GB of RAM allowing 4 concurrent
+jobs:</p>
+<ul>
+<li>Total RAM per job = 2 GB</li>
+<li>Safe limit for an image = ~1 GB (leaving headroom for operational
+overhead)</li>
+<li>Safe pixel limit = 1 GB / 8 bytes = 125,000,000 pixels (125 MP)</li>
+</ul>
+<h2 id="methods-to-set-magick_area_limit">Methods to Set
+MAGICK_AREA_LIMIT</h2>
+<p>You can apply the limit at runtime, system-wide, or per-command.</p>
+<h3 id="1-environment-variable">1. Environment Variable</h3>
+<p>Set the variable in your shell profile, container configuration, or
+process manager. Values can be specified in raw pixels or with shorthand
+suffixes like <code>MP</code> (megapixels).</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Set limit to 100 Megapixels</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_AREA_LIMIT</span><span class="op">=</span><span class="st">&quot;100MP&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Alternatively, define by raw pixel count</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_AREA_LIMIT</span><span class="op">=</span><span class="st">&quot;100000000&quot;</span></span></code></pre></div>
+<h3 id="2-the-policyxml-file">2. The policy.xml File</h3>
+<p>For system-wide enforcement across all users and scripts, define the
+limit in the ImageMagick <code>policy.xml</code> file (commonly located
+at <code>/etc/ImageMagick-7/policy.xml</code> or
+<code>/etc/ImageMagick-6/policy.xml</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Set maximum pixel area to 100 Megapixels --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;area&quot;</span> <span class="ot">value=</span><span class="st">&quot;100MP&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h3 id="3-command-line-flag">3. Command-Line Flag</h3>
+<p>Override defaults directly during script execution using the
+<code>-limit</code> parameter:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-limit</span> area 64MP input.jpg</span></code></pre></div>
+<h2 id="coordinating-area-limit-with-other-limits">Coordinating Area
+Limit with Other Limits</h2>
+<p>Tuning <code>MAGICK_AREA_LIMIT</code> is most effective when
+configured alongside related ImageMagick resource controls:</p>
+<ul>
+<li><strong><code>MAGICK_MEMORY_LIMIT</code>:</strong> Defines the
+maximum RAM bytes the pixel cache can consume. Set
+<code>MAGICK_AREA_LIMIT</code> low enough so that any image fitting
+within the area limit also fits within the memory limit.</li>
+<li><strong><code>MAGICK_DISK_LIMIT</code>:</strong> Defines how much
+disk space ImageMagick can use once an image exceeds the area limit and
+falls back to disk caching. Ensure your <code>/tmp</code> partition has
+sufficient space and fast I/O (such as an NVMe drive) to minimize
+performance degradation when disk caching activates.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

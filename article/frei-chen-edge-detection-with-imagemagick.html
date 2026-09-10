@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frei-Chen Edge Detection with ImageMagick - magick</title>
+    <meta name="description" content="This article provides a complete guide to implementing Frei-Chen edge detection in ImageMagick using custom user-defined convolution kernels. You will learn the mathematical foundation of the Frei-Chen masks, how to define them in ImageMagick syntax, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/frei-chen-edge-detection-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Frei-Chen Edge Detection with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/frei-chen-edge-detection-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a complete guide to implementing Frei-Chen edge detection in ImageMagick using custom user-defined convolution kernels. You will learn the mathematical foundation of the Frei-Chen masks, how to define them in ImageMagick syntax, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="frei-chen-edge-detection-with-imagemagick">Frei-Chen Edge
+Detection with ImageMagick</h1>
+<p>This article provides a complete guide to implementing Frei-Chen edge
+detection in ImageMagick using custom user-defined convolution kernels.
+You will learn the mathematical foundation of the Frei-Chen masks, how
+to define them in ImageMagick syntax, and how to execute the commands to
+generate clean edge maps using both two-kernel gradient and four-kernel
+edge-subspace approaches.</p>
+<hr />
+<h3 id="understanding-the-frei-chen-operator">Understanding the
+Frei-Chen Operator</h3>
+<p>The Frei-Chen edge detector uses a set of orthonormal basis templates
+to calculate gradient magnitude. Unlike standard Sobel filters that
+weight adjacent pixels by <span class="math inline">\(2\)</span>,
+Frei-Chen uses <span class="math inline">\(\sqrt{2} \approx
+1.414214\)</span>, making the operator isotropic and minimizing
+directional bias.</p>
+<p>The two primary gradient kernels are:</p>
+<ul>
+<li><p><strong>Horizontal (<span
+class="math inline">\(K_1\)</span>):</strong> <span
+class="math display">\[\begin{bmatrix} 1 &amp; \sqrt{2} &amp; 1 \\ 0
+&amp; 0 &amp; 0 \\ -1 &amp; -\sqrt{2} &amp; -1
+\end{bmatrix}\]</span></p></li>
+<li><p><strong>Vertical (<span
+class="math inline">\(K_2\)</span>):</strong> <span
+class="math display">\[\begin{bmatrix} 1 &amp; 0 &amp; -1 \\ \sqrt{2}
+&amp; 0 &amp; -\sqrt{2} \\ 1 &amp; 0 &amp; -1
+\end{bmatrix}\]</span></p></li>
+</ul>
+<hr />
+<h3 id="2-kernel-frei-chen-edge-detection">2-Kernel Frei-Chen Edge
+Detection</h3>
+<p>To apply the standard 2-directional Frei-Chen operator, convert the
+image to grayscale, convolve the image separately with both kernels, and
+combine them using the Euclidean norm (root-sum-of-squares).</p>
+<h4 id="imagemagick-v7-command">ImageMagick v7 Command:</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-define</span> morphology:compose=Euclidean <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 1,1.414214,1, 0,0,0, -1,-1.414214,-1&#39;</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 1,0,-1, 1.414214,0,-1.414214, 1,0,-1&#39;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 frei_chen_edges.png</span></code></pre></div>
+<h4 id="explanation-of-parameters">Explanation of Parameters:</h4>
+<ul>
+<li><code>-colorspace Gray</code>: Ensures edge detection processes
+luminance values without color artifacts.</li>
+<li><code>-morphology Convolve '3x3: ...'</code>: Applies the custom 3x3
+convolution matrix representing each Frei-Chen mask.</li>
+<li><code>-define morphology:compose=Euclidean</code>: Automatically
+computes <span class="math inline">\(\sqrt{K_1^2 + K_2^2}\)</span>
+across the convolved kernel outputs.</li>
+<li><code>-delete 0</code>: Removes the original grayscale clone,
+leaving only the combined edge map.</li>
+</ul>
+<hr />
+<h3 id="4-kernel-edge-subspace-detection">4-Kernel Edge Subspace
+Detection</h3>
+<p>Frei-Chen also defines diagonal edge kernels to capture structural
+lines along with horizontal and vertical gradients:</p>
+<ul>
+<li><p><strong>Diagonal 1 (<span
+class="math inline">\(K_3\)</span>):</strong> <span
+class="math display">\[\begin{bmatrix} 0 &amp; -1 &amp; \sqrt{2} \\ 1
+&amp; 0 &amp; -1 \\ -\sqrt{2} &amp; 1 &amp; 0
+\end{bmatrix}\]</span></p></li>
+<li><p><strong>Diagonal 2 (<span
+class="math inline">\(K_4\)</span>):</strong> <span
+class="math display">\[\begin{bmatrix} \sqrt{2} &amp; -1 &amp; 0 \\ -1
+&amp; 0 &amp; 1 \\ 0 &amp; 1 &amp; -\sqrt{2}
+\end{bmatrix}\]</span></p></li>
+</ul>
+<p>To include all four edge-subspace bases for enhanced edge
+accuracy:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-define</span> morphology:compose=Euclidean <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 1,1.414214,1, 0,0,0, -1,-1.414214,-1&#39;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 1,0,-1, 1.414214,0,-1.414214, 1,0,-1&#39;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 0,-1,1.414214, 1,0,-1, -1.414214,1,0&#39;</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">-morphology</span> Convolve <span class="st">&#39;3x3: 1.414214,-1,0, -1,0,1, 0,1,-1.414214&#39;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 frei_chen_4subspace.png</span></code></pre></div>
+<hr />
+<h3 id="post-processing-and-normalization">Post-Processing and
+Normalization</h3>
+<p>To enhance visibility and suppress subtle noise from the resulting
+edge output, apply auto-leveling and optional thresholding:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frei_chen_edges.png <span class="at">-auto-level</span> <span class="at">-threshold</span> 20% frei_chen_clean.png</span></code></pre></div>
+<ul>
+<li><code>-auto-level</code>: Stretches the dynamic range so edge
+gradients span the full black-to-white spectrum.</li>
+<li><code>-threshold 20%</code>: Filters out low-amplitude texture
+noise, preserving only significant structural boundaries.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

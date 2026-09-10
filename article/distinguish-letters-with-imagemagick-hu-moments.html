@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distinguish Letters with ImageMagick Hu Moments - magick</title>
+    <meta name="description" content="This article explains how to use ImageMagick and Hu moment invariants to differentiate between characters with distinct geometric structures, specifically the letters 'O' and 'I'. You will learn how to extract shape moments using ImageMagick command-line">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/distinguish-letters-with-imagemagick-hu-moments">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Distinguish Letters with ImageMagick Hu Moments - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/distinguish-letters-with-imagemagick-hu-moments" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to use ImageMagick and Hu moment invariants to differentiate between characters with distinct geometric structures, specifically the letters 'O' and 'I'. You will learn how to extract shape moments using ImageMagick command-line" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="distinguish-letters-with-imagemagick-hu-moments">Distinguish
+Letters with ImageMagick Hu Moments</h1>
+<p>This article explains how to use ImageMagick and Hu moment invariants
+to differentiate between characters with distinct geometric structures,
+specifically the letters 'O' and 'I'. You will learn how to extract
+shape moments using ImageMagick command-line tools and interpret the
+mathematical differences in rotational symmetry and elongation
+invariants to classify these shapes accurately.</p>
+<h2 id="understanding-hu-invariant-moments">Understanding Hu Invariant
+Moments</h2>
+<p>Hu moment invariants are a set of seven numbers calculated from
+central image moments that remain invariant under translation, scaling,
+and rotation. In shape recognition, they describe the spatial
+distribution of pixels relative to a shape's center of mass.</p>
+<p>When distinguishing letters like 'O' and 'I', the primary factors are
+elongation and directional symmetry:</p>
+<ul>
+<li><strong>'O'</strong> has high radial symmetry, a hollow center, and
+a low aspect ratio (roughly 1:1).</li>
+<li><strong>'I'</strong> is highly elongated along a single axis,
+displaying extreme eccentricity.</li>
+</ul>
+<h2 id="extracting-hu-moments-using-imagemagick">Extracting Hu Moments
+Using ImageMagick</h2>
+<p>To compute these values, ensure the letter images are isolated,
+centered, and binarized (black text on a white background or white text
+on a black background). Use the <code>-moments</code> flag with the
+ImageMagick <code>identify</code> tool:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> <span class="at">-moments</span> letter_o.png</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> <span class="at">-moments</span> letter_i.png</span></code></pre></div>
+<p>ImageMagick outputs several statistical values, including the seven
+Hu invariants labeled <code>I1</code> through <code>I7</code>.</p>
+<h2 id="key-invariants-for-distinguishing-o-and-i">Key Invariants for
+Distinguishing 'O' and 'I'</h2>
+<p>While ImageMagick generates all seven invariants, the first two
+moments (<span class="math inline">\(I_1\)</span> and <span
+class="math inline">\(I_2\)</span>) provide sufficient distinction
+between these two letters.</p>
+<h3 id="1-the-first-hu-moment-i_1-spread-and-compactness">1. The First
+Hu Moment (<span class="math inline">\(I_1\)</span>): Spread and
+Compactness</h3>
+<p>The first invariant, <span class="math inline">\(I_1\)</span>,
+corresponds to the moment of inertia around the centroid. It reflects
+how compact or spread out the pixels are relative to the center:</p>
+<ul>
+<li>For <strong>'O'</strong>, the pixels are distributed relatively
+close and evenly around the perimeter of the center, resulting in a
+lower <span class="math inline">\(I_1\)</span> value.</li>
+<li>For <strong>'I'</strong>, the length of the vertical stroke
+distributes mass much farther away from the center of mass along the
+vertical axis, producing a significantly higher <span
+class="math inline">\(I_1\)</span> value.</li>
+</ul>
+<h3 id="2-the-second-hu-moment-i_2-eccentricity">2. The Second Hu Moment
+(<span class="math inline">\(I_2\)</span>): Eccentricity</h3>
+<p>The second invariant, <span class="math inline">\(I_2\)</span>,
+captures directional anisotropy or elongation. It measures the
+difference between the principal axes of inertia:</p>
+<ul>
+<li>For <strong>'O'</strong>, the variance along the horizontal axis
+(<span class="math inline">\(\eta_{20}\)</span>) and the vertical axis
+(<span class="math inline">\(\eta_{02}\)</span>) is nearly identical
+because the letter is roughly circular or square. As a result, the
+difference <span class="math inline">\((\eta_{20} - \eta_{02})\)</span>
+is close to zero, yielding an <span class="math inline">\(I_2\)</span>
+value close to zero.</li>
+<li>For <strong>'I'</strong>, the vertical variance vastly exceeds the
+horizontal variance. This structural imbalance produces a distinctively
+large <span class="math inline">\(I_2\)</span> value.</li>
+</ul>
+<h2 id="implementation-strategy">Implementation Strategy</h2>
+<p>To classify the characters programmatically:</p>
+<ol type="1">
+<li><strong>Extract Invariants:</strong> Run the ImageMagick
+<code>-moments</code> command and parse the floating-point values for
+<code>I1</code> and <code>I2</code>.</li>
+<li><strong>Apply a Threshold:</strong> Define a decision boundary on
+<span class="math inline">\(I_2\)</span>. If <span
+class="math inline">\(I_2\)</span> exceeds the predefined threshold,
+classify the shape as elongated ('I'). If <span
+class="math inline">\(I_2\)</span> falls near zero, classify it as
+circular/compact ('O').</li>
+<li><strong>Verify with <span
+class="math inline">\(I_1\)</span>:</strong> Use <span
+class="math inline">\(I_1\)</span> as a confirmation check to
+differentiate compact shapes from stretched geometries if the character
+rotation varies.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

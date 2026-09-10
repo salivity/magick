@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Dispose None Accumulates Animation Frames - magick</title>
+    <meta name="description" content="This article explains how ImageMagick's -dispose None setting controls frame rendering in animations such as GIFs. By preventing the renderer from clearing existing canvas pixels before drawing subsequent frames, this disposal method allows visual elemen">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-dispose-none-accumulates-animation-frames">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Dispose None Accumulates Animation Frames - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-dispose-none-accumulates-animation-frames" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick's -dispose None setting controls frame rendering in animations such as GIFs. By preventing the renderer from clearing existing canvas pixels before drawing subsequent frames, this disposal method allows visual elemen" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-dispose-none-accumulates-animation-frames">How
+ImageMagick Dispose None Accumulates Animation Frames</h1>
+<p>This article explains how ImageMagick's <code>-dispose None</code>
+setting controls frame rendering in animations such as GIFs. By
+preventing the renderer from clearing existing canvas pixels before
+drawing subsequent frames, this disposal method allows visual elements
+to persist and layer on top of one another sequentially. You will learn
+the mechanics behind this behavior, how transparency enables visual
+accumulation, how it differs from alternative disposal methods, and
+practical command-line applications.</p>
+<h3 id="understanding-gif-frame-disposal">Understanding GIF Frame
+Disposal</h3>
+<p>In animated formats like GIF, every frame does not necessarily
+replace the entire canvas from scratch. Instead, the GIF specification
+defines a frame disposal method (Disposal Method) that instructs the
+decoder or viewer on what to do with the current frame after its display
+duration expires and before the next frame is rendered.</p>
+<p>ImageMagick exposes this specification through the
+<code>-dispose</code> attribute, which maps directly to GIF disposal
+codes.</p>
+<h3 id="the-mechanics-of--dispose-none">The Mechanics of
+<code>-dispose None</code></h3>
+<p>The <code>-dispose None</code> option sets the GIF disposal method to
+<code>0</code> (or <code>1</code>, designated as "Do Not Dispose" /
+"Unspecified"). When this setting is applied:</p>
+<ol type="1">
+<li>The decoder renders the first frame onto the viewing canvas.</li>
+<li>When the frame's delay expires, the decoder does
+<strong>not</strong> clear the canvas to the background color, nor does
+it revert to a previous canvas state.</li>
+<li>The next frame is rendered directly on top of whatever pixels are
+currently visible on the canvas.</li>
+</ol>
+<p>Because the canvas is never reset between frames, every opaque pixel
+drawn remains in place indefinitely until another opaque pixel is drawn
+over the exact same coordinate.</p>
+<h3 id="how-frame-accumulation-occurs">How Frame Accumulation
+Occurs</h3>
+<p>Frame accumulation relies on the interaction between
+<code>-dispose None</code> and transparent areas in subsequent
+frames.</p>
+<p>If consecutive frames are generated with transparent backgrounds
+containing only newly added graphic elements, those elements will simply
+composite over the existing canvas. For example:</p>
+<ul>
+<li><strong>Frame 1:</strong> Contains a red circle on a transparent
+canvas. The viewer displays the red circle.</li>
+<li><strong>Frame 2:</strong> Contains a blue square at a different
+position on an otherwise transparent canvas. Because
+<code>-dispose None</code> left Frame 1 intact, the viewer draws the
+blue square over the existing canvas. The viewer now displays both the
+red circle and the blue square simultaneously.</li>
+<li><strong>Frame 3:</strong> Contains a green triangle on a transparent
+canvas. It is composited on top of the existing red circle and blue
+square.</li>
+</ul>
+<p>Over a sequence of frames, each new graphic element is added to the
+historical composition, creating a cumulative or "trail" effect over
+time.</p>
+<h3 id="comparison-with-other-disposal-methods">Comparison with Other
+Disposal Methods</h3>
+<p>To understand why accumulation is unique to
+<code>-dispose None</code>, consider the alternatives:</p>
+<ul>
+<li><strong><code>-dispose Background</code>:</strong> Clears the area
+occupied by the current frame back to the background color or full
+transparency before the next frame renders. Accumulation is impossible
+because previous drawings are wiped away.</li>
+<li><strong><code>-dispose Previous</code>:</strong> Restores the canvas
+to the state it was in before the current frame was drawn. This is
+typically used to display a temporary overlay that disappears on the
+next frame.</li>
+</ul>
+<h3 id="use-cases-for--dispose-none">Use Cases for
+<code>-dispose None</code></h3>
+<ol type="1">
+<li><strong>Progressive Animations:</strong> Creating visual effects
+such as progressive line charts, handwriting animations, trajectory
+tracking, or loading bars where each step builds incrementally on the
+last.</li>
+<li><strong>File Size Optimization:</strong> Delta-encoding frames where
+only modified or newly appeared pixels are stored rather than redrawing
+identical static content for every frame.</li>
+</ol>
+<h3 id="imagemagick-command-example">ImageMagick Command Example</h3>
+<p>To accumulate frames from a series of transparent PNG images into an
+animated GIF, define the disposal method before specifying the input
+frames:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-dispose</span> None <span class="at">-delay</span> 20 frame_<span class="pp">*</span>.png <span class="at">-loop</span> 0 accumulated_animation.gif</span></code></pre></div>
+<p>In this command, <code>-dispose None</code> applies to all incoming
+frames, ensuring that each successive image renders over the retained
+graphic state of all preceding images.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

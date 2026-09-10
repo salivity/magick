@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Image Difference Heatmap with ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to visually identify pixel differences between two images by generating a difference heatmap using ImageMagick's compare utility. You will learn the basic comparison commands, how to customize highlight and lowlight colors, and ho">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/generate-image-difference-heatmap-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Generate Image Difference Heatmap with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/generate-image-difference-heatmap-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to visually identify pixel differences between two images by generating a difference heatmap using ImageMagick's compare utility. You will learn the basic comparison commands, how to customize highlight and lowlight colors, and ho" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="generate-image-difference-heatmap-with-imagemagick">Generate
+Image Difference Heatmap with ImageMagick</h1>
+<p>This guide explains how to visually identify pixel differences
+between two images by generating a difference heatmap using
+ImageMagick's <code>compare</code> utility. You will learn the basic
+comparison commands, how to customize highlight and lowlight colors, and
+how to create a smooth, graded heatmap using color lookup tables.</p>
+<h3 id="basic-difference-generation">Basic Difference Generation</h3>
+<p>The <code>compare</code> command in ImageMagick compares two images
+of the same dimensions and outputs an image highlighting the
+discrepancies.</p>
+<p>To generate a basic difference map:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare image1.png image2.png difference.png</span></code></pre></div>
+<p><em>(Note: On ImageMagick v6, use <code>compare</code> directly
+without the <code>magick</code> prefix.)</em></p>
+<p>By default, ImageMagick overlays the differences in red over a pale,
+semi-transparent version of the original image.</p>
+<h3 id="customizing-highlight-and-lowlight-colors">Customizing Highlight
+and Lowlight Colors</h3>
+<p>To produce a starker, high-contrast visualization, you can define
+specific colors for modified pixels (<code>-highlight-color</code>) and
+unchanged pixels (<code>-lowlight-color</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-highlight-color</span> red <span class="at">-lowlight-color</span> black image1.png image2.png high_contrast_diff.png</span></code></pre></div>
+<p>In this output, all changed pixels appear strictly in red, while
+unchanged regions remain black.</p>
+<h3 id="generating-a-graded-heatmap-intensity-based">Generating a Graded
+Heatmap (Intensity-Based)</h3>
+<p>To display a true heatmap where the color corresponds to the
+magnitude of the difference (e.g., subtle changes appear cool, while
+large shifts appear hot), use a mathematical metric combined with a
+Color Look-Up Table (CLUT).</p>
+<h4 id="step-1-generate-a-grayscale-difference-map">Step 1: Generate a
+Grayscale Difference Map</h4>
+<p>Use the Root Mean Squared Error (<code>RMSE</code>) metric to output
+differences as raw pixel intensity variations:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> RMSE image1.png image2.png <span class="at">-compose</span> src diff_gray.png</span></code></pre></div>
+<p>This generates a grayscale image where pure black indicates no
+change, and brighter pixels represent larger deviations.</p>
+<h4 id="step-2-apply-a-thermal-color-gradient">Step 2: Apply a Thermal
+Color Gradient</h4>
+<p>Map the grayscale values to a color gradient using
+<code>-clut</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> diff_gray.png <span class="er">(</span> <span class="ex">-size</span> 1x256 gradient:blue-cyan-green-yellow-red <span class="kw">)</span> <span class="ex">-clut</span> heatmap.png</span></code></pre></div>
+<h3 id="all-in-one-command">All-in-One Command</h3>
+<p>You can combine both steps into a single execution without saving an
+intermediate grayscale file:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> RMSE image1.png image2.png <span class="at">-compose</span> src miff:- <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-</span> <span class="er">(</span> <span class="ex">-size</span> 1x256 gradient:blue-cyan-green-yellow-red <span class="kw">)</span> <span class="ex">-clut</span> final_heatmap.png</span></code></pre></div>
+<h3 id="useful-metric-options">Useful Metric Options</h3>
+<p>You can adjust how differences are calculated using the
+<code>-metric</code> flag:</p>
+<ul>
+<li><code>AE</code> (Absolute Error): Simple count of differing
+pixels.</li>
+<li><code>RMSE</code> (Root Mean Squared Error): Best for continuous
+gradients and visual heatmaps.</li>
+<li><code>PAE</code> (Peak Absolute Error): Highlights the single
+largest pixel difference.</li>
+<li><code>MAE</code> (Mean Absolute Error): Average difference across
+all color channels.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

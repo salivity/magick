@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Open and Closed Vector Paths in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick enables the creation of complex 2D graphics using its -draw operator, which supports SVG-compliant path syntax to render both open and closed vector shapes. This guide details the command syntax, parameters, and practical examples for constru">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/drawing-open-and-closed-vector-paths-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Drawing Open and Closed Vector Paths in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/drawing-open-and-closed-vector-paths-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick enables the creation of complex 2D graphics using its -draw operator, which supports SVG-compliant path syntax to render both open and closed vector shapes. This guide details the command syntax, parameters, and practical examples for constru" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="drawing-open-and-closed-vector-paths-in-imagemagick">Drawing
+Open and Closed Vector Paths in ImageMagick</h1>
+<p>ImageMagick enables the creation of complex 2D graphics using its
+<code>-draw</code> operator, which supports SVG-compliant path syntax to
+render both open and closed vector shapes. This guide details the
+command syntax, parameters, and practical examples for constructing open
+paths (lines, arcs, and curves without connected ends) and closed paths
+(fully enclosed shapes with fill and stroke options) directly from the
+command line.</p>
+<hr />
+<h3 id="the-imagemagick-path-syntax-structure">The ImageMagick Path
+Syntax Structure</h3>
+<p>Vector paths are defined inside the <code>-draw</code> operator using
+the <code>path</code> keyword, followed by SVG path data enclosed in
+quotes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> <span class="op">&lt;</span>WIDTH<span class="op">&gt;</span>x<span class="op">&lt;</span>HEIGHT<span class="op">&gt;</span> xc:<span class="op">&lt;</span>BACKGROUND_COLOR<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> <span class="op">&lt;</span>STROKE_COLOR<span class="op">&gt;</span> -strokewidth <span class="op">&lt;</span>PIXELS<span class="op">&gt;</span> -fill <span class="op">&lt;</span>FILL_COLOR<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;&lt;PATH_COMMANDS&gt;&#39;&quot;</span> output.png</span></code></pre></div>
+<p><em>Note: In ImageMagick v6, use <code>convert</code> instead of
+<code>magick</code>.</em></p>
+<hr />
+<h3 id="rendering-open-vector-paths">Rendering Open Vector Paths</h3>
+<p>An open path consists of a sequence of lines or curves where the
+starting point and ending point do not meet. In SVG path syntax, an open
+path simply omits the <code>Z</code> (closepath) command.</p>
+<p>To render only the outline without unintended fill rendering,
+explicitly set <code>-fill none</code>.</p>
+<h4 id="syntax">Syntax:</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> none <span class="at">-stroke</span> blue <span class="at">-strokewidth</span> 4 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;M 30,150 L 100,50 L 200,150 L 270,50&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  open_polyline.png</span></code></pre></div>
+<h4 id="curved-open-path-cubic-bézier">Curved Open Path (Cubic
+Bézier):</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> none <span class="at">-stroke</span> red <span class="at">-strokewidth</span> 3 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;M 30,100 C 80,20 220,180 270,100&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  open_curve.png</span></code></pre></div>
+<h4 id="alternative-primitive-for-open-paths">Alternative Primitive for
+Open Paths:</h4>
+<p>You can also use the <code>polyline</code> primitive for basic
+multi-segment open lines:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> none <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;polyline 30,150 100,50 200,150 270,50&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  polyline.png</span></code></pre></div>
+<hr />
+<h3 id="rendering-closed-vector-paths">Rendering Closed Vector
+Paths</h3>
+<p>A closed path forms a complete loop where the final coordinate
+connects back to the initial coordinate. This is accomplished using the
+<code>Z</code> or <code>z</code> command at the end of the path
+definition. Closed paths can be filled with a solid color, pattern, or
+left transparent.</p>
+<h4 id="syntax-1">Syntax:</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> lightblue <span class="at">-stroke</span> navy <span class="at">-strokewidth</span> 3 <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;M 50,150 L 150,30 L 250,150 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  closed_triangle.png</span></code></pre></div>
+<h4 id="complex-closed-path-with-arcs-and-curves">Complex Closed Path
+with Arcs and Curves:</h4>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> orange <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;M 60,100 C 60,40 140,40 140,100 C 140,160 220,160 220,100 L 220,170 L 60,170 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  closed_shape.png</span></code></pre></div>
+<h4 id="alternative-primitive-for-closed-paths">Alternative Primitive
+for Closed Paths:</h4>
+<p>You can also use the <code>polygon</code> primitive, which
+automatically connects the last coordinate back to the first:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x200 xc:white <span class="dt">\</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> green <span class="at">-stroke</span> darkgreen <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;polygon 50,150 150,30 250,150&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  polygon.png</span></code></pre></div>
+<hr />
+<h3 id="core-path-command-reference">Core Path Command Reference</h3>
+<p>The commands inside <code>path '...'</code> follow standard SVG
+syntax. Uppercase commands use absolute coordinates; lowercase commands
+use relative coordinates.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Command</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>M</code> / <code>m</code></td>
+<td style="text-align: left;">MoveTo</td>
+<td style="text-align: left;">Moves the pen to a starting coordinate
+without drawing.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>L</code> / <code>l</code></td>
+<td style="text-align: left;">LineTo</td>
+<td style="text-align: left;">Draws a straight line to the target
+coordinate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>H</code> / <code>h</code></td>
+<td style="text-align: left;">Horizontal LineTo</td>
+<td style="text-align: left;">Draws a horizontal line to a given X
+coordinate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>V</code> / <code>v</code></td>
+<td style="text-align: left;">Vertical LineTo</td>
+<td style="text-align: left;">Draws a vertical line to a given Y
+coordinate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>C</code> / <code>c</code></td>
+<td style="text-align: left;">Cubic Bézier</td>
+<td style="text-align: left;">Draws a cubic Bézier curve using two
+control points.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>S</code> / <code>s</code></td>
+<td style="text-align: left;">Smooth Cubic Bézier</td>
+<td style="text-align: left;">Draws a smooth cubic Bézier curve.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Q</code> / <code>q</code></td>
+<td style="text-align: left;">Quadratic Bézier</td>
+<td style="text-align: left;">Draws a quadratic curve with one control
+point.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>T</code> / <code>t</code></td>
+<td style="text-align: left;">Smooth Quadratic</td>
+<td style="text-align: left;">Draws a smooth quadratic Bézier
+curve.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>A</code> / <code>a</code></td>
+<td style="text-align: left;">Elliptical Arc</td>
+<td style="text-align: left;">Draws an arc segment based on radius and
+angles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Z</code> / <code>z</code></td>
+<td style="text-align: left;">ClosePath</td>
+<td style="text-align: left;">Closes the current path by drawing a line
+to the initial <code>M</code> coordinate.</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

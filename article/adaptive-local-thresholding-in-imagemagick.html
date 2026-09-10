@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Local Thresholding in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to perform adaptive local thresholding across a moving window using ImageMagick's built-in Local Adaptive Threshold (-lat) operator. You will learn the command syntax, how moving window dimensions and offset values interact, and h">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/adaptive-local-thresholding-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Adaptive Local Thresholding in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/adaptive-local-thresholding-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to perform adaptive local thresholding across a moving window using ImageMagick's built-in Local Adaptive Threshold (-lat) operator. You will learn the command syntax, how moving window dimensions and offset values interact, and h" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="adaptive-local-thresholding-in-imagemagick">Adaptive Local
+Thresholding in ImageMagick</h1>
+<p>This guide explains how to perform adaptive local thresholding across
+a moving window using ImageMagick's built-in Local Adaptive Threshold
+(<code>-lat</code>) operator. You will learn the command syntax, how
+moving window dimensions and offset values interact, and how to
+effectively binarize images with uneven lighting, gradients, or
+shadows.</p>
+<h3 id="the--lat-operator-syntax">The <code>-lat</code> Operator
+Syntax</h3>
+<p>ImageMagick provides the <code>-lat</code> (Local Adaptive Threshold)
+operator specifically designed to calculate dynamic thresholds across a
+moving window.</p>
+<p>The basic syntax in ImageMagick 7 is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-lat</span> <span class="op">&lt;</span>width<span class="op">&gt;</span>x<span class="op">&lt;</span>height<span class="op">&gt;</span>{+-}<span class="op">&lt;</span>offset<span class="op">&gt;</span>{%} output.png</span></code></pre></div>
+<p>If you are using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-lat</span> <span class="op">&lt;</span>width<span class="op">&gt;</span>x<span class="op">&lt;</span>height<span class="op">&gt;</span>{+-}<span class="op">&lt;</span>offset<span class="op">&gt;</span>{%} output.png</span></code></pre></div>
+<h3 id="understanding-the-parameters">Understanding the Parameters</h3>
+<p>The argument for <code>-lat</code> consists of two primary
+components:</p>
+<ol type="1">
+<li><strong>Window Size
+(<code>&lt;width&gt;x&lt;height&gt;</code>)</strong>: Defines the pixel
+dimensions of the moving window centered on each target pixel. A larger
+window accounts for broader variations across the image, while a smaller
+window adapts strictly to fine, local details. For most text-based
+documents or standard photography, window sizes between
+<code>15x15</code> and <code>50x50</code> are standard starting
+points.</li>
+<li><strong>Offset (<code>{+-}&lt;offset&gt;{%}</code>)</strong>:
+Adjusts the computed local average. It can be specified as a raw pixel
+value or as a percentage (<code>%</code>).
+<ul>
+<li>A positive offset means a pixel must be brighter than the local
+average plus the offset to become white.</li>
+<li>A negative offset means a pixel must be brighter than the local
+average minus the offset to become white.</li>
+</ul></li>
+</ol>
+<h3 id="practical-examples">Practical Examples</h3>
+<h4 id="1-standard-document-binarization">1. Standard Document
+Binarization</h4>
+<p>To separate dark text from a page with uneven lighting or shadow
+gradients:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-lat</span> 25x25-10% output.png</span></code></pre></div>
+<p>This command converts the image to grayscale, applies a <span
+class="math inline">\(25 \times 25\)</span> moving window, and sets
+pixels to white if they are within 10% of the surrounding average,
+isolating dark text against the background.</p>
+<h4 id="2-inverting-polarity-with--negate">2. Inverting Polarity with
+<code>-negate</code></h4>
+<p>Depending on whether your target features are dark or light, the
+output polarity can be adjusted using <code>-negate</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-lat</span> 30x30+5% <span class="at">-negate</span> output.png</span></code></pre></div>
+<p>Negating before and after the <code>-lat</code> command allows
+precise control over high-contrast feature extraction, ensuring that
+foreground objects remain black while the background is pushed to pure
+white.</p>
+<h3 id="parameter-tuning-tips">Parameter Tuning Tips</h3>
+<ul>
+<li><strong>Background Noise</strong>: If the background contains
+speckled noise, increase the window size (e.g., from <code>20x20</code>
+to <code>40x40</code>) or increase the negative offset percentage.</li>
+<li><strong>Thin or Broken Strokes</strong>: If thin lines or small text
+characters disappear, reduce the window size or decrease the offset to
+make the threshold less aggressive.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

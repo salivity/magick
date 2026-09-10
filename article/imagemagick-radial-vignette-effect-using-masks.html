@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Radial Vignette Effect Using Masks - magick</title>
+    <meta name="description" content="This article provides a concise guide to generating a radial vignette effect in ImageMagick using gradient masks. Applying a radial vignette darkens or tints the edges of an image while preserving the center. By utilizing ImageMagick's built-in gradient">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-radial-vignette-effect-using-masks">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Radial Vignette Effect Using Masks - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-radial-vignette-effect-using-masks" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise guide to generating a radial vignette effect in ImageMagick using gradient masks. Applying a radial vignette darkens or tints the edges of an image while preserving the center. By utilizing ImageMagick's built-in gradient" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-radial-vignette-effect-using-masks">ImageMagick
+Radial Vignette Effect Using Masks</h1>
+<p>This article provides a concise guide to generating a radial vignette
+effect in ImageMagick using gradient masks. Applying a radial vignette
+darkens or tints the edges of an image while preserving the center. By
+utilizing ImageMagick's built-in gradient generation and composition
+operators, you can create fully customizable mask-based vignette effects
+from the command line.</p>
+<h3 id="basic-radial-vignette-syntax">Basic Radial Vignette Syntax</h3>
+<p>In ImageMagick (version 7+), the most efficient way to apply a radial
+vignette mask is to generate an inline radial gradient sized to the
+source image and composite it over the original:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> <span class="at">-size</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span> radial-gradient:none-black <span class="dt">\)</span> <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h3 id="breakdown-of-the-command">Breakdown of the Command</h3>
+<ul>
+<li><strong><code>input.jpg</code></strong>: The source image you want
+to modify.</li>
+<li><strong><code>\(</code> and <code>\)</code></strong>: Encloses an
+operational block, isolating the mask generation. (On Windows Command
+Prompt, use <code>(</code> and <code>)</code> without backslashes).</li>
+<li><strong><code>-size %[w]x%[h]</code></strong>: Dynamically sets the
+mask dimensions to match the source image's width (<code>%[w]</code>)
+and height (<code>%[h]</code>).</li>
+<li><strong><code>radial-gradient:none-black</code></strong>: Generates
+a transparent-to-black radial gradient. The center is fully transparent
+(<code>none</code>), gradually fading outward to solid
+<code>black</code>.</li>
+<li><strong><code>-composite</code></strong>: Overlays the generated
+radial mask directly onto the source image.</li>
+<li><strong><code>output.jpg</code></strong>: The resulting image with
+the vignette applied.</li>
+</ul>
+<h3 id="advanced-syntax-true-alpha-masking">Advanced Syntax: True Alpha
+Masking</h3>
+<p>To control opacity, color, and blending modes more precisely, create
+a grayscale mask and apply it using the <code>multiply</code> or
+<code>blend</code> composition operators.</p>
+<h4 id="1-black-vignette-via-multiply-composition">1. Black Vignette via
+Multiply Composition</h4>
+<p>Using a white-to-black gradient mask with the
+<code>-compose multiply</code> operator darkens only the edges without
+altering the center pixels:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-size</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span> radial-gradient:white-black <span class="dt">\)</span> <span class="at">-compose</span> multiply <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h4 id="2-vignette-with-custom-colors-and-falloff">2. Vignette with
+Custom Colors and Falloff</h4>
+<p>To create a colored vignette (such as dark blue or white) with custom
+center positioning and falloff:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> <span class="at">-size</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span> <span class="at">-define</span> gradient:radii=50%,70% radial-gradient:none-navy <span class="dt">\)</span> <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<ul>
+<li><strong><code>-define gradient:radii=50%,70%</code></strong>: Sets
+the inner radius (where fading starts) and outer radius (where the color
+reaches full opacity).</li>
+<li><strong><code>radial-gradient:none-navy</code></strong>: Fades from
+transparent to navy blue.</li>
+</ul>
+<h3 id="legacy-syntax-for-imagemagick-6">Legacy Syntax for ImageMagick
+6</h3>
+<p>For ImageMagick 6 installations, replace <code>magick</code> with
+<code>convert</code> and use the following syntax:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="dt">\(</span> <span class="at">-size</span> <span class="st">&quot;%[fx:w]x%[fx:h]&quot;</span> radial-gradient:none-black <span class="dt">\)</span> <span class="at">-composite</span> output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

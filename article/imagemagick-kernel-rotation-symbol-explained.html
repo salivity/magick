@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Kernel Rotation Symbol > Explained - magick</title>
+    <meta name="description" content="In ImageMagick, appending the greater-than symbol (>) to a morphology kernel instructs the software to generate a sequence of four rotated variations by turning the base kernel 90 degrees clockwise at each step. During multi-pass morphological filtering,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-kernel-rotation-symbol-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Kernel Rotation Symbol > Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-kernel-rotation-symbol-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, appending the greater-than symbol (>) to a morphology kernel instructs the software to generate a sequence of four rotated variations by turning the base kernel 90 degrees clockwise at each step. During multi-pass morphological filtering," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-kernel-rotation-symbol--explained">ImageMagick
+Kernel Rotation Symbol &gt; Explained</h1>
+<p>In ImageMagick, appending the greater-than symbol (<code>&gt;</code>)
+to a morphology kernel instructs the software to generate a sequence of
+four rotated variations by turning the base kernel 90 degrees clockwise
+at each step. During multi-pass morphological filtering, ImageMagick
+applies these four directional kernels sequentially within each
+iteration pass. This allows directional operations—such as edge
+detection, thinning, and pruning—to be evaluated evenly across all
+cardinal orientations.</p>
+<h3 id="kernel-generation-and-rotation-behavior">Kernel Generation and
+Rotation Behavior</h3>
+<p>When configuring a morphological kernel, ImageMagick allows
+rotational modifiers to expand a single base matrix into a compound
+kernel list.</p>
+<p>The <code>&gt;</code> modifier explicitly dictates:</p>
+<ul>
+<li><strong>Step Angle:</strong> 90 degrees per step.</li>
+<li><strong>Direction:</strong> Clockwise.</li>
+<li><strong>Kernel Count:</strong> Four total kernels representing 0°,
+90°, 180°, and 270° orientations.</li>
+</ul>
+<p>Without this modifier, ImageMagick applies only the single, fixed
+orientation defined by the kernel formula or matrix. Appending
+<code>&gt;</code> automatically constructs the remaining three cardinal
+rotations without requiring the user to define each matrix manually.</p>
+<h3 id="how-multi-pass-filtering-uses-the-rotated-kernels">How
+Multi-Pass Filtering Uses the Rotated Kernels</h3>
+<p>During multi-pass filtering (such as iterative <code>Thinning</code>,
+<code>Thicken</code>, or sequential <code>HitAndMiss</code> operations),
+the four generated kernels are evaluated in sequence rather than
+simultaneously:</p>
+<ol type="1">
+<li><strong>Kernel 0 (0°):</strong> Evaluated against the image
+pixels.</li>
+<li><strong>Kernel 1 (90° clockwise):</strong> Evaluated on the result
+of the previous step.</li>
+<li><strong>Kernel 2 (180° clockwise):</strong> Evaluated on the updated
+image.</li>
+<li><strong>Kernel 3 (270° clockwise):</strong> Evaluated to complete
+the full four-pass cycle.</li>
+</ol>
+<p>If an operation specifies multiple iterations (for example,
+<code>-morphology Thinning:5 "Skeleton:&gt;"</code>), the entire
+four-pass sequence is repeated for each iteration count. When run to
+convergence (using <code>-1</code> or <code>*</code>), ImageMagick loops
+through all four orientations repeatedly until an entire four-kernel
+pass results in zero pixel modifications.</p>
+<h3 id="related-rotation-modifiers">Related Rotation Modifiers</h3>
+<p>ImageMagick provides four directional rotation symbols for kernel
+definition:</p>
+<ul>
+<li><strong><code>&gt;</code> (90° Clockwise):</strong> 4 variations
+covering North, East, South, and West.</li>
+<li><strong><code>&lt;</code> (90° Counter-Clockwise):</strong> 4
+variations rotating in reverse order.</li>
+<li><strong><code>}</code> (45° Clockwise):</strong> 8 variations
+covering both cardinal directions and diagonals.</li>
+<li><strong><code>{</code> (45° Counter-Clockwise):</strong> 8
+variations rotating through diagonals and cardinals in reverse
+order.</li>
+</ul>
+<p>Using <code>&gt;</code> is the standard practice when working with
+symmetric 2D grids where diagonal sampling is unnecessary, ensuring
+consistent cardinal processing while minimizing execution time compared
+to 8-pass 45-degree rotations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

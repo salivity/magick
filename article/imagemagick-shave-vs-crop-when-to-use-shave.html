@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Shave vs Crop: When to Use Shave - magick</title>
+    <meta name="description" content="ImageMagick provides multiple tools for trimming pixel data, with -crop and -shave being the two most common options. While -crop delivers granular control over coordinates, offsets, and extracted regions, -shave is purpose-built to remove pixels symmetr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-shave-vs-crop-when-to-use-shave">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Shave vs Crop: When to Use Shave - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-shave-vs-crop-when-to-use-shave" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides multiple tools for trimming pixel data, with -crop and -shave being the two most common options. While -crop delivers granular control over coordinates, offsets, and extracted regions, -shave is purpose-built to remove pixels symmetr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-shave-vs-crop-when-to-use-shave">ImageMagick Shave
+vs Crop: When to Use Shave</h1>
+<p>ImageMagick provides multiple tools for trimming pixel data, with
+<code>-crop</code> and <code>-shave</code> being the two most common
+options. While <code>-crop</code> delivers granular control over
+coordinates, offsets, and extracted regions, <code>-shave</code> is
+purpose-built to remove pixels symmetrically from outer edges. This
+guide explains the core differences between the two commands and
+outlines the specific scenarios where a developer should choose
+<code>-shave</code> over <code>-crop</code>.</p>
+<h3 id="how--shave-works">How <code>-shave</code> Works</h3>
+<p>The <code>-shave</code> command strips pixels from image edges using
+the syntax <code>-shave {width}x{height}</code>. When applied, it
+removes the specified width from both the left and right sides
+simultaneously, and the specified height from both the top and bottom.
+For example, <code>-shave 10x15</code> removes 10 pixels from the left,
+10 pixels from the right, 15 pixels from the top, and 15 pixels from the
+bottom, reducing the total width by 20 pixels and the total height by 30
+pixels.</p>
+<h3
+id="scenario-1-batch-processing-images-of-variable-dimensions">Scenario
+1: Batch Processing Images of Variable Dimensions</h3>
+<p>The primary scenario for using <code>-shave</code> instead of
+<code>-crop</code> occurs when processing heterogeneous batches of
+images where the width and height of each file differ, but the uniform
+border thickness to remove remains constant.</p>
+<p>With <code>-crop</code>, removing an equal border around an image
+requires either:</p>
+<ol type="1">
+<li>Querying the image dimensions beforehand to calculate an explicit
+geometry string.</li>
+<li>Setting <code>-gravity center</code> alongside complex percentage
+calculations or relative dimensions.</li>
+</ol>
+<p>With <code>-shave</code>, the operation is dimension-agnostic. A
+developer can run a single batch command on thousands of
+mixed-resolution files:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-shave</span> 5x5 <span class="pp">*</span>.jpg</span></code></pre></div>
+<p>This instantly strips 5 pixels off every perimeter edge without
+requiring image dimension metadata or coordinate scripting.</p>
+<h3
+id="scenario-2-cleaning-up-scanner-artifacts-and-film-borders">Scenario
+2: Cleaning Up Scanner Artifacts and Film Borders</h3>
+<p>Scanned documents, receipts, and digitized film often introduce thin
+black lines, rough edges, or misaligned scanning artifacts around the
+entire perimeter. When automated systems ingest these scans, these
+border artifacts can degrade optical character recognition (OCR)
+accuracy or interfere with automated edge-detection algorithms.</p>
+<p>Using <code>-shave</code> allows developers to quickly strip away
+these known peripheral anomalies in a single, lightweight step prior to
+running downstream computer vision or OCR pipelines.</p>
+<h3 id="scenario-3-eliminating-gravity-and-offset-errors">Scenario 3:
+Eliminating Gravity and Offset Errors</h3>
+<p>The <code>-crop</code> command depends heavily on the current
+<code>-gravity</code> setting and canvas offsets. If
+<code>-gravity</code> is set incorrectly, <code>-crop</code> will
+extract an unexpected region or shift the origin point. Furthermore,
+using <code>-crop</code> on formats that support virtual canvases (such
+as PNG, GIF, or TIFF) preserves page geometry unless followed explicitly
+by <code>+repage</code>.</p>
+<p>In contrast, <code>-shave</code> operates independently of
+<code>-gravity</code>. It inherently targets the outer boundaries
+inward, minimizing human error and reducing script verbosity when the
+objective is simply edge trimming rather than region extraction.</p>
+<h3 id="summary">Summary</h3>
+<p>Use <code>-crop</code> when you need to extract an arbitrary
+rectangular region, cut an image into tiles, or target specific
+coordinates. Use <code>-shave</code> when you need to strip uniform
+margins, padding, or borders from the perimeter of one or more
+images—especially when working across collections with variable
+resolutions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

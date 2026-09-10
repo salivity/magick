@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Escape Filenames in ImageMagick Batch Jobs - magick</title>
+    <meta name="description" content="Batch processing images with names containing spaces, brackets, parentheses, colons, or wildcards often leads to broken workflows because both the command-line shell and ImageMagick interpret these characters as special instructions. This article provide">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-escape-filenames-in-imagemagick-batch-jobs">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Escape Filenames in ImageMagick Batch Jobs - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-escape-filenames-in-imagemagick-batch-jobs" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Batch processing images with names containing spaces, brackets, parentheses, colons, or wildcards often leads to broken workflows because both the command-line shell and ImageMagick interpret these characters as special instructions. This article provide" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-escape-filenames-in-imagemagick-batch-jobs">How to Escape
+Filenames in ImageMagick Batch Jobs</h1>
+<p>Batch processing images with names containing spaces, brackets,
+parentheses, colons, or wildcards often leads to broken workflows
+because both the command-line shell and ImageMagick interpret these
+characters as special instructions. This article provides a direct guide
+to properly escaping and quoting filenames during ImageMagick batch
+operations across Unix-like shells, Windows environments, and
+ImageMagick's internal file handling syntax.</p>
+<h2 id="1-shell-level-escaping">1. Shell-Level Escaping</h2>
+<p>Before ImageMagick parses a filename, your command-line interpreter
+processes it. Unquoted spaces, ampersands (<code>&amp;</code>),
+parentheses, and quotes will break batch commands at the shell
+level.</p>
+<h3 id="linux-and-macos-bashzsh">Linux and macOS (Bash/Zsh)</h3>
+<p>Always wrap variables in double quotes within loops to preserve
+spaces and special characters:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> ./<span class="pp">*</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">[</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="bu">]</span> <span class="kw">||</span> <span class="cf">continue</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-resize</span> 800x800 <span class="st">&quot;processed_</span><span class="va">${file</span><span class="op">#</span>./<span class="va">}</span><span class="st">&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>When using <code>find</code>, use the null-delimiter pattern to
+safely handle filenames with newlines, spaces, or quotes:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-maxdepth</span> 1 <span class="at">-type</span> f <span class="at">-name</span> <span class="st">&quot;*.jpg&quot;</span> <span class="at">-print0</span> <span class="kw">|</span> <span class="fu">xargs</span> <span class="at">-0</span> <span class="at">-I</span> {} magick <span class="st">&quot;{}&quot;</span> <span class="at">-quality</span> 85 <span class="st">&quot;opt_{}&quot;</span></span></code></pre></div>
+<h3 id="windows-command-prompt-and-powershell">Windows (Command Prompt
+and PowerShell)</h3>
+<p>In Windows Command Prompt (CMD), wrap loop variables in quotation
+marks:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="er">%F</span> <span class="er">in</span> <span class="er">(*.png)</span> <span class="er">do</span> <span class="er">magick</span> <span class="er">&quot;%F&quot;</span> <span class="er">-thumbnail</span> <span class="er">200x200</span> <span class="er">&quot;thumb_%~nxF&quot;</span></span></code></pre></div>
+<p>In PowerShell, access the full literal path via object
+properties:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">-</span>File <span class="op">-</span>Filter <span class="op">*.</span><span class="fu">png</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    magick <span class="va">$_</span><span class="op">.</span><span class="fu">FullName</span> <span class="op">-</span>thumbnail 200x200 <span class="st">&quot;thumb_</span><span class="op">$(</span><span class="va">$_</span><span class="op">.</span><span class="fu">Name</span><span class="op">)</span><span class="st">&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<h2 id="2-imagemagick-specific-character-escaping">2.
+ImageMagick-Specific Character Escaping</h2>
+<p>ImageMagick reserves specific characters for operational parameters
+within filenames. If an actual file contains these characters, they must
+be escaped so ImageMagick treats them as literal text.</p>
+<h3 id="brackets--framepage-specifiers">Brackets <code>[]</code>
+(Frame/Page Specifiers)</h3>
+<p>ImageMagick uses square brackets for frame selection (e.g.,
+<code>image.gif[0]</code> selects the first frame). If a file is named
+<code>photo[1].jpg</code>, ImageMagick will attempt to read frame 1 of
+<code>photo.jpg</code>.</p>
+<ul>
+<li><strong>Escape with Backslashes (Bash/Zsh):</strong>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;photo\[1\].jpg&quot;</span> output.jpg</span></code></pre></div></li>
+<li><strong>Explicit Literal Read:</strong> Prefix the path with the
+explicit coder format followed by a colon:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;jpg:photo[1].jpg&quot;</span> output.jpg</span></code></pre></div></li>
+</ul>
+<h3 id="colons--explicit-format-and-protocols">Colons <code>:</code>
+(Explicit Format and Protocols)</h3>
+<p>Colons indicate protocol prefixes (such as <code>ephemeral:</code>,
+<code>label:</code>, or <code>png:</code>). A file named
+<code>chapter:1.jpg</code> might be parsed as an unknown protocol.</p>
+<ul>
+<li>Prefix with the standard image format to force literal
+interpretation:
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;jpg:chapter:1.jpg&quot;</span> output.jpg</span></code></pre></div></li>
+<li>Alternatively, supply a relative path explicitly:
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;./chapter:1.jpg&quot;</span> output.jpg</span></code></pre></div></li>
+</ul>
+<h3 id="percent-signs--formatted-output">Percent Signs <code>%</code>
+(Formatted Output)</h3>
+<p>ImageMagick interprets <code>%</code> inside output filenames as
+formatted sequence operators (e.g., <code>frame_%03d.png</code>).</p>
+<ul>
+<li>To include a literal percent sign in the output filename, double it:
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 50% <span class="st">&quot;discount_%%50.jpg&quot;</span></span></code></pre></div></li>
+</ul>
+<hr />
+<h2 id="3-using-text-files-for-complex-batch-jobs--syntax">3. Using Text
+Files for Complex Batch Jobs (<code>@</code> Syntax)</h2>
+<p>When processing files with extreme special characters where shell
+escaping becomes unmanageable, write the list of filenames to a plain
+text file (one filename per line) and supply it to ImageMagick with the
+<code>@</code> operator:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate file list</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">&quot;</span> <span class="at">-type</span> f <span class="at">-name</span> <span class="st">&quot;*.png&quot;</span> <span class="op">&gt;</span> filelist.txt</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Process using the list</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> @filelist.txt <span class="at">-resize</span> 50% <span class="at">-set</span> filename:base <span class="st">&quot;%[basename]&quot;</span> <span class="st">&quot;output_%[filename:base].png&quot;</span></span></code></pre></div>
+<p>Using absolute paths inside the <code>@list.txt</code> input bypasses
+most shell expansion issues and processes each entry literally.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

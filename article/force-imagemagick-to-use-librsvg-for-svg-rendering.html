@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force ImageMagick to Use Librsvg for SVG Rendering - magick</title>
+    <meta name="description" content="ImageMagick does not provide a -define flag to switch between SVG rendering engines; instead, it relies on explicit coder prefixes and build-level delegate configurations. This guide explains how to force ImageMagick to render SVGs using librsvg rather t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/force-imagemagick-to-use-librsvg-for-svg-rendering">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Force ImageMagick to Use Librsvg for SVG Rendering - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/force-imagemagick-to-use-librsvg-for-svg-rendering" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick does not provide a -define flag to switch between SVG rendering engines; instead, it relies on explicit coder prefixes and build-level delegate configurations. This guide explains how to force ImageMagick to render SVGs using librsvg rather t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="force-imagemagick-to-use-librsvg-for-svg-rendering">Force
+ImageMagick to Use Librsvg for SVG Rendering</h1>
+<p>ImageMagick does not provide a <code>-define</code> flag to switch
+between SVG rendering engines; instead, it relies on explicit coder
+prefixes and build-level delegate configurations. This guide explains
+how to force ImageMagick to render SVGs using librsvg rather than its
+internal MSVG engine, how to verify that your installation supports
+librsvg, and how delegate precedence works.</p>
+<h3 id="forcing-librsvg-with-the-coder-prefix">Forcing Librsvg with the
+Coder Prefix</h3>
+<p>To bypass the internal MSVG parser and force ImageMagick to use
+librsvg, prepend the <code>rsvg:</code> format prefix directly to the
+input filename on the command line:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> rsvg:input.svg output.png</span></code></pre></div>
+<p>For legacy ImageMagick 6 installations:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> rsvg:input.svg output.png</span></code></pre></div>
+<p>ImageMagick uses the prefix to route image decoding directly to the
+librsvg coder (<code>ReadRSVGImage</code>) rather than the built-in,
+lightweight MSVG delegate (<code>ReadMSVGImage</code>).</p>
+<h3 id="why-there-is-no-define-flag">Why There Is No Define Flag</h3>
+<p>ImageMagick implements SVG rendering via distinct coder modules
+rather than runtime <code>-define</code> properties. While
+<code>-define</code> handles behavior modifiers (such as parsing limits
+or density adjustments), delegate selection is handled at the coder
+level.</p>
+<p>ImageMagick recognizes three distinct coder identifiers for SVG:</p>
+<ul>
+<li><strong><code>rsvg:</code></strong> Forces the external GNOME
+librsvg library.</li>
+<li><strong><code>msvg:</code></strong> Forces ImageMagick’s built-in
+MicroSoft SVG parser (internal delegate).</li>
+<li><strong><code>svg:</code></strong> Uses the default system priority,
+which automatically defaults to librsvg if compiled with support,
+falling back to MSVG or external delegates like Inkscape if librsvg is
+absent.</li>
+</ul>
+<h3 id="verifying-librsvg-support">Verifying Librsvg Support</h3>
+<p>If using the <code>rsvg:</code> prefix results in an error such as
+<code>no decode delegate for this image format</code>, your ImageMagick
+build was compiled without librsvg support.</p>
+<p>Verify available delegates and format support by running:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> svg</span></code></pre></div>
+<p>A properly configured installation will show <code>RSVG</code> with
+read (<code>r</code>) mode enabled:</p>
+<pre class="text"><code>     MSVG* SVG       rw+   ImageMagick&#39;s own SVG internal renderer
+     RSVG* SVG       r--   Librsvg rendering engine
+      SVG  SVG       rw+   Scalable Vector Graphics</code></pre>
+<h3 id="configuring-external-rsvg-in-delegatesxml">Configuring External
+RSVG in delegates.xml</h3>
+<p>If ImageMagick was built without the librsvg C library linked
+directly, you can route SVG operations through the standalone
+<code>rsvg-convert</code> binary by editing
+<code>delegates.xml</code>.</p>
+<p>Locate the file path with:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> delegate</span></code></pre></div>
+<p>Add or update the SVG decode line inside
+<code>delegates.xml</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">delegate</span> <span class="ot">decode=</span><span class="st">&quot;svg&quot;</span> <span class="ot">command=</span><span class="st">&quot;</span><span class="dv">&amp;quot;</span><span class="st">rsvg-convert</span><span class="dv">&amp;quot;</span><span class="st"> -o </span><span class="dv">&amp;quot;</span><span class="st">%o</span><span class="dv">&amp;quot;</span><span class="st"> </span><span class="dv">&amp;quot;</span><span class="st">%i</span><span class="dv">&amp;quot;</span><span class="st">&quot;</span>/&gt;</span></code></pre></div>
+<p>This configuration ensures that any standard <code>svg:</code> input
+automatically delegates rendering tasks to
+<code>rsvg-convert</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Specific OpenEXR Layers with ImageMagick - magick</title>
+    <meta name="description" content="OpenEXR files produced by 3D rendering pipelines often store multiple Arbitrary Output Variables (AOVs)—such as depth, normal passes, specular reflections, and ambient occlusion—within a single multi-channel or multi-part container. ImageMagick can p">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-specific-openexr-layers-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Specific OpenEXR Layers with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-specific-openexr-layers-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="OpenEXR files produced by 3D rendering pipelines often store multiple Arbitrary Output Variables (AOVs)—such as depth, normal passes, specular reflections, and ambient occlusion—within a single multi-channel or multi-part container. ImageMagick can p" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-specific-openexr-layers-with-imagemagick">Extract
+Specific OpenEXR Layers with ImageMagick</h1>
+<p>OpenEXR files produced by 3D rendering pipelines often store multiple
+Arbitrary Output Variables (AOVs)—such as depth, normal passes, specular
+reflections, and ambient occlusion—within a single multi-channel or
+multi-part container. ImageMagick can parse these complex data
+structures, isolate specific sub-layers, and export them to standalone
+image formats like PNG, TIFF, or individual single-layer EXRs. This
+guide explains how ImageMagick interprets OpenEXR files and provides the
+direct commands required to inspect and extract targeted channels.</p>
+<h3 id="inspecting-layers-inside-the-openexr-file">Inspecting Layers
+Inside the OpenEXR File</h3>
+<p>Before extracting a layer, you must identify how the channels and
+parts are structured inside the file. ImageMagick treats multi-part
+OpenEXR files similarly to multi-frame image sequences.</p>
+<p>Run the <code>identify</code> command to view all available
+sub-images and channels:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> render.exr</span></code></pre></div>
+<p>To output a concise list of layers and sub-image indices without the
+verbose metadata, use:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Scene: %s, Geometry: %wx%h, Channels: %[channels]\n&quot;</span> render.exr</span></code></pre></div>
+<h3 id="extracting-layers-by-frame-index">Extracting Layers by Frame
+Index</h3>
+<p>Multi-part EXRs expose distinct render layers as indexed sub-images
+(frames). You can extract a specific layer by appending an index number
+enclosed in brackets directly after the input filename.</p>
+<p>To extract the first layer (index 0) to a standard 16-bit PNG:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;render.exr[0]&quot;</span> <span class="at">-depth</span> 16 output_diffuse.png</span></code></pre></div>
+<p>To extract a secondary layer (such as index 2) and save it as a
+standalone single-layer OpenEXR file:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;render.exr[2]&quot;</span> output_specular.exr</span></code></pre></div>
+<h3 id="extracting-non-standard-channels-eg-depth-or-normals">Extracting
+Non-Standard Channels (e.g., Depth or Normals)</h3>
+<p>In single-part multi-channel EXRs, arbitrary channels (like
+<code>Z</code> for depth or <code>N.X</code>, <code>N.Y</code>,
+<code>N.Z</code> for surface normals) may be packed alongside standard
+RGB data rather than separated into distinct sub-image indices.</p>
+<p>To isolate a specific single-channel pass such as depth:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> render.exr <span class="at">-channel</span> Z <span class="at">-separate</span> output_depth.png</span></code></pre></div>
+<p>If the pass consists of custom three-channel data, you can isolate
+and map those specific channels using the <code>-channel</code> flag
+combined with channel recombination:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> render.exr <span class="at">-channel-extract</span> <span class="st">&quot;R,G,B&quot;</span> output_beauty.exr</span></code></pre></div>
+<h3 id="handling-floating-point-data-and-dynamic-range">Handling
+Floating-Point Data and Dynamic Range</h3>
+<p>OpenEXR files store data in 16-bit half-float or 32-bit float
+formats, allowing values beyond the 0.0–1.0 range. When extracting
+layers to standard integer-based formats like PNG or JPEG,
+high-dynamic-range values may clip or appear entirely white or
+black.</p>
+<ul>
+<li><p><strong>Linear to sRGB Conversion:</strong> If extracting an RGB
+beauty pass to PNG, convert color spaces properly:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;render.exr[0]&quot;</span> <span class="at">-colorspace</span> sRGB <span class="at">-depth</span> 8 diffuse.png</span></code></pre></div></li>
+<li><p><strong>Normalizing Passes (Depth/Z-Buffer):</strong> Depth
+passes often contain real-world unit values (e.g., 10.0 to 1000.0) that
+appear pure white in standard viewers. Normalize the values across the
+0–1 range before exporting:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> render.exr <span class="at">-channel</span> Z <span class="at">-separate</span> <span class="at">-auto-level</span> depth_visual.png</span></code></pre></div></li>
+</ul>
+<h3 id="batch-extracting-all-layers">Batch Extracting All Layers</h3>
+<p>To split every layer within a multi-part EXR into separate sequential
+files in a single execution, use the <code>+adjoin</code> operator:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> render.exr +adjoin <span class="at">-depth</span> 16 layer_%d.png</span></code></pre></div>
+<p>This command evaluates every internal frame and outputs
+<code>layer_0.png</code>, <code>layer_1.png</code>, and so on, matching
+the indices discovered during inspection.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Compare Calculates Image Similarity - magick</title>
+    <meta name="description" content="ImageMagick’s compare command determines visual and mathematical similarity between two images by evaluating corresponding pixels across their color channels. By subtracting, squaring, or statistically modeling the differences between pixel values at i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-compare-calculates-image-similarity">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Compare Calculates Image Similarity - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-compare-calculates-image-similarity" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s compare command determines visual and mathematical similarity between two images by evaluating corresponding pixels across their color channels. By subtracting, squaring, or statistically modeling the differences between pixel values at i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-compare-calculates-image-similarity">How
+ImageMagick Compare Calculates Image Similarity</h1>
+<p>ImageMagick’s <code>compare</code> command determines visual and
+mathematical similarity between two images by evaluating corresponding
+pixels across their color channels. By subtracting, squaring, or
+statistically modeling the differences between pixel values at identical
+coordinate locations, the tool produces numeric error metrics and
+optional visual difference maps. This article explains the underlying
+mathematics and algorithms ImageMagick uses to compute standard image
+similarity metrics.</p>
+<h3 id="pixel-level-evaluation-and-normalization">Pixel-Level Evaluation
+and Normalization</h3>
+<p>Before computing similarity metrics, ImageMagick standardizes the
+input images. Both images must share identical dimensions; if they do
+not, an error occurs unless sub-image searching or canvas adjustment is
+specified.</p>
+<p>ImageMagick processes pixels channel by channel (Red, Green, Blue,
+Alpha) based on the build's Quantum range (<span
+class="math inline">\(Q\)</span>), typically 8-bit (<span
+class="math inline">\(Q=255\)</span>) or 16-bit (<span
+class="math inline">\(Q=65535\)</span>). The basic unit of comparison is
+the difference between the intensity of a pixel in the reference image
+(<span class="math inline">\(I_1\)</span>) and the target image (<span
+class="math inline">\(I_2\)</span>) at coordinate <span
+class="math inline">\((x, y)\)</span> for channel <span
+class="math inline">\(c\)</span>:</p>
+<p><span class="math display">\[\Delta(x, y, c) = |I_1(x, y, c) - I_2(x,
+y, c)|\]</span></p>
+<p>When metrics are normalized, results are expressed in a range of
+<span class="math inline">\([0.0, 1.0]\)</span>, representing the
+proportion of distortion relative to the maximum possible channel value
+(<span class="math inline">\(Q\)</span>).</p>
+<hr />
+<h3 id="absolute-error-metrics">Absolute Error Metrics</h3>
+<h4 id="1-absolute-error-ae">1. Absolute Error (AE)</h4>
+<p>The Absolute Error metric simply counts the total number of pixels
+that differ between two images. If a fuzz factor (<code>-fuzz</code>) is
+applied, a pixel is only counted as different if the Euclidean distance
+between its color values exceeds the specified threshold.</p>
+<h4 id="2-mean-absolute-error-mae">2. Mean Absolute Error (MAE)</h4>
+<p>MAE calculates the average absolute difference across all pixels and
+color channels:</p>
+<p><span class="math display">\[\text{MAE} = \frac{1}{N \cdot C}
+\sum_{x,y} \sum_{c} |I_1(x, y, c) - I_2(x, y, c)|\]</span></p>
+<p>where <span class="math inline">\(N\)</span> is the total number of
+pixels and <span class="math inline">\(C\)</span> is the number of
+evaluated channels. MAE provides a linear scale of average pixel
+intensity deviation.</p>
+<h4 id="3-peak-absolute-error-pae">3. Peak Absolute Error (PAE)</h4>
+<p>PAE identifies the maximum single difference found among all
+corresponding pixels and channels:</p>
+<p><span class="math display">\[\text{PAE} = \max_{x, y, c} |I_1(x, y,
+c) - I_2(x, y, c)|\]</span></p>
+<p>This metric isolates the worst-case distortion in an image,
+regardless of how similar the rest of the pixels are.</p>
+<hr />
+<h3 id="squared-error-metrics">Squared Error Metrics</h3>
+<h4 id="1-mean-squared-error-mse">1. Mean Squared Error (MSE)</h4>
+<p>MSE squares the difference between pixel values before computing the
+average:</p>
+<p><span class="math display">\[\text{MSE} = \frac{1}{N \cdot C}
+\sum_{x,y} \sum_{c} (I_1(x, y, c) - I_2(x, y, c))^2\]</span></p>
+<p>Squaring penalizes large single-pixel deviations significantly more
+than widespread, minor color shifts.</p>
+<h4 id="2-root-mean-squared-error-rmse">2. Root Mean Squared Error
+(RMSE)</h4>
+<p>RMSE is the square root of the MSE:</p>
+<p><span class="math display">\[\text{RMSE} =
+\sqrt{\text{MSE}}\]</span></p>
+<p>RMSE returns the error metric to the original scale of the pixel
+values, making it one of the most common metrics for general image
+quality assessment. ImageMagick outputs both the raw quantum value and
+the normalized float in parentheses.</p>
+<hr />
+<h3 id="signal-and-perceptual-metrics">Signal and Perceptual
+Metrics</h3>
+<h4 id="1-peak-signal-to-noise-ratio-psnr">1. Peak Signal-to-Noise Ratio
+(PSNR)</h4>
+<p>PSNR assesses image degradation using a logarithmic decibel (<span
+class="math inline">\(\text{dB}\)</span>) scale. It is calculated using
+the maximum possible pixel value (<span
+class="math inline">\(MAX_I\)</span>) and the MSE:</p>
+<p><span class="math display">\[\text{PSNR} = 10 \cdot
+\log_{10}\left(\frac{MAX_I^2}{\text{MSE}}\right)\]</span></p>
+<p>Higher PSNR values indicate greater similarity. If the two images are
+identical, <span class="math inline">\(\text{MSE} = 0\)</span>, and
+ImageMagick returns infinity (<code>inf</code>).</p>
+<h4 id="2-structural-similarity-index-ssim">2. Structural Similarity
+Index (SSIM)</h4>
+<p>Unlike error-summation metrics, SSIM evaluates visual degradation
+based on human visual system perception. It compares local windowed
+regions for three components:</p>
+<ul>
+<li><strong>Luminance:</strong> Mean intensity comparison.</li>
+<li><strong>Contrast:</strong> Standard deviation comparison.</li>
+<li><strong>Structure:</strong> Cross-correlation of normalized
+signals.</li>
+</ul>
+<p>SSIM yields a value between <span class="math inline">\(-1\)</span>
+and <span class="math inline">\(1\)</span>, where <span
+class="math inline">\(1\)</span> indicates identical structural
+quality.</p>
+<h4 id="3-normalized-cross-correlation-ncc">3. Normalized Cross
+Correlation (NCC)</h4>
+<p>NCC computes the cosine similarity between the pixel intensity
+vectors of both images:</p>
+<p><span class="math display">\[\text{NCC} = \frac{\sum_{x,y} (I_1(x, y)
+\cdot I_2(x, y))}{\sqrt{\sum_{x,y} I_1(x,y)^2 \cdot \sum_{x,y}
+I_2(x,y)^2}}\]</span></p>
+<p>A result of <span class="math inline">\(1.0\)</span> signifies a
+perfect correlation in lighting and contrast structures.</p>
+<hr />
+<h3 id="generating-the-visual-difference-image">Generating the Visual
+Difference Image</h3>
+<p>When an output filename is provided with <code>compare</code>,
+ImageMagick constructs a visual difference map alongside the numerical
+output:</p>
+<ul>
+<li><strong>Unchanged pixels</strong> are desaturated and dimmed to form
+a pale background context.</li>
+<li><strong>Changed pixels</strong> are highlighted in red (customizable
+with <code>-highlight-color</code>).</li>
+<li><strong>Masked or fuzz-tolerated areas</strong> are rendered
+according to user-defined lowlight settings.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

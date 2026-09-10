@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Normalize an AVIF Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Normalizing an AVIF image with ImageMagick allows you to enhance dynamic range and contrast by stretching pixel values to span the full spectrum from black to white. This guide covers the exact command-line syntax needed to perform standard normalization">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-normalize-an-avif-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Normalize an AVIF Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-normalize-an-avif-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Normalizing an AVIF image with ImageMagick allows you to enhance dynamic range and contrast by stretching pixel values to span the full spectrum from black to white. This guide covers the exact command-line syntax needed to perform standard normalization" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-normalize-an-avif-image-using-imagemagick">How to
+Normalize an AVIF Image Using ImageMagick?</h1>
+<p>Normalizing an AVIF image with ImageMagick allows you to enhance
+dynamic range and contrast by stretching pixel values to span the full
+spectrum from black to white. This guide covers the exact command-line
+syntax needed to perform standard normalization, alternative contrast
+adjustments, and batch processing for AVIF files using modern
+ImageMagick tools.</p>
+<h2 id="prerequisites-and-avif-support">Prerequisites and AVIF
+Support</h2>
+<p>Before running normalization commands, verify that your local
+ImageMagick installation includes AVIF delegate support (typically
+provided via <code>libheif</code>).</p>
+<p>Check whether the AVIF decoder and encoder are available by
+executing:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> avif</span></code></pre></div>
+<p>If the output lists <code>AVIF</code> with read (<code>r</code>) and
+write (<code>w</code>) permissions, your environment is ready to read
+and export AVIF images.</p>
+<h2 id="basic-normalization-command">Basic Normalization Command</h2>
+<p>ImageMagick provides the <code>-normalize</code> operator, which
+automatically stretches the dynamic range of an image by scaling the
+lowest intensity values to pure black and the highest to pure white
+while clipping a tiny fraction of extreme highlights and shadows.</p>
+<p>In ImageMagick 7, use the <code>magick</code> utility:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-normalize</span> output.avif</span></code></pre></div>
+<p>If you are using legacy ImageMagick 6 installations, use
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.avif <span class="at">-normalize</span> output.avif</span></code></pre></div>
+<h2 id="advanced-dynamic-range-adjustments">Advanced Dynamic Range
+Adjustments</h2>
+<p>Depending on the distribution of lighting in the image, alternative
+operators might yield better tonal results than standard
+normalization.</p>
+<h3 id="contrast-stretching">Contrast Stretching</h3>
+<p>The <code>-contrast-stretch</code> operator provides fine-grained
+control over how much shadow and highlight data gets clipped. The
+parameters represent the black and white point clipping thresholds
+(often expressed as percentages):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-contrast-stretch</span> 0.15%x0.05% output.avif</span></code></pre></div>
+<h3 id="auto-leveling">Auto-Leveling</h3>
+<p>To map the exact minimum pixel value to 0% and the exact maximum
+pixel value to 100% without any clipping of shadow or highlight detail,
+use the <code>-auto-level</code> operator:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-auto-level</span> output.avif</span></code></pre></div>
+<h3 id="histogram-equalization">Histogram Equalization</h3>
+<p>For images with flat or clustered tonal distributions, histogram
+equalization distributes lightness evenly across the entire dynamic
+range:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-equalize</span> output.avif</span></code></pre></div>
+<h2 id="preserving-color-balance">Preserving Color Balance</h2>
+<p>By default, applying <code>-normalize</code> to a standard RGB image
+processes each color channel independently. In some photographs, this
+can cause an undesirable color shift.</p>
+<p>To adjust brightness without skewing color relationships, convert the
+color space to HSL or Lab, normalize only the lightness channel, and
+convert back:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-colorspace</span> Lab <span class="at">-channel</span> 0 <span class="at">-normalize</span> +channel <span class="at">-colorspace</span> sRGB output.avif</span></code></pre></div>
+<h2 id="batch-processing-multiple-avif-files">Batch Processing Multiple
+AVIF Files</h2>
+<p>To normalize multiple AVIF images inside a directory simultaneously,
+use ImageMagick’s <code>mogrify</code> tool.</p>
+<p>Create a dedicated output directory and run:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> normalized_output</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> normalized_output <span class="at">-normalize</span> <span class="pp">*</span>.avif</span></code></pre></div>
+<p>This command applies normalization across all AVIF files in the
+current working directory and writes the newly balanced assets into the
+target directory while preserving the originals.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

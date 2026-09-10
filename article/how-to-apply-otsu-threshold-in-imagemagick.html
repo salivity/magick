@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Apply Otsu Threshold in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a concise guide on how to apply Otsu's thresholding method to an image using ImageMagick. You will learn the exact command-line syntax for ImageMagick 7, how to preprocess images to grayscale, and how to fine-tune the binary output">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-apply-otsu-threshold-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Apply Otsu Threshold in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-apply-otsu-threshold-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise guide on how to apply Otsu's thresholding method to an image using ImageMagick. You will learn the exact command-line syntax for ImageMagick 7, how to preprocess images to grayscale, and how to fine-tune the binary output" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-apply-otsu-threshold-in-imagemagick">How to Apply Otsu
+Threshold in ImageMagick</h1>
+<p>This article provides a concise guide on how to apply Otsu's
+thresholding method to an image using ImageMagick. You will learn the
+exact command-line syntax for ImageMagick 7, how to preprocess images to
+grayscale, and how to fine-tune the binary output for optimal image
+segmentation and document processing.</p>
+<h2 id="the-standard-otsu-command-in-imagemagick-7">The Standard Otsu
+Command in ImageMagick 7</h2>
+<p>ImageMagick 7 includes native support for Otsu's thresholding
+algorithm via the <code>-auto-threshold</code> operator. The basic
+command is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-auto-threshold</span> Otsu output.png</span></code></pre></div>
+<p>This command evaluates the global histogram of the input image,
+calculates the optimal threshold value that minimizes intra-class
+variance between black and white pixels, and converts the image into a
+binary black-and-white result.</p>
+<h2 id="recommended-workflow-grayscale-and-denoise">Recommended
+Workflow: Grayscale and Denoise</h2>
+<p>To achieve the best results with Otsu's method, convert the image to
+grayscale and apply slight blurring to reduce noise before
+thresholding.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-blur</span> 0x1 <span class="at">-auto-threshold</span> Otsu output.png</span></code></pre></div>
+<h3 id="explanation-of-parameters">Explanation of Parameters:</h3>
+<ul>
+<li><strong><code>-colorspace Gray</code></strong>: Converts the color
+image to a single-channel grayscale image to ensure accurate histogram
+evaluation.</li>
+<li><strong><code>-blur 0x1</code></strong>: Applies a subtle Gaussian
+blur to eliminate high-frequency noise and artifacts that could skew the
+threshold.</li>
+<li><strong><code>-auto-threshold Otsu</code></strong>: Automatically
+determines the separation threshold and binarizes the image.</li>
+</ul>
+<h2 id="inverting-the-binary-output">Inverting the Binary Output</h2>
+<p>By default, Otsu's method in ImageMagick assigns black to pixels
+below the calculated threshold and white to pixels above it. If you need
+the foreground and background colors inverted, add the
+<code>-negate</code> operator after thresholding:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-auto-threshold</span> Otsu <span class="at">-negate</span> output.png</span></code></pre></div>
+<h2 id="legacy-alternative-for-imagemagick-6">Legacy Alternative for
+ImageMagick 6</h2>
+<p>ImageMagick 6 does not feature the <code>-auto-threshold</code>
+operator natively. If you are using ImageMagick 6, you must either
+upgrade to ImageMagick 7 or approximate the segmentation using adaptive
+thresholding:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-lat</span> 25x25-5% output.png</span></code></pre></div>
+<p>For true Otsu thresholding in production, ImageMagick 7 is
+recommended due to its direct implementation of the algorithm.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

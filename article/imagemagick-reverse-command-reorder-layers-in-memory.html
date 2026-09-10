@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Reverse Command: Reorder Layers in Memory - magick</title>
+    <meta name="description" content="The ImageMagick -reverse command is an image sequence operator that inverts the physical order of images currently held in memory. When dealing with multi-frame formats such as GIFs, multi-page PDFs, or multi-layered compositions, ImageMagick maintains a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-reverse-command-reorder-layers-in-memory">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Reverse Command: Reorder Layers in Memory - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-reverse-command-reorder-layers-in-memory" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -reverse command is an image sequence operator that inverts the physical order of images currently held in memory. When dealing with multi-frame formats such as GIFs, multi-page PDFs, or multi-layered compositions, ImageMagick maintains a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-reverse-command-reorder-layers-in-memory">ImageMagick
+Reverse Command: Reorder Layers in Memory</h1>
+<p>The ImageMagick <code>-reverse</code> command is an image sequence
+operator that inverts the physical order of images currently held in
+memory. When dealing with multi-frame formats such as GIFs, multi-page
+PDFs, or multi-layered compositions, ImageMagick maintains an internal,
+zero-indexed stack of image frames. Applying the <code>-reverse</code>
+option immediately flips this sequence from end to beginning,
+fundamentally altering how subsequent operations composite, animate, or
+export the layers.</p>
+<h3 id="the-in-memory-image-stack">The In-Memory Image Stack</h3>
+<p>When you pass multiple files into an ImageMagick command, the engine
+reads each file sequentially into an active working list in RAM:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> layer0.png layer1.png layer2.png <span class="at">-reverse</span> output.png</span></code></pre></div>
+<p>Initially, the image stack is indexed as:</p>
+<ul>
+<li>Index <code>[0]</code>: <code>layer0.png</code></li>
+<li>Index <code>[1]</code>: <code>layer1.png</code></li>
+<li>Index <code>[2]</code>: <code>layer2.png</code></li>
+</ul>
+<p>When the execution encounters the <code>-reverse</code> operator, the
+internal pointers of the current image list are swapped in place. The
+stack layout becomes:</p>
+<ul>
+<li>Index <code>[0]</code>: <code>layer2.png</code></li>
+<li>Index <code>[1]</code>: <code>layer1.png</code></li>
+<li>Index <code>[2]</code>: <code>layer0.png</code></li>
+</ul>
+<h3 id="impact-on-layer-composition">Impact on Layer Composition</h3>
+<p>In layer-merging operations (such as <code>-flatten</code>,
+<code>-mosaic</code>, or <code>-layers merge</code>), ImageMagick places
+the first image (<code>[0]</code>) at the base and paints subsequent
+images on top in ascending order.</p>
+<p>By default:</p>
+<ul>
+<li><code>layer0.png</code> is the background.</li>
+<li><code>layer2.png</code> is the top-most visible layer.</li>
+</ul>
+<p>After using <code>-reverse</code>:</p>
+<ul>
+<li><code>layer2.png</code> becomes the background at index
+<code>[0]</code>.</li>
+<li><code>layer0.png</code> is placed at the top of the composite
+stack.</li>
+</ul>
+<p>This enables you to completely invert visual stacking orders without
+manually renaming files or restructuring file paths in complex
+command-line workflows.</p>
+<h3 id="frame-order-in-animations-and-documents">Frame Order in
+Animations and Documents</h3>
+<p>For time-based or multi-page formats, <code>-reverse</code> dictates
+playback and page order:</p>
+<ul>
+<li><strong>Animated GIFs:</strong> Reversing frames alters playback
+direction. Placing <code>-reverse</code> before writing a GIF will
+output an animation that plays backwards. It can also be paired with the
+original frames to create a "ping-pong" looping effect using parentheses
+and clones:
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="dt">\(</span> <span class="at">-clone</span> 1--2 <span class="at">-reverse</span> <span class="dt">\)</span> <span class="at">-loop</span> 0 pingpong.gif</span></code></pre></div></li>
+<li><strong>PDFs and TIFFs:</strong> Page sequences rely entirely on the
+in-memory array. The image at index <code>[0]</code> corresponds to Page
+1. Calling <code>-reverse</code> makes the last loaded page the first
+page in the generated document.</li>
+</ul>
+<h3 id="scoping--reverse-with-parentheses">Scoping <code>-reverse</code>
+with Parentheses</h3>
+<p>The <code>-reverse</code> operator modifies the entire active image
+sequence at the moment it is called. To isolate which layers get
+reordered, encapsulate the target layers inside parentheses
+<code>\( ... \)</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> bg.png <span class="dt">\(</span> frame1.png frame2.png frame3.png <span class="at">-reverse</span> <span class="dt">\)</span> <span class="at">-flatten</span> result.png</span></code></pre></div>
+<p>In this case, only <code>frame1</code>, <code>frame2</code>, and
+<code>frame3</code> are inverted inside an isolated sub-stack. The
+background image <code>bg.png</code> remains outside the scope and stays
+anchored at the bottom of the composite.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

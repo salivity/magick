@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Custom JPEG Quantization Tables in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a step-by-step guide on how to configure and apply custom luminance and chrominance quantization tables in ImageMagick when encoding JPEG files. By utilizing the jpeg:q-table define setting alongside an XML table definition, you can">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-custom-jpeg-quantization-tables-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set Custom JPEG Quantization Tables in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-custom-jpeg-quantization-tables-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a step-by-step guide on how to configure and apply custom luminance and chrominance quantization tables in ImageMagick when encoding JPEG files. By utilizing the jpeg:q-table define setting alongside an XML table definition, you can" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-custom-jpeg-quantization-tables-in-imagemagick">Set Custom
+JPEG Quantization Tables in ImageMagick</h1>
+<p>This article provides a step-by-step guide on how to configure and
+apply custom luminance and chrominance quantization tables in
+ImageMagick when encoding JPEG files. By utilizing the
+<code>jpeg:q-table</code> define setting alongside an XML table
+definition, you can exert precise control over JPEG compression,
+selectively preserve detail in specific frequency bands, and optimize
+compression artifacts for specialized imaging needs.</p>
+<h3 id="understanding-jpeg-quantization-tables">Understanding JPEG
+Quantization Tables</h3>
+<p>JPEG compression uses discrete cosine transform (DCT) blocks of 8x8
+pixels. Quantization tables determine the divisor applied to each of the
+64 frequency coefficients in these blocks: higher values yield greater
+compression and lower quality, while lower values retain higher
+fidelity. Standard JPEG workflows utilize two distinct tables:</p>
+<ul>
+<li><strong>Table 0 (Luminance):</strong> Controls brightness and fine
+detail, where human perception is most sensitive.</li>
+<li><strong>Table 1 (Chrominance):</strong> Controls color information
+(Cb and Cr channels), where human perception is less sensitive to
+high-frequency loss.</li>
+</ul>
+<h3 id="step-1-create-the-quantization-xml-file">Step 1: Create the
+Quantization XML File</h3>
+<p>ImageMagick loads custom quantization matrices from an XML document.
+Create a file named <code>custom_tables.xml</code> containing exactly 64
+integers (values ranging from 1 to 255) for each table.</p>
+<p>Below is an example template showing standard baseline tables
+formatted for ImageMagick:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">quantization-tables</span> <span class="dt">[</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&lt;!ELEMENT</span> <span class="dt">quantization-tables</span> (table)+<span class="dt">&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&lt;!ELEMENT</span> <span class="dt">table</span> (divisor)+<span class="dt">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&lt;!ATTLIST</span> <span class="dt">table</span> id CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&lt;!ATTLIST</span> <span class="dt">table</span> description CDATA #IMPLIED<span class="dt">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>   <span class="dt">&lt;!ELEMENT</span> <span class="dt">divisor</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="dt">]&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">quantization-tables</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">table</span> <span class="ot">id=</span><span class="st">&quot;0&quot;</span> <span class="ot">description=</span><span class="st">&quot;Luminance&quot;</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    16  11  10  16  24  40  51  61</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    12  12  14  19  26  58  60  55</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    14  13  16  24  40  57  69  56</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    14  17  22  29  51  87  80  62</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    18  22  37  56  68 109 103  77</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    24  35  55  64  81 104 113  92</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    49  64  78  87 103 121 120 101</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    72  92  95  98 112 100 103  99</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">table</span>&gt;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">table</span> <span class="ot">id=</span><span class="st">&quot;1&quot;</span> <span class="ot">description=</span><span class="st">&quot;Chrominance&quot;</span>&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    17  18  24  47  99  99  99  99</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    18  21  26  66  99  99  99  99</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    24  26  56  99  99  99  99  99</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    47  66  99  99  99  99  99  99</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    99  99  99  99  99  99  99  99</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    99  99  99  99  99  99  99  99</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    99  99  99  99  99  99  99  99</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    99  99  99  99  99  99  99  99</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">table</span>&gt;</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">quantization-tables</span>&gt;</span></code></pre></div>
+<p>Adjust the integer values within each table to suit your compression
+requirements:</p>
+<ul>
+<li>Set values lower (down to <code>1</code>) in the top-left section of
+each table to preserve lower-frequency, overall structural details.</li>
+<li>Set values higher (up to <code>255</code>) toward the bottom-right
+to aggressively discard high-frequency noise and textures.</li>
+</ul>
+<h3 id="step-2-apply-the-custom-tables-with-imagemagick">Step 2: Apply
+the Custom Tables with ImageMagick</h3>
+<p>Pass the custom XML configuration into ImageMagick using the
+<code>-define jpeg:q-table</code> option.</p>
+<p>For ImageMagick version 7:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jpeg:q-table=custom_tables.xml output.jpg</span></code></pre></div>
+<p>For ImageMagick version 6:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> jpeg:q-table=custom_tables.xml output.jpg</span></code></pre></div>
+<h3 id="step-3-verify-the-quantization-tables">Step 3: Verify the
+Quantization Tables</h3>
+<p>To ensure ImageMagick applied the custom quantization tables
+correctly to the output image, inspect the JPEG metadata using the
+<code>identify</code> command:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.jpg</span></code></pre></div>
+<p>Locate the <code>jpeg:quantization-table</code> entries in the output
+properties. The output will list the 8x8 matrices for luminance and
+chrominance, confirming that the values match those defined in your XML
+file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

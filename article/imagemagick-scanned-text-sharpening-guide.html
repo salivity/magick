@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Scanned Text Sharpening Guide - magick</title>
+    <meta name="description" content="Enhancing scanned text documents with ImageMagick requires a balance between enhancing letterforms and eliminating background artifacts such as paper texture, bleed-through, and sensor noise. By combining grayscale normalization, dynamic thresholding, an">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-scanned-text-sharpening-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Scanned Text Sharpening Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-scanned-text-sharpening-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Enhancing scanned text documents with ImageMagick requires a balance between enhancing letterforms and eliminating background artifacts such as paper texture, bleed-through, and sensor noise. By combining grayscale normalization, dynamic thresholding, an" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-scanned-text-sharpening-guide">ImageMagick Scanned
+Text Sharpening Guide</h1>
+<p>Enhancing scanned text documents with ImageMagick requires a balance
+between enhancing letterforms and eliminating background artifacts such
+as paper texture, bleed-through, and sensor noise. By combining
+grayscale normalization, dynamic thresholding, and unsharp masking, you
+can produce crisp, high-contrast text files suitable for archiving,
+printing, or optical character recognition (OCR).</p>
+<h3 id="recommended-syntax">Recommended Syntax</h3>
+<p>For modern ImageMagick (v7+), use the following standard command to
+isolate text, eliminate background noise, and sharpen edges:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_scan.png <span class="at">-colorspace</span> Gray <span class="at">-level</span> 25%,85% <span class="at">-unsharp</span> 0x1.5+1.2+0.05 output.png</span></code></pre></div>
+<p>For legacy ImageMagick (v6), replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_scan.png <span class="at">-colorspace</span> Gray <span class="at">-level</span> 25%,85% <span class="at">-unsharp</span> 0x1.5+1.2+0.05 output.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><code>-colorspace Gray</code>: Removes color variations and
+chromatic aberrations introduced by the scanner, converting the image to
+single-channel grayscale.</li>
+<li><code>-level &lt;black_point&gt;,&lt;white_point&gt;</code>:
+Stretches contrast to clean up the page. Setting the black point to
+<code>25%</code> forces faint text strokes to become solid black, while
+setting the white point to <code>85%</code> pushes off-white background
+noise, paper tint, and minor bleed-through directly to pure white.</li>
+<li><code>-unsharp &lt;radius&gt;x&lt;sigma&gt;+&lt;amount&gt;+&lt;threshold&gt;</code>:
+Applies an unsharp mask to restore edge definition.
+<ul>
+<li><code>radius</code> (<code>0</code>): Lets the system calculate the
+radius automatically from sigma.</li>
+<li><code>sigma</code> (<code>1.5</code>): Defines the blur size used to
+detect edges.</li>
+<li><code>amount</code> (<code>1.2</code>): Controls the strength of the
+contrast boost along text boundaries.</li>
+<li><code>threshold</code> (<code>0.05</code>): Prevents faint remaining
+background noise from being sharpened.</li>
+</ul></li>
+</ul>
+<h3 id="advanced-syntax-for-uneven-backgrounds">Advanced Syntax for
+Uneven Backgrounds</h3>
+<p>If the scan features uneven lighting, shadows, or heavy paper
+discoloration, use background division before sharpening:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_scan.png <span class="at">-colorspace</span> Gray <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-blur</span> 0x25 <span class="kw">)</span> <span class="ex">-compose</span> Divide <span class="at">-composite</span> <span class="at">-linear-stretch</span> 1%x1% <span class="at">-unsharp</span> 0x1.5+1.0+0.05 output.png</span></code></pre></div>
+<ul>
+<li><code>+clone -blur 0x25</code>: Creates an internal copy of the
+image and heavily blurs it to sample only the background
+illumination.</li>
+<li><code>-compose Divide -composite</code>: Divides the original image
+by the blurred version, normalizing uneven brightness across the entire
+document into a consistent white background.</li>
+<li><code>-linear-stretch 1%x1%</code>: Maximizes contrast by clipping
+the darkest and lightest 1% of pixels.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

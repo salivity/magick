@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set JPEG 4:4:4 Chroma Subsampling in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure ImageMagick to output JPEG images using 4:4:4 chroma subsampling. By default, JPEG compression downsamples color data (typically to 4:2:0) to reduce file size, which often introduces blur or artifacts around sharp col">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-set-jpeg-4-4-4-chroma-subsampling-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set JPEG 4:4:4 Chroma Subsampling in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-set-jpeg-4-4-4-chroma-subsampling-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure ImageMagick to output JPEG images using 4:4:4 chroma subsampling. By default, JPEG compression downsamples color data (typically to 4:2:0) to reduce file size, which often introduces blur or artifacts around sharp col" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-jpeg-444-chroma-subsampling-in-imagemagick">How to
+Set JPEG 4:4:4 Chroma Subsampling in ImageMagick</h1>
+<p>This guide explains how to configure ImageMagick to output JPEG
+images using 4:4:4 chroma subsampling. By default, JPEG compression
+downsamples color data (typically to 4:2:0) to reduce file size, which
+often introduces blur or artifacts around sharp colored edges, graphical
+user interfaces, and text. Setting the chroma subsampling to 4:4:4
+retains all horizontal and vertical color resolution, ensuring maximum
+image fidelity.</p>
+<h3 id="the--sampling-factor-option">The <code>-sampling-factor</code>
+Option</h3>
+<p>In ImageMagick, chroma subsampling for JPEG compression is controlled
+using the <code>-sampling-factor</code> option. To disable chroma
+downsampling and force a 4:4:4 ratio, set the sampling factor to
+<code>4:4:4</code> or explicitly define the channel dimensions as
+<code>1x1,1x1,1x1</code>.</p>
+<h3 id="basic-command-usage">Basic Command Usage</h3>
+<p>For ImageMagick version 7, use the <code>magick</code> tool:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-sampling-factor</span> 4:4:4 output.jpg</span></code></pre></div>
+<p>If you are using ImageMagick version 6, use the legacy
+<code>convert</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-sampling-factor</span> 4:4:4 output.jpg</span></code></pre></div>
+<p>You can also achieve the exact same 4:4:4 result by explicitly
+defining the horizontal and vertical frequency factors for the Y, Cb,
+and Cr channels:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-sampling-factor</span> 1x1,1x1,1x1 output.jpg</span></code></pre></div>
+<h3 id="combining-subsampling-with-quality-settings">Combining
+Subsampling with Quality Settings</h3>
+<p>The <code>-sampling-factor</code> flag operates independently of the
+compression quality flag (<code>-quality</code>). When converting
+graphics or screenshots where color accuracy is critical, combine both
+options:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-sampling-factor</span> 4:4:4 <span class="at">-quality</span> 92 output.jpg</span></code></pre></div>
+<p><em>Note: Placing <code>-sampling-factor</code> before the output
+file name ensures it is applied during the JPEG encoding phase.</em></p>
+<h3 id="how-to-verify-the-output-subsampling">How to Verify the Output
+Subsampling</h3>
+<p>To confirm that the output JPEG was properly encoded without chroma
+downsampling, query the image metadata using
+<code>magick identify</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[jpeg:sampling-factor]\n&quot;</span> output.jpg</span></code></pre></div>
+<p>For a 4:4:4 encoded JPEG, the output will return
+<code>1x1,1x1,1x1</code> (or in some builds, <code>2x2,2x2,2x2</code>),
+indicating that the chroma channels (Cb and Cr) match the full
+resolution of the luma channel (Y).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

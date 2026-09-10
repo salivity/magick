@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Trim a PNG Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Trimming a PNG image with ImageMagick allows you to automatically remove unwanted surrounding borders, transparent whitespace, or solid-color margins using simple command-line tools. This guide covers the essential commands for basic trimming, handling t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-trim-a-png-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Trim a PNG Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-trim-a-png-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Trimming a PNG image with ImageMagick allows you to automatically remove unwanted surrounding borders, transparent whitespace, or solid-color margins using simple command-line tools. This guide covers the essential commands for basic trimming, handling t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-trim-a-png-image-using-imagemagick">How to Trim a PNG
+Image Using ImageMagick?</h1>
+<p>Trimming a PNG image with ImageMagick allows you to automatically
+remove unwanted surrounding borders, transparent whitespace, or
+solid-color margins using simple command-line tools. This guide covers
+the essential commands for basic trimming, handling transparent
+backgrounds, adjusting color tolerances with the fuzz factor, retaining
+specific margins, and batch-processing entire directories of PNG
+files.</p>
+<h2 id="basic-image-trimming">Basic Image Trimming</h2>
+<p>The primary operator for cropping out uniform borders in ImageMagick
+is <code>-trim</code>. ImageMagick inspects the corner pixels of the
+input graphic and removes any rows or columns that match that outer
+color.</p>
+<p>In ImageMagick 7, use the <code>magick</code> command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-trim</span> output.png</span></code></pre></div>
+<p>If you are using ImageMagick 6, the legacy syntax uses the
+<code>convert</code> tool:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-trim</span> output.png</span></code></pre></div>
+<p>The <code>+repage</code> operator is often added immediately after
+<code>-trim</code>. This ensures that virtual canvas offsets and page
+metadata stored inside the PNG format are completely reset, preventing
+canvas alignment errors in web browsers or image viewers:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-trim</span> +repage output.png</span></code></pre></div>
+<h2 id="trimming-images-with-transparent-backgrounds">Trimming Images
+with Transparent Backgrounds</h2>
+<p>PNG files frequently feature transparent borders that need removal.
+By default, ImageMagick identifies fully transparent pixels in the
+corners and trims inward until it encounters non-transparent
+content:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-background</span> none <span class="at">-trim</span> +repage output.png</span></code></pre></div>
+<p>Specifying <code>-background none</code> enforces that the reference
+border color is pure transparency, ensuring the crop behaves
+consistently across diverse transparency levels.</p>
+<h2 id="handling-compression-artifacts-and-gradients-with-fuzz">Handling
+Compression Artifacts and Gradients with Fuzz</h2>
+<p>Real-world images often contain slight color variations or
+anti-aliasing artifacts around the edges that prevent a clean trim. The
+<code>-fuzz</code> option tells ImageMagick to treat colors within a
+specific distance from the target border color as identical.</p>
+<p>To allow a 5% or 10% color margin when trimming off-white or noisy
+edges:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fuzz</span> 5% <span class="at">-trim</span> +repage output.png</span></code></pre></div>
+<p>Higher percentages will crop deeper into the artwork, while lower
+percentages require an exact color match. For anti-aliased text or logos
+with semi-transparent halos, values between 2% and 10% typically produce
+clean results.</p>
+<h2 id="adding-padding-back-after-trimming">Adding Padding Back After
+Trimming</h2>
+<p>Auto-trimming can leave elements pressed tightly against the frame
+edge. You can trim away the uneven whitespace and immediately restore a
+clean, uniform padding around the remaining subject using
+<code>-border</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-trim</span> +repage <span class="at">-bordercolor</span> none <span class="at">-border</span> 20 output.png</span></code></pre></div>
+<p>This command strips the original margin and replaces it with a
+uniform 20-pixel transparent frame. Replace <code>none</code> with any
+color name or hex code (such as <code>#ffffff</code>) to change the
+padding color.</p>
+<h2 id="batch-trimming-multiple-png-files">Batch Trimming Multiple PNG
+Files</h2>
+<p>To process multiple images at once, use the <code>mogrify</code>
+command. Note that <code>mogrify</code> overwrites the original files
+in-place unless an alternate destination path is provided:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-trim</span> +repage <span class="pp">*</span>.png</span></code></pre></div>
+<p>To trim all PNG files in the current folder and save the trimmed
+copies into a separate directory without altering the originals:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> trimmed</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> trimmed <span class="at">-trim</span> +repage <span class="pp">*</span>.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

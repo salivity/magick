@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Segment Uses Euclidean Color Distance - magick</title>
+    <meta name="description" content="The ImageMagick -segment command segments an image into contiguous regions of uniform color by analyzing pixel relationships in a multi-dimensional color space. By calculating the Euclidean color distance between pixel values, the underlying algorithm gr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-segment-uses-euclidean-color-distance">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Segment Uses Euclidean Color Distance - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-segment-uses-euclidean-color-distance" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -segment command segments an image into contiguous regions of uniform color by analyzing pixel relationships in a multi-dimensional color space. By calculating the Euclidean color distance between pixel values, the underlying algorithm gr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-segment-uses-euclidean-color-distance">How
+ImageMagick Segment Uses Euclidean Color Distance</h1>
+<p>The ImageMagick <code>-segment</code> command segments an image into
+contiguous regions of uniform color by analyzing pixel relationships in
+a multi-dimensional color space. By calculating the Euclidean color
+distance between pixel values, the underlying algorithm groups visually
+similar pixels into clusters, merges minor tonal variations according to
+user-defined thresholds, and effectively isolates distinct visual
+objects from their surroundings.</p>
+<h3 id="color-as-a-coordinate-system">Color as a Coordinate System</h3>
+<p>To measure color differences mathematically, ImageMagick maps each
+pixel's color channels to coordinates in a three-dimensional color space
+(typically RGB, though other spaces like LAB can be used). In an RGB
+color space:</p>
+<ul>
+<li>Red represents the X-axis.</li>
+<li>Green represents the Y-axis.</li>
+<li>Blue represents the Z-axis.</li>
+</ul>
+<p>Every pixel in the image is treated as a point <span
+class="math inline">\((R, G, B)\)</span> situated within this 3D
+coordinate volume.</p>
+<h3 id="calculating-euclidean-color-distance">Calculating Euclidean
+Color Distance</h3>
+<p>The Euclidean color distance represents the straight-line distance
+between two color points in the color space. Given two pixels with
+colors <span class="math inline">\((R_1, G_1, B_1)\)</span> and <span
+class="math inline">\((R_2, G_2, B_2)\)</span>, the distance <span
+class="math inline">\(d\)</span> is calculated using the standard
+Euclidean distance formula:</p>
+<p><span class="math display">\[d = \sqrt{(R_1 - R_2)^2 + (G_1 - G_2)^2
++ (B_1 - B_2)^2}\]</span></p>
+<p>A small value of <span class="math inline">\(d\)</span> indicates
+that two colors are numerically and perceptually close, while a large
+value indicates high contrast or entirely different hues.</p>
+<h3 id="the-segmentation-process">The Segmentation Process</h3>
+<p>The <code>-segment</code> operator takes two primary arguments:
+<code>cluster-threshold</code> and <code>smoothing-threshold</code>
+(formatted as
+<code>-segment cluster-thresholdxsmoothing-threshold</code>). These
+thresholds control how Euclidean distance dictates pixel grouping:</p>
+<ol type="1">
+<li><strong>Histogram and Cluster Identification:</strong> The algorithm
+analyzes the color distribution across the entire image to locate
+high-density clusters in the color space, which represent the dominant
+colors.</li>
+<li><strong>Applying the Cluster Threshold:</strong> The
+<code>cluster-threshold</code> defines the minimum Euclidean distance
+required to separate two candidate color clusters. If the distance
+between two cluster centers is smaller than this threshold, the
+algorithm combines them into a single cluster. Points falling within the
+Euclidean radius of a cluster center are assigned to that cluster.</li>
+<li><strong>Applying the Smoothing Threshold:</strong> The
+<code>smoothing-threshold</code> reduces high-frequency noise and
+eliminates isolated pixel variations. It determines how aggressively
+small, scattered clusters or boundary pixels are merged into neighboring
+dominant clusters.</li>
+</ol>
+<h3 id="object-separation">Object Separation</h3>
+<p>Once the clustering step converges, each pixel is reassigned the mean
+color of its assigned cluster. Regions where the Euclidean distance
+exceeds the cluster threshold create hard boundaries between different
+color groups.</p>
+<p>Because objects in an image typically share consistent internal
+colors that contrast with their background or adjacent items, the
+algorithm identifies these boundaries as object edges. The result is a
+simplified, posterized image where continuous gradients are collapsed
+into distinct, flat segments corresponding to separate visual
+entities.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

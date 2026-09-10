@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitwise XOR Between Image and Bitmask in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to compute a bitwise XOR operation between an image and a bitmask using the ImageMagick command-line tool. Performing this operation allows you to manipulate pixel values at the binary level for tasks such as steganography, data">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/bitwise-xor-between-image-and-bitmask-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Bitwise XOR Between Image and Bitmask in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/bitwise-xor-between-image-and-bitmask-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to compute a bitwise XOR operation between an image and a bitmask using the ImageMagick command-line tool. Performing this operation allows you to manipulate pixel values at the binary level for tasks such as steganography, data" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="bitwise-xor-between-image-and-bitmask-in-imagemagick">Bitwise
+XOR Between Image and Bitmask in ImageMagick</h1>
+<p>This article explains how to compute a bitwise XOR operation between
+an image and a bitmask using the ImageMagick command-line tool.
+Performing this operation allows you to manipulate pixel values at the
+binary level for tasks such as steganography, data obfuscation, or
+custom graphics masking. Below, you will find the direct commands for
+ImageMagick version 7 and version 6, along with key considerations
+regarding channel management and bit depth.</p>
+<h3 id="using-imagemagick-7-recommended">Using ImageMagick 7
+(Recommended)</h3>
+<p>In ImageMagick 7, you use the <code>magick</code> tool combined with
+the <code>-compose BitwiseXor</code> operator to blend an image and a
+bitmask file.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base_image.png mask.png <span class="at">-compose</span> BitwiseXor <span class="at">-composite</span> output.png</span></code></pre></div>
+<h3 id="using-imagemagick-6">Using ImageMagick 6</h3>
+<p>In ImageMagick 6, the legacy <code>composite</code> command performs
+the same function:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">composite</span> <span class="at">-compose</span> BitwiseXor mask.png base_image.png output.png</span></code></pre></div>
+<p>Alternatively, you can use the <code>convert</code> command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> base_image.png mask.png <span class="at">-compose</span> BitwiseXor <span class="at">-composite</span> output.png</span></code></pre></div>
+<h3 id="applying-a-constant-bitmask-with--evaluate">Applying a Constant
+Bitmask with <code>-evaluate</code></h3>
+<p>If your bitmask is a single numeric value rather than a separate
+image file, use the <code>-evaluate</code> operator instead of
+compositing:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base_image.png <span class="at">-evaluate</span> xor 0xAA output.png</span></code></pre></div>
+<p>You can pass hexadecimal values (like <code>0xFF</code> or
+<code>0x55</code>) or decimal values directly to the command.</p>
+<h3 id="important-considerations">Important Considerations</h3>
+<ul>
+<li><strong>Bit Depth:</strong> Bitwise operations depend heavily on the
+bit depth of the pixels. If your base image and mask have mismatched bit
+depths, normalizations can produce unintended results. Explicitly set
+matching bit depths using the <code>-depth</code> flag (e.g.,
+<code>-depth 8</code>).</li>
+<li><strong>Color Channels:</strong> By default, ImageMagick applies the
+compose operation across all available channels, including the alpha
+channel. To restrict the bitwise XOR to only color channels, explicitly
+select them using <code>-channel</code>:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base_image.png mask.png <span class="at">-channel</span> RGB <span class="at">-compose</span> BitwiseXor <span class="at">-composite</span> +channel output.png</span></code></pre></div></li>
+<li><strong>Mask Dimensions:</strong> The bitmask image should match the
+dimensions of the base image. If the mask is smaller or larger, resize
+or tile it to fit before compositing to avoid clipped regions.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

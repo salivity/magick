@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -clamp in HDRI Floating-Point Buffers - magick</title>
+    <meta name="description" content="The ImageMagick -clamp operator is a specialized color management and pixel processing command designed to restrict pixel channel values within the displayable quantum range. In High Dynamic Range Imaging (HDRI) builds, mathematical operations frequently">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-clamp-in-hdri-floating-point-buffers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -clamp in HDRI Floating-Point Buffers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-clamp-in-hdri-floating-point-buffers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -clamp operator is a specialized color management and pixel processing command designed to restrict pixel channel values within the displayable quantum range. In High Dynamic Range Imaging (HDRI) builds, mathematical operations frequently" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--clamp-in-hdri-floating-point-buffers">ImageMagick
+-clamp in HDRI Floating-Point Buffers</h1>
+<p>The ImageMagick <code>-clamp</code> operator is a specialized color
+management and pixel processing command designed to restrict pixel
+channel values within the displayable quantum range. In High Dynamic
+Range Imaging (HDRI) builds, mathematical operations frequently generate
+out-of-gamut data, including negative values that cannot exist in
+standard color spaces. The <code>-clamp</code> operator evaluates every
+channel in the floating-point buffer and forcibly restricts values to a
+valid range, converting any negative values directly to zero while
+capping values that exceed the quantum maximum.</p>
+<h3 id="the-behavior-of-hdri-floating-point-buffers">The Behavior of
+HDRI Floating-Point Buffers</h3>
+<p>Standard builds of ImageMagick use integer representations (typically
+8-bit or 16-bit integers, known as Q8 or Q16). In these integer modes,
+values are automatically clipped at zero and the maximum quantum value
+(such as 255 or 65,535) by hardware and integer boundaries during
+processing.</p>
+<p>HDRI builds replace integer storage with single-precision (32-bit) or
+double-precision (64-bit) floating-point buffers. Floating-point buffers
+remove natural clipping boundaries to preserve mathematical precision
+across complex multi-step pipelines.</p>
+<p>Because floating-point buffers lack automatic limits, certain
+operations produce negative values:</p>
+<ul>
+<li><strong>Convolutions and Resampling:</strong> Sinc or Lanczos
+filters produce negative lobes (ringing artifacts) that yield negative
+pixel data.</li>
+<li><strong>Sharpening Filters:</strong> Unsharp masks subtract blurred
+versions of an image, producing negative values in high-contrast
+transitions.</li>
+<li><strong>Color Space Transformations:</strong> Converting from
+wide-gamut spaces (like CIELAB or linear Rec.2020) to narrow spaces
+(like sRGB) generates negative coordinates for colors falling outside
+the destination gamut.</li>
+<li><strong>Direct Image Arithmetic:</strong> Subtraction or polynomial
+operations directly drive channel values below zero.</li>
+</ul>
+<h3 id="how-the--clamp-operator-eliminates-negative-values">How the
+<code>-clamp</code> Operator Eliminates Negative Values</h3>
+<p>When invoked, the <code>-clamp</code> operator processes the
+in-memory pixel cache sequentially or via multi-threaded OpenMP pixel
+loops. It evaluates each channel of every pixel using the internal
+ImageMagick function <code>ClampToQuantum()</code>.</p>
+<p>Mathematically, the operator applies the following piecewise function
+to each floating-point value <span class="math inline">\(x\)</span>:</p>
+<p><span class="math display">\[f(x) = \max(0.0, \min(x,
+\text{QuantumRange}))\]</span></p>
+<p>In the context of eliminating negative values:</p>
+<ol type="1">
+<li><strong>Threshold Evaluation:</strong> The operator checks if the
+channel's floating-point value is less than <code>0.0</code> (the
+defined <code>QuantumRange</code> minimum).</li>
+<li><strong>Value Replacement:</strong> Any value evaluated as <span
+class="math inline">\(x &lt; 0.0\)</span> is overwritten with <span
+class="math inline">\(0.0\)</span>.</li>
+<li><strong>Upper Bound Normalization:</strong> Simultaneously, any
+value exceeding the maximum quantum ceiling (such as <span
+class="math inline">\(65535.0\)</span> in a Q16HDRI build, or <span
+class="math inline">\(1.0\)</span> in normalized pipelines) is truncated
+to that upper ceiling.</li>
+</ol>
+<p>Because the buffer remains in floating-point format, the negative
+value is not rounded to the nearest non-zero integer; it becomes a
+floating-point zero (<code>0.0f</code>).</p>
+<h3 id="technical-consequences-of-clamping">Technical Consequences of
+Clamping</h3>
+<p>Allowing negative values to persist in an HDRI buffer until the final
+save operation can cause rendering anomalies depending on the output
+format.</p>
+<p>If an image containing negative floating-point numbers is saved to an
+integer format (such as standard PNG, JPEG, or TIFF) without invoking
+<code>-clamp</code>:</p>
+<ul>
+<li><strong>Integer Underflow:</strong> In some output delegates,
+unhandled negative floating-point numbers cast to unsigned integers wrap
+around to the maximum integer value, turning near-black pixels into pure
+white artifacts.</li>
+<li><strong>Color Inversion:</strong> Negative values can reverse color
+channel calculations, introducing magenta, green, or cyan fringes along
+high-contrast borders.</li>
+</ul>
+<p>Explicitly invoking <code>-clamp</code> flattens out-of-gamut
+negative data to the black floor of the destination colorspace, ensuring
+predictable, artifact-free conversion from floating-point memory to
+standard dynamic range files.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Multi-Page PDF to Horizontal Strip with ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to convert a multi-page PDF document into a single horizontal filmstrip image using ImageMagick. By utilizing ImageMagick's appending tools, you can quickly rasterize all pages of a PDF and stitch them side-by-side into a single">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-multi-page-pdf-to-horizontal-strip-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Multi-Page PDF to Horizontal Strip with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-multi-page-pdf-to-horizontal-strip-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to convert a multi-page PDF document into a single horizontal filmstrip image using ImageMagick. By utilizing ImageMagick's appending tools, you can quickly rasterize all pages of a PDF and stitch them side-by-side into a single" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="convert-multi-page-pdf-to-horizontal-strip-with-imagemagick">Convert
+Multi-Page PDF to Horizontal Strip with ImageMagick</h1>
+<p>This article explains how to convert a multi-page PDF document into a
+single horizontal filmstrip image using ImageMagick. By utilizing
+ImageMagick's appending tools, you can quickly rasterize all pages of a
+PDF and stitch them side-by-side into a single image file such as PNG or
+JPEG.</p>
+<h2 id="the-basic-command">The Basic Command</h2>
+<p>To merge all pages of a multi-page PDF side-by-side horizontally, use
+the <code>+append</code> operator.</p>
+<p>For ImageMagick version 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.pdf +append output.png</span></code></pre></div>
+<p>For ImageMagick version 6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.pdf +append output.png</span></code></pre></div>
+<h2 id="recommended-command-for-high-quality-output">Recommended Command
+for High-Quality Output</h2>
+<p>PDF files are vector-based documents. By default, ImageMagick renders
+PDFs at a low resolution (72 DPI), which often results in blurry text.
+To produce a sharp, high-resolution filmstrip, set the
+<code>-density</code> parameter before reading the input PDF:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input.pdf +append output.png</span></code></pre></div>
+<h2 id="command-breakdown">Command Breakdown</h2>
+<ul>
+<li><code>magick</code>: Invokes ImageMagick 7.</li>
+<li><code>-density 300</code>: Sets the horizontal and vertical
+resolution to 300 DPI, ensuring the PDF pages are rasterized with high
+clarity. This must be placed <strong>before</strong> the input
+file.</li>
+<li><code>input.pdf</code>: The source multi-page PDF document.</li>
+<li><code>+append</code>: Joins all decoded pages horizontally from left
+to right. (Note: Using <code>-append</code> with a minus sign joins
+pages vertically from top to bottom).</li>
+<li><code>output.png</code>: The resulting panoramic image containing
+all pages in a single row.</li>
+</ul>
+<h2 id="adding-spacing-between-pages">Adding Spacing Between Pages</h2>
+<p>If you want visual separation between the pages in the filmstrip, you
+can define a border or background color and use the <code>-splice</code>
+option:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input.pdf <span class="at">-splice</span> 10x0 +append output.png</span></code></pre></div>
+<p>This adds a 10-pixel horizontal gap between each page in the final
+image.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

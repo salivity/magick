@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Change GIF Frame Delay with ImageMagick? - magick</title>
+    <meta name="description" content="Changing the frame delay of an existing animated GIF is a straightforward process using ImageMagick's convert (or magick) command. By utilizing the -delay setter alongside the -loop option, you can precisely control how long each frame displays and how m">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-change-gif-frame-delay-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Change GIF Frame Delay with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-change-gif-frame-delay-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Changing the frame delay of an existing animated GIF is a straightforward process using ImageMagick's convert (or magick) command. By utilizing the -delay setter alongside the -loop option, you can precisely control how long each frame displays and how m" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-change-gif-frame-delay-with-imagemagick">How to Change
+GIF Frame Delay with ImageMagick?</h1>
+<p>Changing the frame delay of an existing animated GIF is a
+straightforward process using ImageMagick's <code>convert</code> (or
+<code>magick</code>) command. By utilizing the <code>-delay</code>
+setter alongside the <code>-loop</code> option, you can precisely
+control how long each frame displays and how many times the animation
+repeats. This article provides a quick guide on how to adjust these
+timing settings for the entire animation or for specific individual
+frames, ensuring your GIF plays at the exact speed you require.</p>
+<h2 id="modifying-the-delay-for-the-entire-gif">Modifying the Delay for
+the Entire GIF</h2>
+<p>To change the speed of all frames uniformly, you need to specify the
+new delay <em>before</em> importing your input GIF, and then use the
+<code>-layers Optimize</code> flag to ensure the output file remains
+efficient and uncorrupted.</p>
+<p>ImageMagick measures time in <strong>ticks</strong>, where 100 ticks
+equal 1 second. Therefore, a value of <code>20</code> represents
+20/100ths of a second (200 milliseconds), making the animation run at 5
+frames per second.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert <span class="at">-delay</span> 20 input.gif <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-delay 20</code> sets the display time for subsequent frames
+to 200ms.</li>
+<li><code>-loop 0</code> ensures the animated GIF loops
+indefinitely.</li>
+</ul>
+<h2 id="adjusting-speed-for-specific-frames">Adjusting Speed for
+Specific Frames</h2>
+<p>If you only want to change the duration of a single frame—for
+example, making the very first frame pause longer than the rest—you can
+target that specific frame index using square brackets <code>[ ]</code>.
+Frame indexing starts at <code>0</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.gif <span class="at">-delay</span> 100 <span class="at">-morphology</span> identity <span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> <span class="at">-delay</span> 20 <span class="pp">[</span><span class="ss">1</span><span class="pp">-</span><span class="ss">top</span><span class="pp">]</span> output.gif</span></code></pre></div>
+<p>Alternatively, you can break the GIF apart, apply different delays to
+different sections, and merge them back together in a single command
+line sequence to create dynamic timing changes within the same file.</p>
+<h2 id="overriding-existing-frame-animation-delays">Overriding Existing
+Frame Animation Delays</h2>
+<p>Sometimes, an existing GIF has baked-in timing metadata that resists
+global changes. To completely erase the old timing characteristics and
+force your new speed limits, use the <code>-set delay</code> command
+modifier.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.gif <span class="at">-set</span> delay 15 output.gif</span></code></pre></div>
+<p>Using <code>-set delay</code> directly alters the image metadata for
+every frame currently in the image sequence wrapper, safely overwriting
+whatever pacing the original creator embedded in the file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

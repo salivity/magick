@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Canny Detection Thresholds Explained - magick</title>
+    <meta name="description" content="This article explains the function and mechanics of the lower and upper percentage thresholds in ImageMagick’s Canny edge detection operator. By understanding how these two percentages govern hysteresis thresholding, you can accurately isolate prominen">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-canny-detection-thresholds-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Canny Detection Thresholds Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-canny-detection-thresholds-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the function and mechanics of the lower and upper percentage thresholds in ImageMagick’s Canny edge detection operator. By understanding how these two percentages govern hysteresis thresholding, you can accurately isolate prominen" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-canny-detection-thresholds-explained">ImageMagick
+Canny Detection Thresholds Explained</h1>
+<p>This article explains the function and mechanics of the lower and
+upper percentage thresholds in ImageMagick’s Canny edge detection
+operator. By understanding how these two percentages govern hysteresis
+thresholding, you can accurately isolate prominent contours, eliminate
+background noise, and prevent broken lines in your processed images.</p>
+<h2 id="the-imagemagick-canny-syntax">The ImageMagick Canny Syntax</h2>
+<p>In ImageMagick, the Canny edge detector is typically invoked using
+the following syntax:</p>
+<p><code>-canny {radius}x{sigma}+{lower}%+{upper}%</code></p>
+<p>While the radius and sigma determine the Gaussian blur used to reduce
+initial image noise, the lower and upper percentages control
+<strong>hysteresis thresholding</strong>—the dual-threshold process that
+decides which pixel gradients constitute true edges.</p>
+<h2 id="the-upper-percentage-threshold-strong-edges">The Upper
+Percentage Threshold (Strong Edges)</h2>
+<p>The upper percentage threshold defines the minimum gradient intensity
+required for a pixel to immediately be classified as a definitive edge
+(a "strong" edge).</p>
+<ul>
+<li><strong>How it works:</strong> After the image's gradient magnitudes
+are calculated, any pixel with a gradient value above this upper
+percentage is automatically retained as an edge.</li>
+<li><strong>Impact of raising it:</strong> A higher upper threshold
+makes the detector more selective, preserving only the most prominent,
+high-contrast borders and discarding subtle transitions.</li>
+<li><strong>Impact of lowering it:</strong> A lower upper threshold
+allows softer, lower-contrast transitions to be recognized as primary
+edges, which can introduce background noise or texture artifacts.</li>
+</ul>
+<h2 id="the-lower-percentage-threshold-weak-edges-and-continuity">The
+Lower Percentage Threshold (Weak Edges and Continuity)</h2>
+<p>The lower percentage threshold acts as a secondary gate to preserve
+edge continuity without introducing widespread noise.</p>
+<ul>
+<li><strong>How it works:</strong> Pixels with gradient magnitudes
+falling between the lower and upper thresholds are marked as "weak"
+edges. A weak edge pixel is only kept if it is directly connected
+(adjacent) to a strong edge pixel or part of a contiguous chain leading
+to one. Any pixel with a gradient below the lower threshold is discarded
+immediately.</li>
+<li><strong>Impact of raising it:</strong> A higher lower threshold
+reduces the chances of tracing noisy paths, but it may cause real edges
+to appear fragmented or broken if the gradient drops along a line.</li>
+<li><strong>Impact of lowering it:</strong> A lower lower threshold
+creates more complete, unbroken line contours by bridging gaps, but it
+increases the risk of tracing spurious noise connected to genuine
+edges.</li>
+</ul>
+<h2 id="summary-of-interaction">Summary of Interaction</h2>
+<p>Together, the two thresholds eliminate the trade-off inherent in
+single-threshold edge detection:</p>
+<ol type="1">
+<li><strong>Pixels above the Upper Threshold:</strong> Marked as edges
+unconditionally.</li>
+<li><strong>Pixels between Lower and Upper Thresholds:</strong> Retained
+only if connected to an existing edge path.</li>
+<li><strong>Pixels below the Lower Threshold:</strong> Suppressed
+completely.</li>
+</ol>
+<p>A common starting ratio for the lower and upper thresholds is roughly
+1:2 or 1:3 (for example, <code>+10%+30%</code> or
+<code>+20%+60%</code>), which provides a balanced baseline to maintain
+continuous lines while rejecting isolated high-frequency noise.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

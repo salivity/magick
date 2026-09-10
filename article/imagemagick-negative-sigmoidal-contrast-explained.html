@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Negative Sigmoidal Contrast Explained - magick</title>
+    <meta name="description" content="When a negative contrast value is supplied to ImageMagick's -sigmoidal-contrast operator, the contrast of the image is still increased rather than decreased. Due to the algebraic symmetry of the underlying sigmoidal formula, the negative sign cancels out">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-negative-sigmoidal-contrast-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Negative Sigmoidal Contrast Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-negative-sigmoidal-contrast-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When a negative contrast value is supplied to ImageMagick's -sigmoidal-contrast operator, the contrast of the image is still increased rather than decreased. Due to the algebraic symmetry of the underlying sigmoidal formula, the negative sign cancels out" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-negative-sigmoidal-contrast-explained">ImageMagick
+Negative Sigmoidal Contrast Explained</h1>
+<p>When a negative contrast value is supplied to ImageMagick's
+<code>-sigmoidal-contrast</code> operator, the contrast of the image is
+still increased rather than decreased. Due to the algebraic symmetry of
+the underlying sigmoidal formula, the negative sign cancels out during
+normalization, producing the exact same contrast-enhancing result as a
+positive value of the same magnitude. To actually decrease contrast
+using a sigmoidal curve, you must use the
+<code>+sigmoidal-contrast</code> operator instead.</p>
+<h3 id="the-mathematics-behind-the-behavior">The Mathematics Behind the
+Behavior</h3>
+<p>Many ImageMagick operators—such as
+<code>-brightness-contrast</code>—use negative numbers to decrease an
+effect and positive numbers to increase it. The
+<code>-sigmoidal-contrast</code> operator does not follow this
+convention because of the way its transfer function is calculated.</p>
+<p>ImageMagick adjusts tonal values using a scaled logistic S-curve
+defined by:</p>
+<p><span class="math display">\[f(x) = \frac{S(x) - S(0)}{S(1) -
+S(0)}\]</span></p>
+<p>where <span class="math inline">\(S(x)\)</span> is the sigmoid
+function:</p>
+<p><span class="math display">\[S(x) = \frac{1}{1 + e^{-\alpha(x -
+\beta)}}\]</span></p>
+<p>In this formula, <span class="math inline">\(\alpha\)</span>
+represents the contrast factor and <span
+class="math inline">\(\beta\)</span> represents the midpoint.</p>
+<p>Because of the algebraic identity of the logistic function:</p>
+<p><span class="math display">\[1 - \frac{1}{1 + e^{-u}} = \frac{1}{1 +
+e^u}\]</span></p>
+<p>Negating the contrast parameter (<span class="math inline">\(\alpha
+\to -\alpha\)</span>) negates both the numerator and the denominator of
+the normalized curve:</p>
+<p><span class="math display">\[\frac{-[S(x) - S(0)]}{-[S(1) - S(0)]} =
+\frac{S(x) - S(0)}{S(1) - S(0)}\]</span></p>
+<p>Because both negative signs cancel out, the final lookup table
+generated for a negative contrast parameter (such as
+<code>-sigmoidal-contrast -5x50%</code>) is identical to the one
+generated for its positive counterpart
+(<code>-sigmoidal-contrast 5x50%</code>). The image neither inverts nor
+flattens; it gains contrast around the midpoint.</p>
+<h3 id="how-to-properly-decrease-contrast">How to Properly Decrease
+Contrast</h3>
+<p>To reduce contrast using an inverse sigmoidal transformation, use the
+plus form of the command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +sigmoidal-contrast 5x50% output.png</span></code></pre></div>
+<p>In ImageMagick, the <code>+</code> prefix signals the inverse
+operation. The <code>+sigmoidal-contrast</code> command uses the inverse
+mathematical function, expanding shadows and highlights while
+compressing midtones to flatten the dynamic range without clipping.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

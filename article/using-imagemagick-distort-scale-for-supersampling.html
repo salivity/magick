@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using ImageMagick distort:scale for Supersampling - magick</title>
+    <meta name="description" content="This article explains the role of the -set option:distort:scale setting in ImageMagick, specifically focusing on its function in manual distortion supersampling workflows. You will learn how this option alters the internal coordinate mapping of distortio">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/using-imagemagick-distort-scale-for-supersampling">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using ImageMagick distort:scale for Supersampling - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/using-imagemagick-distort-scale-for-supersampling" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the role of the -set option:distort:scale setting in ImageMagick, specifically focusing on its function in manual distortion supersampling workflows. You will learn how this option alters the internal coordinate mapping of distortio" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-imagemagick-distortscale-for-supersampling">Using
+ImageMagick distort:scale for Supersampling</h1>
+<p>This article explains the role of the
+<code>-set option:distort:scale</code> setting in ImageMagick,
+specifically focusing on its function in manual distortion supersampling
+workflows. You will learn how this option alters the internal coordinate
+mapping of distortion operators, why it is critical for manual
+anti-aliasing pipelines, and how it simplifies rendering transformations
+at high resolutions without requiring manual coordinate
+recalculation.</p>
+<h3 id="what-is--set-optiondistortscale">What is
+<code>-set option:distort:scale</code>?</h3>
+<p>In ImageMagick, geometric transformations applied via
+<code>-distort</code> (such as Perspective, Affine, or Barrel) use an
+internal coordinate lookup system to map pixels between the source and
+destination images. The setting
+<code>-set option:distort:scale &lt;factor&gt;</code> acts as an
+internal multiplier for the output destination space.</p>
+<p>When you define a scaling factor (for example, <code>2</code>),
+ImageMagick scales the output dimensions and adjusts the inverse
+distortion mapping calculations automatically. A factor of
+<code>2</code> doubles the dimensions of the generated output area,
+while a factor of <code>0.5</code> halves it, all while keeping the
+original transformation geometry structurally identical.</p>
+<h3 id="the-role-in-manual-supersampling">The Role in Manual
+Supersampling</h3>
+<p>By default, ImageMagick uses Elliptical Weighted Average (EWA)
+resampling during <code>-distort</code> operations to minimize aliasing.
+However, in scenarios with extreme perspective compression, sharp
+high-frequency patterns, or specific artistic requirements, automated
+EWA filtering can sometimes produce unwanted blurring or residual
+moiré.</p>
+<p>Manual supersampling solves this by rendering the distorted image at
+a higher resolution (oversampling) and then downscaling it using a
+chosen reconstruction filter. The <code>-set option:distort:scale</code>
+setting is the primary mechanism that enables this workflow:</p>
+<ol type="1">
+<li><strong>Eliminating Coordinate Math:</strong> Without
+<code>distort:scale</code>, rendering a 2x or 4x supersampled distortion
+requires manually multiplying every destination control point coordinate
+by the scale factor in the distortion argument string. With
+<code>distort:scale</code>, you leave your coordinate control points
+unchanged; the engine handles the spatial expansion internally.</li>
+<li><strong>Generating the Oversampled Buffer:</strong> Setting
+<code>-set option:distort:scale 2</code> or <code>4</code> instructs the
+<code>-distort</code> command to generate an intermediate image that is
+two or four times larger in each dimension. The transformation equations
+evaluate at this higher sample density, capturing sub-pixel geometry and
+fine details that standard sampling might miss.</li>
+<li><strong>Downsampling for Final Anti-Aliasing:</strong> Once the
+enlarged, distorted canvas is generated, you pipe the result to
+<code>-resize 50%</code> (for a 2x scale) or <code>-resize 25%</code>
+(for a 4x scale). This step averages the excess pixel data down to the
+intended target resolution using standard downsampling filters (such as
+Lanczos, Mitchell, or Box), resulting in clean, custom anti-aliased
+edges.</li>
+</ol>
+<h3 id="practical-implementation">Practical Implementation</h3>
+<p>A typical supersampling pipeline using this setting follows this
+sequence:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-set</span> option:distort:scale 2 +distort Perspective <span class="st">&quot;...&quot;</span> <span class="at">-resize</span> 50% output.png</span></code></pre></div>
+<p>In this pipeline:</p>
+<ul>
+<li><code>option:distort:scale 2</code> dictates that the perspective
+distortion calculation occurs at double resolution.</li>
+<li><code>+distort</code> calculates the expanded viewport needed to
+house the 2x result.</li>
+<li><code>-resize 50%</code> acts as the low-pass filter, resolving the
+supersampled pixels into the final anti-aliased image.</li>
+</ul>
+<p>The primary role of <code>-set option:distort:scale</code> in manual
+supersampling is therefore separation of scale from geometry: it lets
+you control the sampling density of the distortion operation
+independently of the control point definitions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

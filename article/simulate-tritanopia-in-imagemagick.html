@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Tritanopia in ImageMagick - magick</title>
+    <meta name="description" content="This article provides the exact color transformation matrix and command-line syntax needed to simulate tritanopia (blue-yellow color blindness) using ImageMagick. By applying a 3x3 color matrix to digital images, designers and developers can evaluate acc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/simulate-tritanopia-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Simulate Tritanopia in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/simulate-tritanopia-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the exact color transformation matrix and command-line syntax needed to simulate tritanopia (blue-yellow color blindness) using ImageMagick. By applying a 3x3 color matrix to digital images, designers and developers can evaluate acc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="simulate-tritanopia-in-imagemagick">Simulate Tritanopia in
+ImageMagick</h1>
+<p>This article provides the exact color transformation matrix and
+command-line syntax needed to simulate tritanopia (blue-yellow color
+blindness) using ImageMagick. By applying a 3x3 color matrix to digital
+images, designers and developers can evaluate accessibility and
+understand how visual content appears to individuals lacking
+short-wavelength (S-cone) color receptors.</p>
+<h2 id="the-tritanopia-transformation-matrix">The Tritanopia
+Transformation Matrix</h2>
+<p>To simulate tritanopia accurately, visual research models (such as
+those by Brettel, Vienot, and Mollon) re-map RGB channels so that blue
+wavelengths are approximated via red and green luminance.</p>
+<p>A widely accepted 3x3 matrix for simulating complete tritanopia
+is:</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+0.95 &amp; 0.05 &amp; 0.00 \\
+0.00 &amp; 0.43333 &amp; 0.56667 \\
+0.00 &amp; 0.475 &amp; 0.525
+\end{bmatrix}
+\]</span></p>
+<p>In this matrix:</p>
+<ul>
+<li><strong>Red output (Row 1):</strong> Derived from 95% Red and 5%
+Green.</li>
+<li><strong>Green output (Row 2):</strong> Derived from 43.333% Green
+and 56.667% Blue.</li>
+<li><strong>Blue output (Row 3):</strong> Derived from 47.5% Green and
+52.5% Blue.</li>
+</ul>
+<h2 id="imagemagick-command-syntax">ImageMagick Command Syntax</h2>
+<p>ImageMagick provides the <code>-color-matrix</code> operator to apply
+linear transformations to image channels. The matrix values are passed
+as a flattened sequence of row-major numbers.</p>
+<h3 id="imagemagick-7-recommended">ImageMagick 7 (Recommended)</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-color-matrix</span> <span class="st">&quot;0.95 0.05 0.00 0.00 0.43333 0.56667 0.00 0.475 0.525&quot;</span> output_tritanopia.jpg</span></code></pre></div>
+<h3 id="imagemagick-6-legacy">ImageMagick 6 (Legacy)</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-color-matrix</span> <span class="st">&quot;0.95 0.05 0.00 0.00 0.43333 0.56667 0.00 0.475 0.525&quot;</span> output_tritanopia.jpg</span></code></pre></div>
+<h2 id="alternative-matrix-machado-model">Alternative Matrix (Machado
+Model)</h2>
+<p>For physiologically calibrated simulations based on the Machado et
+al. model (100% severity), use the following matrix values:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-color-matrix</span> <span class="st">&quot;0.972 0.028 0.00 0.00 0.735 0.265 0.00 0.183 0.817&quot;</span> output_tritanopia_machado.jpg</span></code></pre></div>
+<p>Applying either matrix modifies the image instantly without requiring
+external lookup tables or plugins, making it ideal for automated
+accessibility testing scripts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

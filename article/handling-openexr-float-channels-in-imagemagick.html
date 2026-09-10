@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handling OpenEXR Float Channels in ImageMagick - magick</title>
+    <meta name="description" content="OpenEXR (.exr) files store high dynamic range (HDR) image data using 16-bit half-precision or 32-bit single-precision floating-point numbers. To manipulate, extract, or convert these floating-point channels without precision loss or data clamping, ImageM">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/handling-openexr-float-channels-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Handling OpenEXR Float Channels in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/handling-openexr-float-channels-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="OpenEXR (.exr) files store high dynamic range (HDR) image data using 16-bit half-precision or 32-bit single-precision floating-point numbers. To manipulate, extract, or convert these floating-point channels without precision loss or data clamping, ImageM" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="handling-openexr-float-channels-in-imagemagick">Handling OpenEXR
+Float Channels in ImageMagick</h1>
+<p>OpenEXR (.exr) files store high dynamic range (HDR) image data using
+16-bit half-precision or 32-bit single-precision floating-point numbers.
+To manipulate, extract, or convert these floating-point channels without
+precision loss or data clamping, ImageMagick must be configured with
+High Dynamic Range Imaging (HDRI) enabled. This guide covers how to
+verify your build, extract specific floating-point channels, preserve
+float precision, and convert EXR data for standard displays.</p>
+<h3 id="1-verify-hdri-support">1. Verify HDRI Support</h3>
+<p>ImageMagick must be compiled with HDRI support (typically
+<code>Q16HDRI</code> or <code>Q32HDRI</code>) to process non-integer
+pixel values. Check your installation by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>HDRI</code> under the <strong>Features</strong> list.
+If <code>HDRI</code> is missing, floating-point data will be clamped
+between 0 and integer quantum maximums, corrupting the HDR data.</p>
+<h3 id="2-preserving-floating-point-precision">2. Preserving
+Floating-Point Precision</h3>
+<p>By default, saving an image might convert the data into fixed-point
+integers. When writing or converting OpenEXR files, explicitly define
+the depth and floating-point format to prevent data truncation.</p>
+<p>To save an image as a 16-bit half-float OpenEXR:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-depth</span> 16 <span class="at">-define</span> quantum:format=floating-point output.exr</span></code></pre></div>
+<p>To preserve full 32-bit single-precision floating-point channels:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-depth</span> 32 <span class="at">-define</span> quantum:format=floating-point output_32bit.exr</span></code></pre></div>
+<h3 id="3-extracting-and-isolating-specific-channels">3. Extracting and
+Isolating Specific Channels</h3>
+<p>OpenEXR files often contain arbitrary channels beyond standard RGB,
+such as Depth (<code>Z</code>), Alpha (<code>A</code>), or auxiliary
+render passes.</p>
+<p>To extract a specific channel (e.g., Red or a single channel pass)
+and export it as an individual floating-point EXR file:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-channel</span> R <span class="at">-separate</span> red_channel.exr</span></code></pre></div>
+<p>To extract all channels into separate grayscale EXR files:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-separate</span> channel_%d.exr</span></code></pre></div>
+<h3 id="4-adjusting-floating-point-data-ranges">4. Adjusting
+Floating-Point Data Ranges</h3>
+<p>Raw floating-point data can contain negative values or values far
+exceeding 1.0 (such as luminance or depth values). You can perform
+mathematical operations directly on the float channels using the
+<code>-evaluate</code> operator:</p>
+<ul>
+<li><strong>Scale data:</strong> Multiply channels by a constant factor:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-evaluate</span> multiply 0.5 scaled.exr</span></code></pre></div></li>
+<li><strong>Offset data:</strong> Add an offset to normalize negative
+values:
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-evaluate</span> add 1.0 offset.exr</span></code></pre></div></li>
+</ul>
+<h3 id="5-converting-openexr-to-standard-8-bit-or-16-bit-formats">5.
+Converting OpenEXR to Standard 8-bit or 16-bit Formats</h3>
+<p>Standard formats like PNG, TIFF, and JPEG do not handle unbound
+floating-point data correctly without tone mapping. To convert an EXR
+file to a standard display format, apply color space conversion,
+clamping, or tone adjustment:</p>
+<ul>
+<li><strong>Linear to sRGB conversion:</strong>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-colorspace</span> sRGB <span class="at">-depth</span> 8 output.png</span></code></pre></div></li>
+<li><strong>Auto-leveling and clamping:</strong>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-auto-level</span> <span class="at">-clamp</span> <span class="at">-depth</span> 8 output.png</span></code></pre></div></li>
+<li><strong>Applying Gamma for non-linear display:</strong>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-gamma</span> 2.2 <span class="at">-clamp</span> <span class="at">-depth</span> 8 output.jpg</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

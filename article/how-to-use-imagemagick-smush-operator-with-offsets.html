@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use ImageMagick Smush Operator with Offsets - magick</title>
+    <meta name="description" content="This article explains how the ImageMagick smush operator handles horizontal image concatenation using custom offset values. You will learn the mechanics behind transparency detection, how horizontal smushing differs from standard appending, and how posit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-use-imagemagick-smush-operator-with-offsets">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use ImageMagick Smush Operator with Offsets - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-use-imagemagick-smush-operator-with-offsets" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the ImageMagick smush operator handles horizontal image concatenation using custom offset values. You will learn the mechanics behind transparency detection, how horizontal smushing differs from standard appending, and how posit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-imagemagick-smush-operator-with-offsets">How to Use
+ImageMagick Smush Operator with Offsets</h1>
+<p>This article explains how the ImageMagick <code>smush</code> operator
+handles horizontal image concatenation using custom offset values. You
+will learn the mechanics behind transparency detection, how horizontal
+smushing differs from standard appending, and how positive, negative, or
+zero offsets control the exact spacing and overlap between adjacent
+images.</p>
+<h2 id="understanding-the-smush-operator">Understanding the
+<code>+smush</code> Operator</h2>
+<p>In ImageMagick, the <code>smush</code> operator joins a sequence of
+images together in a single direction while accounting for transparency.
+The plus sign variant (<code>+smush</code>) executes a horizontal
+concatenation, placing images from left to right. The minus sign variant
+(<code>-smush</code>) handles vertical concatenation from top to
+bottom.</p>
+<p>Unlike the standard <code>+append</code> operator—which joins images
+strictly edge-to-edge based on their outer bounding
+boxes—<code>+smush</code> analyzes the alpha channel of adjacent images.
+It attempts to slide the second image toward the first until their
+non-transparent pixels meet.</p>
+<h2 id="how-custom-offsets-function">How Custom Offsets Function</h2>
+<p>The <code>+smush</code> operator accepts an integer offset
+parameter:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png image2.png +smush <span class="op">&lt;</span>offset<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p>The offset value defines the exact pixel distance between the closest
+non-transparent pixels of the two images:</p>
+<ul>
+<li><strong>Zero Offset (<code>+smush 0</code>):</strong> The second
+image slides leftward until its non-transparent pixels sit directly
+adjacent to the non-transparent pixels of the first image.</li>
+<li><strong>Positive Offset (<code>+smush 20</code>):</strong> The
+operator slides the second image until a 20-pixel gap remains between
+the nearest opaque pixels of both images.</li>
+<li><strong>Negative Offset (<code>+smush -20</code>):</strong> The
+operator forces the images to overlap, moving the second image 20 pixels
+beyond the point where their opaque pixels first make contact.</li>
+</ul>
+<h2 id="smushing-images-without-transparency">Smushing Images Without
+Transparency</h2>
+<p>If the source images do not contain an alpha channel (such as
+standard JPEGs or fully opaque PNGs), <code>+smush</code> treats the
+outer pixel dimensions of the images as the boundary.</p>
+<p>In this scenario:</p>
+<ul>
+<li><code>+smush 0</code> yields the exact same result as
+<code>+append</code>, placing the images directly edge-to-edge.</li>
+<li><code>+smush 15</code> introduces a 15-pixel empty gap between the
+images.</li>
+<li><code>+smush -15</code> overlaps the two images by 15 pixels, with
+the right-hand image rendered on top of the left-hand image in the
+overlapping zone.</li>
+</ul>
+<h2 id="alignment-and-canvas-height">Alignment and Canvas Height</h2>
+<p>When images of varying heights are horizontally smushed, ImageMagick
+expands the resulting canvas to match the height of the tallest image.
+By default, shorter images are aligned to the top-left edge of the
+canvas. You can change vertical alignment prior to smushing by setting
+the <code>-gravity</code> option (e.g., <code>-gravity Center</code> or
+<code>-gravity South</code>).</p>
+<h2 id="example-usage">Example Usage</h2>
+<p>To horizontally concatenate two transparent icons with an exact
+10-pixel gap between their visible contents:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> icon1.png icon2.png <span class="at">-gravity</span> Center +smush 10 result.png</span></code></pre></div>
+<p>To create a horizontally overlapping collage effect where each
+consecutive photo overlaps the previous one by 50 pixels:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo1.jpg photo2.jpg photo3.jpg +smush <span class="at">-50</span> collage.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

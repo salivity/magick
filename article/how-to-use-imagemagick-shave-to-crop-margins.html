@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use ImageMagick Shave to Crop Margins - magick</title>
+    <meta name="description" content="This guide explains how to use the ImageMagick -shave operator to quickly and evenly remove borders from images. You will learn the underlying command syntax, how the operator processes pixel and percentage values, and practical examples for trimming uni">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-use-imagemagick-shave-to-crop-margins">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use ImageMagick Shave to Crop Margins - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-use-imagemagick-shave-to-crop-margins" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to use the ImageMagick -shave operator to quickly and evenly remove borders from images. You will learn the underlying command syntax, how the operator processes pixel and percentage values, and practical examples for trimming uni" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-imagemagick-shave-to-crop-margins">How to Use
+ImageMagick Shave to Crop Margins</h1>
+<p>This guide explains how to use the ImageMagick <code>-shave</code>
+operator to quickly and evenly remove borders from images. You will
+learn the underlying command syntax, how the operator processes pixel
+and percentage values, and practical examples for trimming uniform
+margins from all four sides of single files or entire batches of
+images.</p>
+<h3 id="understanding-the-shave-syntax">Understanding the Shave
+Syntax</h3>
+<p>The <code>-shave</code> operator removes pixels from the edges of an
+image. Its basic syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-shave</span> {Width}x{Height} output.jpg</span></code></pre></div>
+<p><em>(Note: In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<p>The parameters work symmetrically:</p>
+<ul>
+<li><strong><code>Width</code></strong>: The number of pixels removed
+from <strong>both</strong> the left and right edges (reducing total
+width by <code>Width * 2</code>).</li>
+<li><strong><code>Height</code></strong>: The number of pixels removed
+from <strong>both</strong> the top and bottom edges (reducing total
+height by <code>Height * 2</code>).</li>
+</ul>
+<h3 id="cropping-equal-margins-in-pixels">Cropping Equal Margins in
+Pixels</h3>
+<p>To crop the exact same margin from all four sides, set the
+<code>Width</code> and <code>Height</code> values to the same
+number.</p>
+<p>For example, to remove 25 pixels from the top, bottom, left, and
+right:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-shave</span> 25x25 output.png</span></code></pre></div>
+<p>This command reduces the original image's total width by 50 pixels
+and total height by 50 pixels while keeping the center intact.</p>
+<h3 id="cropping-equal-margins-by-percentage">Cropping Equal Margins by
+Percentage</h3>
+<p>You can also use percentage values instead of fixed pixel dimensions.
+When using percentages, the calculation is relative to the original
+dimensions of the image.</p>
+<p>To crop 5% from all four sides:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-shave</span> 5x5% output.png</span></code></pre></div>
+<p>This removes 5% from the left and 5% from the right (10% total width
+reduction), along with 5% from the top and 5% from the bottom (10% total
+height reduction).</p>
+<h3 id="batch-processing-multiple-images">Batch Processing Multiple
+Images</h3>
+<p>To apply identical margin crops to multiple images at once, use the
+<code>mogrify</code> command. Be aware that <code>mogrify</code>
+overwrites original files unless an output path or format is
+specified:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-shave</span> 30x30 <span class="pp">*</span>.jpg</span></code></pre></div>
+<p>To save the cropped files into a specific folder without overwriting
+originals:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./cropped_output <span class="at">-shave</span> 30x30 <span class="pp">*</span>.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

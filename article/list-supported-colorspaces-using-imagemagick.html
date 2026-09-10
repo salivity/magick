@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Supported Colorspaces Using ImageMagick - magick</title>
+    <meta name="description" content="This article explains how system administrators can query all supported colorspaces in ImageMagick using the -list colorspace option. ImageMagick relies on specific colorspace models to accurately process, convert, and render digital images. By running t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/list-supported-colorspaces-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="List Supported Colorspaces Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/list-supported-colorspaces-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how system administrators can query all supported colorspaces in ImageMagick using the -list colorspace option. ImageMagick relies on specific colorspace models to accurately process, convert, and render digital images. By running t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="list-supported-colorspaces-using-imagemagick">List Supported
+Colorspaces Using ImageMagick</h1>
+<p>This article explains how system administrators can query all
+supported colorspaces in ImageMagick using the
+<code>-list colorspace</code> option. ImageMagick relies on specific
+colorspace models to accurately process, convert, and render digital
+images. By running the colorspace diagnostic command, administrators can
+verify system capabilities, ensure required color models are available
+for automated processing workflows, and troubleshoot color-rendering
+issues.</p>
+<h3 id="executing-the-command">Executing the Command</h3>
+<p>The command used to query available colorspaces depends on the
+installed version of ImageMagick.</p>
+<p>For <strong>ImageMagick version 7</strong>, use the primary
+<code>magick</code> CLI tool:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> colorspace</span></code></pre></div>
+<p>For systems running <strong>ImageMagick version 6</strong>, the
+legacy <code>convert</code> command provides the same query
+functionality:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-list</span> colorspace</span></code></pre></div>
+<h3 id="understanding-the-output">Understanding the Output</h3>
+<p>Executing the command outputs a straightforward, line-by-line list of
+all colorspace profiles compiled into your ImageMagick build. Typical
+outputs include standard formats such as:</p>
+<ul>
+<li><strong>RGB / sRGB:</strong> Standard Red-Green-Blue models used for
+web and digital displays.</li>
+<li><strong>CMYK:</strong> Cyan-Magenta-Yellow-Key (Black) model used
+for print preparation.</li>
+<li><strong>Gray:</strong> Monochromatic grayscale spaces.</li>
+<li><strong>CIELab / Lab:</strong> Perceptually uniform colorspaces used
+in precise color management.</li>
+<li><strong>HSL / HSV:</strong> Hue-Saturation-Lightness/Value spaces
+used in graphic manipulation.</li>
+<li><strong>YUV / YCbCr:</strong> Component video and digital
+compression colorspaces.</li>
+</ul>
+<h3 id="filtering-and-searching-colorspace-results">Filtering and
+Searching Colorspace Results</h3>
+<p>Administrators managing headless servers or deployment scripts can
+pipe the output into standard Linux utilities to verify specific
+configurations.</p>
+<p>To search for a specific colorspace (e.g., CMYK):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> colorspace <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="st">&quot;cmyk&quot;</span></span></code></pre></div>
+<p>To count the total number of colorspaces supported by the current
+installation:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> colorspace <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span></span></code></pre></div>
+<h3 id="why-administrators-should-query-colorspaces">Why Administrators
+Should Query Colorspaces</h3>
+<ol type="1">
+<li><strong>Pipeline Validation:</strong> Automated image-processing
+pipelines require verification that target output formats (like
+<code>sRGB</code> or <code>CMYK</code>) are supported before executing
+bulk conversion jobs.</li>
+<li><strong>Compile-Time Checks:</strong> If ImageMagick is compiled
+from source, listing colorspaces confirms that underlying delegate
+libraries—such as Little CMS (<code>lcms2</code>)—were detected and
+linked properly.</li>
+<li><strong>Error Prevention:</strong> Specifying an unsupported
+colorspace in a transformation script causes processing failures;
+checking the list beforehand allows administrators to establish safe
+defaults in batch scripts.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

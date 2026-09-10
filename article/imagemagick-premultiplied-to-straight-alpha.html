@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Premultiplied to Straight Alpha - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick processes premultiplied alpha channels when exporting to file formats that require straight (unassociated) alpha, such as standard PNGs. ImageMagick relies on a straight alpha model for most standard i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-premultiplied-to-straight-alpha">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Premultiplied to Straight Alpha - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-premultiplied-to-straight-alpha" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick processes premultiplied alpha channels when exporting to file formats that require straight (unassociated) alpha, such as standard PNGs. ImageMagick relies on a straight alpha model for most standard i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-premultiplied-to-straight-alpha">ImageMagick
+Premultiplied to Straight Alpha</h1>
+<p>This article provides an overview of how ImageMagick processes
+premultiplied alpha channels when exporting to file formats that require
+straight (unassociated) alpha, such as standard PNGs. ImageMagick relies
+on a straight alpha model for most standard image operations, but it
+does not always automatically un-multiply color channels when receiving
+premultiplied input. Below, you will find an explanation of how the
+software handles this mismatch, the rendering issues that occur if left
+uncorrected, and the explicit CLI operations needed to ensure color
+accuracy.</p>
+<h2 id="the-difference-between-alpha-models">The Difference Between
+Alpha Models</h2>
+<p>In a straight (unassociated) alpha image, RGB color channels store
+full-intensity color data regardless of the pixel's opacity value. The
+alpha channel acts strictly as an independent mask. In a premultiplied
+(associated) alpha image, the RGB values have already been multiplied by
+the normalized alpha value (ranging from 0.0 to 1.0).</p>
+<p>Formats like PNG standardly expect straight alpha data, whereas
+formats like TIFF, EXR, and various rendering pipelines often utilize
+premultiplied alpha to optimize compositing and blending efficiency.</p>
+<h2 id="imagemagick-default-export-behavior">ImageMagick Default Export
+Behavior</h2>
+<p>ImageMagick does not automatically detect whether raw RGB values in
+memory represent premultiplied or straight alpha unless the input
+format's decoder explicitly flags and converts it upon read. When
+writing to a target format that specifies straight alpha, ImageMagick
+sends the pixel buffer’s raw RGB and alpha values directly to the target
+encoder.</p>
+<p>If the internal image buffer contains premultiplied data and
+ImageMagick writes directly to a straight-alpha format, the values are
+written without performing mathematical division. The target format's
+viewer interprets those already-reduced RGB values as straight color
+values and multiplies them by the alpha channel a second time during
+rendering.</p>
+<p>This mismatch creates distinct rendering artifacts:</p>
+<ul>
+<li><strong>Dark Halos and Fringes:</strong> Semi-transparent edges,
+anti-aliased text, and soft borders appear unnaturally dark or
+black.</li>
+<li><strong>Loss of Color Vibrancy:</strong> Translucent pixels lose
+their intended saturation and brightness.</li>
+</ul>
+<h2 id="handling-the-conversion-explicitly">Handling the Conversion
+Explicitly</h2>
+<p>To prevent color corruption, you must convert premultiplied alpha
+data into straight alpha before writing to the destination file.
+ImageMagick provides dedicated operators to modify the alpha channel
+relationship.</p>
+<h3 id="using-imagemagick-7">Using ImageMagick 7</h3>
+<p>ImageMagick 7 standardizes channel-level alpha operations through the
+<code>-alpha</code> command flag. The primary operator for converting
+premultiplied data back to straight data is <code>unpremultiply</code>
+(or its alias <code>disassociate</code>):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_premultiplied.tif <span class="at">-alpha</span> unpremultiply output_straight.png</span></code></pre></div>
+<p>This command divides the RGB values of each pixel by its
+corresponding alpha value, restoring the color channels to their
+unassociated state before encoding into the PNG file.</p>
+<p>Conversely, if you are working with an operation that expects
+premultiplied alpha, the reverse command is:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_straight.png <span class="at">-alpha</span> premultiply output_premultiplied.tif</span></code></pre></div>
+<h3 id="using-imagemagick-6">Using ImageMagick 6</h3>
+<p>In legacy versions of ImageMagick 6, the
+<code>-alpha unpremultiply</code> operator is available in later patch
+versions. If working with an older release lacking that flag, the
+operation often required manual channel division or manipulation using
+the <code>-background</code> and <code>-alpha</code> operators:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_premultiplied.tif <span class="at">-alpha</span> unpremultiply output_straight.png</span></code></pre></div>
+<h2 id="considerations-for-specific-file-formats">Considerations for
+Specific File Formats</h2>
+<p>Certain file formats include metadata flags describing alpha
+association:</p>
+<ul>
+<li><strong>TIFF:</strong> The TIFF specification includes an
+<code>ExtraSamples</code> tag that specifies whether transparency is
+associated (premultiplied) or unassociated. ImageMagick's TIFF delegate
+reads this tag, but explicit conversion ensures uniform behavior when
+saving to strict straight-alpha containers.</li>
+<li><strong>PNG:</strong> The official PNG specification does not
+support premultiplied alpha. Writing premultiplied values into a PNG
+without applying <code>-alpha unpremultiply</code> produces
+non-compliant visual results in web browsers and image viewers.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

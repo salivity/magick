@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interleave Scanned Pages with ImageMagick - magick</title>
+    <meta name="description" content="This article provides the exact ImageMagick syntax required to collate and interleave alternating front and back page scans into a single properly ordered document. When using manual duplex scanning or automatic document feeders (ADFs) without duplex har">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/interleave-scanned-pages-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Interleave Scanned Pages with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/interleave-scanned-pages-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the exact ImageMagick syntax required to collate and interleave alternating front and back page scans into a single properly ordered document. When using manual duplex scanning or automatic document feeders (ADFs) without duplex har" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="interleave-scanned-pages-with-imagemagick">Interleave Scanned
+Pages with ImageMagick</h1>
+<p>This article provides the exact ImageMagick syntax required to
+collate and interleave alternating front and back page scans into a
+single properly ordered document. When using manual duplex scanning or
+automatic document feeders (ADFs) without duplex hardware, scans are
+typically produced as separate sets of front (odd) and back (even)
+pages. The instructions below cover command syntax for both individual
+image files and multi-page scan formats.</p>
+<hr />
+<h3 id="syntax-for-individual-image-files">Syntax for Individual Image
+Files</h3>
+<p>When your front pages (<code>front-01.jpg</code>,
+<code>front-02.jpg</code>, ...) and back pages
+(<code>back-01.jpg</code>, <code>back-02.jpg</code>, ...) are stored as
+separate image files, use shell expansion alongside the
+<code>magick</code> command (or <code>convert</code> in ImageMagick
+v6).</p>
+<h4 id="scenario-a-back-pages-are-in-normal-order-1-2-3">Scenario A:
+Back Pages Are in Normal Order (1, 2, 3...)</h4>
+<p>If both sets of scans are in ascending order (Front 1, Back 1, Front
+2, Back 2...):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="va">$(</span><span class="cf">for</span> i <span class="kw">in</span> <span class="va">$(</span><span class="fu">seq</span> <span class="at">-w</span> 1 10<span class="va">)</span><span class="kw">;</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="st">&quot;front-</span><span class="va">$i</span><span class="st">.jpg back-</span><span class="va">$i</span><span class="st">.jpg&quot;</span><span class="kw">;</span> <span class="cf">done</span><span class="va">)</span> output.pdf</span></code></pre></div>
+<h4 id="scenario-b-back-pages-are-in-reverse-order-10-9-8">Scenario B:
+Back Pages Are in Reverse Order (10, 9, 8...)</h4>
+<p>Most sheet-fed document scanners output back pages in reverse order
+when the entire stack is flipped over. You can reverse the order of the
+back pages before interleaving:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="va">$(</span><span class="fu">paste</span> <span class="at">-d</span> <span class="st">&#39; &#39;</span> <span class="op">&lt;(</span><span class="fu">ls</span> front-<span class="pp">*</span>.jpg <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-V</span><span class="op">)</span> <span class="op">&lt;(</span><span class="fu">ls</span> back-<span class="pp">*</span>.jpg <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-Vr</span><span class="op">)</span><span class="va">)</span> output.pdf</span></code></pre></div>
+<hr />
+<h3 id="syntax-for-multi-page-files-pdftiff">Syntax for Multi-Page Files
+(PDF/TIFF)</h3>
+<p>If you have two separate multi-page files (<code>fronts.pdf</code>
+and <code>backs.pdf</code>), ImageMagick cannot natively interleave two
+PDF streams with a single flag, but you can extract and assemble them
+dynamically using the command line:</p>
+<h4 id="1-forward-fronts-and-forward-backs">1. Forward Fronts and
+Forward Backs</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="va">$(</span><span class="cf">for</span> i <span class="kw">in</span> <span class="va">$(</span><span class="fu">seq</span> 0 9<span class="va">)</span><span class="kw">;</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="st">&quot;fronts.pdf[</span><span class="va">$i</span><span class="st">] backs.pdf[</span><span class="va">$i</span><span class="st">]&quot;</span><span class="kw">;</span> <span class="cf">done</span><span class="va">)</span> output.pdf</span></code></pre></div>
+<h4 id="2-forward-fronts-and-reversed-backs">2. Forward Fronts and
+Reversed Backs</h4>
+<p>If <code>backs.pdf</code> contains 10 pages scanned in reverse order
+(pages indexed from <code>0</code> to <code>9</code>):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="va">$(</span><span class="cf">for</span> i <span class="kw">in</span> <span class="va">$(</span><span class="fu">seq</span> 0 9<span class="va">)</span><span class="kw">;</span> <span class="cf">do</span> <span class="bu">echo</span> <span class="st">&quot;fronts.pdf[</span><span class="va">$i</span><span class="st">] backs.pdf[</span><span class="va">$((</span><span class="dv">9</span> <span class="op">-</span> <span class="va">i))</span><span class="st">]&quot;</span><span class="kw">;</span> <span class="cf">done</span><span class="va">)</span> output.pdf</span></code></pre></div>
+<hr />
+<h3 id="key-parameter-breakdown">Key Parameter Breakdown</h3>
+<ul>
+<li><strong><code>magick</code></strong>: Invokes ImageMagick v7.
+Replace with <code>convert</code> if using ImageMagick v6.</li>
+<li><strong><code>[N]</code></strong>: The frame/page index syntax
+(zero-indexed) used by ImageMagick to select specific pages from
+multi-page formats.</li>
+<li><strong><code>sort -V</code> and <code>sort -Vr</code></strong>:
+Performs a natural version sort in ascending and descending (reverse)
+order respectively, ensuring <code>page-10.jpg</code> follows
+<code>page-9.jpg</code> rather than <code>page-1.jpg</code>.</li>
+<li><strong><code>output.pdf</code></strong>: The target multi-page file
+where all interleaved frames are compiled.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

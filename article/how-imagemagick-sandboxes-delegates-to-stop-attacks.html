@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Sandboxes Delegates to Stop Attacks - magick</title>
+    <meta name="description" content="ImageMagick processes hundreds of media formats, often offloading complex decoding tasks to third-party programs known as external delegates. Because untrusted input historically allowed attackers to exploit delegate invocation and execute arbitrary comm">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-sandboxes-delegates-to-stop-attacks">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Sandboxes Delegates to Stop Attacks - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-sandboxes-delegates-to-stop-attacks" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick processes hundreds of media formats, often offloading complex decoding tasks to third-party programs known as external delegates. Because untrusted input historically allowed attackers to exploit delegate invocation and execute arbitrary comm" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-sandboxes-delegates-to-stop-attacks">How
+ImageMagick Sandboxes Delegates to Stop Attacks</h1>
+<p>ImageMagick processes hundreds of media formats, often offloading
+complex decoding tasks to third-party programs known as external
+delegates. Because untrusted input historically allowed attackers to
+exploit delegate invocation and execute arbitrary commands, modern
+ImageMagick implementations isolate these utilities through structural
+command execution changes, strict security policies, and environment
+sandboxing. This article explores how ImageMagick neutralizes shell
+injection vectors by removing shell interpreters from execution paths,
+enforcing fine-grained delegate access control, and confining
+subprocesses within secure boundaries.</p>
+<h3 id="the-shell-injection-problem-in-external-delegates">The Shell
+Injection Problem in External Delegates</h3>
+<p>An external delegate is a standalone command-line tool—such as
+Ghostscript for PostScript and PDF processing, or <code>ffmpeg</code>
+for video streams—configured via <code>delegates.xml</code>. In legacy
+architectures, ImageMagick processed dynamic inputs by formatting a
+command template into a single string and passing it directly to a
+system shell execution function (such as <code>system()</code> or
+<code>popen()</code>).</p>
+<p>If a filename or internal metadata contained shell metacharacters
+(such as <code>;</code>, <code>|</code>, <code>&amp;</code>, or
+backticks), the host shell interpreted them as control flow operators
+rather than file literals. This design flaw was the foundation of
+high-severity vulnerabilities like ImageTragick (CVE-2016-3714), where
+crafting filenames with embedded shell commands allowed remote code
+execution.</p>
+<h3 id="direct-process-execution-without-shell-intermediaries">Direct
+Process Execution Without Shell Intermediaries</h3>
+<p>The primary defense against shell injection is the decoupling of
+delegate invocation from the command shell. Rather than calling
+<code>/bin/sh -c</code> to evaluate delegate commands, modern
+ImageMagick systems invoke processes directly using system execution
+primitives such as <code>execve</code> or <code>execvp</code> on POSIX
+systems, and <code>CreateProcess</code> on Windows.</p>
+<p>When delegates execute without an intermediate shell:</p>
+<ul>
+<li><strong>Argument Array Vectoring:</strong> The delegate path and its
+arguments are passed as discrete elements in an array
+(<code>char *const argv[]</code>) rather than a concatenated
+string.</li>
+<li><strong>Metacharacter Invalidation:</strong> Characters such as
+<code>|</code>, <code>;</code>, <code>&gt;</code>, or spaces are treated
+as literal characters within argument values, completely neutralizing
+command chaining and output redirection exploits.</li>
+<li><strong>Parameter Sanitization:</strong> Parameters injected into
+delegate templates are strictly typed and parsed internally before being
+passed to child processes, preventing parameter injection attacks.</li>
+</ul>
+<h3 id="enforcing-isolation-via-policyxml">Enforcing Isolation via
+<code>policy.xml</code></h3>
+<p>ImageMagick implements an internal security policy subsystem managed
+through <code>policy.xml</code>. This policy engine acts as a proactive
+sandbox that intercepts execution before any external subprocess is
+spawned.</p>
+<ol type="1">
+<li><strong>Delegate and Coder Blacklisting:</strong> Risky delegates
+that have historically suffered from parser memory corruption or command
+execution flaws (most notably Ghostscript handling EPS, PDF, and PS
+files) can be completely disabled:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PS&quot;</span> /&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;EPS&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;XPS&quot;</span> /&gt;</span></code></pre></div></li>
+<li><strong>Domain-Specific Access Control:</strong> The policy engine
+allows administrators to restrict delegates entirely using
+<code>&lt;policy domain="delegate" rights="none" pattern="*" /&gt;</code>,
+allowing execution only for explicit, trusted binaries.</li>
+<li><strong>Path and Resource Constraints:</strong> The system can
+enforce disk, memory, and execution time limits on delegate execution,
+preventing malicious files from causing denial-of-service states through
+unbounded subprocess loops.</li>
+</ol>
+<h3 id="subprocess-confinement-and-sandboxing">Subprocess Confinement
+and Sandboxing</h3>
+<p>When external delegates must run, ImageMagick and modern operating
+systems apply containment boundaries to limit what the delegate can
+access:</p>
+<ul>
+<li><strong>File Descriptor and Pipe Isolation:</strong> Instead of
+passing filenames that may be manipulated, ImageMagick frequently writes
+input data to controlled temporary file descriptors (using secure APIs
+like <code>mkstemp</code>) or passes streams over anonymous POSIX pipes
+(<code>pipe()</code>). Delegates read from <code>stdin</code> and write
+to <code>stdout</code>, completely eliminating filename-based injection
+vectors.</li>
+<li><strong>Environment Sanitization:</strong> Before launching delegate
+processes, the parent process clears or explicitly white-lists
+environment variables. This prevents attacks that manipulate dynamic
+linkers (such as <code>LD_PRELOAD</code>) or exploit variables read by
+external utilities (such as <code>GS_LIB</code> or
+<code>PYTHONPATH</code>).</li>
+<li><strong>OS-Level Isolation Frameworks:</strong> On platforms
+supporting advanced containment, delegate execution can be paired with
+kernel-enforced sandboxes. By integrating with mechanisms such as Linux
+<code>seccomp</code> (filtering system calls to block network access and
+arbitrary process spawning), Bubblewrap containers, or platform-specific
+profiles (like AppArmor), the spawned delegate is restricted strictly to
+read-only access on designated input files and write access on expected
+output paths.</li>
+</ul>
+<p>Through this defense-in-depth approach—replacing shell string
+evaluation with direct parameter arrays, enforcing delegate restrictions
+via policy files, and containing subprocess environments—ImageMagick
+effectively neutralizes shell injection risks across external
+dependencies.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

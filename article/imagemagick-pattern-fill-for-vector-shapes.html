@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Pattern Fill for Vector Shapes - magick</title>
+    <meta name="description" content="This article explains how ImageMagick applies image textures and repeating tiles to vector primitives using pattern syntax. You will learn the mechanics behind the -fill pattern: protocol, how the rasterizer calculates pixel coordinates to tile graphics">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-pattern-fill-for-vector-shapes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Pattern Fill for Vector Shapes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-pattern-fill-for-vector-shapes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick applies image textures and repeating tiles to vector primitives using pattern syntax. You will learn the mechanics behind the -fill pattern: protocol, how the rasterizer calculates pixel coordinates to tile graphics" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-pattern-fill-for-vector-shapes">ImageMagick Pattern
+Fill for Vector Shapes</h1>
+<p>This article explains how ImageMagick applies image textures and
+repeating tiles to vector primitives using pattern syntax. You will
+learn the mechanics behind the <code>-fill pattern:</code> protocol, how
+the rasterizer calculates pixel coordinates to tile graphics across
+shapes, and how to implement built-in patterns alongside custom image
+textures using memory registers.</p>
+<h2 id="the-mechanics-of--fill-pattern">The Mechanics of
+<code>-fill pattern:</code></h2>
+<p>When rendering vector graphics using the <code>-draw</code>
+primitive, ImageMagick determines the color of every pixel inside the
+vector path via the <code>-fill</code> setting. While <code>-fill</code>
+commonly accepts solid colors (such as hex values or color names),
+passing a protocol prefix like <code>pattern:</code> instructs the
+rendering engine to source pixel data from an image tile rather than a
+uniform color value.</p>
+<p>The <code>pattern:</code> prefix invokes ImageMagick’s built-in
+pattern generator. ImageMagick includes dozens of predefined geometric
+and textured tiles (such as <code>pattern:checkerboard</code>,
+<code>pattern:bricks</code>, or <code>pattern:hexagons</code>). When
+this setting is declared, ImageMagick instantiates the selected tile in
+memory and treats it as an infinite, repeating two-dimensional plane
+aligned to the canvas origin <code>(0,0)</code>.</p>
+<h2 id="coordinate-mapping-and-rasterization">Coordinate Mapping and
+Rasterization</h2>
+<p>The process of filling a vector shape with a pattern operates through
+specific rendering stages:</p>
+<ol type="1">
+<li><strong>Path Rasterization:</strong> The vector engine calculates
+the boundaries of the shape (e.g., circle, polygon, path) on the target
+canvas using anti-aliased scanline conversion.</li>
+<li><strong>Modulo Coordinate Lookup:</strong> For every pixel
+determined to lie within the vector path, the renderer queries the
+pattern texture. The sampling coordinates inside the texture are
+determined via modulo arithmetic: <span
+class="math display">\[\text{Texture}_X = X_{\text{canvas}}
+\pmod{\text{Texture}_{\text{width}}}\]</span> <span
+class="math display">\[\text{Texture}_Y = Y_{\text{canvas}}
+\pmod{\text{Texture}_{\text{height}}}\]</span> Because coordinates are
+mapped relative to the canvas origin <code>(0,0)</code> by default, the
+texture aligns consistently across multiple distinct shapes drawn on the
+same canvas.</li>
+<li><strong>Alpha and Edge Blending:</strong> For pixels intersecting
+the boundary of the vector path, ImageMagick calculates fractional
+coverage. The pattern pixel color is then alpha-composited over the
+background canvas according to that coverage value, ensuring clean,
+anti-aliased vector edges.</li>
+</ol>
+<h2 id="syntax-and-practical-implementation">Syntax and Practical
+Implementation</h2>
+<h3 id="using-built-in-patterns">Using Built-In Patterns</h3>
+<p>To apply a predefined texture to a shape, declare
+<code>-fill pattern:&lt;name&gt;</code> before the <code>-draw</code>
+operation:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 xc:white <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> pattern:checkerboard <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;circle 300,200 300,50&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<p>In this command, a 600×400 canvas is initialized, and a circle with a
+radius of 150 pixels is drawn at the center. The interior of the circle
+is filled with the repeating checkerboard texture.</p>
+<h3 id="using-custom-image-textures-via-memory-register">Using Custom
+Image Textures via Memory Register</h3>
+<p>While <code>-fill pattern:</code> references ImageMagick's built-in
+pattern coder, external images can be used as textures by loading them
+into the Magick Persistent Registry (<code>mpr:</code>) and using the
+<code>-tile</code> operator, which acts as the custom texture equivalent
+of the pattern fill:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> texture.jpg <span class="at">-write</span> mpr:my_texture +delete <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-size</span> 800x600 xc:lightgray <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> mpr:my_texture <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;polygon 100,100 700,150 600,500 200,450&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  textured_polygon.png</span></code></pre></div>
+<p>This workflow loads <code>texture.jpg</code>, stores it in named
+temporary memory (<code>mpr:my_texture</code>), discards the initial
+read to free canvas space, and tiles the texture inside the designated
+polygon path using the exact same modulo coordinate mapping mechanism as
+built-in patterns.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

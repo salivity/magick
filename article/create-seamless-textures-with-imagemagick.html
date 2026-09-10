@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Seamless Textures with ImageMagick - magick</title>
+    <meta name="description" content="Creating seamless, tileable textures from photos is essential for 3D modeling, game development, and web design. This guide explains how to convert standard photos into repeating patterns using ImageMagick by flattening uneven lighting, offsetting image">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-seamless-textures-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Seamless Textures with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-seamless-textures-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating seamless, tileable textures from photos is essential for 3D modeling, game development, and web design. This guide explains how to convert standard photos into repeating patterns using ImageMagick by flattening uneven lighting, offsetting image" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-seamless-textures-with-imagemagick">Create Seamless
+Textures with ImageMagick</h1>
+<p>Creating seamless, tileable textures from photos is essential for 3D
+modeling, game development, and web design. This guide explains how to
+convert standard photos into repeating patterns using ImageMagick by
+flattening uneven lighting, offsetting image boundaries, and blending
+the resulting seams smoothly.</p>
+<h2 id="1-flatten-uneven-lighting">1. Flatten Uneven Lighting</h2>
+<p>Natural photos often contain lighting gradients, shadows, or
+vignetting that create obvious grid artifacts when repeated. Remove
+low-frequency lighting variations using a high-pass filter technique
+before attempting to blend edges:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x50 <span class="dt">\)</span> +swap <span class="at">-compose</span> Divide <span class="at">-composite</span> <span class="at">-auto-level</span> flat_lighting.jpg</span></code></pre></div>
+<p>This divides the original photo by a heavily blurred version of
+itself, neutralizing broad shadows while preserving fine surface
+details.</p>
+<h2 id="2-offset-the-image-boundaries">2. Offset the Image
+Boundaries</h2>
+<p>To fix the visible seams between repeating tiles, shift the image by
+50% horizontally and 50% vertically using the <code>-roll</code>
+command. This moves the outer edges into the center of the image canvas
+where they can be blended.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> flat_lighting.jpg <span class="at">-roll</span> +50%+50% centered_seams.jpg</span></code></pre></div>
+<h2 id="3-blend-the-center-seams">3. Blend the Center Seams</h2>
+<p>Once the edges meet at the center, blend them using an alpha-gradient
+mask to hide the hard transition lines.</p>
+<p>You can automate this blending process by overlapping the edges with
+a single ImageMagick composite sequence:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> flat_lighting.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-roll</span> +50%+0% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x100 gradient: <span class="at">-rotate</span> 90 <span class="at">-resize</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span>! <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-roll</span> +0%+50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x100 gradient: <span class="at">-resize</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span>! <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> seamless_texture.jpg</span></code></pre></div>
+<h3 id="command-breakdown">Command Breakdown:</h3>
+<ul>
+<li><strong><code>-roll +50%+0%</code></strong>: Shifts the image
+horizontally.</li>
+<li><strong><code>gradient: ... -solarize 50%</code></strong>: Generates
+a linear blend mask centered on the seam line.</li>
+<li><strong><code>-composite</code></strong>: Blends the rolled version
+over the base using the mask.</li>
+<li><strong><code>-roll +0%+50%</code></strong>: Repeats the operation
+vertically.</li>
+</ul>
+<h2 id="4-complete-one-line-automation">4. Complete One-Line
+Automation</h2>
+<p>To process a raw photo directly into a seamless, lighting-corrected
+texture in a single command, combine the steps:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x64 <span class="dt">\)</span> +swap <span class="at">-compose</span> Divide <span class="at">-composite</span> <span class="at">-auto-level</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-roll</span> +50%+0% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x100 gradient: <span class="at">-rotate</span> 90 <span class="at">-resize</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span>! <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-roll</span> +0%+50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x100 gradient: <span class="at">-resize</span> %<span class="pp">[</span><span class="ss">w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">h</span><span class="pp">]</span>! <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> output_seamless.jpg</span></code></pre></div>
+<h2 id="5-verify-the-result">5. Verify the Result</h2>
+<p>Test how well the texture repeats by creating a 2x2 tiled grid
+preview:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> output_seamless.jpg <span class="at">-write</span> mpr:tile +delete <span class="at">-size</span> 200%x200% tile:mpr:tile test_grid.jpg</span></code></pre></div>
+<p>Inspect <code>test_grid.jpg</code> to verify that all seams and
+lighting variations have been eliminated.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

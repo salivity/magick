@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Color Reduction for GIFs in ImageMagick - magick</title>
+    <meta name="description" content="Animated GIF files often suffer from bloated file sizes due to independent color tables being generated and stored across individual frames. This guide demonstrates how to significantly reduce GIF file sizes in ImageMagick by creating a unified, global c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/global-color-reduction-for-gifs-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Global Color Reduction for GIFs in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/global-color-reduction-for-gifs-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Animated GIF files often suffer from bloated file sizes due to independent color tables being generated and stored across individual frames. This guide demonstrates how to significantly reduce GIF file sizes in ImageMagick by creating a unified, global c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="global-color-reduction-for-gifs-in-imagemagick">Global Color
+Reduction for GIFs in ImageMagick</h1>
+<p>Animated GIF files often suffer from bloated file sizes due to
+independent color tables being generated and stored across individual
+frames. This guide demonstrates how to significantly reduce GIF file
+sizes in ImageMagick by creating a unified, global color palette across
+every frame and applying temporal frame optimizations.</p>
+<h2 id="understanding-the-problem">Understanding the Problem</h2>
+<p>By default, an animated GIF may assign a separate local color map of
+up to 256 colors to every individual frame. This increases overhead and
+creates color flickering. Creating a single global color palette shared
+across the entire animation reduces metadata overhead and enables more
+efficient inter-frame compression (<code>-layers Optimize</code>).</p>
+<h2 id="the-standard-global-palette-command">The Standard Global Palette
+Command</h2>
+<p>To enforce a global color reduction across all frames simultaneously,
+use ImageMagick's <code>-coalesce</code>, <code>-colors</code>, and
+<code>-layers Optimize</code> pipeline:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-colors</span> 128 <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<p><em>(Note: Use <code>convert</code> instead of <code>magick</code> if
+you are using ImageMagick v6).</em></p>
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ul>
+<li><strong><code>-coalesce</code></strong>: Rebuilds the full image for
+each frame, ensuring previous frame-disposal settings do not corrupt the
+color reduction process.</li>
+<li><strong><code>-colors 128</code></strong>: Quantizes the entire
+image sequence into a unified palette of 128 colors (you can adjust this
+to 64, 32, or 256 depending on your target quality and size).</li>
+<li><strong><code>-layers Optimize</code></strong>: Analyzes the frames
+sequentially, removes redundant pixel data from static regions, and
+crops each frame down to only the bounding box of changed pixels.</li>
+</ul>
+<h2 id="advanced-optimization-generating-a-master-color-map">Advanced
+Optimization: Generating a Master Color Map</h2>
+<p>For complex animations where simple quantization causes banding, you
+can build a dedicated global color map from the combined sequence and
+remap all frames to it.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-append</span> <span class="at">-colors</span> 128 <span class="at">-write</span> mpr:palette +delete <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-map</span> mpr:palette <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<h3 id="how-the-advanced-method-works">How the Advanced Method
+Works</h3>
+<ol type="1">
+<li><strong><code>+clone -append</code></strong>: Clones all animation
+frames and stitches them vertically into one large composite image in
+memory.</li>
+<li><strong><code>-colors 128</code></strong>: Analyzes the entire
+composite image to identify the optimal 128 colors that best represent
+every frame in the entire animation.</li>
+<li><strong><code>-write mpr:palette +delete</code></strong>: Saves this
+calculated palette into temporary memory (<code>mpr:palette</code>) and
+removes the stitched composite image from the pipeline.</li>
+<li><strong><code>-map mpr:palette</code></strong>: Remaps the original,
+coalesced frames against the stored global palette so every frame shares
+identical color indexes.</li>
+<li><strong><code>-layers Optimize</code></strong>: Maximizes
+transparency and reduces duplicate pixel data across the standardized
+color table.</li>
+</ol>
+<h2 id="fine-tuning-dithering">Fine-Tuning Dithering</h2>
+<p>By default, ImageMagick applies Floyd-Steinberg dithering when
+reducing colors. Dithering improves photographic transitions but
+disrupts the solid pixel patches that GIF compression relies on.</p>
+<ul>
+<li><strong>Disable dithering for maximum compression:</strong> Add
+<code>+dither</code> before the color reduction flag:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> +dither <span class="at">-colors</span> 64 <span class="at">-layers</span> Optimize output.gif</span></code></pre></div></li>
+<li><strong>Ordered Dithering:</strong> Use an ordered dither pattern
+(such as <code>-ordered-dither o8x8,8</code>) to achieve a balance
+between smooth color gradients and high compressibility without
+introducing random noise artifacts.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

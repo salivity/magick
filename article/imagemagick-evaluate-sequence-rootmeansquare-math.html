@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Sequence RootMeanSquare Math - magick</title>
+    <meta name="description" content="This article breaks down the mathematical calculation executed by the ImageMagick -evaluate-sequence RootMeanSquare command. You will learn how this operator processes multiple images down to a single output image, the precise algebraic formula applied t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-rootmeansquare-math">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Sequence RootMeanSquare Math - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-rootmeansquare-math" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article breaks down the mathematical calculation executed by the ImageMagick -evaluate-sequence RootMeanSquare command. You will learn how this operator processes multiple images down to a single output image, the precise algebraic formula applied t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-sequence-rootmeansquare-math">ImageMagick
+Evaluate Sequence RootMeanSquare Math</h1>
+<p>This article breaks down the mathematical calculation executed by the
+ImageMagick <code>-evaluate-sequence RootMeanSquare</code> command. You
+will learn how this operator processes multiple images down to a single
+output image, the precise algebraic formula applied to each pixel
+channel, and how quantum depth influences the computation.</p>
+<p>The ImageMagick <code>-evaluate-sequence RootMeanSquare</code>
+operator aggregates a series of <span class="math inline">\(N\)</span>
+input images into a single composite image by calculating the root mean
+square (quadratic mean) of pixel values at identical <span
+class="math inline">\((x, y)\)</span> coordinates across the entire
+image sequence.</p>
+<h3 id="the-mathematical-formula">The Mathematical Formula</h3>
+<p>For any given pixel coordinate <span class="math inline">\((x,
+y)\)</span> and individual color channel (such as Red, Green, Blue, or
+Alpha), the resulting intensity value <span
+class="math inline">\(P_{RMS}\)</span> is computed using the following
+formula:</p>
+<p><span class="math display">\[P_{RMS}(x, y) = \sqrt{\frac{1}{N}
+\sum_{i=1}^{N} [P_i(x, y)]^2}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><strong><span class="math inline">\(N\)</span></strong>: The total
+number of images in the input sequence.</li>
+<li><strong><span class="math inline">\(P_i(x, y)\)</span></strong>: The
+channel intensity value of the pixel at coordinates <span
+class="math inline">\((x, y)\)</span> in the <span
+class="math inline">\(i\)</span>-th image.</li>
+<li><strong><span
+class="math inline">\(\sum_{i=1}^{N}\)</span></strong>: The sum of the
+squared pixel values across all images in the sequence.</li>
+<li><strong><span class="math inline">\(P_{RMS}(x, y)\)</span></strong>:
+The resulting channel intensity value for the pixel in the output
+image.</li>
+</ul>
+<h3 id="step-by-step-calculation-process">Step-by-Step Calculation
+Process</h3>
+<ol type="1">
+<li><strong>Per-Channel Processing</strong>: The operation executes
+independently on each active color channel defined by the
+<code>-channel</code> setting. If an image has RGB channels, the formula
+runs separately for Red, Green, and Blue.</li>
+<li><strong>Squaring Values</strong>: For each corresponding pixel
+across all <span class="math inline">\(N\)</span> images, the channel's
+intensity value is squared (<span
+class="math inline">\(P_i^2\)</span>).</li>
+<li><strong>Calculating the Mean</strong>: The squared values are summed
+together and divided by the image count <span
+class="math inline">\(N\)</span>, yielding the mean of the squares (Mean
+Square).</li>
+<li><strong>Taking the Square Root</strong>: The square root of the
+resulting mean is calculated to produce the final root mean square
+value.</li>
+<li><strong>Quantum Representation</strong>: In ImageMagick, pixel
+values are internally represented according to the build's Quantum Depth
+(typically Q8 with values from 0 to 255, or Q16 with values from 0 to
+65535, often normalized internally to a floating-point range of <span
+class="math inline">\([0.0, 1.0]\)</span>). The computation occurs
+within this floating-point range and is mapped back to the output
+image's quantum range, preventing intermediate rounding errors.</li>
+</ol>
+<h3 id="practical-effect-on-pixels">Practical Effect on Pixels</h3>
+<p>Unlike a standard arithmetic average
+(<code>-evaluate-sequence Mean</code>), which weights all pixel values
+linearly, the Root Mean Square operator gives greater weight to higher
+values due to the initial squaring step. Consequently, areas with bright
+highlights or high-contrast variations across the image sequence will
+produce a brighter result than a standard arithmetic average.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

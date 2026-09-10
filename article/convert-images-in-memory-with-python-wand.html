@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Images in Memory with Python Wand - magick</title>
+    <meta name="description" content="This article explains how to perform in-memory image conversion using Python's Wand library, a ctypes-based interface for ImageMagick. Processing images entirely in memory eliminates disk I/O bottlenecks, making it ideal for web services, cloud functions">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-images-in-memory-with-python-wand">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Images in Memory with Python Wand - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-images-in-memory-with-python-wand" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to perform in-memory image conversion using Python's Wand library, a ctypes-based interface for ImageMagick. Processing images entirely in memory eliminates disk I/O bottlenecks, making it ideal for web services, cloud functions" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-images-in-memory-with-python-wand">Convert Images in
+Memory with Python Wand</h1>
+<p>This article explains how to perform in-memory image conversion using
+Python's Wand library, a <code>ctypes</code>-based interface for
+ImageMagick. Processing images entirely in memory eliminates disk I/O
+bottlenecks, making it ideal for web services, cloud functions, and data
+pipelines. You will learn how to ingest raw image bytes, transform the
+image format using ImageMagick via Wand, and export the resulting data
+back into memory as a byte string or stream.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To use Wand, you must have both the Python package and the
+ImageMagick native library installed on your system.</p>
+<p>Install the Python binding using pip:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install Wand</span></code></pre></div>
+<p>Ensure that ImageMagick is installed on your operating system (via
+<code>apt install libmagickwand-dev</code> on Debian/Ubuntu,
+<code>brew install imagemagick</code> on macOS, or the official binary
+installer on Windows).</p>
+<h3 id="in-memory-conversion-workflow">In-Memory Conversion
+Workflow</h3>
+<p>Wand provides the <code>wand.image.Image</code> class, which accepts
+raw binary data using the <code>blob</code> or <code>file</code>
+parameters. To perform in-memory conversions:</p>
+<ol type="1">
+<li>Pass binary image data into the <code>Image</code> constructor using
+the <code>blob</code> argument (or an <code>io.BytesIO</code> stream via
+<code>file</code>).</li>
+<li>Update the <code>format</code> attribute of the <code>Image</code>
+instance to your desired target format (such as <code>'jpeg'</code>,
+<code>'png'</code>, <code>'webp'</code>, or <code>'pdf'</code>).</li>
+<li>Export the processed image back into memory using the
+<code>make_blob()</code> method or by saving to an
+<code>io.BytesIO</code> stream.</li>
+</ol>
+<h3 id="code-example">Code Example</h3>
+<p>Below is a self-contained example demonstrating how to convert an
+image from one format to another entirely in memory.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> io</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> wand.image <span class="im">import</span> Image</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> convert_image_in_memory(input_bytes: <span class="bu">bytes</span>, target_format: <span class="bu">str</span> <span class="op">=</span> <span class="st">&quot;webp&quot;</span>) <span class="op">-&gt;</span> <span class="bu">bytes</span>:</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Converts raw image bytes to a target format entirely in memory.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Load image from the raw byte string</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> Image(blob<span class="op">=</span>input_bytes) <span class="im">as</span> img:</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Define the target format</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        img.<span class="bu">format</span> <span class="op">=</span> target_format</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Optional: Perform any in-memory operations (e.g., resizing)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="co"># img.resize(800, 600)</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Export the converted image data as bytes</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        converted_bytes <span class="op">=</span> img.make_blob()</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> converted_bytes</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Example usage using io.BytesIO</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Simulating reading an input image into memory</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="st">&quot;input.png&quot;</span>, <span class="st">&quot;rb&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        source_data <span class="op">=</span> f.read()</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Convert PNG bytes to WEBP bytes in memory</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    output_data <span class="op">=</span> convert_image_in_memory(source_data, target_format<span class="op">=</span><span class="st">&quot;webp&quot;</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The resulting bytes can now be streamed to a client, uploaded to S3, etc.</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">buffer</span> <span class="op">=</span> io.BytesIO(output_data)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Converted size: </span><span class="sc">{</span><span class="bu">len</span>(<span class="bu">buffer</span>.getvalue())<span class="sc">}</span><span class="ss"> bytes&quot;</span>)</span></code></pre></div>
+<h3 id="working-with-streams-iobytesio">Working with Streams
+(<code>io.BytesIO</code>)</h3>
+<p>If your application works directly with file-like objects instead of
+raw <code>bytes</code>, you can pass an <code>io.BytesIO</code> object
+directly to Wand:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> io</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> wand.image <span class="im">import</span> Image</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>input_stream <span class="op">=</span> io.BytesIO(source_bytes)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>output_stream <span class="op">=</span> io.BytesIO()</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> Image(<span class="bu">file</span><span class="op">=</span>input_stream) <span class="im">as</span> img:</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    img.<span class="bu">format</span> <span class="op">=</span> <span class="st">&#39;jpeg&#39;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    img.save(<span class="bu">file</span><span class="op">=</span>output_stream)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Reset buffer pointer to the beginning for subsequent reads</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>output_stream.seek(<span class="dv">0</span>)</span></code></pre></div>
+<h3 id="key-considerations">Key Considerations</h3>
+<ul>
+<li><strong>Memory Management:</strong> Always wrap <code>Image</code>
+instances in a <code>with</code> statement. Wand relies on underlying C
+data structures, and the context manager guarantees that these
+allocations are freed immediately when processing completes.</li>
+<li><strong>Format Strings:</strong> The <code>format</code> property
+accepts standard format identifiers used by ImageMagick (e.g.,
+<code>'png'</code>, <code>'jpeg'</code>, <code>'webp'</code>,
+<code>'tiff'</code>). Case does not matter.</li>
+<li><strong>Color Space and Alpha Channels:</strong> When converting
+formats with transparency (like PNG) to formats that do not support
+transparency (like JPEG), flatten or set a background color using
+<code>img.background_color</code> and
+<code>img.alpha_channel = 'remove'</code> before conversion to avoid
+visual artifacts.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

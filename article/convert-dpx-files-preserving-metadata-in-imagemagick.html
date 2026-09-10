@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert DPX Files Preserving Metadata in ImageMagick - magick</title>
+    <meta name="description" content="Converting motion picture DPX (Digital Picture Exchange) frames in ImageMagick while maintaining SMPTE industry metadata requires an understanding of how the tool parses, maps, and writes DPX headers. DPX files serve as a primary interchange format in fi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-dpx-files-preserving-metadata-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert DPX Files Preserving Metadata in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-dpx-files-preserving-metadata-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting motion picture DPX (Digital Picture Exchange) frames in ImageMagick while maintaining SMPTE industry metadata requires an understanding of how the tool parses, maps, and writes DPX headers. DPX files serve as a primary interchange format in fi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-dpx-files-preserving-metadata-in-imagemagick">Convert
+DPX Files Preserving Metadata in ImageMagick</h1>
+<p>Converting motion picture DPX (Digital Picture Exchange) frames in
+ImageMagick while maintaining SMPTE industry metadata requires an
+understanding of how the tool parses, maps, and writes DPX headers. DPX
+files serve as a primary interchange format in film post-production,
+carrying not only uncompressed raster data but also essential metadata
+such as timecode, keycode, film gauge, reel identification, and
+colorimetry standards. ImageMagick can process, re-encode, or transform
+these frames without stripping crucial production tags by mapping the
+SMPTE 268M header blocks to internal image properties and rewriting them
+on output.</p>
+<h3 id="understanding-dpx-smpte-metadata-structure">Understanding DPX
+SMPTE Metadata Structure</h3>
+<p>The DPX standard (SMPTE 268M) divides image headers into specific
+sections: Generic Image Data, Industry Specific Information (motion
+picture and television headers), and User Defined Data. In Hollywood
+workflows, the Motion Picture and Television headers store essential
+tracking data, including:</p>
+<ul>
+<li><strong>SMPTE Timecode:</strong> Direct synchronization references
+for picture and audio.</li>
+<li><strong>Keycode / Edgecode:</strong> Film stock identification,
+manufacturer code, and frame offset markers.</li>
+<li><strong>Reel Information and Frame Position:</strong> Sequence
+identity within a long-form timeline.</li>
+<li><strong>Colorimetric Information:</strong> Transfer characteristics
+(e.g., Cineon printing density, Rec. 709, or log curves).</li>
+</ul>
+<h3 id="how-imagemagick-processes-dpx-headers">How ImageMagick Processes
+DPX Headers</h3>
+<p>ImageMagick utilizes a dedicated DPX coder
+(<code>coders/dpx.c</code>) to read and write the format. When reading
+an input frame, the coder unpacks the binary header fields and assigns
+them to internal string properties prefixed with <code>dpx:</code>.</p>
+<p>Key mapped properties include:</p>
+<ul>
+<li><code>dpx:television.time.code</code></li>
+<li><code>dpx:television.user.bits</code></li>
+<li><code>dpx:mp.film.id</code></li>
+<li><code>dpx:mp.frame_position</code></li>
+<li><code>dpx:mp.sequence_length</code></li>
+<li><code>dpx:film.id</code></li>
+<li><code>dpx:film.frame_attribute</code></li>
+</ul>
+<p>When converting from one DPX file to another, ImageMagick
+automatically retains these internal properties in memory. As long as
+destructive operations do not purge the metadata pool, the DPX writer
+reads these internal <code>dpx:</code> key-value pairs and serializes
+them back into their respective binary offsets within the newly created
+DPX header.</p>
+<h3 id="preserving-metadata-during-command-execution">Preserving
+Metadata During Command Execution</h3>
+<p>By default, executing a standard ImageMagick processing command
+between DPX files keeps the existing properties intact:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_frame.dpx <span class="at">-resize</span> 50% output_frame.dpx</span></code></pre></div>
+<p>To guarantee that metadata is strictly preserved, avoid flags that
+strip profile and header data:</p>
+<ol type="1">
+<li><strong>Avoid <code>-strip</code>:</strong> Running
+<code>-strip</code> removes all text attributes, ICC profiles, and
+DPX-specific metadata, resulting in a generic DPX header that breaks
+production conform workflows.</li>
+<li><strong>Compile with Q16 or Q32 (HDRI):</strong> Hollywood DPX
+frames typically use 10-bit or 12-bit packing (such as 10-bit RGB packed
+into 32-bit words, method A or B). To prevent metadata truncation and
+color depth degradation, ensure ImageMagick is built with at least
+16-bit quantum depth (<code>Q16</code> or <code>Q16-HDRI</code>).</li>
+</ol>
+<h3 id="overriding-and-defining-specific-dpx-header-fields">Overriding
+and Defining Specific DPX Header Fields</h3>
+<p>ImageMagick allows manual modification or injection of DPX industry
+headers using <code>-define</code> and <code>-set</code> flags. This is
+useful when transcoding from non-DPX sources or correcting corrupted
+camera logs during conversion:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.dpx <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dpx:mp.frame_position=000144 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dpx:mp.time.code=<span class="st">&quot;01:23:45:12&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dpx:television.time.code=<span class="st">&quot;01:23:45:12&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dpx:television.user.bits=<span class="st">&quot;00:00:00:00&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  output.dpx</span></code></pre></div>
+<p>For color space management, you can force the DPX header to declare
+specific color transfer characteristics without altering the underlying
+pixel data:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.dpx <span class="at">-define</span> dpx:colorspace=Logarithmic output.dpx</span></code></pre></div>
+<h3 id="validating-the-metadata-integrity">Validating the Metadata
+Integrity</h3>
+<p>To ensure that the output frame has retained all SMPTE film and
+television header details after processing, run ImageMagick’s
+identification tool formatted to print all properties:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.dpx <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;dpx:&quot;</span></span></code></pre></div>
+<p>This command returns all preserved header fields, confirming that the
+output DPX remains fully compliant with editorial, finishing, and
+archival conforming systems.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

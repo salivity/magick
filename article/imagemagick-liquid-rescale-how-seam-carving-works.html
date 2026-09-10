@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Liquid Rescale: How Seam Carving Works - magick</title>
+    <meta name="description" content="ImageMagick's liquid-rescale operator is a content-aware image resizing tool that changes an image's aspect ratio without cropping or distorting its primary subjects. This article explains what the liquid-rescale operator is, breaks down the seam carving">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-liquid-rescale-how-seam-carving-works">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Liquid Rescale: How Seam Carving Works - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-liquid-rescale-how-seam-carving-works" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's liquid-rescale operator is a content-aware image resizing tool that changes an image's aspect ratio without cropping or distorting its primary subjects. This article explains what the liquid-rescale operator is, breaks down the seam carving" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-liquid-rescale-how-seam-carving-works">ImageMagick
+Liquid Rescale: How Seam Carving Works</h1>
+<p>ImageMagick's <code>liquid-rescale</code> operator is a content-aware
+image resizing tool that changes an image's aspect ratio without
+cropping or distorting its primary subjects. This article explains what
+the <code>liquid-rescale</code> operator is, breaks down the seam
+carving algorithm that powers it, and outlines how the process
+calculates pixel importance to intelligently reduce or expand image
+dimensions.</p>
+<h2 id="what-is-the-liquid-rescale-operator">What Is the Liquid-Rescale
+Operator?</h2>
+<p>The <code>liquid-rescale</code> operator (often invoked as
+<code>-liquid-rescale</code> or <code>-lqr</code>) is an ImageMagick
+feature powered by the open-source Liquid Rescaling library
+(<code>liblqr</code>). Traditional resizing methods, such as scaling or
+stretching, distort image subjects by altering pixel dimensions
+uniformly. Cropping removes entire edges of an image, potentially
+cutting out critical contextual details.</p>
+<p>Liquid rescaling solves this by performing "content-aware image
+retargeting." It selectively removes or inserts pixels in uninteresting
+or uniform areas (such as clear skies, plain walls, or empty water)
+while leaving high-detail subjects (such as people, buildings, or text)
+intact.</p>
+<h2 id="how-seam-carving-works">How Seam Carving Works</h2>
+<p>The underlying algorithm behind <code>liquid-rescale</code> is known
+as <strong>seam carving</strong>. It operates through a multi-step
+process:</p>
+<h3 id="1-energy-calculation">1. Energy Calculation</h3>
+<p>The algorithm first creates an "energy map" of the image. The energy
+function measures the importance of each pixel based on local contrast
+and gradient magnitude:</p>
+<ul>
+<li><strong>High-energy pixels:</strong> Areas with sharp transitions,
+fine details, and defined edges (e.g., a person's face, object
+contours).</li>
+<li><strong>Low-energy pixels:</strong> Smooth, uniform areas with
+minimal color variation (e.g., backgrounds, shadows, flat
+surfaces).</li>
+</ul>
+<h3 id="2-identifying-seams">2. Identifying Seams</h3>
+<p>A "seam" is an optimal, continuous path of adjacent pixels traversing
+the image from top to bottom (vertical seam) or left to right
+(horizontal seam), with exactly one pixel per row or column.</p>
+<p>Using dynamic programming, the algorithm calculates the cumulative
+minimum energy for all possible paths and identifies the seam with the
+lowest total energy score across the entire image.</p>
+<h3 id="3-seam-removal-or-insertion">3. Seam Removal or Insertion</h3>
+<ul>
+<li><strong>Downscaling:</strong> To reduce image width or height, the
+algorithm removes the lowest-energy seam, shifting surrounding pixels to
+close the gap. Because the seam consists of the least important pixels,
+its removal is largely imperceptible.</li>
+<li><strong>Upscaling:</strong> To enlarge an image, the algorithm
+identifies the lowest-energy seams and duplicates them, blending the
+inserted pixels with their neighbors to prevent hard lines.</li>
+</ul>
+<h3 id="4-iteration">4. Iteration</h3>
+<p>Because removing a seam alters the energy values of adjacent pixels,
+the energy map is recalculated after each pass. The algorithm repeats
+the identification and removal/insertion process iteratively until the
+target aspect ratio and dimensions are achieved.</p>
+<h2 id="practical-considerations">Practical Considerations</h2>
+<p>While seam carving is highly effective for landscapes and scenes with
+large empty spaces, it has limitations. Dense images containing high
+amounts of detail, structural geometry, or close-up human faces can
+suffer from distortion artifacts if there are not enough low-energy
+paths to carve. In ImageMagick, users can fine-tune results by applying
+feature masks that manually assign high energy to protected regions or
+low energy to areas designated for removal.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

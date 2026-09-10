@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Contours Using ImageMagick Morphology Open - magick</title>
+    <meta name="description" content="This guide provides a straightforward walkthrough on smoothing jagged contours and noisy boundaries in images using ImageMagick. By applying a morphological Open operation paired with a circular structuring element (Disk), you can round sharp external co">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/smooth-contours-using-imagemagick-morphology-open">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Smooth Contours Using ImageMagick Morphology Open - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/smooth-contours-using-imagemagick-morphology-open" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides a straightforward walkthrough on smoothing jagged contours and noisy boundaries in images using ImageMagick. By applying a morphological Open operation paired with a circular structuring element (Disk), you can round sharp external co" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="smooth-contours-using-imagemagick-morphology-open">Smooth
+Contours Using ImageMagick Morphology Open</h1>
+<p>This guide provides a straightforward walkthrough on smoothing jagged
+contours and noisy boundaries in images using ImageMagick. By applying a
+morphological <code>Open</code> operation paired with a circular
+structuring element (<code>Disk</code>), you can round sharp external
+corners, eliminate small protrusions, and achieve cleaner, smoother
+object shapes without blurring the entire image.</p>
+<h3
+id="understanding-morphology-open-and-circular-kernels">Understanding
+Morphology Open and Circular Kernels</h3>
+<p>In digital image processing, morphological opening consists of an
+<strong>erosion</strong> followed immediately by a
+<strong>dilation</strong> using the same structuring element
+(kernel).</p>
+<ul>
+<li><strong>Erosion</strong> shrinks bright regions and removes features
+smaller than the structuring element (such as thin spikes or
+noise).</li>
+<li><strong>Dilation</strong> restores the eroded shape back to its
+approximate original size.</li>
+<li>A <strong>circular kernel</strong> (<code>Disk</code>) ensures that
+edges are eroded and restored uniformly in all directions, turning
+rough, pixelated contours into smooth, rounded curves.</li>
+</ul>
+<h3 id="the-basic-command">The Basic Command</h3>
+<p>In ImageMagick version 7, use the <code>magick</code> command (or
+<code>convert</code> if you are using ImageMagick version 6) to run the
+<code>-morphology</code> operator with the <code>Open</code> method and
+the <code>Disk</code> kernel.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Open Disk:3 output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.png</code> is the source image (typically a
+high-contrast or binary silhouette).</li>
+<li><code>-morphology Open</code> directs ImageMagick to perform erosion
+followed by dilation.</li>
+<li><code>Disk:3</code> specifies a circular structuring element with a
+radius of 3 pixels.</li>
+<li><code>output.png</code> is the smoothed result.</li>
+</ul>
+<h3 id="adjusting-the-kernel-radius">Adjusting the Kernel Radius</h3>
+<p>The numeric value passed to the <code>Disk</code> kernel determines
+the smoothing intensity:</p>
+<ul>
+<li><strong>Small Radii (<code>Disk:1.5</code> to
+<code>Disk:3</code>):</strong> Ideal for subtle edge-smoothing,
+eliminating slight pixelation or anti-aliasing artifacts while
+maintaining overall geometry.</li>
+<li><strong>Larger Radii (<code>Disk:5</code> to
+<code>Disk:10</code>+):</strong> Aggressively removes large jagged bumps
+and rounds out sharp outer corners, though it will discard finer
+structural details.</li>
+</ul>
+<p>Floating-point numbers can be used for the radius (e.g.,
+<code>Disk:2.5</code>) to allow fine-grained control over the smoothing
+amount.</p>
+<h3 id="preserving-inner-and-outer-contours-open-vs-close">Preserving
+Inner and Outer Contours (Open vs. Close)</h3>
+<p>While <code>Open</code> smooths outer jagged edges and eliminates
+small outer protrusions, it does not fill in sharp inward-pointing
+notches or small holes. If you need to smooth both inner and outer
+contours simultaneously, chain an <code>Open</code> operation with a
+<code>Close</code> operation (dilation followed by erosion):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Open Disk:3 <span class="at">-morphology</span> Close Disk:3 output.png</span></code></pre></div>
+<h3 id="complete-workflow-for-high-quality-contours">Complete Workflow
+for High-Quality Contours</h3>
+<p>When working with scanned art or low-resolution masks, combining
+thresholding with morphological operations produces the cleanest
+vector-like contours:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Open Disk:3 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-blur</span> 0x1 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  smoothed_output.png</span></code></pre></div>
+<ol type="1">
+<li><code>-threshold 50%</code> ensures a clean black-and-white binary
+mask.</li>
+<li><code>-morphology Open Disk:3</code> smooths outer contour
+irregularities.</li>
+<li><code>-blur 0x1 -threshold 50%</code> provides an optional final
+anti-aliasing and micro-smoothing pass on the resulting boundary.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

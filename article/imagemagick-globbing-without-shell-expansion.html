@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Globbing Without Shell Expansion - magick</title>
+    <meta name="description" content="On operating systems that lack native command-line wildcard expansion, ImageMagick relies on its own internal file-globbing engine to locate and process multi-file inputs. While POSIX shells automatically resolve patterns like .jpg before handing the arg">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-globbing-without-shell-expansion">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Globbing Without Shell Expansion - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-globbing-without-shell-expansion" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="On operating systems that lack native command-line wildcard expansion, ImageMagick relies on its own internal file-globbing engine to locate and process multi-file inputs. While POSIX shells automatically resolve patterns like .jpg before handing the arg" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-globbing-without-shell-expansion">ImageMagick
+Globbing Without Shell Expansion</h1>
+<p>On operating systems that lack native command-line wildcard
+expansion, ImageMagick relies on its own internal file-globbing engine
+to locate and process multi-file inputs. While POSIX shells
+automatically resolve patterns like <code>*.jpg</code> before handing
+the argument list to an application, systems like Windows pass the
+unexpanded pattern directly. ImageMagick detects these wildcard literals
+and systematically expands them using native operating system directory
+enumeration APIs, ensuring consistent cross-platform batch-processing
+behavior.</p>
+<h3 id="shell-level-vs-application-level-expansion">Shell-Level vs.
+Application-Level Expansion</h3>
+<p>In a typical Unix environment, the shell (such as Bash or Zsh)
+performs filename generation (globbing). By the time ImageMagick's entry
+point (<code>magick</code> or legacy <code>convert</code>) receives the
+arguments via <code>argv</code>, the wildcards have already been
+replaced with a complete list of matching file paths.</p>
+<p>On platforms like Windows, shells such as <code>cmd.exe</code> do not
+expand wildcard characters (<code>*</code>, <code>?</code>,
+<code>[]</code>). Instead, the executable receives the raw, unexpanded
+argument string (for example, <code>input_*.png</code>). If an
+application does not natively support pattern matching, it attempts to
+open the literal file name and fails.</p>
+<h3 id="imagemagicks-internal-globbing-engine">ImageMagick's Internal
+Globbing Engine</h3>
+<p>To resolve this limitation, ImageMagick implements platform-specific
+fallback routines inside its core library (<code>MagickCore</code>):</p>
+<ol type="1">
+<li><strong>Pattern Detection:</strong> When parsing input filenames,
+ImageMagick inspects argument tokens for standard globbing characters,
+specifically asterisks (<code>*</code>), question marks
+(<code>?</code>), and brackets (<code>[...]</code>).</li>
+<li><strong>Directory Traversal:</strong> Once a wildcard is identified,
+ImageMagick isolates the base directory path from the search
+pattern.</li>
+<li><strong>API Enumeration:</strong> On Windows, it invokes low-level
+Win32 file-searching APIs—primarily <code>FindFirstFile</code>,
+<code>FindNextFile</code>, and <code>FindClose</code>. On other
+platforms lacking shell assistance, it uses POSIX directory functions
+like <code>opendir()</code> and <code>readdir()</code> combined with
+internal pattern-matching logic.</li>
+<li><strong>List Construction:</strong> As matching file entries are
+located, ImageMagick sorts them alphanumerically and appends each valid
+file path to an internal image sequence queue.</li>
+</ol>
+<h3 id="quoting-patterns-on-non-expanding-shells">Quoting Patterns on
+Non-Expanding Shells</h3>
+<p>Because Windows does not strip unquoted wildcards, passing patterns
+without quotes can occasionally lead to unexpected behavior if
+third-party shells (like PowerShell) or utilities partially intercept
+the characters.</p>
+<p>To ensure ImageMagick handles the globbing internally on Windows:</p>
+<ul>
+<li>Enclose the path pattern in standard double quotes:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>magick <span class="st">&quot;frames_*.png&quot;</span> output.gif</span></code></pre></div></li>
+<li>For subdirectories, relative and absolute paths are preserved during
+enumeration:
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>magick <span class="st">&quot;C:\images\scan_???.tif&quot;</span> <span class="at">-resize</span> 50% <span class="st">&quot;C:\processed\output_</span><span class="pp">%</span><span class="va">0</span><span class="st">3d.tif&quot;</span></span></code></pre></div></li>
+</ul>
+<h3 id="handling-explicit-filename-formats">Handling Explicit Filename
+Formats</h3>
+<p>When an input string could be ambiguous—such as containing both
+wildcard characters and ImageMagick-specific format specifiers or
+bracketed frame ranges (e.g., <code>image_*.png[0]</code>)—ImageMagick
+separates the sub-image selector before evaluating the wildcard. The
+glob engine scans the file system for paths matching
+<code>image_*.png</code>, and subsequent operations extract frame
+<code>[0]</code> from each resolved file individually.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

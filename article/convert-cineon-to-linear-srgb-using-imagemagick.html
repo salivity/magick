@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Cineon to Linear sRGB Using ImageMagick - magick</title>
+    <meta name="description" content="Converting Cineon film scans into linear sRGB is an essential step when preparing legacy film footage for modern visual effects, 3D rendering, and linear compositing workflows. This guide covers how to decode 10-bit logarithmic Cineon data (.cin or .dpx)">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-cineon-to-linear-srgb-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Cineon to Linear sRGB Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-cineon-to-linear-srgb-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting Cineon film scans into linear sRGB is an essential step when preparing legacy film footage for modern visual effects, 3D rendering, and linear compositing workflows. This guide covers how to decode 10-bit logarithmic Cineon data (.cin or .dpx)" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-cineon-to-linear-srgb-using-imagemagick">Convert Cineon
+to Linear sRGB Using ImageMagick</h1>
+<p>Converting Cineon film scans into linear sRGB is an essential step
+when preparing legacy film footage for modern visual effects, 3D
+rendering, and linear compositing workflows. This guide covers how to
+decode 10-bit logarithmic Cineon data (<code>.cin</code> or
+<code>.dpx</code>) and transform it into un-companded, linear sRGB color
+values using the ImageMagick command-line interface.</p>
+<h2
+id="understanding-colorspace-definitions-in-imagemagick">Understanding
+Colorspace Definitions in ImageMagick</h2>
+<p>ImageMagick handles colorspace transformations internally, but
+terminology varies depending on your destination format:</p>
+<ul>
+<li><strong>sRGB:</strong> Standard non-linear sRGB with the standard
+gamma transfer curve applied.</li>
+<li><strong>RGB:</strong> In modern ImageMagick (version 7+),
+<code>RGB</code> refers to <strong>linear sRGB</strong> (gamma
+1.0).</li>
+<li><strong>Cineon / Log:</strong> The logarithmic curve traditionally
+used for Kodak film scans, mapping density ranges into a 10-bit
+container.</li>
+</ul>
+<p>Because linear data stretches shadows and compresses highlights, you
+must save output files in a high-bit-depth format (such as 16-bit TIFF
+or OpenEXR) to prevent severe posterization and banding.</p>
+<h2 id="basic-conversion-command">Basic Conversion Command</h2>
+<p>If your input file is a native Cineon file (<code>.cin</code>),
+ImageMagick automatically recognizes the Cineon logarithmic curve. Use
+the following command to convert the frame to linear sRGB and save it as
+a 16-bit TIFF:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.cin <span class="at">-colorspace</span> RGB <span class="at">-depth</span> 16 output_linear.tiff</span></code></pre></div>
+<p>If you are outputting to OpenEXR for VFX pipelines, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.cin <span class="at">-colorspace</span> RGB output_linear.exr</span></code></pre></div>
+<h2 id="handling-dpx-files-with-explicit-colorspace-tagging">Handling
+DPX Files with Explicit Colorspace Tagging</h2>
+<p>DPX files frequently encapsulate Cineon log curves without setting
+standard metadata headers. If ImageMagick does not automatically read
+the file as logarithmic, explicitly define the source colorspace before
+the conversion:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.dpx <span class="at">-set</span> colorspace Log <span class="at">-colorspace</span> RGB <span class="at">-depth</span> 16 output_linear.tiff</span></code></pre></div>
+<p>If the file uses Cineon metadata directly:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.dpx <span class="at">-set</span> colorspace Cineon <span class="at">-colorspace</span> RGB <span class="at">-depth</span> 16 output_linear.tiff</span></code></pre></div>
+<h2 id="batch-converting-an-image-sequence">Batch Converting an Image
+Sequence</h2>
+<p>Film frames are typically stored in numbered sequences. To batch
+convert an entire sequence of Cineon frames into linear OpenEXR files,
+use ImageMagick's batch processing syntax:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./linear_output <span class="at">-format</span> exr <span class="at">-colorspace</span> RGB <span class="pp">*</span>.cin</span></code></pre></div>
+<p>This processes every <code>.cin</code> file in the current directory,
+performs the logarithmic-to-linear sRGB conversion, and writes the
+resulting linear frames into the <code>linear_output</code>
+directory.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

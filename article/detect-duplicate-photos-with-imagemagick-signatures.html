@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect Duplicate Photos with ImageMagick Signatures - magick</title>
+    <meta name="description" content="ImageMagick pixel signatures offer a reliable way to identify identical photos even when their file names, file sizes, or EXIF metadata differ. Unlike traditional file checksums like MD5 or SHA-256—which hash the entire file including its metadata head">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/detect-duplicate-photos-with-imagemagick-signatures">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Detect Duplicate Photos with ImageMagick Signatures - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/detect-duplicate-photos-with-imagemagick-signatures" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick pixel signatures offer a reliable way to identify identical photos even when their file names, file sizes, or EXIF metadata differ. Unlike traditional file checksums like MD5 or SHA-256—which hash the entire file including its metadata head" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="detect-duplicate-photos-with-imagemagick-signatures">Detect
+Duplicate Photos with ImageMagick Signatures</h1>
+<p>ImageMagick pixel signatures offer a reliable way to identify
+identical photos even when their file names, file sizes, or EXIF
+metadata differ. Unlike traditional file checksums like MD5 or
+SHA-256—which hash the entire file including its metadata
+header—ImageMagick's signature algorithm evaluates only the raw pixel
+values. This article explains how ImageMagick computes pixel signatures,
+provides the exact commands needed to extract them, and demonstrates how
+to automate duplicate detection across image collections.</p>
+<h2 id="why-standard-file-hashes-fail">Why Standard File Hashes
+Fail</h2>
+<p>When an image is edited to change metadata—such as altering EXIF
+tags, updating creation dates, or rotating orientation tags without
+modifying the raw image stream—the underlying file bytes change.
+Standard hashing utilities (such as <code>md5sum</code> or
+<code>sha256sum</code>) will generate completely different hash strings
+for these files, making it impossible to detect them as duplicates.</p>
+<p>ImageMagick solves this by reading the decoded pixel buffer and
+generating a unique SHA-256 hash strictly from the image geometry and
+color values.</p>
+<h2 id="generating-an-image-pixel-signature">Generating an Image Pixel
+Signature</h2>
+<p>To generate a pixel signature for a single image, use the
+<code>identify</code> tool provided by ImageMagick:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%#&quot;</span> image.jpg</span></code></pre></div>
+<p><em>(Note: In ImageMagick 6, the command is
+<code>identify -format "%#" image.jpg</code>)</em></p>
+<p>This command outputs an 88-character SHA-256 hash representing the
+exact pixel matrix. If two files have different EXIF data, embedded
+color profiles, or file formats, but identical pixel content, their
+outputs will match precisely.</p>
+<p>To view the signature alongside filename and dimensions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%f: %wx%h [%#]\n&quot;</span> image.jpg</span></code></pre></div>
+<h2 id="batch-processing-and-finding-duplicates">Batch Processing and
+Finding Duplicates</h2>
+<p>To find duplicates across a directory of images, you can extract the
+signatures in bulk, sort the results, and identify matches.</p>
+<h3 id="using-bash-and-core-utilities">Using Bash and Core
+Utilities</h3>
+<p>Run the following pipeline to scan a folder of JPEG and PNG files,
+group by signature, and print duplicates:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%#  %p\n&quot;</span> <span class="pp">*</span>.jpg <span class="pp">*</span>.png <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">awk</span> <span class="st">&#39;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">    sig = $1</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">    file = $2</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">    if (sig == prev_sig) {</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">        if (prev_printed == 0) {</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">            print &quot;Duplicate set:&quot;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">            print &quot;  &quot; prev_file</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="st">            prev_printed = 1</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="st">        }</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">        print &quot;  &quot; file</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="st">    } else {</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="st">        prev_sig = sig</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="st">        prev_file = file</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="st">        prev_printed = 0</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="st">}&#39;</span></span></code></pre></div>
+<h3 id="explanation-of-the-process">Explanation of the Process:</h3>
+<ol type="1">
+<li><code>magick identify -format "%#  %p\n"</code> generates the
+signature followed by the file path for each image.</li>
+<li><code>sort</code> orders the list so identical signatures are placed
+on adjacent lines.</li>
+<li><code>awk</code> iterates through the list, comparing consecutive
+signatures and printing matching file paths grouped together.</li>
+</ol>
+<h2 id="considerations-and-limitations">Considerations and
+Limitations</h2>
+<ul>
+<li><strong>Lossy Compression:</strong> If an image has been re-saved
+with lossy compression (such as JPEG re-encoding), individual pixel
+values change slightly, which will result in a completely different
+signature. Pixel signatures detect exact visual duplicates, not fuzzy or
+perceptually similar images.</li>
+<li><strong>Color Space and Channels:</strong> Signatures account for
+all channels, including alpha channels and color depth. An image
+converted from RGB to CMYK will generate a different pixel signature
+even if it looks identical to the human eye.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

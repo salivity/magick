@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Ignore Camera Orientation in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to prevent ImageMagick from reading or applying embedded camera orientation tags during image ingest. You will learn the exact command-line options required to bypass EXIF orientation metadata, the importance of option placement i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-ignore-camera-orientation-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Ignore Camera Orientation in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-ignore-camera-orientation-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to prevent ImageMagick from reading or applying embedded camera orientation tags during image ingest. You will learn the exact command-line options required to bypass EXIF orientation metadata, the importance of option placement i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-ignore-camera-orientation-in-imagemagick">How to Ignore
+Camera Orientation in ImageMagick</h1>
+<p>This guide explains how to prevent ImageMagick from reading or
+applying embedded camera orientation tags during image ingest. You will
+learn the exact command-line options required to bypass EXIF orientation
+metadata, the importance of option placement in your command structure,
+and how to preserve the raw, unrotated pixel orientation of your
+files.</p>
+<h2 id="the-command-option--orient-undefined">The Command Option:
+<code>-orient undefined</code></h2>
+<p>To force ImageMagick to ignore embedded camera orientation tags
+during image ingest, use the <code>-orient undefined</code> option
+placed <strong>before</strong> the input image filename.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-orient</span> undefined input.jpg output.jpg</span></code></pre></div>
+<p>In older versions (ImageMagick 6), the same syntax applies using the
+<code>convert</code> binary:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-orient</span> undefined input.jpg output.jpg</span></code></pre></div>
+<p>Alternatively, <code>+orient</code> placed before the input filename
+can be used to neutralize orientation metadata upon reading:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> +orient input.jpg output.jpg</span></code></pre></div>
+<hr />
+<h2 id="why-placement-matters-during-ingest">Why Placement Matters
+During Ingest</h2>
+<p>ImageMagick evaluates command-line arguments sequentially from left
+to right. Options are divided into settings and operators:</p>
+<ul>
+<li><strong>Settings before the filename:</strong> When
+<code>-orient undefined</code> is declared prior to reading the input
+file, it acts as an ingest setting. It tells the image decoder to
+disregard the EXIF orientation flag embedded by the digital camera
+sensors when loading pixel data into memory.</li>
+<li><strong>Settings after the filename:</strong> If
+<code>-orient undefined</code> is placed after the input file,
+ImageMagick reads the metadata first and applies the setting only to the
+in-memory image afterward, which may still alter how downstream
+operations interpret the geometry.</li>
+</ul>
+<hr />
+<h2
+id="difference-between-ignoring-orientation-and--auto-orient">Difference
+Between Ignoring Orientation and <code>-auto-orient</code></h2>
+<p>It is common to confuse ignoring orientation tags with resolving
+them:</p>
+<ul>
+<li><strong><code>-auto-orient</code>:</strong> Reads the EXIF
+orientation tag, physically rotates the image raster data so it displays
+right-side up, and then resets the tag to <code>Top-Left</code>
+(Normal).</li>
+<li><strong><code>-orient undefined</code> (before ingest):</strong>
+Leaves the pixel array untouched in the native sensor read-order and
+drops or ignores the EXIF orientation tag entirely, ensuring no
+automatic transformations take place.</li>
+</ul>
+<hr />
+<h2 id="stripping-orientation-metadata-completely">Stripping Orientation
+Metadata Completely</h2>
+<p>If you want to ensure the final output file does not retain any
+conflicting EXIF tags that external viewers or web browsers might read,
+combine <code>-orient undefined</code> with <code>-strip</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-orient</span> undefined input.jpg <span class="at">-strip</span> output.jpg</span></code></pre></div>
+<p>This ensures the image data remains in its raw, unrotated orientation
+on ingest and completely purges all embedded profiles and EXIF metadata
+from the final output file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

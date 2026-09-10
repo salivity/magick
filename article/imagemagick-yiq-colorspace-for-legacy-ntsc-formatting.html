@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick YIQ Colorspace for Legacy NTSC Formatting - magick</title>
+    <meta name="description" content="The -colorspace YIQ command in ImageMagick converts digital RGB images into the YIQ color model, the historical standard developed for analog NTSC (National Television System Committee) television broadcasts in North America. By separating image data int">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-yiq-colorspace-for-legacy-ntsc-formatting">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick YIQ Colorspace for Legacy NTSC Formatting - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-yiq-colorspace-for-legacy-ntsc-formatting" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -colorspace YIQ command in ImageMagick converts digital RGB images into the YIQ color model, the historical standard developed for analog NTSC (National Television System Committee) television broadcasts in North America. By separating image data int" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-yiq-colorspace-for-legacy-ntsc-formatting">ImageMagick
+YIQ Colorspace for Legacy NTSC Formatting</h1>
+<p>The <code>-colorspace YIQ</code> command in ImageMagick converts
+digital RGB images into the YIQ color model, the historical standard
+developed for analog NTSC (National Television System Committee)
+television broadcasts in North America. By separating image data into
+luma and two specific chrominance components, this command allows
+archivists, engineers, and digital artists to simulate vintage analog
+video artifacts, manipulate transmission bandwidth limits, and prepare
+digital content for legacy broadcast pipelines.</p>
+<h3 id="understanding-the-yiq-color-representation">Understanding the
+YIQ Color Representation</h3>
+<p>The YIQ color model was engineered to ensure backward compatibility
+with monochrome (black-and-white) television sets while optimizing
+bandwidth for human visual perception:</p>
+<ul>
+<li><strong>Y (Luma):</strong> Represents brightness and greyscale
+details. This channel is identical to the signal used by black-and-white
+televisions, allowing legacy sets to display color broadcasts without
+modification.</li>
+<li><strong>I (In-phase):</strong> Represents the orange-cyan color
+axis. Because the human visual system is particularly sensitive to human
+skin tones, NTSC allocated approximately 1.3 MHz of bandwidth to this
+component.</li>
+<li><strong>Q (Quadrature):</strong> Represents the magenta-green color
+axis. Human vision is less sensitive to fine spatial changes in this
+spectrum, so NTSC restricted its bandwidth to roughly 0.4 MHz.</li>
+</ul>
+<p>When executing <code>-colorspace YIQ</code>, ImageMagick applies a
+standardized linear transformation matrix to convert standard sRGB
+values into normalized Y, I, and Q floating-point representations.</p>
+<h3 id="emulating-ntsc-bandwidth-limitations">Emulating NTSC Bandwidth
+Limitations</h3>
+<p>In standard digital RGB workflows, all three color channels share the
+same spatial resolution. In contrast, NTSC broadcasting heavily
+subsampled and filtered the chrominance channels. ImageMagick enables
+the recreation of this asymmetric signal loss through channel-specific
+operations.</p>
+<p>Once converted to YIQ, the channels correspond sequentially: Channel
+0 is Y, Channel 1 is I, and Channel 2 is Q. By applying horizontal blurs
+or subsampling exclusively to the I and Q channels while leaving the Y
+channel untouched, users can recreate authentic NTSC "color bleed" and
+fringe artifacts:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> YIQ <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> 1 <span class="at">-blur</span> 3x0 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> 2 <span class="at">-blur</span> 6x0 +channel <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> sRGB output_ntsc_simulation.png</span></code></pre></div>
+<p>In this pipeline:</p>
+<ol type="1">
+<li>The image is converted to the broadcast-accurate YIQ matrix.</li>
+<li>The <code>I</code> channel receives moderate horizontal attenuation
+to simulate its 1.3 MHz limit.</li>
+<li>The <code>Q</code> channel receives heavier horizontal attenuation
+to mimic its tighter 0.4 MHz low-pass filter.</li>
+<li>The result is mapped back to sRGB for digital display.</li>
+</ol>
+<h3 id="archival-analysis-and-composite-signal-modeling">Archival
+Analysis and Composite Signal Modeling</h3>
+<p>Beyond visual aesthetics, <code>-colorspace YIQ</code> provides
+utility in technical archival tasks:</p>
+<ul>
+<li><strong>Luma/Chroma Separation:</strong> Isolating the Y channel
+reveals the exact signal a vintage monochrome television would display,
+enabling verification of contrast ratios without chroma
+interference.</li>
+<li><strong>Phase Distortion Testing:</strong> Analog NTSC suffered from
+hue shifts caused by transmission phase errors. By isolating and
+rotating the I and Q channels as coordinates in a 2D plane, technicians
+can model how analog signal drift degrades specific colors.</li>
+<li><strong>Hardware Emulation:</strong> Digital systems interfacing
+with legacy broadcast hardware, such as time-base correctors or
+composite decoders, can utilize ImageMagick to preprocess assets into
+native NTSC components prior to digital-to-analog conversion.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

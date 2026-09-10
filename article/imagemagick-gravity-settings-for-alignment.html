@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Gravity Settings for Alignment - magick</title>
+    <meta name="description" content="ImageMagick uses the -gravity setting to establish a reference point or anchor for image operations such as cropping, compositing, text annotation, and drawing. By setting a gravity direction, you dictate where overlays attach, how offsets are calculated">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gravity-settings-for-alignment">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Gravity Settings for Alignment - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gravity-settings-for-alignment" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick uses the -gravity setting to establish a reference point or anchor for image operations such as cropping, compositing, text annotation, and drawing. By setting a gravity direction, you dictate where overlays attach, how offsets are calculated" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gravity-settings-for-alignment">ImageMagick Gravity
+Settings for Alignment</h1>
+<p>ImageMagick uses the <code>-gravity</code> setting to establish a
+reference point or anchor for image operations such as cropping,
+compositing, text annotation, and drawing. By setting a gravity
+direction, you dictate where overlays attach, how offsets are
+calculated, and which portions of an image are prioritized during
+resizing and cropping operations.</p>
+<h2 id="available-gravity-options">Available Gravity Options</h2>
+<p>ImageMagick organizes gravity settings primarily around a 9-point
+compass grid, along with special settings to clear or reset
+alignment:</p>
+<ul>
+<li><strong>NorthWest</strong>: Top-left corner of the image
+canvas.</li>
+<li><strong>North</strong>: Top-center edge.</li>
+<li><strong>NorthEast</strong>: Top-right corner.</li>
+<li><strong>West</strong>: Vertical-center on the left edge.</li>
+<li><strong>Center</strong>: The exact geometric center of the
+canvas.</li>
+<li><strong>East</strong>: Vertical-center on the right edge.</li>
+<li><strong>SouthWest</strong>: Bottom-left corner.</li>
+<li><strong>South</strong>: Bottom-center edge.</li>
+<li><strong>SouthEast</strong>: Bottom-right corner.</li>
+<li><strong>None</strong> (or <strong>Undefined</strong>): Disables
+directional gravity, defaulting offset calculations to the absolute
+origin (top-left, <code>0,0</code>) without anchor alignment.</li>
+<li><strong>Forget</strong>: A legacy setting that clears previous
+gravity states without altering coordinate behavior.</li>
+</ul>
+<h2 id="how-gravity-influences-common-operations">How Gravity Influences
+Common Operations</h2>
+<h3 id="1-offsets-and-geometry-calculations">1. Offsets and Geometry
+Calculations</h3>
+<p>When gravity is set, pixel offsets (<code>+X+Y</code>) are measured
+from the selected anchor point toward the interior of the canvas rather
+than always from the top-left:</p>
+<ul>
+<li>With <code>NorthWest</code>, <code>+10+10</code> shifts content 10
+pixels right and 10 pixels down.</li>
+<li>With <code>SouthEast</code>, <code>+10+10</code> shifts content 10
+pixels left and 10 pixels up.</li>
+<li>With <code>Center</code>, <code>+0+0</code> places the object
+exactly in the middle.</li>
+</ul>
+<h3 id="2-cropping--crop">2. Cropping (<code>-crop</code>)</h3>
+<p>When resizing or cropping an image to a smaller canvas size,
+<code>-gravity</code> determines which region of the image is
+preserved:</p>
+<ul>
+<li><code>-gravity Center -crop 500x500+0+0</code> keeps the center
+500x500 pixel area and trims the outer edges.</li>
+<li><code>-gravity North -crop 500x500+0+0</code> keeps the top-center
+portion of the image.</li>
+</ul>
+<h3 id="3-layering-and-compositing--composite">3. Layering and
+Compositing (<code>-composite</code>)</h3>
+<p>When combining two images, <code>-gravity</code> sets where the
+overlay image is positioned relative to the base image:</p>
+<ul>
+<li><code>-gravity SouthEast</code> places a watermark or logo in the
+bottom-right corner.</li>
+<li><code>-gravity Center</code> places the overlay directly over the
+center of the background.</li>
+</ul>
+<h3 id="4-text-and-annotations--annotate">4. Text and Annotations
+(<code>-annotate</code>)</h3>
+<p>When writing text on an image, <code>-gravity</code> determines the
+anchor point of the text bounding box:</p>
+<ul>
+<li><code>-gravity South -annotate +0+20 "Sample Text"</code> centers
+the text horizontally along the bottom, 20 pixels up from the lower
+edge.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

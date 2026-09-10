@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick FX Normalized Horizontal Coordinate - magick</title>
+    <meta name="description" content="This article explains how horizontal coordinates are handled within ImageMagick's -fx expression engine, clarifies the variables provided for coordinate math, and demonstrates how to derive normalized horizontal coordinates for image transformations. Ima">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-fx-normalized-horizontal-coordinate">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick FX Normalized Horizontal Coordinate - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-fx-normalized-horizontal-coordinate" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how horizontal coordinates are handled within ImageMagick's -fx expression engine, clarifies the variables provided for coordinate math, and demonstrates how to derive normalized horizontal coordinates for image transformations. Ima" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-fx-normalized-horizontal-coordinate">ImageMagick FX
+Normalized Horizontal Coordinate</h1>
+<p>This article explains how horizontal coordinates are handled within
+ImageMagick's <code>-fx</code> expression engine, clarifies the
+variables provided for coordinate math, and demonstrates how to derive
+normalized horizontal coordinates for image transformations.</p>
+<p>ImageMagick’s <code>-fx</code> operator does not provide a single
+dedicated variable for the normalized horizontal image coordinate.
+Instead, it provides the fundamental variables <code>i</code> (the
+horizontal column index, starting at 0) and <code>w</code> (the image
+width in pixels).</p>
+<p>To obtain the normalized horizontal coordinate ranging from
+<code>0.0</code> to <code>1.0</code>, you construct the value
+mathematically using an expression:</p>
+<ul>
+<li><p><strong>Standard normalization (spanning the full pixel
+width):</strong><br />
+<code>i / w</code><br />
+This evaluates to values from <code>0</code> up to
+<code>(w - 1) / w</code>.</p></li>
+<li><p><strong>Exact endpoint normalization (inclusive of both outer
+pixel edges):</strong><br />
+<code>i / (w - 1)</code><br />
+This maps the first pixel column to <code>0.0</code> and the final pixel
+column to <code>1.0</code>.</p></li>
+</ul>
+<h3 id="key-coordinate-variables-in-imagemagick--fx">Key Coordinate
+Variables in ImageMagick <code>-fx</code></h3>
+<ul>
+<li><code>i</code>: Current horizontal pixel coordinate (column number,
+from <code>0</code> to <code>w - 1</code>).</li>
+<li><code>j</code>: Current vertical pixel coordinate (row number, from
+<code>0</code> to <code>h - 1</code>).</li>
+<li><code>w</code>: Total width of the primary image in pixels.</li>
+<li><code>h</code>: Total height of the primary image in pixels.</li>
+</ul>
+<h3 id="practical-example">Practical Example</h3>
+<p>To generate a smooth horizontal grayscale gradient using the
+normalized horizontal coordinate, apply the expression via the
+<code>-fx</code> operator in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 256x256 xc:black <span class="at">-fx</span> <span class="st">&quot;i / (w - 1)&quot;</span> horizontal_gradient.png</span></code></pre></div>
+<p>In this command, each pixel's color intensity is assigned the
+calculated normalized horizontal position, transitioning smoothly from
+black (<code>0.0</code>) on the far left to white (<code>1.0</code>) on
+the far right.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

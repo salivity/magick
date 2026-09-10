@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Synchronize Flag Explained - magick</title>
+    <meta name="description" content="This article provides an overview of the -synchronize flag in ImageMagick, explaining its technical purpose, how it interacts with the underlying operating system's file cache, and why it is used when writing files to persistent storage. You will learn h">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-synchronize-flag-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Synchronize Flag Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-synchronize-flag-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the -synchronize flag in ImageMagick, explaining its technical purpose, how it interacts with the underlying operating system's file cache, and why it is used when writing files to persistent storage. You will learn h" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-synchronize-flag-explained">ImageMagick Synchronize
+Flag Explained</h1>
+<p>This article provides an overview of the <code>-synchronize</code>
+flag in ImageMagick, explaining its technical purpose, how it interacts
+with the underlying operating system's file cache, and why it is used
+when writing files to persistent storage. You will learn how this option
+guarantees data persistence, the scenarios where it is critical, and the
+performance trade-offs associated with enabling it.</p>
+<h2 id="how-the--synchronize-flag-works">How the -synchronize Flag
+Works</h2>
+<p>When applications write data to disk, modern operating systems do not
+immediately write every byte to physical media. Instead, the OS buffers
+writes in volatile memory (the page cache) to optimize I/O performance
+and returns control to the application immediately.</p>
+<p>The ImageMagick <code>-synchronize</code> flag forces the application
+to flush output image files directly to physical, non-volatile storage
+before the command completes. Technically, it invokes system-level sync
+operations (such as <code>fsync()</code> on Unix-like systems or
+<code>FlushFileBuffers()</code> on Windows) after the file is written
+and closed.</p>
+<h2 id="why-use-the--synchronize-flag">Why Use the -synchronize
+Flag?</h2>
+<p>Using <code>-synchronize</code> provides critical data safety
+guarantees:</p>
+<ul>
+<li><strong>Preventing Data Loss:</strong> If a system suffers an
+unexpected power loss, kernel panic, or hardware crash immediately after
+an image is processed, data remaining in the OS write cache is lost. The
+<code>-synchronize</code> flag ensures the complete file is committed to
+the disk platters or flash cells.</li>
+<li><strong>Avoiding Zero-Byte or Corrupted Files:</strong> In automated
+pipelines where another process immediately reads the generated file—or
+where containers/virtual machines are terminated immediately after
+execution—unsynchronized caches can lead to truncated or 0-byte files
+being read by downstream services.</li>
+<li><strong>Critical Archival Workloads:</strong> It is commonly used in
+high-reliability environments, such as medical imaging, document
+archiving, or legal evidence processing, where image integrity takes
+absolute precedence over speed.</li>
+</ul>
+<h2 id="command-syntax-and-example">Command Syntax and Example</h2>
+<p>To apply the flag, include <code>-synchronize</code> in your
+ImageMagick command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 800x600 <span class="at">-synchronize</span> output.jpg</span></code></pre></div>
+<p>In legacy versions (ImageMagick 6), the flag is applied with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-resize</span> 800x600 <span class="at">-synchronize</span> output.jpg</span></code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<p>While <code>-synchronize</code> guarantees data safety, it introduces
+an I/O bottleneck. Because the process must wait for the physical
+storage controller to acknowledge the write operation, execution latency
+increases.</p>
+<p>For batch processing millions of thumbnail images where occasional
+re-processing is acceptable, omitting <code>-synchronize</code> allows
+the operating system to schedule writes efficiently. However, when
+guaranteed write durability is mandatory upon task completion, the
+<code>-synchronize</code> flag is essential.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

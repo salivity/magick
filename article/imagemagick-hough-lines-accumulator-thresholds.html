@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Hough Lines Accumulator Thresholds - magick</title>
+    <meta name="description" content="This article explains how to configure accumulator thresholds in ImageMagick when using the Hough transform to detect straight lines. By understanding the syntax of the Hough line detector, you can control detection sensitivity, filter out background noi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hough-lines-accumulator-thresholds">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Hough Lines Accumulator Thresholds - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hough-lines-accumulator-thresholds" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to configure accumulator thresholds in ImageMagick when using the Hough transform to detect straight lines. By understanding the syntax of the Hough line detector, you can control detection sensitivity, filter out background noi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hough-lines-accumulator-thresholds">ImageMagick
+Hough Lines Accumulator Thresholds</h1>
+<p>This article explains how to configure accumulator thresholds in
+ImageMagick when using the Hough transform to detect straight lines. By
+understanding the syntax of the Hough line detector, you can control
+detection sensitivity, filter out background noise, and accurately
+extract dominant lines from binary or edge-detected images.</p>
+<p>In ImageMagick, Hough transform line detection is configured through
+the <code>-hough-lines</code> operator. The command relies on a specific
+geometry argument formatted as:</p>
+<pre class="text"><code>-hough-lines &lt;width&gt;x&lt;height&gt;+&lt;threshold&gt;</code></pre>
+<h3 id="the-accumulator-threshold-parameter-threshold">The Accumulator
+Threshold Parameter (<code>+&lt;threshold&gt;</code>)</h3>
+<p>The <code>+&lt;threshold&gt;</code> parameter directly sets the
+accumulator threshold. In a Hough transform, edge pixels cast "votes"
+into a two-dimensional accumulator grid representing polar coordinates
+(angle and distance from the origin). The <code>&lt;threshold&gt;</code>
+value defines the minimum number of votes (accumulated counts) required
+for a point in accumulator space to be recognized as a valid line.</p>
+<ul>
+<li><strong>Higher values:</strong> Restrict detection to only the
+strongest, longest, or most continuous lines. This reduces false
+positives caused by texture and fragmented edges.</li>
+<li><strong>Lower values:</strong> Increase sensitivity, capturing
+shorter line segments or faint edges, but also increasing susceptibility
+to noise.</li>
+</ul>
+<h3 id="the-neighborhood-matrix-parameters-widthxheight">The
+Neighborhood Matrix Parameters
+(<code>&lt;width&gt;x&lt;height&gt;</code>)</h3>
+<p>The <code>&lt;width&gt;</code> and <code>&lt;height&gt;</code>
+parameters do not set the accumulator threshold directly, but they
+control the local maxima filtering window within the accumulator
+array:</p>
+<ul>
+<li><strong>Width and Height:</strong> Define the neighborhood window
+size (in pixels/bins) used to search for local peaks in the accumulator
+space.</li>
+<li>A peak must be the maximum value within this
+<code>&lt;width&gt;x&lt;height&gt;</code> window to be considered a
+candidate line. This mechanism prevents a single strong line from
+generating multiple overlapping, redundant detections.</li>
+</ul>
+<h3 id="typical-implementation">Typical Implementation</h3>
+<p>The Hough transform expects a binary edge image, typically generated
+using Canny edge detection. A standard command looks like this:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-canny</span> 0x1+10%+30% <span class="at">-hough-lines</span> 9x9+50 lines.mvg</span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li><code>9x9</code> specifies the neighborhood window to isolate
+distinct peaks in the accumulator.</li>
+<li><code>+50</code> is the accumulator threshold, meaning an edge must
+span enough pixels to generate at least 50 votes to be identified as a
+line.</li>
+<li><code>lines.mvg</code> stores the resulting vector lines.</li>
+</ul>
+<h3 id="visualizing-the-accumulator">Visualizing the Accumulator</h3>
+<p>To fine-tune the threshold value, you can inspect the accumulator
+array directly by using the <code>-define</code> setting:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-canny</span> 0x1+10%+30% <span class="at">-define</span> hough-lines:accumulator=true <span class="at">-hough-lines</span> 9x9+50 accumulator.png</span></code></pre></div>
+<p>This generates a grayscale image representing the accumulator space.
+Bright spots represent high vote counts; measuring the pixel intensity
+of these peaks can help determine the exact threshold value needed for
+your specific dataset.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

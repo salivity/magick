@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Thumbnail Sheet with Filenames - magick</title>
+    <meta name="description" content="This guide explains how to generate an image thumbnail sheet (also known as a contact sheet or montage) with original filenames printed beneath each thumbnail using ImageMagick. By utilizing ImageMagick's built-in montage tool alongside the -label proper">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-thumbnail-sheet-with-filenames">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Thumbnail Sheet with Filenames - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-thumbnail-sheet-with-filenames" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to generate an image thumbnail sheet (also known as a contact sheet or montage) with original filenames printed beneath each thumbnail using ImageMagick. By utilizing ImageMagick's built-in montage tool alongside the -label proper" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-thumbnail-sheet-with-filenames">ImageMagick
+Thumbnail Sheet with Filenames</h1>
+<p>This guide explains how to generate an image thumbnail sheet (also
+known as a contact sheet or montage) with original filenames printed
+beneath each thumbnail using ImageMagick. By utilizing ImageMagick's
+built-in <code>montage</code> tool alongside the <code>-label</code>
+property, you can automate the process of creating organized image grids
+directly from the command line.</p>
+<h3 id="the-basic-command">The Basic Command</h3>
+<p>To create a thumbnail sheet displaying filenames beneath each image,
+run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="at">-label</span> <span class="st">&quot;%f&quot;</span> <span class="at">-geometry</span> 150x150+5+5 <span class="pp">*</span>.jpg thumbnail_sheet.png</span></code></pre></div>
+<p>For ImageMagick version 7 and later, prefix the command with
+<code>magick</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage <span class="at">-label</span> <span class="st">&quot;%f&quot;</span> <span class="at">-geometry</span> 150x150+5+5 <span class="pp">*</span>.jpg thumbnail_sheet.png</span></code></pre></div>
+<h3 id="how-it-works">How It Works</h3>
+<ul>
+<li><strong><code>-label "%f"</code></strong>: Instructs ImageMagick to
+read the filename of each input file and print it as a label directly
+beneath its corresponding thumbnail.</li>
+<li><strong><code>-geometry 150x150+5+5</code></strong>: Defines the
+size of each thumbnail (150x150 pixels) and adds horizontal and vertical
+spacing (5px margin on each side).</li>
+<li><strong><code>*.jpg</code></strong>: The input images to include in
+the thumbnail sheet.</li>
+<li><strong><code>thumbnail_sheet.png</code></strong>: The output image
+file.</li>
+</ul>
+<h3 id="advanced-customization-options">Advanced Customization
+Options</h3>
+<p>You can refine the layout, typography, and styling by adding
+additional flags:</p>
+<h4 id="1-define-grid-layout-columns-and-rows">1. Define Grid Layout
+(Columns and Rows)</h4>
+<p>Use the <code>-tile</code> option to specify the number of columns
+and rows:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage <span class="at">-label</span> <span class="st">&quot;%f&quot;</span> <span class="at">-tile</span> 4x <span class="at">-geometry</span> 200x200+10+10 <span class="pp">*</span>.jpg contact_sheet.png</span></code></pre></div>
+<p><em>(Setting <code>-tile 4x</code> creates a fixed 4-column layout
+with an automatic number of rows.)</em></p>
+<h4 id="2-change-font-size-and-colors">2. Change Font Size and
+Colors</h4>
+<p>Customize the appearance of the text and background:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage <span class="at">-label</span> <span class="st">&quot;%f&quot;</span> <span class="at">-font</span> Arial <span class="at">-pointsize</span> 12 <span class="at">-background</span> <span class="st">&quot;#ffffff&quot;</span> <span class="at">-fill</span> <span class="st">&quot;#333333&quot;</span> <span class="at">-geometry</span> 150x150+10+10 <span class="pp">*</span>.jpg styled_sheet.png</span></code></pre></div>
+<ul>
+<li><strong><code>-pointsize 12</code></strong>: Sets the label font
+size to 12 points.</li>
+<li><strong><code>-background "#ffffff"</code></strong>: Sets the sheet
+background color to white.</li>
+<li><strong><code>-fill "#333333"</code></strong>: Sets the text color
+to dark gray.</li>
+</ul>
+<h4 id="3-display-filenames-without-file-extensions">3. Display
+Filenames Without File Extensions</h4>
+<p>If you want only the base filename without the extension, replace
+<code>%f</code> with <code>%t</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage <span class="at">-label</span> <span class="st">&quot;%t&quot;</span> <span class="at">-geometry</span> 150x150+5+5 <span class="pp">*</span>.jpg base_names_sheet.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

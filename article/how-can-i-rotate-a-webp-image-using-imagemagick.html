@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Can I Rotate a WebP Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Rotating a WebP image using ImageMagick is a straightforward task accomplished via command-line utilities. Whether you need a standard 90-degree turn, an arbitrary angle adjustment, or an automatic orientation fix based on EXIF metadata, ImageMagick prov">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-can-i-rotate-a-webp-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Can I Rotate a WebP Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-can-i-rotate-a-webp-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rotating a WebP image using ImageMagick is a straightforward task accomplished via command-line utilities. Whether you need a standard 90-degree turn, an arbitrary angle adjustment, or an automatic orientation fix based on EXIF metadata, ImageMagick prov" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-can-i-rotate-a-webp-image-using-imagemagick">How Can I
+Rotate a WebP Image Using ImageMagick?</h1>
+<p>Rotating a WebP image using ImageMagick is a straightforward task
+accomplished via command-line utilities. Whether you need a standard
+90-degree turn, an arbitrary angle adjustment, or an automatic
+orientation fix based on EXIF metadata, ImageMagick provides dedicated
+flags like <code>-rotate</code> and <code>-auto-orient</code>. This
+guide outlines the necessary commands for both legacy and modern
+ImageMagick versions, highlights how to preserve WebP quality, and
+explains how to batch-process entire directories of WebP files.</p>
+<h3 id="verifying-webp-support">Verifying WebP Support</h3>
+<p>Before executing rotation commands, verify that your local
+ImageMagick installation includes delegates for the WebP format. Run the
+following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> in the list of delegates. Alternatively,
+you can query delegate support directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> webp</span></code></pre></div>
+<p>If <code>WEBP</code> appears with read and write permissions
+(<code>rw-</code> or <code>r--</code>), your system is ready to process
+WebP files.</p>
+<h3 id="basic-90-180-and-270-degree-rotations">Basic 90, 180, and
+270-Degree Rotations</h3>
+<p>In modern ImageMagick (version 7 and later), the primary command-line
+tool is <code>magick</code>. In ImageMagick 6, the legacy command
+<code>convert</code> is used instead.</p>
+<p>To rotate an image 90 degrees clockwise:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-rotate</span> 90 output.webp</span></code></pre></div>
+<p>To rotate an image 90 degrees counter-clockwise, use <code>270</code>
+or <code>-90</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-rotate</span> 270 output.webp</span></code></pre></div>
+<p>To flip the image upside-down (180 degrees):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-rotate</span> 180 output.webp</span></code></pre></div>
+<h3 id="rotating-by-arbitrary-angles-and-background-handling">Rotating
+by Arbitrary Angles and Background Handling</h3>
+<p>When rotating an image by an angle that is not a multiple of 90
+degrees (such as 45 degrees), the canvas expands to fit the rotated
+dimensions. By default, ImageMagick may fill the exposed empty corners
+with a solid background color.</p>
+<p>To rotate by 45 degrees while maintaining a transparent
+background:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-background</span> none <span class="at">-rotate</span> 45 output.webp</span></code></pre></div>
+<p>If you prefer a solid background color instead of transparency,
+specify the color name or hex code:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-background</span> white <span class="at">-rotate</span> 45 output.webp</span></code></pre></div>
+<h3 id="preserving-webp-compression-quality">Preserving WebP Compression
+Quality</h3>
+<p>Rotating a raster image like WebP involves re-encoding the pixel
+data. To prevent unintended quality degradation or excessive compression
+artifacts, define the output quality explicitly using the
+<code>-quality</code> flag, which accepts a value from 0 to 100:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-rotate</span> 90 <span class="at">-quality</span> 90 output.webp</span></code></pre></div>
+<p>If your original WebP file is lossless and you wish to retain
+complete lossless fidelity:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-rotate</span> 90 <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h3 id="automatic-rotation-using-exif-metadata">Automatic Rotation Using
+EXIF Metadata</h3>
+<p>Digital cameras and smartphones often store orientation instructions
+inside the image's EXIF data rather than physically rotating the pixel
+grid. To rotate the WebP image to its intended viewing orientation and
+reset the EXIF tag automatically, use the <code>-auto-orient</code>
+operator:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-auto-orient</span> output.webp</span></code></pre></div>
+<h3 id="batch-rotating-multiple-webp-files">Batch Rotating Multiple WebP
+Files</h3>
+<p>To rotate multiple WebP files at once without overwriting them one by
+one, use the <code>mogrify</code> command. Be aware that
+<code>mogrify</code> overwrites the original files in place unless an
+alternative output directory is specified.</p>
+<p>To overwrite all WebP images in the current directory with a
+90-degree rotation:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-rotate</span> 90 <span class="pp">*</span>.webp</span></code></pre></div>
+<p>To safely output rotated versions into a dedicated subfolder (such as
+<code>rotated/</code>):</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> rotated</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> rotated <span class="at">-rotate</span> 90 <span class="pp">*</span>.webp</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

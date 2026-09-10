@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Adjusts Mipmap Filter Coefficients - magick</title>
+    <meta name="description" content="When generating mipmap pyramids, ImageMagick creates progressively downsampled levels of a texture to ensure smooth rendering and eliminate aliasing artifacts at varying distances. To achieve this, the software applies a scalable, separable 2D convolutio">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-adjusts-mipmap-filter-coefficients">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Adjusts Mipmap Filter Coefficients - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-adjusts-mipmap-filter-coefficients" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When generating mipmap pyramids, ImageMagick creates progressively downsampled levels of a texture to ensure smooth rendering and eliminate aliasing artifacts at varying distances. To achieve this, the software applies a scalable, separable 2D convolutio" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-adjusts-mipmap-filter-coefficients">How
+ImageMagick Adjusts Mipmap Filter Coefficients</h1>
+<p>When generating mipmap pyramids, ImageMagick creates progressively
+downsampled levels of a texture to ensure smooth rendering and eliminate
+aliasing artifacts at varying distances. To achieve this, the software
+applies a scalable, separable 2D convolution algorithm that dynamically
+widens the reconstruction filter kernel, evaluates the chosen continuous
+weighting function across pixel neighborhoods, and normalizes the
+resulting discrete coefficients. This process conserves overall image
+luminance and prevents high-frequency data from folding back into the
+lower-resolution mip levels.</p>
+<h3 id="kernel-scaling-and-support-dilation">Kernel Scaling and Support
+Dilation</h3>
+<p>ImageMagick treats downsampling as a continuous signal processing
+problem. When computing a mipmap level that is half the resolution of
+the preceding tier, the scale factor <span
+class="math inline">\(s\)</span> is defined as <span
+class="math inline">\(0.5\)</span>.</p>
+<p>In standard upsampling or unity scaling (<span
+class="math inline">\(s \ge 1.0\)</span>), the filter’s support radius
+determines the number of neighboring pixels sampled. During downsampling
+(<span class="math inline">\(s &lt; 1.0\)</span>), using an unadjusted
+support width would cause Nyquist-Shannon sampling violations, resulting
+in severe aliasing. ImageMagick compensates by dilating the filter
+support radius:</p>
+<p><span class="math display">\[\text{Adjusted Support} =
+\frac{\text{Base Support}}{s}\]</span></p>
+<p>For a standard dyadic mipmap step where <span class="math inline">\(s
+= 0.5\)</span>, the filter support is effectively doubled. This
+guarantees that the sampling window expands to cover a sufficient area
+of the source image, capturing all relevant frequency information needed
+for the lower-resolution target.</p>
+<h3 id="evaluating-filter-functions">Evaluating Filter Functions</h3>
+<p>Once the expanded window is established for an output pixel,
+ImageMagick calculates the discrete contribution (weight) of each input
+pixel within that window. It samples the mathematical profile of the
+selected filter (such as Mitchell-Netravali, Lanczos, Box, or
+Gaussian).</p>
+<p>Because the kernel has been stretched in spatial extent, the input
+coordinates passed into the filter function must be scaled down
+accordingly:</p>
+<p><span class="math display">\[W(x) = f(x \cdot s)\]</span></p>
+<p>Here, <span class="math inline">\(x\)</span> represents the discrete
+distance between the input sample position and the target sampling
+center, and <span class="math inline">\(f\)</span> is the continuous
+filter function. Multiplying the distance by the scale factor <span
+class="math inline">\(s\)</span> spreads the evaluation curve across the
+widened support window.</p>
+<h3 id="coefficient-normalization-and-energy-conservation">Coefficient
+Normalization and Energy Conservation</h3>
+<p>Evaluating the continuous function across discrete grid points can
+produce a set of weights whose sum does not equal <span
+class="math inline">\(1.0\)</span>. If applied directly, this would
+alter the overall brightness (energy) of the texture level and introduce
+ripple artifacts across uniform areas.</p>
+<p>ImageMagick resolves this by summing all evaluated raw weights within
+the support bounds:</p>
+<p><span class="math display">\[\text{Total Weight} = \sum_{i}
+W(x_i)\]</span></p>
+<p>Each individual raw coefficient is then adjusted by dividing it by
+this sum:</p>
+<p><span class="math display">\[C_i = \frac{W(x_i)}{\text{Total
+Weight}}\]</span></p>
+<p>This normalization step ensures that the discrete coefficients sum to
+precisely <span class="math inline">\(1.0\)</span>. As a result, the
+average luminance and color balance remain consistent across every tier
+of the mipmap pyramid.</p>
+<h3 id="separable-execution-across-axes">Separable Execution Across
+Axes</h3>
+<p>To maintain performance, ImageMagick generates mipmap levels using
+separable passes rather than a direct 2D matrix calculation. The
+horizontal dimension is filtered and downsampled first, calculating and
+applying 1D horizontal coefficients for every row. The vertical
+dimension is then processed on that intermediate buffer, applying 1D
+vertical coefficients down each column. Because the scale factor is
+symmetric (<span class="math inline">\(0.5\)</span> along both axes for
+standard mipmaps), the calculated coefficient distributions are
+identical in both passes, maximizing memory cache efficiency and
+computational throughput.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

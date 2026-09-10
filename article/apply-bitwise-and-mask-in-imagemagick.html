@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Bitwise AND Mask in ImageMagick - magick</title>
+    <meta name="description" content="Applying a bitwise AND mask to an image allows you to zero out specific bit planes, which is commonly used to eliminate lower-order bits for image compression, posterization effects, or digital forensics and steganography analysis. In ImageMagick, this o">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-bitwise-and-mask-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Bitwise AND Mask in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-bitwise-and-mask-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a bitwise AND mask to an image allows you to zero out specific bit planes, which is commonly used to eliminate lower-order bits for image compression, posterization effects, or digital forensics and steganography analysis. In ImageMagick, this o" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-bitwise-and-mask-in-imagemagick">Apply Bitwise AND Mask in
+ImageMagick</h1>
+<p>Applying a bitwise AND mask to an image allows you to zero out
+specific bit planes, which is commonly used to eliminate lower-order
+bits for image compression, posterization effects, or digital forensics
+and steganography analysis. In ImageMagick, this operation is performed
+using the <code>-evaluate And</code> operator, which applies a specified
+bitmask across the color channels of an image.</p>
+<h3 id="the-command">The Command</h3>
+<p>To apply a bitwise AND mask and eliminate lower-order bits, use the
+following command structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> And <span class="op">&lt;</span>mask_value<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p><em>(Note: If you are using ImageMagick version 6, replace
+<code>magick</code> with <code>convert</code>.)</em></p>
+<h3 id="how-it-works">How It Works</h3>
+<p>The <code>-evaluate And</code> operator takes a numerical value (in
+decimal, hexadecimal, or percentage) and performs a logical bitwise AND
+comparison on each pixel channel against that value. Any bit set to
+<code>0</code> in the mask is forced to <code>0</code> in the output
+image, effectively stripping away data in those bit positions.</p>
+<h3 id="selecting-the-mask-value">Selecting the Mask Value</h3>
+<p>ImageMagick builds typically run with a 16-bit quantum depth
+(<code>Q16</code>), though some operate at 8-bit (<code>Q8</code>). To
+ensure consistent behavior, you can specify your mask in hexadecimal or
+set the bit depth explicitly.</p>
+<h4 id="8-bit-quantum-q8">8-Bit Quantum (Q8)</h4>
+<p>To eliminate the lower 4 bits of an 8-bit image (retaining only the 4
+most significant bits):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> And 0xF0 output.png</span></code></pre></div>
+<ul>
+<li><code>0xF0</code> (binary <code>11110000</code>, decimal
+<code>240</code>) preserves the upper 4 bits and clears the lower 4
+bits.</li>
+<li><code>0xFE</code> (binary <code>11111110</code>, decimal
+<code>254</code>) clears only the least significant bit (LSB).</li>
+</ul>
+<h4 id="16-bit-quantum-q16">16-Bit Quantum (Q16)</h4>
+<p>If your ImageMagick build uses Q16, an 8-bit hex value like
+<code>0xF0</code> will only target the bottom of the 16-bit range. To
+mask the top-level bits in Q16:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> And 0xF000 output.png</span></code></pre></div>
+<p>Alternatively, force the image to an 8-bit depth during
+processing:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-depth</span> 8 <span class="at">-evaluate</span> And 240 output.png</span></code></pre></div>
+<h3 id="channel-specific-masking">Channel-Specific Masking</h3>
+<p>If you only want to clear the lower bits of specific channels (for
+example, just the Red channel), use the <code>-channel</code> flag:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> R <span class="at">-evaluate</span> And 0xF0 +channel output.png</span></code></pre></div>
+<p>The <code>+channel</code> switch resets the channel selection back to
+the default so subsequent operations affect all channels normally.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

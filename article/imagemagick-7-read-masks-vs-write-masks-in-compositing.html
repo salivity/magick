@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick 7 Read-Masks vs Write-Masks in Compositing - magick</title>
+    <meta name="description" content="ImageMagick 7 introduced an architectural overhaul to masking, splitting the legacy unified mask into separate read-masks and write-masks. In composite pipelines, this distinction changes how pixel data is referenced versus how it is committed to the des">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-7-read-masks-vs-write-masks-in-compositing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick 7 Read-Masks vs Write-Masks in Compositing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-7-read-masks-vs-write-masks-in-compositing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick 7 introduced an architectural overhaul to masking, splitting the legacy unified mask into separate read-masks and write-masks. In composite pipelines, this distinction changes how pixel data is referenced versus how it is committed to the des" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-7-read-masks-vs-write-masks-in-compositing">ImageMagick
+7 Read-Masks vs Write-Masks in Compositing</h1>
+<p>ImageMagick 7 introduced an architectural overhaul to masking,
+splitting the legacy unified mask into separate read-masks and
+write-masks. In composite pipelines, this distinction changes how pixel
+data is referenced versus how it is committed to the destination image.
+While write-masks restrict which pixels on the canvas can be altered by
+an operation, read-masks restrict which source pixels are sampled and
+evaluated during processing. Understanding the division between read and
+write masks allows developers to execute complex multi-image blending,
+localized filtering, and non-destructive layering without corrupting
+underlying alpha channels.</p>
+<h3 id="the-role-of-write-masks">The Role of Write-Masks</h3>
+<p>A write-mask targets destination pixels to protect them from
+modification during image processing or composite operations. When you
+assign a write-mask using <code>-write-mask</code> (or the legacy
+<code>-mask</code> alias), the gray levels of the mask determine the
+update intensity of the destination image.</p>
+<p>In a composite pipeline:</p>
+<ul>
+<li>Pure white areas in the write-mask allow the composite operation to
+write changes fully to the destination image.</li>
+<li>Pure black areas completely freeze destination pixels, leaving their
+original color and alpha values intact regardless of the composite
+operator applied.</li>
+<li>Grayscale values blend the original canvas values with the incoming
+composite operation based on the mask's intensity.</li>
+</ul>
+<p>Because the write-mask only intercepts the output buffer, it does not
+prevent the underlying pixels from being read; it only prevents their
+values from being overwritten.</p>
+<h3 id="the-role-of-read-masks">The Role of Read-Masks</h3>
+<p>A read-mask targets source images and alters how their pixel values
+are sampled into an operation. Defined using <code>-read-mask</code>, it
+limits the region of an image that can contribute pixel data to
+downstream calculations.</p>
+<p>In a composite pipeline:</p>
+<ul>
+<li>Pure white areas allow the source image's pixels to be read normally
+into the compositing engine.</li>
+<li>Pure black areas tell the processing pipeline to treat the source
+pixel as non-existent or transparent, preventing those values from
+contributing to mathematical operations, color calculations, or blend
+operations.</li>
+<li>Grayscale values scale the input weight of the source image pixels
+before they hit the composite operator.</li>
+</ul>
+<p>Unlike modifying an image's actual alpha channel, a read-mask
+functions as a separate clipping plane. This ensures that the true alpha
+channel of the source image remains preserved while temporarily limiting
+which source data is ingested by the pipeline.</p>
+<h3 id="differences-in-composite-execution">Differences in Composite
+Execution</h3>
+<p>In a composite command—such as blending an overlay image onto a base
+canvas—the interaction between these two masks handles fundamentally
+different sides of the compositing equation:</p>
+<ol type="1">
+<li><strong>Input Sampling vs. Output Protection:</strong> A read-mask
+applied to an overlay controls what data leaves the overlay. A
+write-mask applied to the background canvas controls where incoming
+composite data is allowed to land.</li>
+<li><strong>Computational Influence:</strong> In complex composite
+methods (such as <code>Dissolve</code>, <code>Multiply</code>, or
+arithmetic blends), using a write-mask still allows the base canvas
+pixels to be factored into the blend formula, even if parts of the final
+result are clipped on output. A read-mask prevents blacked-out source
+pixels from entering the calculation entirely.</li>
+<li><strong>Simultaneous Masking:</strong> ImageMagick 7 allows both
+masks to be active simultaneously on different layers. A source image
+can use a read-mask to sample only a specific feature (like a foreground
+subject), while the destination image uses a write-mask to ensure that
+this feature is only rendered into a designated target area (like a
+picture frame), all within a single processing pipeline.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

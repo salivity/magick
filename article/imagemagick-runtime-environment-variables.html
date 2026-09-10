@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Runtime Environment Variables - magick</title>
+    <meta name="description" content="ImageMagick utilizes a comprehensive set of environment variables to configure its runtime behavior, manage system resources, define search paths, and control diagnostic logging without requiring changes to configuration files or source code. This guide">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-runtime-environment-variables">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Runtime Environment Variables - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-runtime-environment-variables" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick utilizes a comprehensive set of environment variables to configure its runtime behavior, manage system resources, define search paths, and control diagnostic logging without requiring changes to configuration files or source code. This guide" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-runtime-environment-variables">ImageMagick Runtime
+Environment Variables</h1>
+<p>ImageMagick utilizes a comprehensive set of environment variables to
+configure its runtime behavior, manage system resources, define search
+paths, and control diagnostic logging without requiring changes to
+configuration files or source code. This guide details the essential
+environment variables available in ImageMagick, categorizing them by
+their function to help developers and system administrators optimize
+performance and secure their processing pipelines.</p>
+<h2 id="resource-and-performance-limits">Resource and Performance
+Limits</h2>
+<p>ImageMagick provides several environment variables to prevent
+operations from exhausting system memory, processing power, or disk
+space.</p>
+<ul>
+<li><strong><code>MAGICK_AREA_LIMIT</code></strong>: Sets the maximum
+area (width × height) in pixels that an image can occupy in memory
+before it is cached to disk.</li>
+<li><strong><code>MAGICK_DISK_LIMIT</code></strong>: Defines the maximum
+amount of disk space in bytes (or using suffixes like <code>MB</code>,
+<code>GB</code>) permitted for pixel caching when memory limits are
+exceeded.</li>
+<li><strong><code>MAGICK_MAP_LIMIT</code></strong>: Limits the maximum
+memory-mapped file size allocated for an image cache.</li>
+<li><strong><code>MAGICK_MEMORY_LIMIT</code></strong>: Restricts the
+maximum amount of physical RAM allocated to the pixel cache.</li>
+<li><strong><code>MAGICK_THREAD_LIMIT</code></strong>: Sets the maximum
+number of parallel execution threads ImageMagick uses via OpenMP.
+Setting this to <code>1</code> disables multithreading.</li>
+<li><strong><code>MAGICK_TIME_LIMIT</code></strong>: Establishes a
+maximum execution time limit in seconds for processing operations. If an
+operation exceeds this duration, it terminates.</li>
+<li><strong><code>MAGICK_WIDTH_LIMIT</code> /
+<code>MAGICK_HEIGHT_LIMIT</code></strong>: Constrains the maximum
+allowable width or height in pixels for any generated or decoded
+image.</li>
+</ul>
+<h2 id="configuration-and-module-paths">Configuration and Module
+Paths</h2>
+<p>These variables define where ImageMagick searches for configuration
+files, delegate programs, and dynamic modules.</p>
+<ul>
+<li><strong><code>MAGICK_HOME</code></strong>: Specifies the root
+installation path of ImageMagick. It serves as the base directory for
+locating subdirectories like <code>etc</code>, <code>lib</code>, and
+<code>share</code>.</li>
+<li><strong><code>MAGICK_CONFIGURE_PATH</code></strong>: Defines a
+colon-separated (or semicolon-separated on Windows) list of directories
+searched for configuration XML files such as <code>policy.xml</code>,
+<code>delegates.xml</code>, and <code>colors.xml</code>.</li>
+<li><strong><code>MAGICK_CODER_MODULE_PATH</code></strong>: Points to
+the directory containing dynamically loadable image format coder modules
+(e.g., JPEG, PNG, WEBP readers/writers).</li>
+<li><strong><code>MAGICK_CODER_FILTER_PATH</code></strong>: Sets the
+directory path for loadable image filter modules.</li>
+<li><strong><code>MAGICK_FONT_PATH</code></strong>: Specifies search
+directories for TrueType, OpenType, and PostScript font files.</li>
+</ul>
+<h2 id="temporary-storage">Temporary Storage</h2>
+<ul>
+<li><strong><code>MAGICK_TEMPORARY_PATH</code></strong>: Defines the
+directory used to store intermediate and temporary pixel cache files
+during processing. If unset, ImageMagick falls back to standard
+operating system variables such as <code>TMPDIR</code>,
+<code>TEMP</code>, or <code>/tmp</code>.</li>
+</ul>
+<h2 id="diagnostics-and-debugging">Diagnostics and Debugging</h2>
+<ul>
+<li><strong><code>MAGICK_DEBUG</code></strong>: Enables verbose
+diagnostic logging. It accepts specific logging domains (such as
+<code>All</code>, <code>Accelerate</code>, <code>Cache</code>,
+<code>Coder</code>, <code>Configure</code>, <code>Policy</code>,
+<code>Resource</code>, <code>Trace</code>, or <code>Transform</code>) or
+comma-separated combinations to trace runtime execution.</li>
+<li><strong><code>MAGICK_LOG_EVENT_VERBOSE</code></strong>: When set to
+<code>1</code> or <code>true</code>, forces detailed debug output to
+standard error regardless of the standard logger configuration.</li>
+</ul>
+<h2 id="display-and-system-integration">Display and System
+Integration</h2>
+<ul>
+<li><strong><code>DISPLAY</code></strong>: On X11-based Unix systems,
+defines the target X server display connection used by ImageMagick
+display commands.</li>
+<li><strong><code>MAGICK_PRECISION</code></strong>: Controls the maximum
+number of significant digits generated when formatting floating-point
+text output.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

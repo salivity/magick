@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Custom Emboss Kernel Syntax - magick</title>
+    <meta name="description" content="ImageMagick allows users to apply custom convolution matrices to produce visual effects such as embossing, which simulates a 3D raised or stamped texture on an image. By using either the modern -morphology Convolve method or the traditional -convolve ope">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-custom-emboss-kernel-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Custom Emboss Kernel Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-custom-emboss-kernel-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick allows users to apply custom convolution matrices to produce visual effects such as embossing, which simulates a 3D raised or stamped texture on an image. By using either the modern -morphology Convolve method or the traditional -convolve ope" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-custom-emboss-kernel-syntax">ImageMagick Custom
+Emboss Kernel Syntax</h1>
+<p>ImageMagick allows users to apply custom convolution matrices to
+produce visual effects such as embossing, which simulates a 3D raised or
+stamped texture on an image. By using either the modern
+<code>-morphology Convolve</code> method or the traditional
+<code>-convolve</code> operator with a midpoint gray bias, you can
+precisely control the directional lighting and depth of the embossed
+result. This guide provides the exact command-line syntax and matrix
+formatting needed to build a custom embossing filter in ImageMagick.</p>
+<hr />
+<h3 id="the-emboss-kernel-matrix">The Emboss Kernel Matrix</h3>
+<p>An embossing kernel typically calculates directional differences
+between neighboring pixels. A standard 3x3 matrix representing light
+coming from the top-left looks like this:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">-2</th>
+<th style="text-align: center;">-1</th>
+<th style="text-align: center;">0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>-1</strong></td>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: center;"><strong>1</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>0</strong></td>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: center;"><strong>2</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Because standard convolution can produce negative values, embossing
+requires shifting the base pixel values to neutral gray (50% intensity)
+so both shadows (negative values) and highlights (positive values) are
+visible.</p>
+<hr />
+<h3 id="modern-syntax--morphology-convolve">Modern Syntax:
+<code>-morphology Convolve</code></h3>
+<p>In ImageMagick 6 and 7, the recommended approach for custom
+convolution is the <code>-morphology</code> operator. You define the
+kernel size and values directly inside the kernel string.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> morphology:compose=Lighten <span class="at">-bias</span> 50% <span class="at">-morphology</span> Convolve <span class="st">&quot;3x3: -2,-1,0 -1,1,1 0,1,2&quot;</span> output.png</span></code></pre></div>
+<h4 id="syntax-breakdown">Syntax Breakdown:</h4>
+<ul>
+<li><strong><code>3x3:</code></strong>: Defines the matrix dimensions
+(<code>Width x Height:</code>).</li>
+<li><strong><code>-2,-1,0 -1,1,1 0,1,2</code></strong>: The comma- or
+space-separated values read from top-left to bottom-right.</li>
+<li><strong><code>-bias 50%</code></strong>: Shifts the output range so
+zero-sum differences render as 50% gray instead of clipping to
+black.</li>
+</ul>
+<hr />
+<h3 id="legacy-syntax--convolve">Legacy Syntax:
+<code>-convolve</code></h3>
+<p>You can also use the direct <code>-convolve</code> operator by
+supplying a comma-separated list of the 9 kernel values:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-bias</span> 50% <span class="at">-convolve</span> <span class="st">&quot;-2,-1,0,-1,1,1,0,1,2&quot;</span> output.png</span></code></pre></div>
+<p><em>(Note: If using ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<hr />
+<h3 id="directional-variants">Directional Variants</h3>
+<p>You can adjust the angle of the simulated light source by rotating
+the values around the center of the matrix:</p>
+<ul>
+<li><p><strong>Top-to-Bottom Emboss:</strong></p>
+<pre class="text"><code>&quot;3x3: -1,-2,-1  0,1,0  1,2,1&quot;</code></pre></li>
+<li><p><strong>Left-to-Right Emboss:</strong></p>
+<pre class="text"><code>&quot;3x3: -1,0,1 -2,1,2 -1,0,1&quot;</code></pre></li>
+<li><p><strong>High-Pass Emboss (Edge Emphasis):</strong></p>
+<pre class="text"><code>&quot;3x3: -1,-1,-1 -1,8,-1 -1,-1,-1&quot;</code></pre></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

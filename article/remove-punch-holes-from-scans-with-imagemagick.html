@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Punch Holes from Scans with ImageMagick - magick</title>
+    <meta name="description" content="Punch-hole artifacts on scanned documents appear as dark circular marks along page margins that interfere with OCR processing and digital archiving. ImageMagick provides several automated command-line methods to detect, isolate, and remove these artifact">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/remove-punch-holes-from-scans-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remove Punch Holes from Scans with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/remove-punch-holes-from-scans-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Punch-hole artifacts on scanned documents appear as dark circular marks along page margins that interfere with OCR processing and digital archiving. ImageMagick provides several automated command-line methods to detect, isolate, and remove these artifact" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="remove-punch-holes-from-scans-with-imagemagick">Remove Punch
+Holes from Scans with ImageMagick</h1>
+<p>Punch-hole artifacts on scanned documents appear as dark circular
+marks along page margins that interfere with OCR processing and digital
+archiving. ImageMagick provides several automated command-line methods
+to detect, isolate, and remove these artifacts by replacing them with
+the surrounding background color. This guide demonstrates how to
+eliminate border punch holes using margin cropping, color flood-filling,
+and connected-components analysis.</p>
+<h2 id="method-1-blanking-margin-bands">Method 1: Blanking Margin
+Bands</h2>
+<p>If the scanned document has fixed margins and text does not overlap
+with the punch-hole area, the fastest solution is drawing a white
+rectangle over the left margin where punch holes reside:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;rectangle 0,0 80,%[h]&quot;</span> output.png</span></code></pre></div>
+<p>To clear punch holes appearing on both the left and right
+borders:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;rectangle 0,0 80,%[h]&quot;</span> <span class="at">-draw</span> <span class="st">&quot;rectangle %[w],0 %[fx:w-80],%[h]&quot;</span> output.png</span></code></pre></div>
+<p>Adjust the pixel value (<code>80</code>) to match the width of the
+punch-hole margin in your scan resolution.</p>
+<h2 id="method-2-flood-filling-border-holes">Method 2: Flood-Filling
+Border Holes</h2>
+<p>When punch holes touch the outer edge of the image canvas, you can
+flood-fill them from the edge coordinates without affecting the interior
+text:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fuzz</span> 20% <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;color 0,0 floodfill&quot;</span> output.png</span></code></pre></div>
+<p>If the punch holes are slightly separated from the border, expand the
+fill target by specifying approximate hole coordinates:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fuzz</span> 25% <span class="at">-fill</span> white <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;color 40,300 floodfill&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;color 40,600 floodfill&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;color 40,900 floodfill&quot;</span> output.png</span></code></pre></div>
+<h2 id="method-3-connected-components-analysis">Method 3:
+Connected-Components Analysis</h2>
+<p>For dynamic hole detection across varying positions, use
+ImageMagick's connected-components feature to identify dark circular
+blobs based on their pixel area and replace them with the white
+background:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-threshold</span> 50% <span class="at">-negate</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-define</span> connected-components:verbose=false <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-define</span> connected-components:area-threshold=500-4000 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">-define</span> connected-components:mean-color=true <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">-connected-components</span> 8 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Lighten <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><strong><code>-threshold 50% -negate</code></strong>: Converts the
+document to a binary mask where dark punch holes become bright white
+blobs.</li>
+<li><strong><code>area-threshold=500-4000</code></strong>: Restricts the
+filter to objects within a specific pixel area size, ensuring small text
+characters and larger page layouts remain untouched.</li>
+<li><strong><code>-compose Lighten -composite</code></strong>: Blends
+the filtered mask back onto the original document, lightening the punch
+holes back to white.</li>
+</ul>
+<h2 id="batch-processing-scanned-folders">Batch Processing Scanned
+Folders</h2>
+<p>To process an entire directory of scanned documents at once, execute
+the cleanup command in a batch loop:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./cleaned_scans <span class="at">-format</span> png <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;rectangle 0,0 80,%[h]&quot;</span> <span class="pp">*</span>.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

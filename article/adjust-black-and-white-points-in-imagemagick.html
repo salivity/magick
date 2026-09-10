@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjust Black and White Points in ImageMagick - magick</title>
+    <meta name="description" content="Adjusting the black and white points of an image in ImageMagick allows you to expand or compress dynamic range, correct exposure, and enhance contrast. This guide explains how to use the -level operator to set precise black, white, and midtone (gamma) le">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/adjust-black-and-white-points-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Adjust Black and White Points in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/adjust-black-and-white-points-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting the black and white points of an image in ImageMagick allows you to expand or compress dynamic range, correct exposure, and enhance contrast. This guide explains how to use the -level operator to set precise black, white, and midtone (gamma) le" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="adjust-black-and-white-points-in-imagemagick">Adjust Black and
+White Points in ImageMagick</h1>
+<p>Adjusting the black and white points of an image in ImageMagick
+allows you to expand or compress dynamic range, correct exposure, and
+enhance contrast. This guide explains how to use the <code>-level</code>
+operator to set precise black, white, and midtone (gamma) levels
+directly from the command line across various image formats.</p>
+<h2 id="the--level-command-syntax">The <code>-level</code> Command
+Syntax</h2>
+<p>The basic syntax for adjusting levels in ImageMagick is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> <span class="op">&lt;</span>black_point<span class="op">&gt;</span>,<span class="op">&lt;</span>white_point<span class="op">&gt;</span>,<span class="op">&lt;</span>gamma<span class="op">&gt;</span> output.jpg</span></code></pre></div>
+<p><em>Note: For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>black_point</code></strong>: The pixel intensity that
+will be mapped to pure black (0). Any values below this threshold are
+clipped to black.</li>
+<li><strong><code>white_point</code></strong>: The pixel intensity that
+will be mapped to pure white (maximum value). Any values above this
+threshold are clipped to white.</li>
+<li><strong><code>gamma</code></strong> <em>(optional)</em>: Controls
+the midtones. A value of <code>1.0</code> represents a linear
+transition. Values greater than <code>1.0</code> brighten midtones,
+while values less than <code>1.0</code> darken them. If omitted, gamma
+defaults to <code>1.0</code>.</li>
+</ul>
+<h2 id="using-percentages-recommended">Using Percentages
+(Recommended)</h2>
+<p>Specifying values as percentages makes commands portable across
+different bit depths (8-bit, 16-bit) without needing to calculate raw
+quantum values.</p>
+<h3 id="increasing-contrast">Increasing Contrast</h3>
+<p>To cut off low-end shadows and high-end highlights, increase the
+black point and lower the white point:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> 10%,90% output.jpg</span></code></pre></div>
+<p><em>In this example, pixels at or below 10% brightness become 0%
+(pure black), and pixels at or above 90% brightness become 100% (pure
+white).</em></p>
+<h3 id="darkening-shadows-adjust-black-point-only">Darkening Shadows
+(Adjust Black Point Only)</h3>
+<p>To make shadows deeper without altering the highlight threshold:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> 15%,100% output.jpg</span></code></pre></div>
+<h3 id="brightening-highlights-adjust-white-point-only">Brightening
+Highlights (Adjust White Point Only)</h3>
+<p>To make highlights brighter without altering the shadow
+threshold:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> 0%,85% output.jpg</span></code></pre></div>
+<h3 id="adjusting-black-point-white-point-and-gamma-together">Adjusting
+Black Point, White Point, and Gamma Together</h3>
+<p>To set custom black and white points while brightening the
+midtones:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> 10%,90%,1.4 output.jpg</span></code></pre></div>
+<h2 id="using-absolute-values">Using Absolute Values</h2>
+<p>You can also use absolute pixel values based on the quantum range of
+your ImageMagick build (typically 0–255 for Q8 or 0–65535 for Q16).</p>
+<p>For an 8-bit image:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-level</span> 25,230 output.jpg</span></code></pre></div>
+<h2 id="inverting-the-adjustments-with-level">Inverting the Adjustments
+with <code>+level</code></h2>
+<p>While <code>-level</code> compresses dynamic range into pure black
+and pure white, the <code>+level</code> operator (using a plus sign)
+does the reverse. It compresses the full range into a narrower subset,
+preventing pure black and pure white:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +level 10%,90% output.jpg</span></code></pre></div>
+<p><em>In this case, pure black becomes 10% gray, and pure white becomes
+90% gray, reducing overall contrast.</em></p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

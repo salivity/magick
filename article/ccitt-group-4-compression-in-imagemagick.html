@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCITT Group 4 Compression in ImageMagick - magick</title>
+    <meta name="description" content="CCITT Group 4 is a lossless compression algorithm designed specifically for 1-bit monochrome (bi-level black and white) images, making it the industry standard for archiving scanned text documents and line art. This guide explains how to convert scanned">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/ccitt-group-4-compression-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CCITT Group 4 Compression in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/ccitt-group-4-compression-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="CCITT Group 4 is a lossless compression algorithm designed specifically for 1-bit monochrome (bi-level black and white) images, making it the industry standard for archiving scanned text documents and line art. This guide explains how to convert scanned" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="ccitt-group-4-compression-in-imagemagick">CCITT Group 4
+Compression in ImageMagick</h1>
+<p>CCITT Group 4 is a lossless compression algorithm designed
+specifically for 1-bit monochrome (bi-level black and white) images,
+making it the industry standard for archiving scanned text documents and
+line art. This guide explains how to convert scanned files into highly
+compressed, lightweight TIFF or PDF documents using ImageMagick's CCITT
+Group 4 compression.</p>
+<h2 id="prerequisites-for-ccitt-group-4">Prerequisites for CCITT Group
+4</h2>
+<p>CCITT Group 4 (also known as Group 4 Fax or CCITT T.6) requires the
+input image to be strictly 1-bit monochrome. It cannot process grayscale
+or color images directly without converting them to pure black and white
+first.</p>
+<h2 id="basic-command-structure">Basic Command Structure</h2>
+<p>To compress an image using CCITT Group 4 in ImageMagick, use the
+<code>-compress Group4</code> option along with a method to convert the
+image to 1-bit monochrome:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-monochrome</span> <span class="at">-compress</span> Group4 output.tif</span></code></pre></div>
+<h2 id="step-by-step-conversion-and-optimization">Step-by-Step
+Conversion and Optimization</h2>
+<h3 id="1-converting-to-pure-monochrome-thresholding">1. Converting to
+Pure Monochrome (Thresholding)</h3>
+<p>While <code>-monochrome</code> uses dithering, scanned documents
+usually look cleaner using thresholding. Thresholding converts all
+pixels darker than a specific value to black and all lighter pixels to
+white.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.jpg <span class="at">-threshold</span> 60% <span class="at">-compress</span> Group4 output.tif</span></code></pre></div>
+<ul>
+<li><code>-threshold 60%</code>: Any pixel with luminance below 60%
+becomes black, and above 60% becomes white. Adjust this percentage
+depending on the brightness and contrast of the scan.</li>
+</ul>
+<h3 id="2-creating-ccitt-group-4-compressed-pdfs">2. Creating CCITT
+Group 4 Compressed PDFs</h3>
+<p>You can apply Group 4 compression directly to single or multi-page
+PDF files:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.png <span class="at">-threshold</span> 50% <span class="at">-compress</span> Group4 output.pdf</span></code></pre></div>
+<p>To control the physical print size and clarity, specify the density
+(DPI):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 scan.png <span class="at">-threshold</span> 50% <span class="at">-compress</span> Group4 output.pdf</span></code></pre></div>
+<h3 id="3-processing-multi-page-documents">3. Processing Multi-Page
+Documents</h3>
+<p>To combine multiple scanned pages into a single CCITT Group 4
+compressed TIFF or PDF:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 page1.png page2.png page3.png <span class="at">-threshold</span> 55% <span class="at">-compress</span> Group4 document.pdf</span></code></pre></div>
+<p>Or for a multi-page TIFF:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> page<span class="pp">*</span>.png <span class="at">-threshold</span> 55% <span class="at">-compress</span> Group4 archive.tif</span></code></pre></div>
+<h2 id="essential-command-options-reference">Essential Command Options
+Reference</h2>
+<ul>
+<li><strong><code>-compress Group4</code></strong>: Applies CCITT Group
+4 compression to the output file.</li>
+<li><strong><code>-threshold [value]%</code></strong>: Converts color or
+grayscale to pure black and white without dithering artifacts.</li>
+<li><strong><code>-monochrome</code></strong>: Converts the image to
+1-bit bi-level using Floyd-Steinberg dithering.</li>
+<li><strong><code>-density [DPI]</code></strong>: Sets the horizontal
+and vertical resolution metadata (e.g., 300 DPI), ensuring proper sizing
+in PDF viewers and print output.</li>
+<li><strong><code>-type Bilevel</code></strong>: Explicitly forces the
+output image type to 1-bit black and white.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

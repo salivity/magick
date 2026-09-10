@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert DCI-P3 Theater to Display P3 in ImageMagick - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick transforms chromaticity coordinates and color data when converting an image from DCI-P3 Theater (DCI Cinema) to standard Display P3. While both color spaces share the exact same primary chromaticity co">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-dci-p3-theater-to-display-p3-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert DCI-P3 Theater to Display P3 in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-dci-p3-theater-to-display-p3-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick transforms chromaticity coordinates and color data when converting an image from DCI-P3 Theater (DCI Cinema) to standard Display P3. While both color spaces share the exact same primary chromaticity co" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-dci-p3-theater-to-display-p3-in-imagemagick">Convert
+DCI-P3 Theater to Display P3 in ImageMagick</h1>
+<p>This article provides an overview of how ImageMagick transforms
+chromaticity coordinates and color data when converting an image from
+DCI-P3 Theater (DCI Cinema) to standard Display P3. While both color
+spaces share the exact same primary chromaticity coordinates, they
+differ in their target white points and transfer curves. Below is a
+breakdown of how ImageMagick processes this transformation through
+linearization, chromatic adaptation transforms, and tone curve
+encoding.</p>
+<h3 id="the-underlying-specifications">The Underlying
+Specifications</h3>
+<p>Before understanding how ImageMagick processes the shift, it is
+essential to look at the specifications of each color space:</p>
+<ul>
+<li><strong>DCI-P3 Theater (Cinema):</strong> Uses P3 primaries (Red:
+<span class="math inline">\(x=0.680, y=0.320\)</span>; Green: <span
+class="math inline">\(x=0.265, y=0.690\)</span>; Blue: <span
+class="math inline">\(x=0.150, y=0.060\)</span>) with an theatrical
+calibration white point (<span class="math inline">\(x=0.314,
+y=0.351\)</span>, roughly 5900K) and a pure <span
+class="math inline">\(2.6\)</span> power gamma curve.</li>
+<li><strong>Display P3:</strong> Uses the exact same P3 primaries, but
+pairs them with the CIE Standard Illuminant D65 white point (<span
+class="math inline">\(x=0.3127, y=0.3290\)</span>, roughly 6500K) and an
+sRGB transfer function.</li>
+</ul>
+<p>Because the color primaries are identical, the chromaticity
+transformation is governed entirely by the difference in white point and
+tone response.</p>
+<h3 id="the-color-transformation-pipeline-in-imagemagick">The Color
+Transformation Pipeline in ImageMagick</h3>
+<p>ImageMagick performs profile conversions primarily by delegating
+color management tasks to the LittleCMS (lcms2) library using ICC color
+profiles. When remapping from DCI-P3 Theater to Display P3 using the
+<code>-profile</code> operator, ImageMagick performs the conversion in
+four distinct stages:</p>
+<h4 id="1-linearization-inverse-oetf">1. Linearization (Inverse
+OETF)</h4>
+<p>ImageMagick reads the source RGB encoded values and applies the
+inverse of the DCI-P3 transfer curve (a constant gamma of 2.6). This
+removes the non-linear encoding and produces linear optical intensity
+values for Red, Green, and Blue.</p>
+<h4 id="2-conversion-to-cie-xyz-and-profile-connection-space-pcs">2.
+Conversion to CIE XYZ and Profile Connection Space (PCS)</h4>
+<p>The linear RGB values are multiplied by a <span
+class="math inline">\(3 \times 3\)</span> primary matrix derived from
+the DCI-P3 Theater profile to convert the values into CIE <span
+class="math inline">\(1931\ XYZ\)</span> tristimulus values. LittleCMS
+transforms these values into the Profile Connection Space (PCS), which
+is defined as CIE XYZ or CIE <span
+class="math inline">\(L^*a^*b^*\)</span> under a CIE Standard Illuminant
+D50 reference white point.</p>
+<h4 id="3-chromatic-adaptation-transform-cat">3. Chromatic Adaptation
+Transform (CAT)</h4>
+<p>The transition between the DCI-P3 Theater white point (<span
+class="math inline">\(x=0.314, y=0.351\)</span>) and the D65 white point
+(<span class="math inline">\(x=0.3127, y=0.3290\)</span>) requires
+chromatic adaptation:</p>
+<ul>
+<li><strong>Bradford Transform:</strong> LittleCMS uses the Bradford
+Chromatic Adaptation Transform by default. It maps the theatrical white
+point into the D50 reference white point of the PCS, and then maps from
+D50 out to the destination D65 white point.</li>
+<li><strong>Rendering Intent Impact:</strong>
+<ul>
+<li><strong>Relative Colorimetric (Default):</strong> The source white
+point is mapped directly to the destination white point. Because the eye
+adapts to the display white point, chromaticity values are normalized
+relative to D65. The primary colors maintain their maximum saturation
+relative to the respective white points.</li>
+<li><strong>Absolute Colorimetric:</strong> The source white point is
+preserved in absolute space without adaptation. When viewed on a D65
+monitor, the image will display the visible greenish-yellow cast
+characteristic of DCI-P3 Theater white.</li>
+</ul></li>
+</ul>
+<h4 id="4-re-encoding-with-display-p3-transfer-curve">4. Re-encoding
+with Display P3 Transfer Curve</h4>
+<p>Once the linear tristimulus values are adapted to D65 within the
+destination profile's coordinate system, they are converted into Display
+P3 linear RGB. ImageMagick then applies the non-linear sRGB transfer
+function (a linear segment near zero followed by a <span
+class="math inline">\(2.4\)</span> exponential curve with an offset) to
+produce the final 8-bit, 16-bit, or floating-point values suitable for
+Display P3 output.</p>
+<h3 id="practical-implementation">Practical Implementation</h3>
+<p>To execute this pipeline correctly, you should use ICC profiles
+rather than simple <code>-colorspace</code> operators to ensure proper
+chromatic adaptation matrices are applied:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_theater.tif <span class="at">-profile</span> DCI-P3-Theater.icc <span class="at">-profile</span> DisplayP3.icc output_display.tif</span></code></pre></div>
+<p>Using ICC-driven color management ensures that LittleCMS handles the
+mathematical transformation of the chromaticity coordinates without
+manual matrix calculation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

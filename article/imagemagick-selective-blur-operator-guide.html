@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Selective Blur Operator Guide - magick</title>
+    <meta name="description" content="This article provides an overview of the ImageMagick -selective-blur operator, explaining its primary purpose, how it functions, its command-line syntax, and its most common use cases. By exploring the balance between smoothing noise and preserving sharp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-selective-blur-operator-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Selective Blur Operator Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-selective-blur-operator-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the ImageMagick -selective-blur operator, explaining its primary purpose, how it functions, its command-line syntax, and its most common use cases. By exploring the balance between smoothing noise and preserving sharp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-selective-blur-operator-guide">ImageMagick Selective
+Blur Operator Guide</h1>
+<p>This article provides an overview of the ImageMagick
+<code>-selective-blur</code> operator, explaining its primary purpose,
+how it functions, its command-line syntax, and its most common use
+cases. By exploring the balance between smoothing noise and preserving
+sharp contrast boundaries, this guide clarifies when and why to use
+selective blur over standard blurring techniques.</p>
+<h2 id="what-is-the-purpose-of--selective-blur">What is the Purpose of
+<code>-selective-blur</code>?</h2>
+<p>The primary purpose of the ImageMagick <code>-selective-blur</code>
+operator is to reduce noise and smooth out continuous-tone regions of an
+image while preserving sharp edges. Standard blurring methods, such as
+<code>-blur</code> or <code>-gaussian-blur</code>, apply a smoothing
+convolution indiscriminately across all pixels, which results in
+softened edges, lost detail, and an overall out-of-focus appearance.</p>
+<p>In contrast, <code>-selective-blur</code> acts as an edge-preserving
+filter (similar to a bilateral filter). It evaluates neighboring pixels
+and only includes them in the blur calculation if their color or
+intensity difference is below a defined threshold. If a neighboring
+pixel differs significantly—indicating an edge or strong boundary—it is
+excluded from the averaging process, leaving the edge crisp and
+intact.</p>
+<h2 id="syntax-and-parameters">Syntax and Parameters</h2>
+<p>The <code>-selective-blur</code> operator uses the following command
+format:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-selective-blur</span> {radius}x{sigma}+{threshold}<span class="pp">[</span><span class="ss">%</span><span class="pp">]</span> output.jpg</span></code></pre></div>
+<ul>
+<li><strong>Radius:</strong> Specifies the maximum size of the
+neighboring pixel area to be sampled. If set to <code>0</code>,
+ImageMagick automatically selects an appropriate radius based on the
+sigma value.</li>
+<li><strong>Sigma:</strong> Defines the standard deviation of the
+Gaussian distribution, controlling the strength and spread of the blur
+within the valid threshold.</li>
+<li><strong>Threshold:</strong> The maximum difference between pixel
+values for a neighbor to be included in the blur. This can be defined as
+an absolute value or a percentage (e.g., <code>10%</code>). Pixels with
+differences exceeding this threshold are ignored.</li>
+</ul>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<ul>
+<li><strong>Digital Noise and Grain Reduction:</strong> Eliminates
+sensor noise from high-ISO digital photographs or grain from scanned
+film without softening fine details.</li>
+<li><strong>Skin Smoothing in Portrait Photography:</strong> Smooths out
+minor skin blemishes and uneven tones while keeping facial features,
+eyelashes, and hair sharply defined.</li>
+<li><strong>Artifact Cleanup in Compression:</strong> Blurs out blocky
+compression artifacts or color banding in flat gradient areas without
+destroying text or line art.</li>
+<li><strong>Preprocessing for OCR or Feature Detection:</strong> Cleans
+up background texture on scanned documents to make text recognition more
+reliable.</li>
+</ul>
+<h2 id="selective-blur-vs-standard-blur">Selective Blur vs. Standard
+Blur</h2>
+<p>While a standard Gaussian blur is faster and suitable for creating
+depth-of-field effects or background defocusing,
+<code>-selective-blur</code> requires more computational power because
+it must calculate conditional differences for every neighboring pixel.
+However, the result is a cleaner, more controlled restoration tool that
+enhances image quality without sacrificing structural sharpness.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure JPEG Restart Markers in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to configure JPEG restart markers using the -define jpeg:restart-interval setting in ImageMagick. You will learn the command-line syntax for setting intervals, how to target specific block or row intervals, the practical benefit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-jpeg-restart-markers-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure JPEG Restart Markers in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-jpeg-restart-markers-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to configure JPEG restart markers using the -define jpeg:restart-interval setting in ImageMagick. You will learn the command-line syntax for setting intervals, how to target specific block or row intervals, the practical benefit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-jpeg-restart-markers-in-imagemagick">Configure JPEG
+Restart Markers in ImageMagick</h1>
+<p>This article explains how to configure JPEG restart markers using the
+<code>-define jpeg:restart-interval</code> setting in ImageMagick. You
+will learn the command-line syntax for setting intervals, how to target
+specific block or row intervals, the practical benefits of restart
+markers for network transmission and parallel decoding, and the
+trade-offs regarding resulting file sizes.</p>
+<h3 id="what-are-jpeg-restart-markers">What Are JPEG Restart
+Markers?</h3>
+<p>JPEG restart markers (RST markers) are special byte sequences placed
+at regular intervals inside a JPEG compressed data stream. They reset
+the entropy decoding state (the DC predictor and the Huffman or
+arithmetic decoding state) at fixed boundaries.</p>
+<p>Restart markers offer two main benefits:</p>
+<ol type="1">
+<li><strong>Fault tolerance:</strong> If data corruption occurs during
+transmission, the decoder only loses data up to the next restart marker,
+preventing corrupted data from cascading across the entire image.</li>
+<li><strong>Parallel decoding:</strong> Decoders can divide the file at
+marker boundaries and decode multiple segments concurrently across
+multiple CPU threads.</li>
+</ol>
+<h3 id="setting-the-restart-interval">Setting the Restart Interval</h3>
+<p>To inject restart markers into an output JPEG using ImageMagick, pass
+the <code>jpeg:restart-interval</code> option using the
+<code>-define</code> flag.</p>
+<p>The basic command syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jpeg:restart-interval=VALUE output.jpg</span></code></pre></div>
+<p><em>(Note: Use <code>convert</code> instead of <code>magick</code> if
+using ImageMagick 6.)</em></p>
+<h3 id="specifying-blocks-vs-rows">Specifying Blocks vs. Rows</h3>
+<p>ImageMagick allows you to specify the interval in either Minimum
+Coded Units (MCUs) or MCU rows by appending specific suffixes to the
+value:</p>
+<ul>
+<li><p><strong>MCU Blocks:</strong> Set a numerical value directly, or
+append <code>b</code> or <code>B</code> to explicitly set the interval
+in MCU blocks:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jpeg:restart-interval=64 output.jpg</span></code></pre></div>
+<p>This command inserts a restart marker after every 64 MCU
+blocks.</p></li>
+<li><p><strong>MCU Rows:</strong> Append <code>r</code> or
+<code>R</code> to specify the interval by the number of MCU rows:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jpeg:restart-interval=1r output.jpg</span></code></pre></div>
+<p>Setting <code>1r</code> inserts a restart marker at the end of every
+row of MCUs, which is the most common configuration for parallelized
+decoders like libjpeg-turbo.</p></li>
+</ul>
+<h3 id="verifying-the-configuration">Verifying the Configuration</h3>
+<p>To confirm that the output JPEG contains restart markers, inspect the
+image metadata using ImageMagick's verbose output:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.jpg</span></code></pre></div>
+<p>Look for the <code>Quality</code> and compression details, or inspect
+the file markers directly using standard tools like
+<code>jpegdump</code> or a hex editor to search for the byte markers
+<code>FF D0</code> through <code>FF D7</code>.</p>
+<h3 id="file-size-trade-offs">File Size Trade-Offs</h3>
+<p>Adding restart markers increases overall file size because each
+marker consumes 2 bytes, and resetting the predictor eliminates the
+compression benefit of referencing the previous MCU's DC coefficient. A
+frequent interval (such as every 1 MCU) produces a significantly larger
+file, whereas an interval of 1 row (<code>1r</code>) or every 64 to 128
+MCUs typically introduces a negligible file size overhead (less than
+1–2%) while providing full support for error recovery and multithreaded
+decoding.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

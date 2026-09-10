@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure WebP Partition Limits in ImageMagick - magick</title>
+    <meta name="description" content="Configuring WebP partition limits in ImageMagick allows you to control how the libwebp encoder balances file constraints against image quality across segmented macroblock bitstreams. This article covers how to apply the webp:partition-limit configuration">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-webp-partition-limits-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure WebP Partition Limits in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-webp-partition-limits-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Configuring WebP partition limits in ImageMagick allows you to control how the libwebp encoder balances file constraints against image quality across segmented macroblock bitstreams. This article covers how to apply the webp:partition-limit configuration" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-webp-partition-limits-in-imagemagick">Configure WebP
+Partition Limits in ImageMagick</h1>
+<p>Configuring WebP partition limits in ImageMagick allows you to
+control how the libwebp encoder balances file constraints against image
+quality across segmented macroblock bitstreams. This article covers how
+to apply the <code>webp:partition-limit</code> configuration option
+using ImageMagick's command-line interface, explains the accepted
+values, and clarifies the distinction between partition limits and
+partition counts.</p>
+<h3 id="understanding-webp-partition-limits">Understanding WebP
+Partition Limits</h3>
+<p>In lossy WebP compression, the bitstream is broken into discrete
+partitions holding DCT/WHT coefficients and macroblock header data. When
+aiming for strict memory constraints or predictable decoding
+performance, libwebp provides a partition limit mechanism. This setting
+forces the encoder to degrade certain partition quality levels if they
+exceed designated bit boundaries.</p>
+<p>The limit is expressed as an integer percentage from <code>0</code>
+to <code>100</code>:</p>
+<ul>
+<li><strong><code>0</code></strong>: No degradation is allowed
+(default).</li>
+<li><strong><code>1</code> to <code>99</code></strong>: Allows
+progressive quality degradation of high-frequency coefficients to
+respect partition size boundaries.</li>
+<li><strong><code>100</code></strong>: Maximum degradation permitted to
+enforce the smallest possible partition footprints.</li>
+</ul>
+<h3 id="setting-partition-limits-in-imagemagick">Setting Partition
+Limits in ImageMagick</h3>
+<p>ImageMagick exposes low-level libwebp encoder parameters via the
+<code>-define</code> operator. To adjust the partition limit, pass
+<code>webp:partition-limit=&lt;0-100&gt;</code> before the output
+filename.</p>
+<h4 id="basic-command-syntax">Basic Command Syntax</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:partition-limit=50 output.webp</span></code></pre></div>
+<p>If you are using ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> webp:partition-limit=50 output.webp</span></code></pre></div>
+<h3 id="partition-limit-vs-partition-count">Partition Limit vs.
+Partition Count</h3>
+<p>Do not confuse <code>partition-limit</code> with the total number of
+partitions:</p>
+<ul>
+<li><strong><code>webp:partition-limit</code></strong>: Determines
+degradation tolerance (values <code>0</code> to <code>100</code>).</li>
+<li><strong><code>webp:partitions</code></strong>: Configures the total
+number of partitions to use for parallel decoding. It accepts values
+from <code>0</code> to <code>3</code>, which correspond to <span
+class="math inline">\(2^n\)</span> partitions (<span
+class="math inline">\(1\)</span>, <span
+class="math inline">\(2\)</span>, <span
+class="math inline">\(4\)</span>, or <span
+class="math inline">\(8\)</span> partitions).</li>
+</ul>
+<p>You can combine both definitions in a single conversion command to
+tune decoding parallelism and partition size constraints
+simultaneously:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> webp:partitions=2 <span class="at">-define</span> webp:partition-limit=25 output.webp</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

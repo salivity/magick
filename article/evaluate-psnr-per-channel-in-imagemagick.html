@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluate PSNR Per Channel in ImageMagick - magick</title>
+    <meta name="description" content="Peak Signal-to-Noise Ratio (PSNR) is a standard metric used to measure the reconstruction quality of lossy compression or image processing operations relative to an original image. This guide explains how to evaluate PSNR across individual and combined c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/evaluate-psnr-per-channel-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Evaluate PSNR Per Channel in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/evaluate-psnr-per-channel-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Peak Signal-to-Noise Ratio (PSNR) is a standard metric used to measure the reconstruction quality of lossy compression or image processing operations relative to an original image. This guide explains how to evaluate PSNR across individual and combined c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="evaluate-psnr-per-channel-in-imagemagick">Evaluate PSNR Per
+Channel in ImageMagick</h1>
+<p>Peak Signal-to-Noise Ratio (PSNR) is a standard metric used to
+measure the reconstruction quality of lossy compression or image
+processing operations relative to an original image. This guide explains
+how to evaluate PSNR across individual and combined color channels using
+ImageMagick's command-line tools, interpret the resulting decibel
+values, and isolate specific color components such as Red, Green, Blue,
+and Alpha.</p>
+<h2 id="understanding-imagemagick-psnr-metric">Understanding ImageMagick
+PSNR Metric</h2>
+<p>ImageMagick provides the <code>compare</code> utility (invoked
+directly in ImageMagick 6 or via <code>magick compare</code> in
+ImageMagick 7) to compute mathematical differences between two images.
+When using the PSNR metric, ImageMagick compares the Mean Squared Error
+(MSE) against the maximum possible pixel intensity and outputs the
+result in decibels (dB). A higher value indicates higher image fidelity,
+while <code>inf</code> (infinity) represents identical images.</p>
+<h2 id="basic-syntax-for-global-psnr">Basic Syntax for Global PSNR</h2>
+<p>To compute the overall PSNR across all channels combined:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR original.png compressed.png null:</span></code></pre></div>
+<p><em>Note: The <code>null:</code> destination discards the visual
+difference map image and outputs only the metric to standard error
+(<code>stderr</code>).</em></p>
+<h2 id="evaluating-psnr-for-individual-color-channels">Evaluating PSNR
+for Individual Color Channels</h2>
+<p>ImageMagick allows you to restrict metrics to specific channels using
+the <code>-channel</code> operator.</p>
+<h3 id="1-evaluating-a-specific-channel">1. Evaluating a Specific
+Channel</h3>
+<p>To compute PSNR for a single channel (e.g., Red, Green, Blue, or
+Alpha), specify the channel name:</p>
+<p><strong>Red Channel:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR <span class="at">-channel</span> R original.png compressed.png null:</span></code></pre></div>
+<p><strong>Green Channel:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR <span class="at">-channel</span> G original.png compressed.png null:</span></code></pre></div>
+<p><strong>Blue Channel:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR <span class="at">-channel</span> B original.png compressed.png null:</span></code></pre></div>
+<p><strong>Alpha Channel (if transparency is present):</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR <span class="at">-channel</span> A original.png compressed.png null:</span></code></pre></div>
+<h3 id="2-evaluating-non-rgb-color-spaces">2. Evaluating Non-RGB Color
+Spaces</h3>
+<p>If you need to evaluate PSNR in other color spaces, such as YUV or
+CMYK, convert the images prior to comparison:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR <span class="at">-colorspace</span> YUV <span class="at">-channel</span> R original.png compressed.png null:</span></code></pre></div>
+<p><em>In the YUV colorspace, channel <code>R</code> corresponds to the
+Y (Luma) channel, <code>G</code> to U (Chroma), and <code>B</code> to V
+(Chroma).</em></p>
+<h2 id="getting-a-comprehensive-multi-channel-breakdown">Getting a
+Comprehensive Multi-Channel Breakdown</h2>
+<p>To output values for all channels simultaneously in a structured
+format, use the <code>identify</code> tool with the <code>-format</code>
+parameter and distortion calculation:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> original.png compressed.png <span class="at">-metric</span> PSNR <span class="at">-compare</span> <span class="at">-format</span> <span class="st">&quot;%[distortion]&quot;</span> info:</span></code></pre></div>
+<p>Alternatively, running <code>compare -verbose</code> provides an
+in-depth breakdown containing the distortion values per channel along
+with minimum, maximum, and average error statistics:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-verbose</span> <span class="at">-metric</span> PSNR original.png compressed.png diff.png</span></code></pre></div>
+<h2 id="interpreting-psnr-output-values">Interpreting PSNR Output
+Values</h2>
+<ul>
+<li><strong><code>inf</code> (Infinity):</strong> The evaluated channel
+in both images is bit-for-bit identical.</li>
+<li><strong>40 dB to 50 dB:</strong> Excellent quality; differences are
+typically imperceptible to the human eye.</li>
+<li><strong>30 dB to 40 dB:</strong> Good quality; common in standard
+lossy compression (such as JPEG). Minor degradation may be visible upon
+close inspection.</li>
+<li><strong>Below 30 dB:</strong> Noticeable quality loss, severe
+compression artifacts, or color shifts.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSL vs HSB in ImageMagick: Mathematical Relationship - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick represents and translates colors between the HSL (Hue, Saturation, Lightness) and HSB (Hue, Saturation, Brightness, also known as HSV) color spaces. While both models map color data cylindrically aroun">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/hsl-vs-hsb-in-imagemagick-mathematical-relationship">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="HSL vs HSB in ImageMagick: Mathematical Relationship - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/hsl-vs-hsb-in-imagemagick-mathematical-relationship" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick represents and translates colors between the HSL (Hue, Saturation, Lightness) and HSB (Hue, Saturation, Brightness, also known as HSV) color spaces. While both models map color data cylindrically aroun" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="hsl-vs-hsb-in-imagemagick-mathematical-relationship">HSL vs HSB
+in ImageMagick: Mathematical Relationship</h1>
+<p>This article provides an overview of how ImageMagick represents and
+translates colors between the HSL (Hue, Saturation, Lightness) and HSB
+(Hue, Saturation, Brightness, also known as HSV) color spaces. While
+both models map color data cylindrically around a shared Hue coordinate,
+their treatment of saturation and luminance yields distinct mathematical
+transformations. Understanding these underlying equations is essential
+for accurate color space conversion and channel manipulation in
+ImageMagick.</p>
+<h3 id="the-shared-hue-component">The Shared Hue Component</h3>
+<p>In both HSL and HSB, the Hue (<span class="math inline">\(H\)</span>)
+calculation is identical. It represents the dominant wavelength on a
+color circle from <span class="math inline">\(0^\circ\)</span> to <span
+class="math inline">\(360^\circ\)</span>:</p>
+<p><span class="math display">\[H_{HSL} = H_{HSB}\]</span></p>
+<p>In ImageMagick, Hue is normalized internally across the system's
+quantum depth (from <span class="math inline">\(0\)</span> to
+<code>QuantumRange</code>, or <span class="math inline">\(0\%\)</span>
+to <span class="math inline">\(100\%\)</span>).</p>
+<h3 id="fundamental-definitions-from-rgb">Fundamental Definitions from
+RGB</h3>
+<p>Given normalized RGB values where <span class="math inline">\(R, G, B
+\in [0, 1]\)</span>:</p>
+<ul>
+<li><span class="math inline">\(M = \max(R, G, B)\)</span></li>
+<li><span class="math inline">\(m = \min(R, G, B)\)</span></li>
+<li><span class="math inline">\(C = M - m\)</span> (Chroma)</li>
+</ul>
+<p>ImageMagick calculates the intensity and saturation components
+differently for each model:</p>
+<ul>
+<li><p><strong>HSB Model:</strong></p>
+<ul>
+<li>Brightness (<span class="math inline">\(B\)</span> or <span
+class="math inline">\(V\)</span>): <span class="math inline">\(B =
+M\)</span></li>
+<li>Saturation (<span class="math inline">\(S_{B}\)</span>): <span
+class="math display">\[S_{B} = \begin{cases} 0 &amp; \text{if } B = 0 \\
+\frac{C}{B} &amp; \text{if } B &gt; 0 \end{cases}\]</span></li>
+</ul></li>
+<li><p><strong>HSL Model:</strong></p>
+<ul>
+<li>Lightness (<span class="math inline">\(L\)</span>): <span
+class="math inline">\(L = \frac{M + m}{2}\)</span></li>
+<li>Saturation (<span class="math inline">\(S_{L}\)</span>): <span
+class="math display">\[S_{L} = \begin{cases} 0 &amp; \text{if } L = 0
+\text{ or } L = 1 \\ \frac{C}{1 - |2L - 1|} &amp; \text{if } 0 &lt; L
+&lt; 1 \end{cases}\]</span></li>
+</ul></li>
+</ul>
+<h3 id="direct-conversion-hsb-to-hsl">Direct Conversion: HSB to HSL</h3>
+<p>When converting from an HSB coordinate <span
+class="math inline">\((H, S_{B}, B)\)</span> to HSL <span
+class="math inline">\((H, S_{L}, L)\)</span>:</p>
+<ol type="1">
+<li><p><strong>Calculate Lightness (<span
+class="math inline">\(L\)</span>):</strong> <span
+class="math display">\[L = B \left(1 -
+\frac{S_{B}}{2}\right)\]</span></p></li>
+<li><p><strong>Calculate HSL Saturation (<span
+class="math inline">\(S_{L}\)</span>):</strong> <span
+class="math display">\[S_{L} = \begin{cases} 0 &amp; \text{if } L = 0
+\text{ or } L = 1 \\ \frac{B - L}{\min(L, 1 - L)} &amp; \text{otherwise}
+\end{cases}\]</span></p>
+<p>Alternatively expressed strictly in terms of HSB parameters: <span
+class="math display">\[S_{L} = \begin{cases} 0 &amp; \text{if } L = 0
+\text{ or } L = 1 \\ \frac{B \cdot S_{B}}{1 - |2L - 1|} &amp;
+\text{otherwise} \end{cases}\]</span></p></li>
+</ol>
+<h3 id="direct-conversion-hsl-to-hsb">Direct Conversion: HSL to HSB</h3>
+<p>When converting from an HSL coordinate <span
+class="math inline">\((H, S_{L}, L)\)</span> to HSB <span
+class="math inline">\((H, S_{B}, B)\)</span>:</p>
+<ol type="1">
+<li><p><strong>Calculate Brightness (<span
+class="math inline">\(B\)</span>):</strong> <span
+class="math display">\[B = L + S_{L} \cdot \min(L, 1 -
+L)\]</span></p></li>
+<li><p><strong>Calculate HSB Saturation (<span
+class="math inline">\(S_{B}\)</span>):</strong> <span
+class="math display">\[S_{B} = \begin{cases} 0 &amp; \text{if } B = 0 \\
+2 \left(1 - \frac{L}{B}\right) &amp; \text{otherwise}
+\end{cases}\]</span></p></li>
+</ol>
+<h3 id="imagemagick-implementation-details">ImageMagick Implementation
+Details</h3>
+<p>When executing conversions via <code>-colorspace HSL</code> or
+<code>-colorspace HSB</code> (or <code>-colorspace HSV</code>),
+ImageMagick applies these transforms to each pixel component:</p>
+<ul>
+<li><strong>Channel 0:</strong> Hue (<span
+class="math inline">\(H\)</span>) remains numerically invariant during
+direct HSL-to-HSB or HSB-to-HSL conversions.</li>
+<li><strong>Channel 1:</strong> Saturation (<span
+class="math inline">\(S\)</span>) is rescaled non-linearly depending on
+the target space's lightness or brightness value.</li>
+<li><strong>Channel 2:</strong> Lightness (<span
+class="math inline">\(L\)</span>) or Brightness (<span
+class="math inline">\(B\)</span>) is evaluated using the respective
+mid-range or maximum RGB channel projection.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

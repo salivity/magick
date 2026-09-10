@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Image to Polar Coordinates in ImageMagick - magick</title>
+    <meta name="description" content="This guide provides the exact ImageMagick commands and parameters needed to transform a rectangular image into a circular polar coordinate projection. You will learn the primary distortion operator, the syntax for both ImageMagick version 6 and version 7">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-image-to-polar-coordinates-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Image to Polar Coordinates in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-image-to-polar-coordinates-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides the exact ImageMagick commands and parameters needed to transform a rectangular image into a circular polar coordinate projection. You will learn the primary distortion operator, the syntax for both ImageMagick version 6 and version 7" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-image-to-polar-coordinates-in-imagemagick">Convert Image
+to Polar Coordinates in ImageMagick</h1>
+<p>This guide provides the exact ImageMagick commands and parameters
+needed to transform a rectangular image into a circular polar coordinate
+projection. You will learn the primary distortion operator, the syntax
+for both ImageMagick version 6 and version 7, and how to fine-tune the
+center point, radius, and rotation of your output.</p>
+<h2 id="the-polar-transformation-command">The Polar Transformation
+Command</h2>
+<p>To warp a rectangular image into a circular polar projection, use the
+<code>-distort Polar</code> operator.</p>
+<h3 id="imagemagick-v7-current">ImageMagick v7 (Current)</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Polar 0 output.jpg</span></code></pre></div>
+<h3 id="imagemagick-v6-legacy">ImageMagick v6 (Legacy)</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-distort</span> Polar 0 output.jpg</span></code></pre></div>
+<p>Passing <code>0</code> as the parameter tells ImageMagick to
+automatically calculate the maximum radius so the entire image fits
+within the bounds of the output canvas.</p>
+<hr />
+<h2 id="understanding-polar-parameters">Understanding Polar
+Parameters</h2>
+<p>The <code>-distort Polar</code> operator accepts up to four optional
+arguments formatted as a comma-separated list:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-distort</span> Polar <span class="st">&quot;Radius, Angle, CenterX, CenterY&quot;</span></span></code></pre></div>
+<ul>
+<li><strong>Radius:</strong> Defines the outer boundary radius of the
+polar circle in pixels. Setting this to <code>0</code> uses the default
+maximum dimension.</li>
+<li><strong>Angle:</strong> The starting angle (in degrees) for the
+projection. The default is <code>0</code>, which places the seam at the
+bottom. Setting it to <code>90</code> or <code>180</code> rotates the
+orientation.</li>
+<li><strong>CenterX, CenterY:</strong> The X and Y pixel coordinates
+that serve as the center point of the distortion. By default,
+ImageMagick uses the center of the original image canvas.</li>
+</ul>
+<h3 id="example-with-custom-parameters">Example with Custom
+Parameters</h3>
+<p>To create a projection with a fixed radius of 300 pixels rotated by
+90 degrees around the center:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Polar <span class="st">&quot;300,90&quot;</span> output.jpg</span></code></pre></div>
+<hr />
+<h2 id="setting-a-custom-background-and-canvas">Setting a Custom
+Background and Canvas</h2>
+<p>Polar distortions often leave empty space in the corners of the
+canvas. You can define the background color and canvas behavior using
+the <code>-background</code> and <code>-virtual-pixel</code>
+options:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> transparent <span class="at">-virtual-pixel</span> transparent <span class="at">-distort</span> Polar 0 output.png</span></code></pre></div>
+<hr />
+<h2 id="reversing-the-process-polar-to-rectangular">Reversing the
+Process (Polar to Rectangular)</h2>
+<p>To reverse the transformation and unroll a circular polar image back
+into a flat rectangular format, replace <code>Polar</code> with
+<code>DePolar</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> polar_input.jpg <span class="at">-distort</span> DePolar 0 rectangular_output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

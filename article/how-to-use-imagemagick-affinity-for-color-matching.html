@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use ImageMagick Affinity for Color Matching - magick</title>
+    <meta name="description" content="The ImageMagick -affinity operator forces an image to adopt the exact color palette of an external reference image. By extracting the unique colors from a reference file and mapping each pixel of the target image to the nearest equivalent in that palette">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-use-imagemagick-affinity-for-color-matching">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use ImageMagick Affinity for Color Matching - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-use-imagemagick-affinity-for-color-matching" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -affinity operator forces an image to adopt the exact color palette of an external reference image. By extracting the unique colors from a reference file and mapping each pixel of the target image to the nearest equivalent in that palette" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-use-imagemagick-affinity-for-color-matching">How to Use
+ImageMagick Affinity for Color Matching</h1>
+<p>The ImageMagick <code>-affinity</code> operator forces an image to
+adopt the exact color palette of an external reference image. By
+extracting the unique colors from a reference file and mapping each
+pixel of the target image to the nearest equivalent in that palette,
+<code>-affinity</code> enables precise color quantization, retro-style
+palletization, and visual consistency across different graphics.</p>
+<h3 id="how-the--affinity-operator-works">How the -affinity Operator
+Works</h3>
+<p>When you supply an external file to the <code>-affinity</code>
+operator, ImageMagick performs a multi-step process to remap colors:</p>
+<ol type="1">
+<li><strong>Palette Extraction:</strong> ImageMagick reads the external
+reference file and generates a color map consisting exclusively of the
+unique colors present in that file. If the reference file is a dedicated
+palette strip or an indexed image, only those specific values are
+registered.</li>
+<li><strong>Nearest-Neighbor Mapping:</strong> ImageMagick inspects
+every pixel in the target image. It calculates the color distance
+(typically using Euclidean distance in the RGB or Lab color space)
+between the target pixel and every available color in the extracted
+palette.</li>
+<li><strong>Color Replacement:</strong> The original pixel value is
+overwritten with the closest matching color found in the reference
+palette. No new colors outside of the reference image are introduced
+into the final output.</li>
+</ol>
+<h3 id="command-line-syntax">Command-Line Syntax</h3>
+<p>The basic syntax places the target image first, followed by the
+<code>-affinity</code> operator and the path to the reference palette
+image:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-affinity</span> palette.png output.png</span></code></pre></div>
+<p>In legacy versions (ImageMagick 6), the command uses
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-affinity</span> palette.png output.png</span></code></pre></div>
+<h3 id="controlling-dithering">Controlling Dithering</h3>
+<p>By default, ImageMagick may apply dithering when mapping to a
+constrained palette to simulate gradients and missing shades. You can
+control this behavior using the <code>-dither</code> option:</p>
+<ul>
+<li><strong>Disable Dithering:</strong> To force flat, solid color
+replacement (useful for pixel art or strict branding constraints),
+disable dithering before calling <code>-affinity</code>:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-dither</span> None <span class="at">-affinity</span> palette.png output.png</span></code></pre></div>
+<ul>
+<li><strong>Enable Dithering:</strong> To preserve smoother transitions
+across gradients using patterns, specify a dithering algorithm such as
+Floyd-Steinberg:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-dither</span> FloydSteinberg <span class="at">-affinity</span> palette.png output.png</span></code></pre></div>
+<h3 id="key-differences-between--affinity-and-other-operators">Key
+Differences Between -affinity and Other Operators</h3>
+<p>While the <code>-remap</code> operator achieves a similar outcome,
+<code>-affinity</code> is specifically designed to operate across image
+sequences or pull palettes from external inputs without necessarily
+altering the internal colormap attributes of the output file format if
+not desired. It guarantees that the target image strictly conforms to
+the color boundaries defined by the external file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

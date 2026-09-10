@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -support Option in Filter Scaling - magick</title>
+    <meta name="description" content="This article explains the purpose and practical application of the -support setting in ImageMagick when resizing images. You will learn how filter support works during image resampling, how adjusting this parameter changes the sampling radius of interpol">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-support-option-in-filter-scaling">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -support Option in Filter Scaling - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-support-option-in-filter-scaling" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the purpose and practical application of the -support setting in ImageMagick when resizing images. You will learn how filter support works during image resampling, how adjusting this parameter changes the sampling radius of interpol" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--support-option-in-filter-scaling">ImageMagick
+-support Option in Filter Scaling</h1>
+<p>This article explains the purpose and practical application of the
+<code>-support</code> setting in ImageMagick when resizing images. You
+will learn how filter support works during image resampling, how
+adjusting this parameter changes the sampling radius of interpolation
+filters, and how it directly affects image sharpness, rendering
+artifacts, and processing performance.</p>
+<h3 id="understanding-filter-support-in-image-resampling">Understanding
+Filter Support in Image Resampling</h3>
+<p>When ImageMagick resizes or distorts an image using a filtering
+algorithm (such as Lanczos, Mitchell, Gaussian, or Triangle), it
+computes new pixel values by calculating a weighted average of
+neighboring source pixels.</p>
+<p>The "support" of a filter defines the spatial radius or window
+size—measured in pixels—that determines how far out the algorithm looks
+when gathering source pixel data. Each filter has an inherent,
+mathematically defined default support value. For example, a standard
+Box filter has a support radius of 0.5, while a Lanczos filter typically
+has a default support radius of 3.0.</p>
+<h3 id="the-purpose-of-the--support-option">The Purpose of the
+<code>-support</code> Option</h3>
+<p>The <code>-support</code> option in ImageMagick allows you to
+manually scale or override the default radius of the active resampling
+filter without changing the fundamental mathematical curve of that
+filter.</p>
+<p>By passing a floating-point factor to <code>-support</code>, you
+modify the sampling footprint:</p>
+<ul>
+<li><strong>Decreasing Support (Values Below Default):</strong>
+Restricting the support radius limits the number of neighboring pixels
+sampled. This can reduce haloing and ringing artifacts around
+high-contrast edges and decrease computational load. However, reducing
+support too much can lead to aliasing, moiré patterns, or missing pixel
+data because source pixels may be skipped entirely.</li>
+<li><strong>Increasing Support (Values Above Default):</strong>
+Expanding the support radius incorporates a broader range of surrounding
+pixels into each calculation. This produces a smoother, softer image
+with reduced aliasing, but it introduces additional blurring, increases
+processing time, and can amplify ringing artifacts in sinc-based
+filters.</li>
+</ul>
+<h3 id="practical-applications">Practical Applications</h3>
+<ol type="1">
+<li><strong>Controlling Artifacts:</strong> Complex, windowed filters
+like Lanczos can introduce undesirable "ringing" (light and dark halos)
+near sharp boundaries. Lowering the support value slightly can suppress
+this ringing while retaining edge contrast.</li>
+<li><strong>Fine-Tuning Blur and Sharpness:</strong> When using simple
+filters like Gaussian, increasing or decreasing the support gives
+fine-grained control over the degree of smoothing applied during
+downscaling or upscaling.</li>
+<li><strong>Optimizing Performance:</strong> In large-scale batch
+processing, trimming unnecessary support width reduces the mathematical
+operations required per pixel, speeding up rendering times.</li>
+</ol>
+<h3 id="syntax-and-usage-example">Syntax and Usage Example</h3>
+<p>The <code>-support</code> option is defined prior to applying the
+resize or distortion operation:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-filter</span> Lanczos <span class="at">-support</span> 2.5 <span class="at">-resize</span> 50% output.png</span></code></pre></div>
+<p>In this command, the Lanczos filter's default sampling radius is
+scaled down to 2.5, slightly tightening the pixel evaluation window for
+the downscaling process.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

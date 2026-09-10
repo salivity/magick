@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Feature Detection for Registration - magick</title>
+    <meta name="description" content="This article explains how to detect feature points and perform image registration using ImageMagick command-line tools. While ImageMagick is primarily a raster manipulation tool rather than a full computer vision framework, you can identify corner featur">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-feature-detection-for-registration">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Feature Detection for Registration - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-feature-detection-for-registration" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to detect feature points and perform image registration using ImageMagick command-line tools. While ImageMagick is primarily a raster manipulation tool rather than a full computer vision framework, you can identify corner featur" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-feature-detection-for-registration">ImageMagick
+Feature Detection for Registration</h1>
+<p>This article explains how to detect feature points and perform image
+registration using ImageMagick command-line tools. While ImageMagick is
+primarily a raster manipulation tool rather than a full computer vision
+framework, you can identify corner feature points using morphology
+operations, locate matching regions using correlation search, and apply
+registration transformations using distortion commands.</p>
+<h3 id="detecting-feature-points-using-morphology">Detecting Feature
+Points Using Morphology</h3>
+<p>ImageMagick does not include algorithms like SIFT or ORB natively,
+but it can detect sharp geometric feature points (such as corners and
+junctions) using hit-and-miss morphology operations.</p>
+<p>To extract corner feature points from an image:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-morphology</span> Hit-and-Miss Corners feature_points.png</span></code></pre></div>
+<p>This command converts the image to grayscale, thresholds it to
+binary, and applies the <code>Corners</code> kernel to isolate
+individual corner pixels across the image geometry.</p>
+<h3 id="matching-points-and-regions-with-sub-image-search">Matching
+Points and Regions with Sub-Image Search</h3>
+<p>To register an image based on a known feature patch, use the
+<code>compare</code> command with normalized cross-correlation
+(<code>NCC</code>) to locate the exact coordinate offset of the feature
+in a target image:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> NCC <span class="at">-subimage-search</span> source_image.png feature_template.png similarity_result.png</span></code></pre></div>
+<p>This generates two output images: a difference visualization and a
+correlation map where the brightest pixel represents the optimal
+registration coordinate. The standard error output also returns the
+best-fit X and Y offsets.</p>
+<h3 id="performing-image-registration-with-control-points">Performing
+Image Registration with Control Points</h3>
+<p>Once you have identified corresponding feature coordinate pairs
+between two images, you can align (register) the source image to the
+target image using the <code>-distort</code> operator:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> moving_image.png <span class="at">-distort</span> Affine <span class="st">&quot;x1,y1,u1,v1  x2,y2,u2,v2  x3,y3,u3,v3&quot;</span> registered_output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>x,y</code> are the feature coordinates in the moving
+image.</li>
+<li><code>u,v</code> are the corresponding destination coordinates in
+the reference image.</li>
+<li>The <code>Affine</code> mode requires at least three coordinate
+pairs, while <code>Perspective</code> requires four pairs to map
+perspective distortions.</li>
+</ul>
+<h3 id="automated-registration-workflows">Automated Registration
+Workflows</h3>
+<p>For complex computer vision tasks requiring fully automated keypoint
+detection and matching (such as Harris, SIFT, or AKAZE algorithms),
+standard practice involves pairing an OpenCV-based script to output
+matching coordinate pairs, then passing those coordinates directly to
+ImageMagick's <code>-distort</code> command to render high-quality
+transformed outputs.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Median Filter for Salt-and-Pepper Noise - magick</title>
+    <meta name="description" content="This article provides a quick guide on using ImageMagick to eliminate salt-and-pepper noise using the median filter. You will learn the exact command-line syntax for ImageMagick versions 6 and 7, how to configure the filter's radius and geometry paramete">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-median-filter-for-salt-and-pepper-noise">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Median Filter for Salt-and-Pepper Noise - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-median-filter-for-salt-and-pepper-noise" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick guide on using ImageMagick to eliminate salt-and-pepper noise using the median filter. You will learn the exact command-line syntax for ImageMagick versions 6 and 7, how to configure the filter's radius and geometry paramete" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-median-filter-for-salt-and-pepper-noise">ImageMagick
+Median Filter for Salt-and-Pepper Noise</h1>
+<p>This article provides a quick guide on using ImageMagick to eliminate
+salt-and-pepper noise using the median filter. You will learn the exact
+command-line syntax for ImageMagick versions 6 and 7, how to configure
+the filter's radius and geometry parameters, and why median filtering is
+the most effective method for cleaning impulse noise while preserving
+sharp edges.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick version 7, use the <code>magick</code> command with
+the <code>-median</code> or <code>-statistic median</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-median</span> <span class="op">&lt;</span>radius<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p>Alternatively, you can define the neighborhood window explicitly
+using the <code>-statistic</code> option:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-statistic</span> median <span class="op">&lt;</span>width<span class="op">&gt;</span>x<span class="op">&lt;</span>height<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p>For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-median</span> <span class="op">&lt;</span>radius<span class="op">&gt;</span> output.png</span></code></pre></div>
+<h2 id="how-the-parameters-work">How the Parameters Work</h2>
+<ul>
+<li><strong>Radius (<code>&lt;radius&gt;</code>):</strong> Specifies the
+radius of the pixel neighborhood used to calculate the median. A
+standard radius of <code>1</code> or <code>1.5</code> creates a small
+search window (typically 3x3 pixels), which is usually sufficient for
+single-pixel noise.</li>
+<li><strong>Geometry
+(<code>&lt;width&gt;x&lt;height&gt;</code>):</strong> When using
+<code>-statistic median</code>, this defines the exact pixel dimensions
+of the filtering matrix, such as <code>3x3</code> or
+<code>5x5</code>.</li>
+</ul>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="standard-noise-reduction-3x3-matrix">Standard Noise Reduction
+(3x3 Matrix)</h3>
+<p>To eliminate light to moderate salt-and-pepper noise with minimal
+blurring of image details:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-median</span> 1 output.jpg</span></code></pre></div>
+<p>Or using explicit dimensions:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-statistic</span> median 3x3 output.jpg</span></code></pre></div>
+<h3 id="heavy-noise-reduction-5x5-matrix">Heavy Noise Reduction (5x5
+Matrix)</h3>
+<p>For dense or clustered impulse noise, increase the neighborhood
+size:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-statistic</span> median 5x5 output.jpg</span></code></pre></div>
+<h2 id="why-median-filtering-suppresses-salt-and-pepper-noise">Why
+Median Filtering Suppresses Salt-and-Pepper Noise</h2>
+<p>Salt-and-pepper noise introduces extreme high and low intensity
+values (isolated black and white pixels). Linear filters like Gaussian
+or mean blur average these outliers into surrounding pixels, causing
+halos and blurring.</p>
+<p>The median filter sorts all pixel values in the surrounding window
+and selects the middle value. Because the noise pixels are extreme
+statistical outliers, they are discarded during the median selection,
+effectively removing the noise while keeping legitimate edge boundaries
+intact.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

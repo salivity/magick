@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Bohman Window for Edge Smoothing - magick</title>
+    <meta name="description" content="The Bohman window function in ImageMagick provides exceptional edge-smoothing capabilities during image filtering and resampling by applying a mathematically optimized, continuous cosine-convolution profile. This article examines the structural, mathemat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-bohman-window-for-edge-smoothing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Bohman Window for Edge Smoothing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-bohman-window-for-edge-smoothing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Bohman window function in ImageMagick provides exceptional edge-smoothing capabilities during image filtering and resampling by applying a mathematically optimized, continuous cosine-convolution profile. This article examines the structural, mathemat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-bohman-window-for-edge-smoothing">ImageMagick Bohman
+Window for Edge Smoothing</h1>
+<p>The Bohman window function in ImageMagick provides exceptional
+edge-smoothing capabilities during image filtering and resampling by
+applying a mathematically optimized, continuous cosine-convolution
+profile. This article examines the structural, mathematical, and
+frequency characteristics that allow the Bohman window to taper edges
+seamlessly, suppress high-frequency ringing artifacts, and ensure clean
+visual transitions in digital image processing.</p>
+<h3 id="mathematical-continuity-at-the-boundaries">Mathematical
+Continuity at the Boundaries</h3>
+<p>The primary factor behind the Bohman window's effectiveness is its
+boundary behavior. Defined as the convolution of two half-duration
+cosine lobes, the Bohman window satisfies higher-order continuity
+conditions at its perimeter:</p>
+<p><span class="math display">\[w(x) = (1 - |x|) \cos(\pi |x|) +
+\frac{1}{\pi} \sin(\pi |x|) \quad \text{for } |x| \le 1\]</span></p>
+<p>Unlike standard window functions that simply terminate at zero, the
+Bohman window's first and second derivatives both reach zero at the
+boundary edges (<span class="math inline">\(x = \pm 1\)</span>). This
+<span class="math inline">\(C^1\)</span> and <span
+class="math inline">\(C^2\)</span> continuity guarantees that the
+weighting factor smoothly vanishes rather than abruptly dropping off.
+When ImageMagick uses the Bohman function to weight neighboring pixels,
+the absence of sharp gradient changes prevents the creation of
+artificial hard borders.</p>
+<h3 id="suppression-of-ringing-and-gibbs-phenomenon">Suppression of
+Ringing and Gibbs Phenomenon</h3>
+<p>Abrupt truncations in spatial filters induce high-frequency
+oscillations known as the Gibbs phenomenon, visually appearing as halos
+or ringing along high-contrast edges. Because the Bohman window tapers
+with continuous derivatives, it drastically dampens these spurious
+oscillations. When paired with sinc-based interpolation or used as a
+standalone blurring and tapering filter, the Bohman window prevents the
+filter kernel from introducing overshoot or undershoot near contrasting
+image details.</p>
+<h3 id="rapid-sidelobe-decay-in-the-frequency-domain">Rapid Sidelobe
+Decay in the Frequency Domain</h3>
+<p>A window's edge-smoothing performance in the spatial domain directly
+correlates with its spectral leakage in the frequency domain. The Bohman
+window exhibits an asymptotic sidelobe decay rate of <span
+class="math inline">\(-24\text{ dB per octave}\)</span> (<span
+class="math inline">\(O(\omega^{-4})\)</span>). This rapid attenuation
+of high-frequency sidelobes ensures that:</p>
+<ul>
+<li>High-frequency noise is filtered out without introducing secondary
+edge reflections.</li>
+<li>Spectral leakage from adjacent pixels is heavily localized,
+preventing color bleeding across boundaries.</li>
+<li>Energy is concentrated almost entirely within the main lobe,
+maintaining core image structure while softening transitions.</li>
+</ul>
+<h3 id="application-in-imagemagick-resampling">Application in
+ImageMagick Resampling</h3>
+<p>In ImageMagick, the Bohman window is commonly applied via the
+<code>-filter Bohman</code> or <code>-define filter:window=bohman</code>
+options during spatial transformations, downscaling, and cylindrical
+filter operations. In these operations, the window acts as an envelope
+that modulates the reconstruction kernel. By restricting the kernel's
+spatial radius with a Bohman curve, ImageMagick achieves an optimal
+balance between sharpness retention and artifact-free edge feathering,
+producing visually coherent transitions that degrade gracefully into the
+surrounding pixel space.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Extent Percentage Calculation - magick</title>
+    <meta name="description" content="This article explains how ImageMagick evaluates percentage-based values when resizing or extending canvas boundaries using the -extent operator. When percentages are supplied in the geometry argument, ImageMagick dynamically derives new pixel dimensions">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-extent-percentage-calculation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Extent Percentage Calculation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-extent-percentage-calculation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick evaluates percentage-based values when resizing or extending canvas boundaries using the -extent operator. When percentages are supplied in the geometry argument, ImageMagick dynamically derives new pixel dimensions" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-extent-percentage-calculation">ImageMagick Extent
+Percentage Calculation</h1>
+<p>This article explains how ImageMagick evaluates percentage-based
+values when resizing or extending canvas boundaries using the
+<code>-extent</code> operator. When percentages are supplied in the
+geometry argument, ImageMagick dynamically derives new pixel dimensions
+from the original image boundaries and aligns the content according to
+the active gravity setting. Below is the precise mathematical formula,
+geometry parsing behavior, and offset logic applied during this
+operation.</p>
+<h3 id="base-dimension-calculation">Base Dimension Calculation</h3>
+<p>When you specify a percentage geometry (for example,
+<code>-extent 150%x150%</code> or <code>-extent 120%</code>),
+ImageMagick calculates the target canvas size relative to the original
+image dimensions using the following linear formulas:</p>
+<p><span class="math display">\[\text{New Width} =
+\text{round}\left(\text{Original Width} \times
+\frac{\text{Percentage}_w}{100}\right)\]</span></p>
+<p><span class="math display">\[\text{New Height} =
+\text{round}\left(\text{Original Height} \times
+\frac{\text{Percentage}_h}{100}\right)\]</span></p>
+<p>If a single percentage value is passed without a separator (such as
+<code>-extent 150%</code>), ImageMagick applies that single percentage
+to both the horizontal and vertical axes simultaneously.</p>
+<h3 id="floating-point-precision-and-rounding">Floating-Point Precision
+and Rounding</h3>
+<p>Internally, ImageMagick’s geometry parser
+(<code>ParseRegionGeometry</code> or <code>GetGeometry</code>)
+multiplies the existing image column count
+(<code>image-&gt;columns</code>) and row count
+(<code>image-&gt;rows</code>) by the parsed scale factor
+(<code>percentage / 100.0</code>). The resulting floating-point value is
+converted to a size integer using rounding to the nearest whole integer
+pixel. Fractions of <span class="math inline">\(0.5\)</span> or greater
+round up to the next integer.</p>
+<h3 id="positioning-and-offset-calculation">Positioning and Offset
+Calculation</h3>
+<p>The <code>-extent</code> operator does not stretch or resample image
+pixels; it only resizes the canvas area. Once the new canvas dimensions
+are determined, ImageMagick determines where to place the original
+pixels within the new canvas based on the defined <code>-gravity</code>
+setting.</p>
+<p>The coordinate offsets (<span class="math inline">\(X\)</span> and
+<span class="math inline">\(Y\)</span>) determine where the top-left
+corner of the original image sits relative to the top-left corner of the
+new canvas:</p>
+<ul>
+<li><strong>NorthWest (Default):</strong> <span
+class="math display">\[X_{\text{offset}} = 0, \quad Y_{\text{offset}} =
+0\]</span></li>
+<li><strong>Center:</strong> <span
+class="math display">\[X_{\text{offset}} =
+\text{round}\left(\frac{\text{New Width} - \text{Original
+Width}}{2}\right)\]</span> <span
+class="math display">\[Y_{\text{offset}} =
+\text{round}\left(\frac{\text{New Height} - \text{Original
+Height}}{2}\right)\]</span></li>
+<li><strong>SouthEast:</strong> <span
+class="math display">\[X_{\text{offset}} = \text{New Width} -
+\text{Original Width}\]</span> <span
+class="math display">\[Y_{\text{offset}} = \text{New Height} -
+\text{Original Height}\]</span></li>
+</ul>
+<p>Any empty area outside the original image bounds is filled with the
+color currently set by the <code>-background</code> setting (defaulting
+to white or transparent depending on format and configuration).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

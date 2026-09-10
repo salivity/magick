@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duplicate Specific Image Indices in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how the ImageMagick -duplicate operator creates copies of specific image indices within an active image sequence. It covers the underlying syntax, how the operator interprets zero-based and range-based index parameters, and how newl">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/duplicate-specific-image-indices-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Duplicate Specific Image Indices in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/duplicate-specific-image-indices-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the ImageMagick -duplicate operator creates copies of specific image indices within an active image sequence. It covers the underlying syntax, how the operator interprets zero-based and range-based index parameters, and how newl" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="duplicate-specific-image-indices-in-imagemagick">Duplicate
+Specific Image Indices in ImageMagick</h1>
+<p>This article explains how the ImageMagick <code>-duplicate</code>
+operator creates copies of specific image indices within an active image
+sequence. It covers the underlying syntax, how the operator interprets
+zero-based and range-based index parameters, and how newly created
+duplicates are appended to the sequence in memory.</p>
+<h2 id="syntax-and-parameters">Syntax and Parameters</h2>
+<p>The <code>-duplicate</code> operator in ImageMagick allows you to
+duplicate one or more images from the current image sequence in memory.
+The basic syntax is:</p>
+<p><code>-duplicate count[,indexes]</code></p>
+<ul>
+<li><strong>count</strong>: The number of copies to create for each
+specified image. This must be an integer of 1 or greater.</li>
+<li><strong>indexes</strong>: An optional parameter defining which
+specific image or range of images to duplicate. If omitted, ImageMagick
+defaults to duplicating the last image in the current sequence (index
+<code>-1</code>).</li>
+</ul>
+<h2 id="how-indexing-works">How Indexing Works</h2>
+<p>ImageMagick uses zero-based indexing for the image sequence held in
+memory:</p>
+<ul>
+<li><code>0</code> refers to the first image.</li>
+<li><code>1</code> refers to the second image.</li>
+<li>Negative integers count backward from the end of the list, where
+<code>-1</code> is the last image, <code>-2</code> is the second-to-last
+image, and so forth.</li>
+</ul>
+<p>You can target specific indices using individual numbers,
+comma-separated lists, or ranges:</p>
+<ul>
+<li><strong>Single index:</strong> <code>1,0</code> creates 1 duplicate
+of the image at index 0 (the first image).</li>
+<li><strong>Index range:</strong> <code>2,1-3</code> creates 2
+duplicates of each image from index 1 through index 3.</li>
+<li><strong>Negative index:</strong> <code>1,-1</code> creates 1
+duplicate of the last image in the list.</li>
+</ul>
+<h2 id="image-list-execution-behavior">Image List Execution
+Behavior</h2>
+<p>When ImageMagick processes the <code>-duplicate</code> operator, it
+performs the following steps:</p>
+<ol type="1">
+<li><strong>Resolution:</strong> It resolves the specified index
+arguments against the current sequence of images.</li>
+<li><strong>Cloning:</strong> For each matched index, ImageMagick
+creates in-memory clones matching the specified <code>count</code>. The
+original images remain unaltered at their original positions.</li>
+<li><strong>Appending:</strong> The generated duplicates are appended
+sequentially to the very end of the current image sequence.</li>
+</ol>
+<p>For example, consider an image sequence containing three images:
+<code>[A (0), B (1), C (2)]</code>.</p>
+<p>Running the command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> A.png B.png C.png <span class="at">-duplicate</span> 2,1 output.png</span></code></pre></div>
+<p>ImageMagick targets index <code>1</code> (<code>B.png</code>) and
+creates two duplicates. It appends these duplicates to the end of the
+list, resulting in an output sequence of five images:
+<code>[A, B, C, B, B]</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

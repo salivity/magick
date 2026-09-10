@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Convex Hull with Morphology Thicken - magick</title>
+    <meta name="description" content="In ImageMagick, the Thicken morphology operator provides a discrete method for generating a convex hull around arbitrary binary shapes. By using directional hit-and-miss structural kernels repeatedly until convergence, the operator systematically detects">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-convex-hull-with-morphology-thicken">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Convex Hull with Morphology Thicken - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-convex-hull-with-morphology-thicken" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the Thicken morphology operator provides a discrete method for generating a convex hull around arbitrary binary shapes. By using directional hit-and-miss structural kernels repeatedly until convergence, the operator systematically detects" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-convex-hull-with-morphology-thicken">ImageMagick
+Convex Hull with Morphology Thicken</h1>
+<p>In ImageMagick, the <code>Thicken</code> morphology operator provides
+a discrete method for generating a convex hull around arbitrary binary
+shapes. By using directional hit-and-miss structural kernels repeatedly
+until convergence, the operator systematically detects concave bays,
+notches, and indentations across a shape's perimeter and fills them with
+foreground pixels. This article explains the underlying morphological
+mechanism, the kernel logic, and the practical implementation of using
+the <code>Thicken</code> operator to enclose shapes within a digital
+convex hull.</p>
+<h2 id="the-role-of-the-thicken-operator">The Role of the Thicken
+Operator</h2>
+<p>In mathematical morphology, thickening is a dual operation to
+thinning. It expands foreground structures by testing the image against
+a Hit-and-Miss kernel and adding pixels to the foreground wherever a
+match occurs:</p>
+<p><span class="math display">\[\text{Thicken}(A, K) = A \cup (A \otimes
+K)\]</span></p>
+<p>Where <span class="math inline">\(A\)</span> is the input image,
+<span class="math inline">\(K\)</span> is the kernel, and <span
+class="math inline">\(\otimes\)</span> represents the Hit-and-Miss
+transform. While a basic dilation adds pixels uniformly around all
+boundaries, <code>Thicken</code> is selective. It only adds a pixel if
+the neighboring pixels strictly match the foreground and background
+configuration defined by the kernel.</p>
+<h2 id="how-the-convex-hull-is-formed">How the Convex Hull Is
+Formed</h2>
+<p>To create a convex hull, ImageMagick provides a predefined kernel set
+labeled <code>ConvexHull</code>. This set consists of discrete <span
+class="math inline">\(3 \times 3\)</span> directional structural
+elements designed to locate indentations and concave corners on a
+digital grid.</p>
+<ol type="1">
+<li><strong>Pattern Matching:</strong> Each kernel in the
+<code>ConvexHull</code> series searches for specific configurations
+where background pixels are partially enclosed by foreground pixels
+(such as a corner indentation between two extended points).</li>
+<li><strong>Filling Recesses:</strong> When a kernel matches a concave
+configuration, the targeted background pixel is converted into a
+foreground pixel.</li>
+<li><strong>Iterative Expansion:</strong> A single pass fills only the
+immediate concave edges. To produce a complete convex hull, the operator
+must run iteratively. As new pixels are added, they create new
+neighborhood patterns that match subsequent kernel passes, progressively
+bridging the gaps between external vertices.</li>
+<li><strong>Convergence:</strong> The iterations continue until no
+further kernel matches occur, meaning all detectable concave
+indentations have been filled.</li>
+</ol>
+<h2 id="syntax-and-command-usage">Syntax and Command Usage</h2>
+<p>The typical ImageMagick command for generating a convex hull uses the
+iteration count <code>-1</code>, which instructs the engine to repeat
+the operation until no further changes are detected:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Thicken:-1 ConvexHull output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-morphology Thicken</code> calls the thickening operator.</li>
+<li><code>:-1</code> specifies an infinite loop until the image reaches
+a steady state (convergence).</li>
+<li><code>ConvexHull</code> specifies the rotated series of <span
+class="math inline">\(3 \times 3\)</span> kernels tailored to bridge
+concave gaps across the horizontal, vertical, and diagonal axes.</li>
+</ul>
+<h2 id="discrete-grid-considerations">Discrete Grid Considerations</h2>
+<p>Because ImageMagick operates on a discrete raster grid, the resulting
+convex hull is a digital approximation rather than a continuous
+Euclidean polygon. Using standard <span class="math inline">\(3 \times
+3\)</span> neighborhood kernels, the hull typically resolves into an
+8-sided bounded polygon (an octagonal hull), with boundary segments
+restricted to <span class="math inline">\(0^\circ\)</span>, <span
+class="math inline">\(45^\circ\)</span>, and <span
+class="math inline">\(90^\circ\)</span> angles. Despite this discrete
+restriction, it effectively creates the minimal bounding convex shape
+achievable within standard 8-connected pixel space.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

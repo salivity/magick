@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Output ImageMagick Color Profile to Stdout - magick</title>
+    <meta name="description" content="Extracting embedded color profile information from an image directly to standard output (stdout) is a common task for automated image processing workflows and color management audits. This article explains the exact ImageMagick commands required to dump">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/output-imagemagick-color-profile-to-stdout">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Output ImageMagick Color Profile to Stdout - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/output-imagemagick-color-profile-to-stdout" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Extracting embedded color profile information from an image directly to standard output (stdout) is a common task for automated image processing workflows and color management audits. This article explains the exact ImageMagick commands required to dump" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="output-imagemagick-color-profile-to-stdout">Output ImageMagick
+Color Profile to Stdout</h1>
+<p>Extracting embedded color profile information from an image directly
+to standard output (<code>stdout</code>) is a common task for automated
+image processing workflows and color management audits. This article
+explains the exact ImageMagick commands required to dump both raw binary
+ICC profiles and human-readable profile metadata straight to your
+terminal or into a pipe without saving intermediary files.</p>
+<h3 id="outputting-the-raw-icc-profile-to-stdout">Outputting the Raw ICC
+Profile to Stdout</h3>
+<p>To extract the raw, binary ICC/ICM profile data and stream it
+directly to <code>stdout</code>, specify the output format as
+<code>icc:-</code> or <code>icm:-</code>. The hyphen (<code>-</code>)
+tells ImageMagick to direct output to standard output rather than a
+physical file.</p>
+<p><strong>For ImageMagick version 7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg icc:-</span></code></pre></div>
+<p><strong>For ImageMagick version 6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg icc:-</span></code></pre></div>
+<p>You can pipe this raw stream directly into another utility (such as
+an ICC profile parser or a checksum generator):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg icc:- <span class="kw">|</span> <span class="fu">sha256sum</span></span></code></pre></div>
+<hr />
+<h3 id="outputting-human-readable-profile-metadata-to-stdout">Outputting
+Human-Readable Profile Metadata to Stdout</h3>
+<p>If you need to inspect the textual description and metadata of the
+embedded profile rather than the raw binary payload, use the
+<code>identify</code> utility or the <code>-format</code> parameter.</p>
+<h4 id="method-1-formatted-profile-description">Method 1: Formatted
+Profile Description</h4>
+<p>To output just the profile's text attributes to
+<code>stdout</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[profile:icc]&quot;</span> input.jpg</span></code></pre></div>
+<h4 id="method-2-comprehensive-profile-details">Method 2: Comprehensive
+Profile Details</h4>
+<p>To extract the complete embedded profile section from the verbose
+image metadata:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> input.jpg <span class="kw">|</span> <span class="fu">sed</span> <span class="at">-n</span> <span class="st">&#39;/Profile-icc/,/Profile-iptc/p&#39;</span></span></code></pre></div>
+<p><em>(Alternatively, replace <code>sed</code> with
+<code>grep -A 20 "Profile-icc"</code> depending on your system's
+available tools).</em></p>
+<hr />
+<h3 id="summary-of-syntax-components">Summary of Syntax Components</h3>
+<ul>
+<li><strong><code>icc:</code> / <code>icm:</code></strong> — Specifies
+the International Color Consortium format for the output stream.</li>
+<li><strong><code>-</code></strong> — Directs the output to
+<code>stdout</code> instead of writing to a filesystem path.</li>
+<li><strong><code>%[profile:icc]</code></strong> — A format escape
+sequence that reads and outputs textual properties embedded within the
+image's ICC profile.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Spacing and Margins in ImageMagick Montage - magick</title>
+    <meta name="description" content="ImageMagick's montage command creates image grids, contact sheets, and collages directly from the command line. Controlling the gaps between individual images (inter-tile spacing) and the space around the edges (margins) is achieved primarily using the -">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-spacing-and-margins-in-imagemagick-montage">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set Spacing and Margins in ImageMagick Montage - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-spacing-and-margins-in-imagemagick-montage" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's montage command creates image grids, contact sheets, and collages directly from the command line. Controlling the gaps between individual images (inter-tile spacing) and the space around the edges (margins) is achieved primarily using the -" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-spacing-and-margins-in-imagemagick-montage">Set Spacing and
+Margins in ImageMagick Montage</h1>
+<p>ImageMagick's <code>montage</code> command creates image grids,
+contact sheets, and collages directly from the command line. Controlling
+the gaps between individual images (inter-tile spacing) and the space
+around the edges (margins) is achieved primarily using the
+<code>-geometry</code> flag alongside background and border parameters.
+This guide explains the syntax, default behaviors, and command options
+required to customize your montage layout precisely.</p>
+<h2 id="the-role-of-the--geometry-option">The Role of the
+<code>-geometry</code> Option</h2>
+<p>The <code>-geometry</code> argument is the primary mechanism for
+setting tile dimensions and spacing in <code>montage</code>. Its basic
+syntax for grid layout is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-geometry</span> <span class="pp">[</span><span class="ss">width</span><span class="pp">]</span>x<span class="pp">[</span><span class="ss">height</span><span class="pp">]</span>+<span class="pp">[</span><span class="ss">horizontal_spacing</span><span class="pp">]</span>+<span class="pp">[</span><span class="ss">vertical_spacing</span><span class="pp">]</span></span></code></pre></div>
+<ul>
+<li><strong><code>width</code> and <code>height</code></strong>: The
+maximum bounding box size for each thumbnail.</li>
+<li><strong><code>horizontal_spacing</code> (X offset)</strong>: The
+horizontal space applied to both sides of each tile.</li>
+<li><strong><code>vertical_spacing</code> (Y offset)</strong>: The
+vertical space applied to the top and bottom of each tile.</li>
+</ul>
+<p>Because offsets apply around every individual tile, the space between
+two adjacent tiles is effectively the sum of their adjacent offsets,
+while the outer edge receives a single offset width.</p>
+<hr />
+<h2 id="setting-custom-inter-tile-spacing">Setting Custom Inter-Tile
+Spacing</h2>
+<p>To define specific horizontal and vertical gaps while keeping
+thumbnail sizes uniform:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> image1.jpg image2.jpg image3.jpg image4.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> 2x2 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> 200x200+10+15 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<ul>
+<li><code>200x200</code> restricts each thumbnail to a maximum of 200 by
+200 pixels.</li>
+<li><code>+10</code> adds 10 pixels of horizontal margin per tile.</li>
+<li><code>+15</code> adds 15 pixels of vertical margin per tile.</li>
+<li><code>-background white</code> colors the resulting gaps white.</li>
+</ul>
+<hr />
+<h2 id="removing-all-spacing-and-margins-seamless-grid">Removing All
+Spacing and Margins (Seamless Grid)</h2>
+<p>By default, <code>montage</code> applies a frame and default padding.
+To create a seamless grid with zero space between tiles and zero outer
+margins, set both offsets to <code>+0+0</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> 3x3 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> 300x300+0+0 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<p>If you want to keep the original image resolutions without resizing,
+omit the width and height values while keeping the offsets:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> 3x3 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> +0+0 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<hr />
+<h2 id="adding-borders-and-outer-margins">Adding Borders and Outer
+Margins</h2>
+<p>If you need distinct outer canvas margins separate from inter-tile
+spacing, combine the <code>-geometry</code> flag with
+<code>-border</code> or post-processing operations:</p>
+<h3 id="adding-tile-borders">Adding Tile Borders</h3>
+<p>To add individual borders around each image inside the grid:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> 2x2 <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> 150x150+8+8 <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-border</span> 2 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-bordercolor</span> black <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-background</span> grey <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<h3 id="adding-an-outer-canvas-border">Adding an Outer Canvas
+Border</h3>
+<p>To create an outer border around the entire montage after arranging
+the tiles:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> 4x <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> 100x100+5+5 <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-mattecolor</span> white <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-frame</span> 10 <span class="dt">\</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<p>Alternatively, use the <code>magick</code> or <code>convert</code>
+command to add uniform outer margins around the generated montage:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="at">-tile</span> 2x2 <span class="at">-geometry</span> 200x200+5+5 temp.png</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> temp.png <span class="at">-bordercolor</span> white <span class="at">-border</span> 20 output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

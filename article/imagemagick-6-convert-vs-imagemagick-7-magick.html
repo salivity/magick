@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick 6 Convert vs ImageMagick 7 Magick - magick</title>
+    <meta name="description" content="The transition from ImageMagick 6 to ImageMagick 7 introduced a fundamental redesign of the suite's command-line interface, most notably replacing the ubiquitous convert tool with the unified magick command. While ImageMagick 6 relied on separate binarie">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-6-convert-vs-imagemagick-7-magick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick 6 Convert vs ImageMagick 7 Magick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-6-convert-vs-imagemagick-7-magick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The transition from ImageMagick 6 to ImageMagick 7 introduced a fundamental redesign of the suite's command-line interface, most notably replacing the ubiquitous convert tool with the unified magick command. While ImageMagick 6 relied on separate binarie" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-6-convert-vs-imagemagick-7-magick">ImageMagick 6
+Convert vs ImageMagick 7 Magick</h1>
+<p>The transition from ImageMagick 6 to ImageMagick 7 introduced a
+fundamental redesign of the suite's command-line interface, most notably
+replacing the ubiquitous <code>convert</code> tool with the unified
+<code>magick</code> command. While ImageMagick 6 relied on separate
+binaries for different tasks, ImageMagick 7 consolidates these utilities
+into a single executable, resolves long-standing operating system
+conflicts, enforces strict sequential command processing, and adds
+support for dynamic mathematical expressions directly inside command
+arguments.</p>
+<h2 id="the-unified-binary-architecture">The Unified Binary
+Architecture</h2>
+<p>In ImageMagick 6, the suite was split across several individual
+executables: <code>convert</code>, <code>identify</code>,
+<code>mogrify</code>, <code>composite</code>, and others. The
+<code>convert</code> binary was the primary workhorse used for reading,
+manipulating, and writing image files.</p>
+<p>In ImageMagick 7, the single <code>magick</code> binary replaces all
+standalone utilities. The previous tools now exist as subcommands under
+the master binary:</p>
+<ul>
+<li><code>convert</code> becomes <code>magick</code> (or
+<code>magick convert</code> for legacy emulation)</li>
+<li><code>identify</code> becomes <code>magick identify</code></li>
+<li><code>mogrify</code> becomes <code>magick mogrify</code></li>
+<li><code>composite</code> becomes <code>magick composite</code></li>
+</ul>
+<p>This architecture resolves a notorious conflict on Windows systems,
+where the ImageMagick <code>convert.exe</code> utility conflicted with
+the native Windows file system conversion tool of the same name.</p>
+<h2 id="strict-left-to-right-processing">Strict Left-to-Right
+Processing</h2>
+<p>One of the most critical functional differences between
+<code>convert</code> and <code>magick</code> is how command-line options
+are parsed:</p>
+<ul>
+<li><strong>ImageMagick 6 (<code>convert</code>):</strong> Option
+parsing was permissive and often unpredictable. You could specify
+options before loading the image, after loading the image, or at the end
+of the command, and the utility would attempt to infer the intended
+execution order. This frequently led to unexpected output when chaining
+multiple operations.</li>
+<li><strong>ImageMagick 7 (<code>magick</code>):</strong> Operations are
+strictly interpreted from left to right. Settings, operators, and images
+are applied exactly in the sequence they appear. An operation only
+applies to images loaded prior to that operation in the command
+string.</li>
+</ul>
+<h2 id="dynamic-expressions-and-inline-calculations">Dynamic Expressions
+and Inline Calculations</h2>
+<p>ImageMagick 6 required external shell scripting (such as Bash
+arithmetic or <code>bc</code>) to calculate dimensions, coordinates, or
+percentages before passing them to <code>convert</code>.</p>
+<p>ImageMagick 7 natively incorporates mathematical expressions into
+arguments via the FX engine. Using the syntax <code>%[fx:...]</code>,
+you can compute values dynamically based on image attributes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&quot;%[fx:w/2]x%[fx:h/2]&quot;</span> output.jpg</span></code></pre></div>
+<p>This allows single-line commands to query image dimensions, aspect
+ratios, or color profiles and modify the image accordingly without
+external scripting logic.</p>
+<h2 id="improved-alpha-channel-and-color-handling">Improved Alpha
+Channel and Color Handling</h2>
+<p>ImageMagick 7 modifies how channels, particularly the alpha channel,
+are handled:</p>
+<ul>
+<li><strong>HDRI by Default:</strong> High Dynamic Range Imaging (HDRI)
+is enabled by default in ImageMagick 7, using 32-bit floating-point
+values for color channels instead of the 8-bit or 16-bit integers common
+in ImageMagick 6 builds. This prevents clipping of out-of-gamut colors
+and improves precision during multi-step adjustments.</li>
+<li><strong>Separated Alpha:</strong> ImageMagick 7 treats transparency
+strictly as an alpha channel rather than blending it into a matte
+attribute, unifying the syntax for masking and blending workflows.</li>
+</ul>
+<h2 id="backward-compatibility-and-deprecation">Backward Compatibility
+and Deprecation</h2>
+<p>While ImageMagick 7 often includes a symlink for
+<code>convert</code>, running <code>convert</code> directly invokes a
+legacy compatibility mode designed to mimic ImageMagick 6 behavior. This
+compatibility mode does not grant access to ImageMagick 7 features, such
+as inline calculations or advanced co-processing scripts
+(<code>magick -script</code>). To utilize the improvements and
+performance benefits of the modern suite, scripts must be updated to use
+the <code>magick</code> command.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

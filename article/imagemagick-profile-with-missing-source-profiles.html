@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -profile with Missing Source Profiles - magick</title>
+    <meta name="description" content="When converting an image to a target ICC profile, ImageMagick relies on an embedded source profile to calculate accurate color transformations. If an image lacks an embedded ICC profile, ImageMagick cannot perform an automatic color space conversion; ins">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-profile-with-missing-source-profiles">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -profile with Missing Source Profiles - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-profile-with-missing-source-profiles" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When converting an image to a target ICC profile, ImageMagick relies on an embedded source profile to calculate accurate color transformations. If an image lacks an embedded ICC profile, ImageMagick cannot perform an automatic color space conversion; ins" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--profile-with-missing-source-profiles">ImageMagick
+-profile with Missing Source Profiles</h1>
+<p>When converting an image to a target ICC profile, ImageMagick relies
+on an embedded source profile to calculate accurate color
+transformations. If an image lacks an embedded ICC profile, ImageMagick
+cannot perform an automatic color space conversion; instead, it treats
+the first provided profile as an assignment rather than a
+transformation. Understanding how ImageMagick interprets the
+<code>-profile</code> operator in the absence of source metadata is
+critical to avoiding unintended color shifts.</p>
+<h3 id="assignment-vs-transformation">Assignment vs. Transformation</h3>
+<p>The ImageMagick <code>-profile</code> operator performs two distinct
+functions depending on the current state of the image:</p>
+<ol type="1">
+<li><strong>Profile Assignment (Tagging):</strong> If the image has no
+embedded ICC profile, applying <code>-profile filename.icc</code> embeds
+the profile metadata into the file without altering the underlying pixel
+values.</li>
+<li><strong>Color Transformation (Conversion):</strong> If the image
+already contains an embedded ICC profile, applying
+<code>-profile filename.icc</code> translates the pixel values from the
+existing color space to the target color space using the LittleCMS
+(lcms2) engine, then updates the embedded profile.</li>
+</ol>
+<h3 id="the-single-profile-pitfall">The Single-Profile Pitfall</h3>
+<p>A common mistake is attempting to convert an untagged image to a
+target profile using a single command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_untagged.jpg <span class="at">-profile</span> USWebCoatedSWOP.icc output.jpg</span></code></pre></div>
+<p>Because <code>input_untagged.jpg</code> has no embedded profile,
+ImageMagick does not convert the RGB data to CMYK. Instead, it assigns
+the CMYK profile directly to the existing pixel values. This results in
+severe color distortion because raw RGB numbers are now interpreted as
+CMYK percentages without mathematical translation.</p>
+<h3 id="the-correct-two-profile-workflow">The Correct Two-Profile
+Workflow</h3>
+<p>To convert an untagged image to a target profile, you must explicitly
+declare the assumed source profile before defining the destination
+profile. This requires chaining the <code>-profile</code> operator twice
+in a single command.</p>
+<p>Most untagged web or digital assets are authored in the sRGB color
+space. To properly transform such an image to a destination profile
+(such as Adobe RGB or a CMYK press profile), use:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_untagged.jpg <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> target.icc output.jpg</span></code></pre></div>
+<p>In this execution:</p>
+<ul>
+<li>The first <code>-profile sRGB.icc</code> assigns the source profile
+to the untagged pixels without modifying pixel values.</li>
+<li>The second <code>-profile target.icc</code> detects the now-present
+source profile and recalculates the pixel values to match the target
+color space.</li>
+</ul>
+<h3 id="detecting-missing-profiles-programmatically">Detecting Missing
+Profiles Programmatically</h3>
+<p>To avoid applying unnecessary source profiles to images that already
+contain color data, you can check for the presence of an embedded
+profile before processing:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[profile:icc]&quot;</span> input.jpg</span></code></pre></div>
+<p>If the output is empty, the image lacks an embedded ICC profile and
+requires the explicit two-step assignment-and-conversion syntax. If the
+output returns profile details, a single
+<code>-profile target.icc</code> call will correctly execute the color
+transformation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

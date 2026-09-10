@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Polar Distort: Unwrapping Circular Patterns - magick</title>
+    <meta name="description" content="This article explains how ImageMagick transforms concentric, circular visual patterns into flat, horizontal strips using polar coordinate distortion. By projecting polar coordinates—specifically radial distance and angular sweep—onto a standard Carte">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-polar-distort-unwrapping-circular-patterns">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Polar Distort: Unwrapping Circular Patterns - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-polar-distort-unwrapping-circular-patterns" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick transforms concentric, circular visual patterns into flat, horizontal strips using polar coordinate distortion. By projecting polar coordinates—specifically radial distance and angular sweep—onto a standard Carte" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-polar-distort-unwrapping-circular-patterns">ImageMagick
+Polar Distort: Unwrapping Circular Patterns</h1>
+<p>This article explains how ImageMagick transforms concentric, circular
+visual patterns into flat, horizontal strips using polar coordinate
+distortion. By projecting polar coordinates—specifically radial distance
+and angular sweep—onto a standard Cartesian grid, ImageMagick
+reconstructs annular and concentric rings into linear, horizontal rows.
+Below, we break down the coordinate mapping mechanics, the role of
+inverse transformation, and the specific parameters controlling the
+unwrapping process.</p>
+<h3 id="polar-to-cartesian-coordinate-mapping">Polar to Cartesian
+Coordinate Mapping</h3>
+<p>ImageMagick processes geometric transformations through mathematical
+coordinate conversion. Concentric patterns naturally exist in a polar
+coordinate system defined by an origin center <span
+class="math inline">\((x_0, y_0)\)</span>, a radius (<span
+class="math inline">\(r\)</span>), and an angle (<span
+class="math inline">\(\theta\)</span>).</p>
+<p>When unwrapping these concentric patterns into a rectangular image,
+the software performs a transformation where:</p>
+<ul>
+<li><strong>Angle (<span class="math inline">\(\theta\)</span>) maps to
+the X-axis (Width):</strong> The circumference around the center point
+is unrolled horizontally. A full <span
+class="math inline">\(360^\circ\)</span> circle sweeps across the width
+of the destination image, typically starting from the top or right
+depending on the offset angle parameter.</li>
+<li><strong>Radius (<span class="math inline">\(r\)</span>) maps to the
+Y-axis (Height):</strong> Concentric rings situated at different
+distances from the center are mapped vertically. The inner radius
+corresponds to one vertical edge (usually the top or bottom), while the
+outer radius corresponds to the opposite edge.</li>
+</ul>
+<h3 id="the-role-of--distort-depolar-and--distort-polar">The Role of
+<code>-distort DePolar</code> and <code>-distort Polar</code></h3>
+<p>In ImageMagick, circular distortion utilizes two complementary
+operations:</p>
+<ol type="1">
+<li><strong><code>Polar</code></strong>: Maps a standard rectangular
+image into an annular or circular shape (wrapping).</li>
+<li><strong><code>DePolar</code></strong>: Maps a circular or concentric
+pattern into a standard rectangular strip (unwrapping).</li>
+</ol>
+<p>While users frequently refer to the general technique as "polar
+distortion," the unwrapping action is specifically executed using
+<code>-distort DePolar</code> (or an inverted matrix with
+<code>-distort Polar</code>). <code>DePolar</code> calculates the
+distance from the defined center to the outer perimeter, translating
+each concentric circle at radius <span class="math inline">\(r\)</span>
+into a perfectly straight horizontal line at coordinate <span
+class="math inline">\(y\)</span>.</p>
+<h3 id="inverse-pixel-mapping-and-resampling">Inverse Pixel Mapping and
+Resampling</h3>
+<p>ImageMagick does not push pixels from the circular source into the
+rectangular destination; instead, it uses <strong>inverse coordinate
+mapping</strong>. For every pixel coordinate <span
+class="math inline">\((x&#39;, y&#39;)\)</span> in the destination
+rectangular image:</p>
+<ol type="1">
+<li>The algorithm computes the corresponding polar coordinate: <span
+class="math display">\[\theta = \text{angle\_offset} +
+\left(\frac{x&#39;}{\text{width}}\right) \times 360^\circ\]</span> <span
+class="math display">\[r = r_{\text{min}} +
+\left(\frac{y&#39;}{\text{height}}\right) \times (r_{\text{max}} -
+r_{\text{min}})\]</span></li>
+<li>It converts these polar coordinates back to Cartesian source
+coordinates <span class="math inline">\((x, y)\)</span>: <span
+class="math display">\[x = x_0 + r \cos(\theta)\]</span> <span
+class="math display">\[y = y_0 + r \sin(\theta)\]</span></li>
+<li>The software samples the pixel color from the source image at <span
+class="math inline">\((x, y)\)</span>.</li>
+</ol>
+<p>To prevent aliasing, moiré effects, and distortion artifacts caused
+by stretching pixels near the center, ImageMagick applies Elliptical
+Weighted Average (EWA) resampling during this lookup, ensuring clean,
+continuous horizontal bands.</p>
+<h3 id="configurable-operator-arguments">Configurable Operator
+Arguments</h3>
+<p>The unwrapping process can be customized by passing specific
+arguments to the operator:</p>
+<pre class="text"><code>-distort DePolar &quot;Radius_Max, Radius_Min, Center_X, Center_Y, Angle_Start, Angle_End&quot;</code></pre>
+<ul>
+<li><strong>Radius limits (<code>Radius_Max</code>,
+<code>Radius_Min</code>)</strong>: Define the inner and outer boundaries
+of the concentric bands to unwrap. Setting an inner radius greater than
+zero skips empty or irrelevant centers.</li>
+<li><strong>Center coordinates (<code>Center_X</code>,
+<code>Center_Y</code>)</strong>: Defines the exact focal point of the
+concentric rings. Accurate centering is crucial; an offset center will
+produce wavy sinusoidal lines instead of straight horizontal
+strips.</li>
+<li><strong>Angle limits (<code>Angle_Start</code>,
+<code>Angle_End</code>)</strong>: Defines the rotational slice to
+unroll, allowing partial arcs to be converted into rectangles rather
+than forcing a full <span class="math inline">\(360^\circ\)</span>
+sweep.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

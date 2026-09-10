@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Gradient Fill in Vector Shapes - magick</title>
+    <meta name="description" content="ImageMagick allows you to apply linear and radial gradient fills to drawn vector shapes using either the -tile modifier or inline Magick Vector Graphics (MVG) definitions within the -draw primitive. This guide covers the exact syntax for applying gradien">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gradient-fill-in-vector-shapes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Gradient Fill in Vector Shapes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gradient-fill-in-vector-shapes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick allows you to apply linear and radial gradient fills to drawn vector shapes using either the -tile modifier or inline Magick Vector Graphics (MVG) definitions within the -draw primitive. This guide covers the exact syntax for applying gradien" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gradient-fill-in-vector-shapes">ImageMagick Gradient
+Fill in Vector Shapes</h1>
+<p>ImageMagick allows you to apply linear and radial gradient fills to
+drawn vector shapes using either the <code>-tile</code> modifier or
+inline Magick Vector Graphics (MVG) definitions within the
+<code>-draw</code> primitive. This guide covers the exact syntax for
+applying gradients to shapes such as rectangles, circles, and custom
+vector paths directly from the command line.</p>
+<h2 id="method-1-using-the--tile-gradient-operator">Method 1: Using the
+<code>-tile</code> Gradient Operator</h2>
+<p>The most straightforward way to fill a drawn vector shape with a
+gradient is to pass a <code>gradient:</code> or
+<code>radial-gradient:</code> image as a texture via the
+<code>-tile</code> parameter before invoking the <code>-draw</code>
+command.</p>
+<h3 id="syntax">Syntax:</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> <span class="op">&lt;</span>CanvasWidth<span class="op">&gt;</span>x<span class="op">&lt;</span>CanvasHeight<span class="op">&gt;</span> xc:<span class="op">&lt;</span>Background<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> gradient:<span class="op">&lt;</span>StartColor<span class="op">&gt;</span>-<span class="op">&lt;</span>EndColor<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;&lt;ShapeType&gt; &lt;Coordinates&gt;&quot;</span> <span class="op">&lt;</span>OutputImage<span class="op">&gt;</span></span></code></pre></div>
+<h3 id="linear-gradient-example">Linear Gradient Example:</h3>
+<p>To fill a rectangle with a linear gradient from red to blue on a
+transparent canvas:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x300 xc:none <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> gradient:red-blue <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;rectangle 50,50 350,250&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  linear_box.png</span></code></pre></div>
+<h3 id="radial-gradient-example">Radial Gradient Example:</h3>
+<p>To fill a circle with a radial gradient transitioning from yellow at
+the center to dark orange at the perimeter:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:none <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-tile</span> radial-gradient:yellow-darkorange <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;circle 200,200 200,50&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  radial_circle.png</span></code></pre></div>
+<hr />
+<h2 id="method-2-defining-gradients-inside-mvg--draw">Method 2: Defining
+Gradients Inside MVG (<code>-draw</code>)</h2>
+<p>If you require precise control over gradient stop positions,
+coordinates, and angles inside a vector canvas, you can declare vector
+gradients using SVG-compatible MVG syntax embedded inside the
+<code>-draw</code> command.</p>
+<h3 id="syntax-structure">Syntax Structure:</h3>
+<pre class="text"><code>push defs
+  push gradient &lt;GradientID&gt; &lt;linear|radial&gt; &lt;x1,y1 x2,y2&gt;
+    stop &lt;offset&gt; &lt;color&gt;
+    stop &lt;offset&gt; &lt;color&gt;
+  pop gradient
+pop defs
+fill url(#&lt;GradientID&gt;)
+&lt;ShapeCommand&gt;</code></pre>
+<h3 id="linear-gradient-example-on-a-path">Linear Gradient Example on a
+Path:</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 xc:white <span class="at">-draw</span> <span class="st">&quot;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">  push defs</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">    push gradient myLinear linear 50,50 450,450</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">      stop 0% #ff007f</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">      stop 50% #7f00ff</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">      stop 100% #00d4ff</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">    pop gradient</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">  pop defs</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">  fill url(#myLinear)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">  stroke black</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">  stroke-width 2</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="st">  roundrectangle 50,50 450,450 30,30</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span> linear_mvg.png</span></code></pre></div>
+<h3 id="radial-gradient-example-on-a-polygon">Radial Gradient Example on
+a Polygon:</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:transparent <span class="at">-draw</span> <span class="st">&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="st">  push defs</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">    push gradient myRadial radial 200,200 200,200</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">      stop 0% #ffffff</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">      stop 100% #11998e</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">    pop gradient</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">  pop defs</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">  fill url(#myRadial)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">  polygon 200,20 380,380 20,380</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span> radial_polygon.png</span></code></pre></div>
+<hr />
+<h2 id="method-3-masking-method-complex-vector-groups">Method 3: Masking
+Method (Complex Vector Groups)</h2>
+<p>For complex multi-shape paths where individual gradients need to
+align across canvas bounds, render the vector shape as an alpha mask and
+composite it onto a generated gradient canvas:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\(</span> <span class="at">-size</span> 500x500 gradient:cyan-magenta <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>       <span class="dt">\(</span> <span class="at">-size</span> 500x500 xc:black <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 250,250 250,50&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output_masked.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

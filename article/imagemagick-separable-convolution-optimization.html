@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Separable Convolution Optimization - magick</title>
+    <meta name="description" content="ImageMagick optimizes image filtering by decomposing two-dimensional convolution matrices into independent horizontal and vertical one-dimensional passes. This architectural approach fundamentally reduces computational complexity from quadratic to linear">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-separable-convolution-optimization">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Separable Convolution Optimization - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-separable-convolution-optimization" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick optimizes image filtering by decomposing two-dimensional convolution matrices into independent horizontal and vertical one-dimensional passes. This architectural approach fundamentally reduces computational complexity from quadratic to linear" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-separable-convolution-optimization">ImageMagick
+Separable Convolution Optimization</h1>
+<p>ImageMagick optimizes image filtering by decomposing two-dimensional
+convolution matrices into independent horizontal and vertical
+one-dimensional passes. This architectural approach fundamentally
+reduces computational complexity from quadratic to linear relative to
+the kernel radius. By processing an image across orthogonal axes
+sequentially rather than evaluating a full two-dimensional neighborhood
+for every pixel, ImageMagick drastically cuts CPU overhead, maximizes
+CPU cache locality, and enables efficient multithreaded execution across
+modern hardware architectures.</p>
+<h3 id="mathematical-foundations-of-separability">Mathematical
+Foundations of Separability</h3>
+<p>A two-dimensional convolution kernel <span
+class="math inline">\(K\)</span> of size <span class="math inline">\(M
+\times N\)</span> is mathematically separable if it can be expressed as
+the outer product of two one-dimensional vectors: a vertical column
+vector <span class="math inline">\(V\)</span> (<span
+class="math inline">\(M \times 1\)</span>) and a horizontal row vector
+<span class="math inline">\(H\)</span> (<span class="math inline">\(1
+\times N\)</span>), such that <span class="math inline">\(K = V \times
+H\)</span>.</p>
+<p>In standard, non-separable 2D convolution, calculating the output for
+a single pixel requires sampling every neighbor inside the <span
+class="math inline">\(M \times N\)</span> window. For a square kernel of
+dimension <span class="math inline">\(K_d\)</span>, this demands <span
+class="math inline">\(K_d^2\)</span> multiply-accumulate (MAC)
+operations per pixel.</p>
+<p>When ImageMagick identifies a separable kernel, such as a standard
+Gaussian blur or box filter, it factors the operation into two distinct
+1D convolutions:</p>
+<p><span class="math display">\[\text{Output} = V * (H * I)\]</span></p>
+<p>This reduces the computational workload to <span
+class="math inline">\(2 \times K_d\)</span> operations per pixel. For an
+image with dimensions <span class="math inline">\(W \times H\)</span>
+and a kernel dimension of <span class="math inline">\(K_d =
+31\)</span>:</p>
+<ul>
+<li>Non-separable cost: <span class="math inline">\(W \times H \times
+961\)</span> operations.</li>
+<li>Separable cost: <span class="math inline">\(W \times H \times
+62\)</span> operations.</li>
+</ul>
+<p>This represents a performance speedup of more than 15x purely through
+algorithmic reduction.</p>
+<h3 id="axis-aligned-execution-flow">Axis-Aligned Execution Flow</h3>
+<p>ImageMagick executes separable convolutions via a two-stage
+pipeline:</p>
+<ol type="1">
+<li><p><strong>The Horizontal Pass:</strong> The engine reads source
+pixel data along image scanlines, applying the 1D horizontal vector
+<span class="math inline">\(H\)</span>. Pixels are processed strictly
+left-to-right along each row. Because digital images are typically
+stored in row-major order in memory, sequential horizontal sampling
+achieves near-perfect spatial cache locality. Data fetches
+systematically hit L1/L2 CPU caches without causing expensive bus
+stalls. The results are written to an intermediate pixel
+buffer.</p></li>
+<li><p><strong>The Vertical Pass:</strong> ImageMagick applies the 1D
+vertical vector <span class="math inline">\(V\)</span> to the
+intermediate buffer, operating top-to-bottom down columns to generate
+the final image. While column traversal inherently incurs more cache
+misses in row-major memory layouts, modern implementations in
+ImageMagick counter this by transposing chunks of data, working in
+localized memory tiles, or using intermediate transposed buffers to
+ensure memory reads remain contiguous during both passes.</p></li>
+</ol>
+<h3 id="concurrency-and-simd-vectorization">Concurrency and SIMD
+Vectorization</h3>
+<p>Evaluating separable kernels allows ImageMagick to achieve higher
+scaling efficiency via multithreading and hardware acceleration:</p>
+<ul>
+<li><strong>OpenMP Parallelism:</strong> Because each row during the
+horizontal pass and each column (or tile) during the vertical pass is
+completely decoupled from its neighbors, work can be distributed across
+CPU cores without requiring thread synchronization or critical sections.
+ImageMagick uses OpenMP pragmas to map discrete scanline chunks directly
+to available hardware threads.</li>
+<li><strong>SIMD Instructions:</strong> One-dimensional arrays align
+cleanly with hardware vector registers (such as AVX-2 or AVX-512).
+ImageMagick’s internal routines can pack multiple contiguous pixels into
+SIMD registers to evaluate the 1D horizontal weights simultaneously over
+multiple pixels in a single CPU cycle.</li>
+</ul>
+<p>Through dimensional decomposition, optimized cache access patterns,
+and clean parallel execution, ImageMagick ensures that large-radius
+image filters remain computationally viable in production
+environments.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

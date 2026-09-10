@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Crop Defects Without +repage Explained - magick</title>
+    <meta name="description" content="When using ImageMagick to crop images, omitting the +repage operator retains the original virtual canvas dimensions and coordinate offsets inside the image metadata. This article outlines the specific visual defects and rendering anomalies caused by this">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-crop-defects-without-repage-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Crop Defects Without +repage Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-crop-defects-without-repage-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When using ImageMagick to crop images, omitting the +repage operator retains the original virtual canvas dimensions and coordinate offsets inside the image metadata. This article outlines the specific visual defects and rendering anomalies caused by this" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-crop-defects-without-repage-explained">ImageMagick
+Crop Defects Without +repage Explained</h1>
+<p>When using ImageMagick to crop images, omitting the
+<code>+repage</code> operator retains the original virtual canvas
+dimensions and coordinate offsets inside the image metadata. This
+article outlines the specific visual defects and rendering anomalies
+caused by this missing operator, detailing how it leads to misplaced
+layers, broken animations, unwanted margins, and distorted
+post-processing effects.</p>
+<hr />
+<h3 id="understanding-the-virtual-canvas">Understanding the Virtual
+Canvas</h3>
+<p>When you execute a crop operation (such as
+<code>-crop 300x300+100+50</code>), ImageMagick extracts the specified
+region but preserves the original image's total dimensions and the
+cropped area's <code>+X+Y</code> offset as "page geometry."</p>
+<p>The <code>+repage</code> operator (or <code>-repage 0x0+0+0</code>)
+resets this canvas metadata, setting the image’s origin to
+<code>+0+0</code> and updating the canvas size to match the new image
+dimensions. Omitting <code>+repage</code> leaves the metadata intact,
+triggering several distinct visual bugs depending on the file format and
+viewer.</p>
+<hr />
+<h3 id="visual-defects-caused-by-omitting-repage">Visual Defects Caused
+by Omitting <code>+repage</code></h3>
+<h4 id="1-unintended-offsets-in-web-browsers-and-image-viewers">1.
+Unintended Offsets in Web Browsers and Image Viewers</h4>
+<p>Certain formats (such as PNG, TIFF, and PSD) can store page offset
+metadata (e.g., PNG <code>oFFs</code> chunks). When viewed in software
+or browsers that respect this metadata, the cropped image will not
+render from the top-left corner. Instead, it appears shifted down and to
+the right, often surrounded by massive invisible or white borders
+matching the dimensions of the original pre-cropped image.</p>
+<h4 id="2-misaligned-compositing-and-layer-flattening">2. Misaligned
+Compositing and Layer Flattening</h4>
+<p>If you crop an image and subsequently layer, composite, or flatten it
+onto another canvas, ImageMagick will use the retained offset
+coordinates rather than placing it at <code>(0,0)</code>.</p>
+<ul>
+<li><strong>Symptom:</strong> The cropped layer appears far away from
+its intended position or is clipped entirely outside the visible
+boundary of the target background.</li>
+<li><strong>Symptom:</strong> Operations like <code>-flatten</code> or
+<code>-mosaic</code> recreate the full original canvas size rather than
+collapsing down to the cropped area.</li>
+</ul>
+<h4 id="3-ghosting-frame-jitter-and-artifacts-in-animated-gifs">3.
+Ghosting, Frame Jitter, and Artifacts in Animated GIFs</h4>
+<p>GIF animations rely heavily on canvas offsets for frame-by-frame
+optimization. Cropping animated GIFs without <code>+repage</code>
+creates severe visual corruption:</p>
+<ul>
+<li><strong>Frame Drift:</strong> Frames jump erratically across the
+screen rather than staying aligned.</li>
+<li><strong>Ghosting:</strong> Previous frames fail to clear properly,
+leaving trails of visual remnants and dirty background artifacts across
+the animation.</li>
+<li><strong>Canvas Mismatch:</strong> The global GIF screen descriptor
+remains at the original size while individual frames shrink, resulting
+in flickering borders.</li>
+</ul>
+<h4 id="4-asymmetrical-borders-and-distorted-canvas-transformations">4.
+Asymmetrical Borders and Distorted Canvas Transformations</h4>
+<p>Applying secondary canvas modifications—such as <code>-border</code>,
+<code>-frame</code>, or <code>-extent</code>—after a crop without
+<code>+repage</code> causes ImageMagick to apply the transformation
+relative to the original virtual canvas rather than the newly cropped
+boundary.</p>
+<ul>
+<li><strong>Symptom:</strong> Borders appear on only one or two sides of
+the image, or appear detached from the visible image content with empty
+space in between.</li>
+<li><strong>Symptom:</strong> Resizing (<code>-resize</code>) scales the
+virtual canvas alongside the image, leading to unexpected sizing
+calculations in chained commands.</li>
+</ul>
+<hr />
+<h3 id="how-to-prevent-these-defects">How to Prevent These Defects</h3>
+<p>To ensure a clean crop without canvas-related visual defects, always
+append <code>+repage</code> immediately after the <code>-crop</code>
+operation in your command sequence:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> 400x400+50+50 +repage output.jpg</span></code></pre></div>
+<p>For multi-frame animations (such as GIFs), using <code>+repage</code>
+ensures every individual frame's coordinate space is reset uniformly,
+preventing frame misalignment and visual tearing.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

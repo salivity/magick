@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seamless Texture Synthesis in ImageMagick - magick</title>
+    <meta name="description" content="Seamless frequency-based texture synthesis allows you to generate infinitely tileable, naturally distributed textures by manipulating an image's spectral characteristics in the frequency domain. This article explains how to use ImageMagick's built-in Fas">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/seamless-texture-synthesis-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Seamless Texture Synthesis in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/seamless-texture-synthesis-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Seamless frequency-based texture synthesis allows you to generate infinitely tileable, naturally distributed textures by manipulating an image's spectral characteristics in the frequency domain. This article explains how to use ImageMagick's built-in Fas" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="seamless-texture-synthesis-in-imagemagick">Seamless Texture
+Synthesis in ImageMagick</h1>
+<p>Seamless frequency-based texture synthesis allows you to generate
+infinitely tileable, naturally distributed textures by manipulating an
+image's spectral characteristics in the frequency domain. This article
+explains how to use ImageMagick's built-in Fast Fourier Transform (FFT)
+tools to decompose an input texture into its magnitude and phase
+components, randomize the phase, and reconstruct a new, seamless texture
+that preserves the exact color distribution, scale, and statistical
+properties of the original.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To perform frequency-based texture synthesis, your ImageMagick
+installation must be compiled with <strong>FFTW</strong> (Fastest
+Fourier Transform in the West) support and High Dynamic Range Imaging
+(HDRI) enabled to handle floating-point values accurately.</p>
+<p>Verify FFT support by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Ensure <code>HDRI</code> appears in the <code>Features</code> line
+and <code>fftw</code> appears in the <code>Delegates</code> line.</p>
+<hr />
+<h2 id="the-synthesis-principle">The Synthesis Principle</h2>
+<p>A standard image exists in the spatial domain. When transformed via
+Fourier analysis:</p>
+<ol type="1">
+<li><strong>Magnitude Image:</strong> Represents the strength of various
+frequencies (overall contrast, dominant patterns, coarseness, and color
+spectrum).</li>
+<li><strong>Phase Image:</strong> Encodes spatial positioning and
+boundary alignment.</li>
+</ol>
+<p>By retaining the original magnitude and randomizing or modifying the
+phase component, you generate a texture that maintains the original
+visual characteristics while eliminating distinct boundaries, making it
+inherently seamless and non-repeating.</p>
+<hr />
+<h2 id="step-by-step-synthesis-workflow">Step-by-Step Synthesis
+Workflow</h2>
+<h3 id="step-1-forward-fourier-transform">Step 1: Forward Fourier
+Transform</h3>
+<p>Decompose the input texture into magnitude and phase
+representations:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_texture.png <span class="at">-fft</span> fourier_%d.png</span></code></pre></div>
+<p>This generates two files:</p>
+<ul>
+<li><code>fourier_0.png</code>: The magnitude spectrum.</li>
+<li><code>fourier_1.png</code>: The phase spectrum.</li>
+</ul>
+<h3 id="step-2-phase-randomization">Step 2: Phase Randomization</h3>
+<p>To create an organically synthesized version, replace or alter the
+phase spectrum with uniform random noise while preserving the conjugate
+symmetry required for a real-valued image:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> fourier_1.png +noise Random random_phase.png</span></code></pre></div>
+<h3 id="step-3-inverse-fourier-transform-reconstruction">Step 3: Inverse
+Fourier Transform (Reconstruction)</h3>
+<p>Recombine the original magnitude spectrum with the new randomized
+phase spectrum to produce the spatial texture:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> fourier_0.png random_phase.png <span class="at">-ift</span> synthesized_texture.png</span></code></pre></div>
+<hr />
+<h2 id="all-in-one-command-pipeline">All-in-One Command Pipeline</h2>
+<p>You can avoid writing intermediate files to disk by executing the
+entire process inside a single ImageMagick command pipeline:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_texture.png <span class="at">-define</span> fourier:normalize=inverse <span class="at">-fft</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">\(</span> <span class="at">-clone</span> 1 +noise Random <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>-swap 1,2 +delete <span class="at">-ift</span> output_seamless.png</span></code></pre></div>
+<h3 id="explanation-of-the-pipeline">Explanation of the Pipeline:</h3>
+<ul>
+<li><strong><code>-define fourier:normalize=inverse</code></strong>:
+Ensures energy conservation during transform cycles.</li>
+<li><strong><code>-fft</code></strong>: Splits the image into magnitude
+(index 0) and phase (index 1).</li>
+<li><strong><code>\( -clone 1 +noise Random \)</code></strong>:
+Duplicates the phase image dimensions and fills it with uniform noise
+(index 2).</li>
+<li><strong><code>-swap 1,2 +delete</code></strong>: Replaces the
+original phase with the randomized phase and removes the excess
+layer.</li>
+<li><strong><code>-ift</code></strong>: Executes the Inverse Fourier
+Transform on the magnitude and new phase to output the final seamless
+image.</li>
+</ul>
+<hr />
+<h2
+id="creating-seamless-repeating-tiles-via-frequency-blending">Creating
+Seamless Repeating Tiles via Frequency Blending</h2>
+<p>If the original texture contains structured shapes that become overly
+distorted by full phase randomization, use frequency separation to make
+existing tiles seamless:</p>
+<ol type="1">
+<li><strong>High-Pass/Low-Pass Split:</strong> Extract low frequencies
+(lighting gradients) and high frequencies (detail).</li>
+<li><strong>Offset Low Frequencies:</strong> Roll the image by 50% in X
+and Y dimensions.</li>
+<li><strong>Blend Boundaries:</strong> Smooth out edge discontinuities
+in the low-frequency domain.</li>
+<li><strong>Recombine:</strong> Merge the balanced lighting back with
+the high-frequency detail layer.</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Shift image to expose seams at the center</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_texture.png <span class="at">-roll</span> +50%+50% rolled.png</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a seamless blend using a frequency-based blur mask</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> rolled.png <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x20 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>-compose Mathematics <span class="at">-set</span> option:compose:args <span class="st">&quot;0,1,-1,0.5&quot;</span> <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>seamless_tile.png</span></code></pre></div>
+<p>This ensures that macro-level lighting imbalances are normalized
+across the boundaries while micro-textures remain crisp.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

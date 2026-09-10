@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Two-Color Gradient Remap Syntax - magick</title>
+    <meta name="description" content="This article explains how to remap the pixel intensities of an image to an arbitrary two-color gradient using ImageMagick. It details the dedicated +level-colors operator and the alternative Color Look-Up Table (-clut) technique, providing the exact comm">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-two-color-gradient-remap-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Two-Color Gradient Remap Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-two-color-gradient-remap-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to remap the pixel intensities of an image to an arbitrary two-color gradient using ImageMagick. It details the dedicated +level-colors operator and the alternative Color Look-Up Table (-clut) technique, providing the exact comm" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-two-color-gradient-remap-syntax">ImageMagick
+Two-Color Gradient Remap Syntax</h1>
+<p>This article explains how to remap the pixel intensities of an image
+to an arbitrary two-color gradient using ImageMagick. It details the
+dedicated <code>+level-colors</code> operator and the alternative Color
+Look-Up Table (<code>-clut</code>) technique, providing the exact
+command-line syntax and parameter explanations needed to create duotone
+effects and custom gradient mappings.</p>
+<h2 id="using-the-level-colors-operator">Using the
+<code>+level-colors</code> Operator</h2>
+<p>The most efficient and direct way to map pixel intensities to a
+two-color gradient in ImageMagick is the <code>+level-colors</code>
+operator. This command maps black (0% intensity) to the first specified
+color, white (100% intensity) to the second specified color, and
+recalculates all intermediate values as a smooth linear transition
+between them.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +level-colors <span class="st">&quot;navy,gold&quot;</span> output.jpg</span></code></pre></div>
+<p>In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg +level-colors <span class="st">&quot;navy,gold&quot;</span> output.jpg</span></code></pre></div>
+<h3 id="color-specification-options">Color Specification Options</h3>
+<p>You can specify the two colors using standard color names, hex
+values, or RGB coordinates:</p>
+<ul>
+<li><strong>Hex format:</strong>
+<code>+level-colors "#1a2a6c,#fdbb2d"</code></li>
+<li><strong>RGB format:</strong>
+<code>+level-colors "rgb(20,40,80),rgb(255,200,50)"</code></li>
+<li><strong>Named colors:</strong>
+<code>+level-colors "midnightblue,coral"</code></li>
+</ul>
+<p>If you invert the order of the colors, the intensity values will
+invert accordingly, mapping highlights to the first color and shadows to
+the second.</p>
+<h2 id="using-the-color-look-up-table--clut-method">Using the Color
+Look-Up Table (<code>-clut</code>) Method</h2>
+<p>An alternative approach is using the <code>-clut</code> (Color
+Look-Up Table) operator. This method generates an explicit gradient
+image in memory and maps the grayscale intensities of the primary image
+to the coordinates of that gradient.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="er">(</span> <span class="ex">-size</span> 1x256 gradient:<span class="st">&quot;navy-gold&quot;</span> <span class="kw">)</span> <span class="ex">-clut</span> output.jpg</span></code></pre></div>
+<p>This method functions as follows:</p>
+<ol type="1">
+<li><code>input.jpg</code> loads the base image.</li>
+<li><code>( -size 1x256 gradient:"navy-gold" )</code> generates a
+1-pixel wide, 256-pixel tall gradient transitioning from
+<code>navy</code> at the top to <code>gold</code> at the bottom.</li>
+<li><code>-clut</code> replaces each pixel's color in
+<code>input.jpg</code> based on where its brightness falls along that
+256-level gradient.</li>
+</ol>
+<h2 id="ensuring-proper-luminance-mapping">Ensuring Proper Luminance
+Mapping</h2>
+<p>If the source image contains strong hue variations that you want to
+neutralize before remapping, convert the image to grayscale using
+<code>-colorspace Gray</code> immediately before applying either
+method:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray +level-colors <span class="st">&quot;darkgreen,lightgreen&quot;</span> output.jpg</span></code></pre></div>
+<p>This ensures the remapping is calculated strictly from the perceived
+brightness of the original image rather than channel-by-channel
+variations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

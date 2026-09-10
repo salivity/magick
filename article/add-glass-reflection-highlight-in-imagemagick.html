@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Glass Reflection Highlight in ImageMagick - magick</title>
+    <meta name="description" content="Creating a realistic glass reflection highlight on an image gives it a glossy, three-dimensional, or polished appearance. In ImageMagick, this effect is achieved by generating a semi-transparent highlight shape or gradient and blending it onto the source">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/add-glass-reflection-highlight-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Add Glass Reflection Highlight in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/add-glass-reflection-highlight-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a realistic glass reflection highlight on an image gives it a glossy, three-dimensional, or polished appearance. In ImageMagick, this effect is achieved by generating a semi-transparent highlight shape or gradient and blending it onto the source" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="add-glass-reflection-highlight-in-imagemagick">Add Glass
+Reflection Highlight in ImageMagick</h1>
+<p>Creating a realistic glass reflection highlight on an image gives it
+a glossy, three-dimensional, or polished appearance. In ImageMagick,
+this effect is achieved by generating a semi-transparent highlight shape
+or gradient and blending it onto the source image using specific
+composite operators such as <code>Screen</code>, <code>SoftLight</code>,
+or standard alpha blending with <code>Over</code>. This guide covers the
+most effective composite operators for glass effects and provides
+ready-to-use commands to apply them.</p>
+<h2 id="choosing-the-right-composite-operator">Choosing the Right
+Composite Operator</h2>
+<p>When creating glass or glare effects, the composite operator
+determines how light interacts with the underlying pixels:</p>
+<ul>
+<li><strong><code>Screen</code></strong>: Multiplies the inverses of the
+base and overlay colors. It brightens the image while preserving
+highlights and is the standard choice for realistic light
+reflections.</li>
+<li><strong><code>Over</code></strong>: Standard alpha blending. Ideal
+when your reflection graphic already includes pre-calculated
+transparency and smooth alpha falloff.</li>
+<li><strong><code>SoftLight</code></strong>: Produces a softer, more
+diffused glass effect by subtly lightening lighter areas without blowing
+out pure whites.</li>
+<li><strong><code>ColorDodge</code> / <code>Plus</code></strong>:
+Produces intense, specular, or neon-like glossy highlights.</li>
+</ul>
+<h2 id="method-1-adding-a-diagonal-linear-glass-reflection">Method 1:
+Adding a Diagonal Linear Glass Reflection</h2>
+<p>A classic diagonal glare simulates light hitting a flat glass
+surface, such as a picture frame or smartphone screen.</p>
+<p>Run the following command to generate a dynamic diagonal light sweep
+and blend it with the <code>Screen</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 1000x1000 xc:transparent <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-draw</span> <span class="st">&quot;fill white polygon 0,0 400,0 200,1000 0,1000&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-blur</span> 0x50 <span class="at">-alpha</span> set <span class="at">-channel</span> A <span class="at">-evaluate</span> multiply 0.4 +channel <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-resize</span> %<span class="pp">[</span><span class="ss">fx:w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">fx:h</span><span class="pp">]</span><span class="dt">\!</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Screen <span class="at">-composite</span> output_glass.jpg</span></code></pre></div>
+<h3 id="how-it-works">How it works:</h3>
+<ol type="1">
+<li>It loads your base image (<code>input.jpg</code>).</li>
+<li>An inline canvas generates a semi-transparent white polygon with a
+heavy Gaussian blur (<code>-blur 0x50</code>) to create soft light
+edges.</li>
+<li><code>-evaluate multiply 0.4</code> lowers the alpha transparency to
+keep the reflection subtle.</li>
+<li><code>-compose Screen -composite</code> blends the white highlight
+naturally over both dark and bright areas of the original image.</li>
+</ol>
+<h2
+id="method-2-curved-arc-glass-highlight-glossy-buttonbadge-effect">Method
+2: Curved Arc Glass Highlight (Glossy Button/Badge Effect)</h2>
+<p>For a curved, dome-like glass sheen (popular in web badges and
+rounded UI elements), a curved white arc blended over the top half of
+the image works best.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> %<span class="pp">[</span><span class="ss">fx:w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">fx:h</span><span class="pp">]</span> xc:transparent <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-fill</span> <span class="st">&quot;rgba(255,255,255,0.45)&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-draw</span> <span class="st">&quot;ellipse %[fx:w/2],0 %[fx:w*0.8],%[fx:h*0.45] 0,360&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">-blur</span> 0x2 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Over <span class="at">-composite</span> output_gloss.jpg</span></code></pre></div>
+<h3 id="how-it-works-1">How it works:</h3>
+<ol type="1">
+<li>It reads the dimensions dynamically using ImageMagick FX expressions
+(<code>%[fx:w]</code> and <code>%[fx:h]</code>).</li>
+<li>It draws a semi-transparent white ellipse across the top
+boundary.</li>
+<li>It applies a subtle blur (<code>-blur 0x2</code>) to soften the edge
+of the glass reflection.</li>
+<li><code>-compose Over -composite</code> lays the translucent white
+overlay cleanly across the top.</li>
+</ol>
+<h2 id="method-3-using-a-gradient-reflection-mask">Method 3: Using a
+Gradient Reflection Mask</h2>
+<p>To create a realistic reflection where the light fades from top-left
+to bottom-right across the entire surface:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> %<span class="pp">[</span><span class="ss">fx:w</span><span class="pp">]</span>x%<span class="pp">[</span><span class="ss">fx:h</span><span class="pp">]</span> gradient:<span class="st">&quot;rgba(255,255,255,0.6)-rgba(255,255,255,0)&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-distort</span> SRT 45 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Screen <span class="at">-composite</span> output_gradient_glass.jpg</span></code></pre></div>
+<h3 id="how-it-works-2">How it works:</h3>
+<ol type="1">
+<li><code>gradient:</code> builds a linear fade from 60% opaque white to
+fully transparent.</li>
+<li><code>-distort SRT 45</code> rotates the gradient by 45 degrees to
+match a standard light source angle.</li>
+<li><code>-compose Screen -composite</code> brightens the underlying
+colors smoothly based on the gradient intensity.</li>
+</ol>
+<h2 id="fine-tuning-reflection-intensity">Fine-Tuning Reflection
+Intensity</h2>
+<ul>
+<li><strong>Make the reflection brighter</strong>: Increase the opacity
+in the alpha channel or switch the operator from
+<code>-compose SoftLight</code> to <code>-compose Screen</code> or
+<code>-compose Plus</code>.</li>
+<li><strong>Make the reflection subtler</strong>: Reduce the alpha value
+using <code>-channel A -evaluate multiply 0.2 +channel</code> before
+compositing.</li>
+<li><strong>Add a sharp specular edge</strong>: Lower the
+<code>-blur</code> radius on the highlight layer so the light source
+looks direct and sharp.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

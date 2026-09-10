@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Draw a Polyline in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to draw an open, multi-segment vector line using ImageMagick's -draw 'polyline' primitive. You will learn the exact command syntax, how coordinates are structured, and how to apply essential styling options such as stroke color, s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-draw-a-polyline-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Draw a Polyline in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-draw-a-polyline-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to draw an open, multi-segment vector line using ImageMagick's -draw 'polyline' primitive. You will learn the exact command syntax, how coordinates are structured, and how to apply essential styling options such as stroke color, s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-draw-a-polyline-in-imagemagick">How to Draw a Polyline in
+ImageMagick</h1>
+<p>This guide explains how to draw an open, multi-segment vector line
+using ImageMagick's <code>-draw 'polyline'</code> primitive. You will
+learn the exact command syntax, how coordinates are structured, and how
+to apply essential styling options such as stroke color, stroke width,
+and fill properties to ensure the line remains open and clear.</p>
+<h3 id="the-basic-polyline-command">The Basic Polyline Command</h3>
+<p>To draw an open multi-segment vector line, use the
+<code>magick</code> command (or <code>convert</code> in ImageMagick v6)
+along with the <code>-draw</code> option defining the
+<code>polyline</code> primitive followed by coordinate pairs:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:white <span class="at">-stroke</span> blue <span class="at">-strokewidth</span> 3 <span class="at">-fill</span> none <span class="at">-draw</span> <span class="st">&quot;polyline 50,50 150,200 250,100 350,300&quot;</span> output.png</span></code></pre></div>
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ul>
+<li><code>-size 400x400 xc:white</code>: Creates a blank canvas
+measuring 400 by 400 pixels with a white background.</li>
+<li><code>-stroke blue</code>: Defines the color of the vector line. You
+can use standard color names, hex codes (e.g., <code>'#0000FF'</code>),
+or RGB/RGBA values.</li>
+<li><code>-strokewidth 3</code>: Sets the thickness of the line segments
+in pixels.</li>
+<li><code>-fill none</code>: Crucial for open polylines. By default,
+ImageMagick applies a fill color to the area enclosed by the
+coordinates. Setting <code>-fill none</code> ensures that only the line
+segments are rendered without filling the space between them.</li>
+<li><code>-draw "polyline x0,y0 x1,y1 ... xn,yn"</code>: Specifies the
+vertices of the line. ImageMagick connects each consecutive pair of
+<code>x,y</code> coordinates with a straight line segment, starting from
+the first point and ending at the last point without closing the path
+back to the origin.</li>
+<li><code>output.png</code>: The destination file where the resulting
+image is saved.</li>
+</ul>
+<h3 id="coordinate-formatting">Coordinate Formatting</h3>
+<p>Coordinates inside the <code>polyline</code> primitive can be
+separated by spaces or commas. The following formats are both valid and
+produce the same result:</p>
+<ul>
+<li>Space-separated pairs:
+<code>-draw "polyline 20,20 80,120 150,40"</code></li>
+<li>Comma-separated values:
+<code>-draw "polyline 20 20, 80 120, 150 40"</code></li>
+</ul>
+<p>Unlike the <code>polygon</code> primitive, <code>polyline</code> does
+not automatically connect the final coordinate to the starting
+coordinate, leaving the path open.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

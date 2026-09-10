@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Create Deep Zoom Image Pyramids with ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to generate zoomable, multi-resolution image pyramids using ImageMagick for use in deep-zoom viewers like OpenSeadragon. It covers the primary command for creating Pyramidal TIFF files (the multi-resolution format natively suppo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-create-deep-zoom-image-pyramids-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Create Deep Zoom Image Pyramids with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-create-deep-zoom-image-pyramids-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to generate zoomable, multi-resolution image pyramids using ImageMagick for use in deep-zoom viewers like OpenSeadragon. It covers the primary command for creating Pyramidal TIFF files (the multi-resolution format natively suppo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-create-deep-zoom-image-pyramids-with-imagemagick">How to
+Create Deep Zoom Image Pyramids with ImageMagick</h1>
+<p>This article explains how to generate zoomable, multi-resolution
+image pyramids using ImageMagick for use in deep-zoom viewers like
+OpenSeadragon. It covers the primary command for creating Pyramidal TIFF
+files (the multi-resolution format natively supported by ImageMagick),
+how to configure tile sizes and compression, and how to work with
+standard deep-zoom workflows.</p>
+<h2 id="the-imagemagick-pyramidal-tiff-command">The ImageMagick
+Pyramidal TIFF Command</h2>
+<p>ImageMagick creates multi-resolution, deep-zoom pyramids using the
+Pyramidal TIFF (<code>ptif:</code>) output format. Web viewers such as
+OpenSeadragon and IIIF image servers can consume these files directly or
+convert them on the fly.</p>
+<p>Use the following command in ImageMagick 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> tiff:tile-geometry=256x256 <span class="at">-compress</span> jpeg ptif:output.tif</span></code></pre></div>
+<p>For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-define</span> tiff:tile-geometry=256x256 <span class="at">-compress</span> jpeg ptif:output.tif</span></code></pre></div>
+<h3 id="breakdown-of-the-command-options">Breakdown of the Command
+Options</h3>
+<ul>
+<li><strong><code>input.jpg</code></strong>: The source image you want
+to convert (can be JPEG, PNG, TIFF, or any format supported by
+ImageMagick).</li>
+<li><strong><code>-define tiff:tile-geometry=256x256</code></strong>:
+Specifies the width and height of each individual tile within the
+pyramid layers. The standard size for web viewers is
+<code>256x256</code> or <code>512x512</code>.</li>
+<li><strong><code>-compress jpeg</code></strong>: Applies JPEG
+compression to each tile to keep file size manageable. You can also use
+<code>zip</code>, <code>lzw</code>, or <code>none</code>.</li>
+<li><strong><code>ptif:output.tif</code></strong>: Instructs ImageMagick
+to structure the output file as a multi-resolution Pyramidal TIFF
+containing downsampled layers from full resolution down to a single
+tile.</li>
+</ul>
+<h2 id="generating-custom-tile-sets-with-imagemagick">Generating Custom
+Tile Sets with ImageMagick</h2>
+<p>If your viewer requires loose directory-based tiles rather than a
+single <code>ptif</code> container, you can export individual tiles at a
+specific resolution level using the <code>-crop</code> operator:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> 256x256 <span class="at">-set</span> filename:tile <span class="st">&quot;%[fx:page.x/256]_%[fx:page.y/256]&quot;</span> +repage +adjoin <span class="st">&quot;tile_%[filename:tile].jpg&quot;</span></span></code></pre></div>
+<p>This segments the base image into a 256x256 grid and names each tile
+with its corresponding X and Y coordinate indices.</p>
+<h2 id="working-with-native-xml-based-dzi-formats">Working with Native
+XML-based DZI Formats</h2>
+<p>The native Deep Zoom Image schema (consisting of a <code>.dzi</code>
+XML descriptor file alongside a <code>_files</code> folder containing
+numbered zoom folders) is a specialized export format. While ImageMagick
+relies on <code>ptif:</code> for pyramid storage, you can serve the
+generated <code>ptif:output.tif</code> directly to deep-zoom web viewers
+or process the image with <code>libvips</code> using the command
+<code>vips dzsave input.jpg output</code> if your implementation
+strictly requires the legacy XML folder tree.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

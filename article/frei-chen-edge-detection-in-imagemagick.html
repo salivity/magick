@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frei-Chen Edge Detection in ImageMagick - magick</title>
+    <meta name="description" content="Frei-Chen edge detection is an isotropic, gradient-based image processing technique that evaluates spatial intensity changes using a specific set of 3x3 orthogonal convolution matrices. This article explains how to implement the Frei-Chen edge detection">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/frei-chen-edge-detection-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Frei-Chen Edge Detection in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/frei-chen-edge-detection-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Frei-Chen edge detection is an isotropic, gradient-based image processing technique that evaluates spatial intensity changes using a specific set of 3x3 orthogonal convolution matrices. This article explains how to implement the Frei-Chen edge detection" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="frei-chen-edge-detection-in-imagemagick">Frei-Chen Edge
+Detection in ImageMagick</h1>
+<p>Frei-Chen edge detection is an isotropic, gradient-based image
+processing technique that evaluates spatial intensity changes using a
+specific set of 3x3 orthogonal convolution matrices. This article
+explains how to implement the Frei-Chen edge detection operator using
+ImageMagick from the command line, covering built-in kernel commands,
+custom convolution matrices, and magnitude composition.</p>
+<hr />
+<h3 id="understanding-the-frei-chen-kernels">Understanding the Frei-Chen
+Kernels</h3>
+<p>Unlike standard Sobel operators that use integer weights, Frei-Chen
+masks use weights scaled by <span class="math inline">\(\sqrt{2} \approx
+1.4142\)</span>. This provides a more accurate approximation of the
+gradient magnitude regardless of edge orientation.</p>
+<p>The primary orthogonal Frei-Chen masks are:</p>
+<ul>
+<li><p><strong>Horizontal Gradient (<span
+class="math inline">\(G_1\)</span>):</strong> <span
+class="math display">\[
+\begin{bmatrix}
+1 &amp; \sqrt{2} &amp; 1 \\
+0 &amp; 0 &amp; 0 \\
+-1 &amp; -\sqrt{2} &amp; -1
+\end{bmatrix}
+\]</span></p></li>
+<li><p><strong>Vertical Gradient (<span
+class="math inline">\(G_2\)</span>):</strong> <span
+class="math display">\[
+\begin{bmatrix}
+1 &amp; 0 &amp; -1 \\
+\sqrt{2} &amp; 0 &amp; -\sqrt{2} \\
+1 &amp; 0 &amp; -1
+\end{bmatrix}
+\]</span></p></li>
+</ul>
+<hr />
+<h3 id="method-1-using-imagemagick-built-in-freichen-kernels">Method 1:
+Using ImageMagick Built-In FreiChen Kernels</h3>
+<p>ImageMagick includes native support for Frei-Chen convolution kernels
+via the <code>-morphology</code> operator.</p>
+<h4 id="omnidirectional-edge-detection">Omnidirectional Edge
+Detection</h4>
+<p>To quickly apply Frei-Chen edge detection across all directions and
+combine the maximum response, use:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-define</span> morphology:compose=Lighten <span class="at">-morphology</span> Convolve FreiChen output.jpg</span></code></pre></div>
+<ul>
+<li><code>-colorspace Gray</code>: Converts the input to grayscale for
+standard intensity evaluation.</li>
+<li><code>-define morphology:compose=Lighten</code>: Merges the
+multi-directional kernel responses using the maximum (Lighten)
+composition.</li>
+<li><code>-morphology Convolve FreiChen</code>: Convolves the image
+using the predefined directional Frei-Chen kernel set.</li>
+</ul>
+<hr />
+<h3
+id="method-2-calculating-exact-gradient-magnitude-g--sqrtg_12--g_22">Method
+2: Calculating Exact Gradient Magnitude (<span class="math inline">\(G =
+\sqrt{G_1^2 + G_2^2}\)</span>)</h3>
+<p>For precise mathematical edge detection, compute the horizontal and
+vertical components separately, square them, add them, and take the
+square root.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;FreiChen:0&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;FreiChen:90&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Mathematics <span class="at">-set</span> option:compose:args <span class="st">&quot;1,0,0,0&quot;</span> <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  output_magnitude.jpg</span></code></pre></div>
+<p>Alternatively, compute the Euclidean norm of horizontal and vertical
+passes directly:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;FreiChen:0&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;FreiChen:90&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Multiply <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  output_magnitude.jpg</span></code></pre></div>
+<hr />
+<h3 id="method-3-using-custom-3x3-convolution-matrices">Method 3: Using
+Custom 3x3 Convolution Matrices</h3>
+<p>You can define explicit floating-point kernels using ImageMagick’s
+user-defined kernel format:</p>
+<h4 id="1-horizontal-pass">1. Horizontal Pass</h4>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Convolve <span class="st">&quot;3x3: 1, 1.4142, 1, 0, 0, 0, -1, -1.4142, -1&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  horizontal.jpg</span></code></pre></div>
+<h4 id="2-vertical-pass">2. Vertical Pass</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Convolve <span class="st">&quot;3x3: 1, 0, -1, 1.4142, 0, -1.4142, 1, 0, -1&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  vertical.jpg</span></code></pre></div>
+<h4 id="3-combined-magnitude-pass">3. Combined Magnitude Pass</h4>
+<p>Run both orthogonal passes and blend them:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;3x3: 1, 1.4142, 1, 0, 0, 0, -1, -1.4142, -1&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-morphology</span> Convolve <span class="st">&quot;3x3: 1, 0, -1, 1.4142, 0, -1.4142, 1, 0, -1&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> morphology:compose=Lighten <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  frei_chen_edges.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

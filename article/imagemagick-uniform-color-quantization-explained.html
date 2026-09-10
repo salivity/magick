@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Uniform Color Quantization Explained - magick</title>
+    <meta name="description" content="ImageMagick’s uniform color quantization algorithm is a straightforward, non-adaptive method used to reduce the total number of colors in an image by dividing the color space into equal intervals. This article explains how the uniform quantization algo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-uniform-color-quantization-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Uniform Color Quantization Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-uniform-color-quantization-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s uniform color quantization algorithm is a straightforward, non-adaptive method used to reduce the total number of colors in an image by dividing the color space into equal intervals. This article explains how the uniform quantization algo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-uniform-color-quantization-explained">ImageMagick
+Uniform Color Quantization Explained</h1>
+<p>ImageMagick’s uniform color quantization algorithm is a
+straightforward, non-adaptive method used to reduce the total number of
+colors in an image by dividing the color space into equal intervals.
+This article explains how the uniform quantization algorithm works
+within ImageMagick, its technical mechanics, and how it compares in
+performance and visual quality to adaptive quantization methods.</p>
+<h2 id="what-is-color-quantization">What is Color Quantization?</h2>
+<p>Color quantization is the process of reducing the number of distinct
+colors in an image while attempting to preserve its visual appearance.
+This is commonly required when converting 24-bit true-color images into
+8-bit indexed images (such as GIFs or palletized PNGs) or to compress
+file sizes for memory-constrained environments.</p>
+<h2 id="how-uniform-quantization-works">How Uniform Quantization
+Works</h2>
+<p>Uniform quantization divides the RGB color space into fixed,
+equal-sized cubic regions regardless of the actual colors present in the
+target image.</p>
+<ol type="1">
+<li><strong>Axis Slicing:</strong> The three primary color axes (Red,
+Green, and Blue) are partitioned into a predetermined number of equal
+segments. For example, if a channel is allocated 8 segments, the values
+from 0 to 255 are divided uniformly into ranges of 32 values each.</li>
+<li><strong>Fixed Grid Generation:</strong> Combining the segmented axes
+creates a fixed 3D grid of color bins across the RGB cube. If Red,
+Green, and Blue are each divided into 8, 8, and 4 segments respectively,
+the resulting palette contains a maximum of 256 predefined colors (<span
+class="math inline">\(8 \times 8 \times 4 = 256\)</span>).</li>
+<li><strong>Pixel Mapping:</strong> Every pixel in the original image is
+evaluated and mapped directly to the representative color at the center
+of the grid box into which its original RGB values fall.</li>
+</ol>
+<p>Because the color bins are static, the algorithm does not evaluate
+pixel frequency or color distribution across the input image.</p>
+<h2
+id="differences-between-uniform-and-adaptive-quantization">Differences
+Between Uniform and Adaptive Quantization</h2>
+<p>ImageMagick supports both uniform quantization and adaptive
+quantization methods (such as the Octree and Median-Cut algorithms).</p>
+<ul>
+<li><strong>Color Distribution:</strong> Adaptive quantization scans the
+image's color histogram and allocates more palette entries to densely
+populated color ranges. Uniform quantization uses the exact same color
+grid regardless of whether an image is a vivid landscape or a monochrome
+portrait.</li>
+<li><strong>Palette Efficiency:</strong> In uniform quantization, many
+palette entries may represent colors that do not appear anywhere in the
+source image, wasting available palette slots. Adaptive algorithms
+ensure every allocated color directly benefits the output.</li>
+<li><strong>Visual Fidelity:</strong> Uniform quantization often
+introduces noticeable color banding and posterization artifacts in areas
+with smooth gradients, whereas adaptive algorithms preserve fine tonal
+transitions much more accurately.</li>
+</ul>
+<h2 id="advantages-and-disadvantages">Advantages and Disadvantages</h2>
+<h3 id="advantages">Advantages</h3>
+<ul>
+<li><strong>Computational Speed:</strong> Because it relies on simple
+mathematical division rather than building complex trees or histograms,
+uniform quantization executes very quickly.</li>
+<li><strong>Deterministic Palettes:</strong> The generated palette is
+predictable and static, making it useful when multiple distinct images
+need to share a single, standardized color lookup table.</li>
+</ul>
+<h3 id="disadvantages">Disadvantages</h3>
+<ul>
+<li><strong>Poor Detail Preservation:</strong> Subtle color variations
+and low-contrast details are frequently lost.</li>
+<li><strong>Inefficient Palette Utilization:</strong> A large portion of
+the resulting palette may go unused on images with narrow color
+spectrums.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

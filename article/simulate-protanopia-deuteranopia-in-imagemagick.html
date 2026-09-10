@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Protanopia & Deuteranopia in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to simulate red-green color vision deficiencies—specifically protanopia and deuteranopia—using ImageMagick's color transformation matrices. By applying calibrated linear color transformation matrices via the command-line int">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/simulate-protanopia-deuteranopia-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Simulate Protanopia & Deuteranopia in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/simulate-protanopia-deuteranopia-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to simulate red-green color vision deficiencies—specifically protanopia and deuteranopia—using ImageMagick's color transformation matrices. By applying calibrated linear color transformation matrices via the command-line int" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="simulate-protanopia--deuteranopia-in-imagemagick">Simulate
+Protanopia &amp; Deuteranopia in ImageMagick</h1>
+<p>This article explains how to simulate red-green color vision
+deficiencies—specifically protanopia and deuteranopia—using
+ImageMagick's color transformation matrices. By applying calibrated
+linear color transformation matrices via the command-line interface,
+developers and designers can quickly test visual assets for
+accessibility directly in their build pipelines or design workflows.</p>
+<h3 id="understanding-the-color-matrix-operator">Understanding the Color
+Matrix Operator</h3>
+<p>ImageMagick allows you to transform the color channels of an image
+using the <code>-color-matrix</code> operator. The operator applies a
+mathematical matrix to each pixel's RGB values, remapping them to
+simulate how colors are perceived by an individual with missing or
+defective photoreceptors (L-cones for protanopia, M-cones for
+deuteranopia).</p>
+<p>For standard RGB images, a 3x3 matrix transforms the red (<span
+class="math inline">\(R\)</span>), green (<span
+class="math inline">\(G\)</span>), and blue (<span
+class="math inline">\(B\)</span>) channels into simulated channels
+(<span class="math inline">\(R&#39;\)</span>, <span
+class="math inline">\(G&#39;\)</span>, <span
+class="math inline">\(B&#39;\)</span>):</p>
+<pre class="text"><code>| R&#39; |   | m00 m01 m02 |   | R |
+| G&#39; | = | m10 m11 m12 | * | G |
+| B&#39; |   | m20 m21 m22 |   | B |</code></pre>
+<hr />
+<h3 id="simulating-protanopia-red-blindness">Simulating Protanopia
+(Red-Blindness)</h3>
+<p>Protanopia is characterized by the complete absence of red retinal
+photoreceptors. To simulate protanopia, use a matrix that collapses red
+and green variations primarily into yellow and blue shades.</p>
+<p>The standard 3x3 matrix approximation for protanopia is:</p>
+<ul>
+<li>Red output:
+<code>0.56667 * R + 0.43333 * G + 0.00000 * B</code></li>
+<li>Green output:
+<code>0.55833 * R + 0.44167 * G + 0.00000 * B</code></li>
+<li>Blue output:
+<code>0.00000 * R + 0.24167 * G + 0.75833 * B</code></li>
+</ul>
+<h4 id="imagemagick-command">ImageMagick Command:</h4>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot; 0.56667 0.43333 0.00000 </span><span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.55833 0.44167 0.00000 </span><span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.00000 0.24167 0.75833 &quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  protanopia_output.png</span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-color-matrix</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot; 0.56667 0.43333 0.00000 </span><span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.55833 0.44167 0.00000 </span><span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.00000 0.24167 0.75833 &quot;</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  protanopia_output.png</span></code></pre></div>
+<hr />
+<h3 id="simulating-deuteranopia-green-blindness">Simulating Deuteranopia
+(Green-Blindness)</h3>
+<p>Deuteranopia is the most common form of color blindness, caused by
+the absence of green retinal photoreceptors. The matrix shifts green
+hues toward red and yellow channels to simulate the reduced color
+discrimination.</p>
+<p>The standard 3x3 matrix approximation for deuteranopia is:</p>
+<ul>
+<li>Red output:
+<code>0.62500 * R + 0.37500 * G + 0.00000 * B</code></li>
+<li>Green output:
+<code>0.70000 * R + 0.30000 * G + 0.00000 * B</code></li>
+<li>Blue output:
+<code>0.00000 * R + 0.30000 * G + 0.70000 * B</code></li>
+</ul>
+<h4 id="imagemagick-command-1">ImageMagick Command:</h4>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot; 0.62500 0.37500 0.00000 </span><span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.70000 0.30000 0.00000 </span><span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.00000 0.30000 0.70000 &quot;</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    deuteranopia_output.png</span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-color-matrix</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot; 0.62500 0.37500 0.00000 </span><span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.70000 0.30000 0.00000 </span><span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.00000 0.30000 0.70000 &quot;</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    deuteranopia_output.png</span></code></pre></div>
+<hr />
+<h3 id="batch-processing-for-automated-testing">Batch Processing for
+Automated Testing</h3>
+<p>To evaluate multiple UI assets or screenshots automatically, you can
+incorporate the command into a shell loop:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.png<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> <span class="at">-color-matrix</span> <span class="st">&quot;0.56667 0.43333 0 0.55833 0.44167 0 0 0.24167 0.75833&quot;</span> <span class="st">&quot;protanopia_</span><span class="va">${img}</span><span class="st">&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> <span class="at">-color-matrix</span> <span class="st">&quot;0.625 0.375 0 0.7 0.3 0 0 0.3 0.7&quot;</span> <span class="st">&quot;deuteranopia_</span><span class="va">${img}</span><span class="st">&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>This generates simulated variants for every PNG file in the working
+directory, enabling rapid accessibility audits for visual designs.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

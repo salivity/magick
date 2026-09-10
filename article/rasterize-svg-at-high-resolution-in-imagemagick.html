@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasterize SVG at High Resolution in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to properly rasterize Scalable Vector Graphics (SVG) into high-resolution bitmap formats using ImageMagick. By defining the rendering resolution before loading the input file, you ensure that the vector data is rendered crisply at">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/rasterize-svg-at-high-resolution-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Rasterize SVG at High Resolution in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/rasterize-svg-at-high-resolution-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to properly rasterize Scalable Vector Graphics (SVG) into high-resolution bitmap formats using ImageMagick. By defining the rendering resolution before loading the input file, you ensure that the vector data is rendered crisply at" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="rasterize-svg-at-high-resolution-in-imagemagick">Rasterize SVG
+at High Resolution in ImageMagick</h1>
+<p>This guide explains how to properly rasterize Scalable Vector
+Graphics (SVG) into high-resolution bitmap formats using ImageMagick. By
+defining the rendering resolution before loading the input file, you
+ensure that the vector data is rendered crisply at your desired size or
+density, completely avoiding the blurry or pixelated results caused by
+default rasterization.</p>
+<h2 id="the-core-concept-pre-input-density">The Core Concept: Pre-Input
+Density</h2>
+<p>When ImageMagick processes an SVG, it first converts the vector paths
+into a raster image at a default resolution (typically 72 or 96 DPI). If
+you attempt to resize the image <em>after</em> specifying the input
+file, ImageMagick will merely upscale a low-resolution bitmap, resulting
+in a blurry output.</p>
+<p>To achieve high-quality output, you must specify the
+<code>-density</code> setting <strong>before</strong> the input
+filename. This instructs the rendering delegate (such as RSVG or
+Inkscape) to rasterize the vector paths at a higher pixel density from
+the start.</p>
+<h2 id="method-1-specifying-target-dpi">Method 1: Specifying Target
+DPI</h2>
+<p>To render an SVG at print-quality resolution (such as 300 DPI or 600
+DPI), place the <code>-density</code> flag prior to the input file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input.svg output.png</span></code></pre></div>
+<p><em>(For ImageMagick v6, use <code>convert</code> instead of
+<code>magick</code>.)</em></p>
+<h2 id="method-2-rasterizing-to-exact-pixel-dimensions">Method 2:
+Rasterizing to Exact Pixel Dimensions</h2>
+<p>If you need the output image to match specific pixel dimensions (for
+example, 4000x4000 pixels) while maintaining sharp edges:</p>
+<ol type="1">
+<li>Set a sufficiently high <code>-density</code> value to oversample
+the vector graphic.</li>
+<li>Follow the input file with the <code>-resize</code> option to scale
+it down to the exact dimensions.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 1200 input.svg <span class="at">-resize</span> 4000x4000 output.png</span></code></pre></div>
+<p>This method renders the vector at extremely high detail first, then
+samples it down smoothly to the desired bounding box.</p>
+<h2 id="handling-background-transparency">Handling Background
+Transparency</h2>
+<p>By default, SVG rasterization may preserve transparent backgrounds
+when saving to formats like PNG, or replace transparency with black or
+white on formats like JPEG.</p>
+<ul>
+<li><p><strong>Preserve transparency (PNG):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 <span class="at">-background</span> none input.svg output.png</span></code></pre></div></li>
+<li><p><strong>Render with a solid white background
+(JPEG/PNG):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 <span class="at">-background</span> white <span class="at">-flatten</span> input.svg output.jpg</span></code></pre></div></li>
+</ul>
+<h2 id="ensuring-best-rendering-quality">Ensuring Best Rendering
+Quality</h2>
+<p>ImageMagick relies on external delegates to parse SVGs. For the most
+accurate rendering of complex SVG features (such as gradients, clipping
+paths, and CSS styling), ensure the <code>librsvg</code> delegate is
+installed on your system. You can verify your delegate configuration
+with:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>rsvg</code> or <code>xml</code> in the
+<code>Delegates</code> list to confirm optimal vector rendering
+support.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

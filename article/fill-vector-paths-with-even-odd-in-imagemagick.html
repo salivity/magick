@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill Vector Paths with Even-Odd in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to apply the even-odd fill rule to vector paths using ImageMagick. You will learn the correct command-line syntax for the fill-rule primitive, understand how to define paths with holes or self-intersecting boundaries, and see co">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/fill-vector-paths-with-even-odd-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Fill Vector Paths with Even-Odd in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/fill-vector-paths-with-even-odd-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to apply the even-odd fill rule to vector paths using ImageMagick. You will learn the correct command-line syntax for the fill-rule primitive, understand how to define paths with holes or self-intersecting boundaries, and see co" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="fill-vector-paths-with-even-odd-in-imagemagick">Fill Vector
+Paths with Even-Odd in ImageMagick</h1>
+<p>This article explains how to apply the even-odd fill rule to vector
+paths using ImageMagick. You will learn the correct command-line syntax
+for the <code>fill-rule</code> primitive, understand how to define paths
+with holes or self-intersecting boundaries, and see concrete examples
+demonstrating the even-odd filling behavior directly from the
+terminal.</p>
+<h2 id="understanding-the-even-odd-fill-rule">Understanding the Even-Odd
+Fill Rule</h2>
+<p>The fill rule determines whether a given point lies inside or outside
+a complex vector path.</p>
+<ul>
+<li><strong>Non-Zero (Default):</strong> Determines insideness by
+counting path direction (winding number).</li>
+<li><strong>Even-Odd:</strong> Determines insideness by drawing a ray
+from the point toward infinity and counting how many path segments it
+crosses. If the total number of crossings is odd, the point is inside
+(filled); if even, it is outside (unfilled).</li>
+</ul>
+<p>This rule is ideal for creating compound shapes with cutouts or
+self-intersecting polygons regardless of path winding direction.</p>
+<h2 id="command-line-syntax">Command-Line Syntax</h2>
+<p>In ImageMagick, vector paths are typically drawn using the
+<code>-draw</code> operator with Magick Vector Graphics (MVG) syntax. To
+set the fill rule to even-odd, place <code>fill-rule evenodd</code>
+inside the <code>-draw</code> string before the path definition.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:white <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="st">&quot;#2563eb&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;fill-rule evenodd path &#39;M 50,50 L 350,50 L 350,350 L 50,350 Z M 125,125 L 275,125 L 275,275 L 125,275 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<p><em>(Note: For ImageMagick version 6, replace <code>magick</code>
+with <code>convert</code>.)</em></p>
+<h3 id="how-the-command-works">How the Command Works:</h3>
+<ol type="1">
+<li><code>-size 400x400 xc:white</code>: Creates a blank white canvas of
+400×400 pixels.</li>
+<li><code>-fill "#2563eb"</code>: Sets the fill color.</li>
+<li><code>-draw "fill-rule evenodd path '...'"</code>:
+<ul>
+<li><code>fill-rule evenodd</code> instructs the renderer to use the
+even-odd method.</li>
+<li><code>path '...'</code> contains the standard SVG-compatible path
+data string.</li>
+<li>The example draws an outer square followed by an inner square,
+creating a hollow frame.</li>
+</ul></li>
+</ol>
+<h2 id="example-self-intersecting-star">Example: Self-Intersecting
+Star</h2>
+<p>A classic use case for the even-odd fill rule is a 5-pointed star
+where the inner pentagon remains transparent.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:transparent <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="st">&quot;#e11d48&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;fill-rule evenodd path &#39;M 150,20 L 190,140 L 310,140 L 210,210 L 250,330 L 150,250 L 50,330 L 90,210 L -10,140 L 110,140 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  star_evenodd.png</span></code></pre></div>
+<p>Because the overlapping regions cross path segments an even number of
+times, the center of the star is excluded from the fill.</p>
+<h2 id="using-svg-files-directly">Using SVG Files Directly</h2>
+<p>If you are rendering an external vector path via SVG, you can specify
+the <code>fill-rule</code> attribute directly inside the SVG markup:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">svg</span> <span class="ot">width=</span><span class="st">&quot;400&quot;</span> <span class="ot">height=</span><span class="st">&quot;400&quot;</span> <span class="ot">xmlns=</span><span class="st">&quot;http://www.w3.org/2000/svg&quot;</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">path</span> <span class="ot">fill=</span><span class="st">&quot;#059669&quot;</span> <span class="ot">fill-rule=</span><span class="st">&quot;evenodd&quot;</span> <span class="ot">d=</span><span class="st">&quot;M 50,50 L 350,50 L 350,350 L 50,350 Z M 150,150 L 250,150 L 250,250 L 150,250 Z&quot;</span> /&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">svg</span>&gt;</span></code></pre></div>
+<p>Render it using ImageMagick:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.svg output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

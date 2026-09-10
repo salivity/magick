@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Features Operator for Texture Analysis - magick</title>
+    <meta name="description" content="ImageMagick’s -features operator performs spatial texture analysis on digital images by computing Grey-Level Co-occurrence Matrices (GLCM) and deriving mathematical Haralick texture features. This article explains how the operator functions, breaks dow">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-features-operator-for-texture-analysis">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Features Operator for Texture Analysis - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-features-operator-for-texture-analysis" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s -features operator performs spatial texture analysis on digital images by computing Grey-Level Co-occurrence Matrices (GLCM) and deriving mathematical Haralick texture features. This article explains how the operator functions, breaks dow" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-features-operator-for-texture-analysis">ImageMagick
+Features Operator for Texture Analysis</h1>
+<p>ImageMagick’s <code>-features</code> operator performs spatial
+texture analysis on digital images by computing Grey-Level Co-occurrence
+Matrices (GLCM) and deriving mathematical Haralick texture features.
+This article explains how the operator functions, breaks down the
+multi-directional statistical metrics it generates per color channel,
+and details how to read the resulting numerical output for image
+classification and texture characterization.</p>
+<h3 id="the-mechanism-grey-level-co-occurrence-matrix-glcm">The
+Mechanism: Grey-Level Co-occurrence Matrix (GLCM)</h3>
+<p>When you execute <code>-features &lt;distance&gt;</code> in
+ImageMagick, the tool analyzes the spatial relationship between pixel
+intensities at a specified pixel distance. It evaluates pixel pairs
+across four standard angular directions:</p>
+<ul>
+<li><strong>0°</strong> (Horizontal)</li>
+<li><strong>45°</strong> (Positive Diagonal)</li>
+<li><strong>90°</strong> (Vertical)</li>
+<li><strong>135°</strong> (Negative Diagonal)</li>
+</ul>
+<p>The operator constructs a GLCM for each direction and calculates
+statistical properties based on how often specific gray-level intensity
+combinations occur relative to each other.</p>
+<h3 id="the-14-haralick-texture-features">The 14 Haralick Texture
+Features</h3>
+<p>For each color channel (such as Red, Green, Blue, or Gray) and across
+each of the four directions, the <code>-features</code> operator outputs
+14 standard Haralick texture descriptors, followed by the directional
+mean and range:</p>
+<ol type="1">
+<li><strong>Angular Second Moment (ASM) / Energy:</strong> Measures
+textural uniformity and orderliness. High values indicate a homogeneous
+or periodic image with fewer gray-level transitions.</li>
+<li><strong>Contrast:</strong> Measures the local intensity variations.
+High values signify sharp local contrasts and distinct edges.</li>
+<li><strong>Correlation:</strong> Quantifies linear dependency of gray
+levels between neighboring pixels. High values indicate predictable
+linear patterns.</li>
+<li><strong>Sum of Squares: Variance:</strong> Reflects the dispersion
+of the gray-level distribution around the mean within the co-occurrence
+matrix.</li>
+<li><strong>Inverse Difference Moment (IDM) / Homogeneity:</strong>
+Measures local homogeneity. It weights inverse pixel differences
+heavily, returning higher values for smooth, low-contrast regions.</li>
+<li><strong>Sum Average:</strong> Calculates the average sum of
+intensity values of adjacent pixel pairs.</li>
+<li><strong>Sum Variance:</strong> Measures the spread of the sum of
+intensity values relative to the Sum Average.</li>
+<li><strong>Sum Entropy:</strong> Measures the degree of randomness
+associated with the sum distribution of gray levels.</li>
+<li><strong>Entropy:</strong> Measures the overall disorder or
+randomness of the texture. Complex, noisy, or chaotic textures yield
+high entropy.</li>
+<li><strong>Difference Variance:</strong> Measures the dispersion of
+differences in gray level between pixel pairs.</li>
+<li><strong>Difference Entropy:</strong> Measures the degree of disorder
+specifically among the differences in adjacent pixel values.</li>
+<li><strong>Information Measure of Correlation 1:</strong> A normalized
+statistical measure assessing the information dependency between pixel
+pairs.</li>
+<li><strong>Information Measure of Correlation 2:</strong> A secondary
+complementary metric for correlation structure, bounded between 0 and
+1.</li>
+<li><strong>Maximum Correlation Coefficient:</strong> Reflects the
+square root of the second-largest eigenvalue of the normalized GLCM
+matrix, representing the strength of the most dominant correlation.</li>
+</ol>
+<h3 id="interpreting-the-output-format">Interpreting the Output
+Format</h3>
+<p>The output is printed as structured text directly to standard output
+or an info stream. For each channel, the terminal displays:</p>
+<ul>
+<li><strong>Individual Angular Rows:</strong> Four lines containing the
+14 computed metrics for 0°, 45°, 90°, and 135°.</li>
+<li><strong>Mean:</strong> The average of each metric across all four
+directions, offering a rotation-invariant representation of the
+texture.</li>
+<li><strong>Range:</strong> The difference between the maximum and
+minimum values across the four angles, which indicates directional bias
+(anisotropy) in the texture.</li>
+</ul>
+<p>By comparing the mean and range across metrics like Contrast,
+Homogeneity, and Entropy, you can numerically differentiate fine
+textures, coarse surfaces, directional grains, and smooth gradients.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

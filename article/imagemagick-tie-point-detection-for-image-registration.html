@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Tie Point Detection for Image Registration - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick handles tie point detection and multi-image registration. While ImageMagick lacks automatic feature-descriptor algorithms like SIFT or ORB, it achieves image alignment through intensity-based sub-image">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-tie-point-detection-for-image-registration">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Tie Point Detection for Image Registration - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-tie-point-detection-for-image-registration" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick handles tie point detection and multi-image registration. While ImageMagick lacks automatic feature-descriptor algorithms like SIFT or ORB, it achieves image alignment through intensity-based sub-image" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-tie-point-detection-for-image-registration">ImageMagick
+Tie Point Detection for Image Registration</h1>
+<p>This article provides an overview of how ImageMagick handles tie
+point detection and multi-image registration. While ImageMagick lacks
+automatic feature-descriptor algorithms like SIFT or ORB, it achieves
+image alignment through intensity-based sub-image template matching and
+geometric distortion operators using explicit control points. Below, you
+will learn the exact ImageMagick commands, methodologies, and workflows
+used to detect coordinate matches and align multiple images.</p>
+<h2 id="the-imagemagick-approach-to-tie-points">The ImageMagick Approach
+to Tie Points</h2>
+<p>ImageMagick does not natively include an automated feature-extraction
+engine. Instead, detecting tie points automatically relies on
+<strong>normalized cross-correlation (NCC)</strong> or <strong>sub-image
+searching</strong> using the <code>compare</code> tool. Once coordinate
+pairs (tie points) are identified—either via sub-image matching or
+external manual selection—ImageMagick uses the <code>-distort</code>
+operator to warp and register the secondary image to the reference
+image.</p>
+<hr />
+<h2 id="1-automated-point-detection-via-sub-image-search">1. Automated
+Point Detection via Sub-Image Search</h2>
+<p>To automatically find where a specific landmark or patch from a
+reference image exists in a target image, use the <code>compare</code>
+command with the <code>-subimage-search</code> option.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">compare</span> <span class="at">-metric</span> RMSE <span class="at">-subimage-search</span> target_image.png reference_patch.png similarity_output.png</span></code></pre></div>
+<h3 id="how-it-works">How It Works:</h3>
+<ul>
+<li><strong>Metric selection:</strong> <code>-metric RMSE</code> (Root
+Mean Squared Error) or <code>NCC</code> (Normalized Cross Correlation)
+evaluates the similarity between the patch and the target image across
+all possible pixel offsets.</li>
+<li><strong>Output coordinates:</strong> ImageMagick outputs the match
+metric along with the exact top-left coordinate <code>(x,y)</code> where
+the best fit was located:
+<pre class="text"><code>0 (0) @ 142,88</code></pre></li>
+<li><strong>Tie Point Generation:</strong> By extracting multiple
+distinct patches (e.g., 3 to 4 prominent features) from the source image
+and running them through <code>-subimage-search</code> against the
+target image, you can programmatically collect paired coordinates <span
+class="math inline">\((x_1, y_1 \to x&#39;_1, y&#39;_1)\)</span>.</li>
+</ul>
+<hr />
+<h2 id="2-registering-images-using-the-detected-tie-points">2.
+Registering Images Using the Detected Tie Points</h2>
+<p>Once you have gathered the corresponding coordinate points, use the
+<code>-distort</code> operator in the <code>magick</code> (or
+<code>convert</code>) command to transform the target image.</p>
+<h3 id="common-distortion-methods">Common Distortion Methods:</h3>
+<ul>
+<li><strong>Affine (Requires minimum 3 coordinate pairs):</strong>
+Handles translation, rotation, scaling, and shearing.</li>
+<li><strong>Perspective (Requires minimum 4 coordinate pairs):</strong>
+Handles perspective shifts and keystone distortions.</li>
+</ul>
+<h3 id="command-syntax">Command Syntax:</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> target_image.png <span class="at">-virtual-pixel</span> transparent <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>-distort Affine <span class="st">&quot;x1,y1 x1&#39;,y1&#39;  x2,y2 x2&#39;,y2&#39;  x3,y3 x3&#39;,y3&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>registered_output.png</span></code></pre></div>
+<p>In this syntax:</p>
+<ul>
+<li><code>x,y</code> are coordinates on the target image.</li>
+<li><code>x',y'</code> are the corresponding tie-point coordinates on
+the reference image.</li>
+</ul>
+<hr />
+<h2 id="3-merging-and-layering-registered-images">3. Merging and
+Layering Registered Images</h2>
+<p>After transforming the image according to the detected tie points,
+you can overlay the images to complete the multi-image registration:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> reference_image.png registered_output.png <span class="at">-layers</span> merge composite_registered.png</span></code></pre></div>
+<hr />
+<h2 id="native-limitations-and-best-practices">Native Limitations and
+Best Practices</h2>
+<ul>
+<li><strong>Scale and Rotation Invariance:</strong> The native
+<code>compare -subimage-search</code> method works best when images have
+minimal scale or rotational differences. If images have significant
+rotation or scale variance, you must pre-scale/rotate patches or utilize
+external feature-matching libraries (such as OpenCV or ImageJ) to
+generate the control points, and then pass those coordinate values
+directly to ImageMagick's <code>-distort</code> operator.</li>
+<li><strong>Performance:</strong> Sub-image searching across
+full-resolution images is computationally expensive. Crop small,
+high-contrast regions to use as reference templates rather than
+searching large areas.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

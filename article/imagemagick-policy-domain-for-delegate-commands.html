@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Policy Domain for Delegate Commands - magick</title>
+    <meta name="description" content="This article explains how ImageMagick secures command-line operations and prevents unauthorized external program execution. It covers the specific policy domain used to restrict system delegate commands, details how delegates function within the software">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-policy-domain-for-delegate-commands">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Policy Domain for Delegate Commands - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-policy-domain-for-delegate-commands" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick secures command-line operations and prevents unauthorized external program execution. It covers the specific policy domain used to restrict system delegate commands, details how delegates function within the software" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-policy-domain-for-delegate-commands">ImageMagick
+Policy Domain for Delegate Commands</h1>
+<p>This article explains how ImageMagick secures command-line operations
+and prevents unauthorized external program execution. It covers the
+specific policy domain used to restrict system delegate commands,
+details how delegates function within the software, demonstrates the
+syntax required to disable or restrict them in the configuration file,
+and explains the security implications of managing these boundaries.</p>
+<h2 id="the-delegate-policy-domain">The Delegate Policy Domain</h2>
+<p>The policy domain that restricts the execution of system delegate
+commands in ImageMagick is the <strong><code>delegate</code></strong>
+domain.</p>
+<p>In ImageMagick, delegates are external helper programs—such as
+Ghostscript, Potrace, or ffmpeg—that the application invokes to process
+formats it cannot natively decode or encode. Because invoking external
+binaries often involves passing system commands, delegate execution can
+present significant security risks, including command injection and
+arbitrary code execution, if left unconstrained.</p>
+<p>To restrict or completely disable these commands, administrators
+define rules within ImageMagick’s master security configuration file,
+<code>policy.xml</code>.</p>
+<h2 id="configuring-the-delegate-domain-in-policyxml">Configuring the
+Delegate Domain in policy.xml</h2>
+<p>The <code>policy.xml</code> configuration file is typically located
+in <code>/etc/ImageMagick-7/</code>, <code>/etc/ImageMagick-6/</code>,
+or <code>/etc/ImageMagick/</code> depending on the installation and
+version.</p>
+<p>To restrict delegate execution, ImageMagick provides several
+enforcement rules using the <code>delegate</code> domain:</p>
+<h3 id="disable-all-delegate-execution">Disable All Delegate
+Execution</h3>
+<p>To prevent ImageMagick from calling any external system commands
+across all formats, set the rights to <code>none</code> with a wildcard
+pattern:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;*&quot;</span> /&gt;</span></code></pre></div>
+<h3 id="restrict-specific-high-risk-delegates">Restrict Specific
+High-Risk Delegates</h3>
+<p>Administrators frequently disable delegates associated with complex
+external software libraries. For instance, to block external commands
+associated with PostScript (PS), Encapsulated PostScript (EPS), Portable
+Document Format (PDF), or web retrieval protocols:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;EPS&quot;</span> /&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PS&quot;</span> /&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;XPS&quot;</span> /&gt;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTPS&quot;</span> /&gt;</span></code></pre></div>
+<h2 id="how-the-policy-works">How the Policy Works</h2>
+<p>When ImageMagick processes an image file:</p>
+<ol type="1">
+<li>It determines whether internal decoders can handle the file
+format.</li>
+<li>If an external binary is required, ImageMagick queries
+<code>delegates.xml</code> to construct the shell command string.</li>
+<li>Before invoking the shell or child process, ImageMagick evaluates
+<code>policy.xml</code>.</li>
+<li>If a <code>&lt;policy domain="delegate" ... /&gt;</code> directive
+matches the target format or command and specifies
+<code>rights="none"</code>, the operation is immediately blocked,
+throwing a security policy error.</li>
+</ol>
+<h2 id="related-policy-domains">Related Policy Domains</h2>
+<p>While <code>delegate</code> is the primary domain for system delegate
+commands, two complementary domains are often used in tandem:</p>
+<ul>
+<li><strong><code>coder</code> Domain:</strong> Restricts specific
+format decoders and encoders entirely (e.g.,
+<code>&lt;policy domain="coder" rights="none" pattern="MVG" /&gt;</code>),
+stopping ImageMagick before it ever reaches the delegate stage.</li>
+<li><strong><code>system</code> Domain:</strong> Enforces global
+operating constraints on system commands and system-wide execution
+environments.</li>
+</ul>
+<h2 id="verifying-active-delegate-policies">Verifying Active Delegate
+Policies</h2>
+<p>To verify which delegate restrictions are active on a host, execute
+the following command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> policy</span></code></pre></div>
+<p><em>(For ImageMagick 6, run
+<code>convert -list policy</code>)</em></p>
+<p>The output provides a list of all active policies, their domains,
+associated patterns, and permission rights, allowing administrators to
+confirm that the <code>delegate</code> domain is enforcing the required
+restrictions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

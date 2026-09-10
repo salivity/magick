@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick EdgeOut vs Standard Edge Detection - magick</title>
+    <meta name="description" content="ImageMagick provides multiple techniques for finding boundaries in an image, ranging from classical convolution filters to mathematical morphology. While standard edge detection techniques compute intensity gradients across pixel neighborhoods to highlig">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-edgeout-vs-standard-edge-detection">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick EdgeOut vs Standard Edge Detection - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-edgeout-vs-standard-edge-detection" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides multiple techniques for finding boundaries in an image, ranging from classical convolution filters to mathematical morphology. While standard edge detection techniques compute intensity gradients across pixel neighborhoods to highlig" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-edgeout-vs-standard-edge-detection">ImageMagick
+EdgeOut vs Standard Edge Detection</h1>
+<p>ImageMagick provides multiple techniques for finding boundaries in an
+image, ranging from classical convolution filters to mathematical
+morphology. While standard edge detection techniques compute intensity
+gradients across pixel neighborhoods to highlight transitions, the
+morphology <code>EdgeOut</code> operator applies structural dilation and
+subtraction to isolate pixels lying strictly outside an object's
+boundary. Understanding the differences between these two approaches
+comes down to their mathematical mechanics, edge alignment, and optimal
+use cases.</p>
+<h3 id="algorithmic-mechanics">Algorithmic Mechanics</h3>
+<p>Standard edge detection in ImageMagick—most commonly invoked via the
+<code>-edge &lt;radius&gt;</code> operator or explicit convolution
+kernels like Sobel, Roberts, and Laplacian—relies on linear convolution.
+These algorithms calculate the first or second derivative of pixel
+intensity across an image. They measure how rapidly color or brightness
+changes in a local window and mark the peaks of these gradients as
+edges.</p>
+<p>In contrast, <code>EdgeOut</code> belongs to mathematical morphology
+and operates using non-linear neighborhood ranking. Specifically,
+<code>EdgeOut</code> calculates the morphological external gradient:</p>
+<p><span class="math display">\[\text{EdgeOut} = \text{Dilate}(I) -
+I\]</span></p>
+<p>ImageMagick first dilates the original image using a defined
+structuring element (kernel), expanding the boundaries of foreground
+objects outward. It then subtracts the original image from this dilated
+result.</p>
+<h3 id="edge-alignment-and-thickness">Edge Alignment and Thickness</h3>
+<p>The most significant visual difference between the two approaches is
+the physical location of the resulting edge relative to the source
+object:</p>
+<ul>
+<li><strong>Standard Edge Detection:</strong> Edges are centered
+symmetrically on the boundary of highest contrast. Half of the edge
+typically overlaps the foreground object, while the other half overlaps
+the background.</li>
+<li><strong>EdgeOut:</strong> The edge is positioned entirely
+<em>outside</em> the original foreground boundary. The original shape
+remains completely untouched inside the perimeter, with the detected
+line forming a halo or outer border directly adjacent to the object's
+perimeter.</li>
+</ul>
+<p>The thickness in <code>EdgeOut</code> is explicitly determined by the
+radius and shape of the structuring element (such as <code>Disk</code>,
+<code>Diamond</code>, or <code>Square</code>), allowing precise, uniform
+pixel-width control. Standard edge filters often produce anti-aliased,
+feathered, or variable-width lines depending on the steepness of the
+original image gradient.</p>
+<h3 id="input-data-and-artifact-handling">Input Data and Artifact
+Handling</h3>
+<p>Standard convolution-based edge detection excels on continuous-tone
+photographs and natural scenes where edge boundaries are soft or defined
+by subtle lighting changes. However, it is sensitive to high-frequency
+noise, which often produces spurious edge artifacts unless pre-filtered
+with a Gaussian blur.</p>
+<p>The <code>EdgeOut</code> operator is primarily suited for segmented,
+binary, or high-contrast graphics, masks, and silhouettes. Because it
+subtracts the exact pixel values of the original image from the dilated
+version, applying <code>EdgeOut</code> to continuous-tone photos can
+create harsh, solarized relief effects rather than clean contours.</p>
+<h3 id="when-to-use-each-method">When to Use Each Method</h3>
+<p>Choose standard edge detection (<code>-edge</code>) when processing
+natural photographs, generating line drawings from continuous-tone
+inputs, or identifying general optical features where gradient intensity
+matters.</p>
+<p>Choose morphology <code>EdgeOut</code>
+(<code>-morphology EdgeOut &lt;kernel&gt;</code>) when creating outlines
+around transparent PNG graphics, generating outward-expanding boundary
+strokes around text or masks, or when the edge must strictly avoid
+encroaching on the interior pixels of the subject.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

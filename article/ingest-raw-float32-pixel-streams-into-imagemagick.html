@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingest Raw Float32 Pixel Streams into ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to ingest raw binary 32-bit floating-point (float32) pixel streams into ImageMagick from files or standard input (stdin). Because raw streams contain pure pixel buffers without headers, you must explicitly declare metadata—suc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/ingest-raw-float32-pixel-streams-into-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Ingest Raw Float32 Pixel Streams into ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/ingest-raw-float32-pixel-streams-into-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to ingest raw binary 32-bit floating-point (float32) pixel streams into ImageMagick from files or standard input (stdin). Because raw streams contain pure pixel buffers without headers, you must explicitly declare metadata—suc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="ingest-raw-float32-pixel-streams-into-imagemagick">Ingest Raw
+Float32 Pixel Streams into ImageMagick</h1>
+<p>This article explains how to ingest raw binary 32-bit floating-point
+(float32) pixel streams into ImageMagick from files or standard input
+(<code>stdin</code>). Because raw streams contain pure pixel buffers
+without headers, you must explicitly declare metadata—such as
+dimensions, channel layouts, endianness, and numeric formats—prior to
+ingestion. The following sections provide the exact parameters, format
+specifiers, and command-line examples needed to reliably parse float32
+binary data into standard or high-dynamic-range image formats.</p>
+<h2 id="required-parameters-for-raw-float32-streams">Required Parameters
+for Raw Float32 Streams</h2>
+<p>Raw binary streams contain no header information describing
+resolution or color space. To process the data correctly, ImageMagick
+must be configured with explicit stream parameters before the input
+descriptor (<code>-</code> for <code>stdin</code> or a raw
+filename):</p>
+<ul>
+<li><strong><code>-size &lt;width&gt;x&lt;height&gt;</code></strong>:
+Defines the raster dimensions of the stream.</li>
+<li><strong><code>-depth 32</code></strong>: Declares that each channel
+sample is 32 bits wide.</li>
+<li><strong><code>-define quantum:format=floating-point</code></strong>:
+Informs the decoder that the 32-bit values represent IEEE 754
+floating-point numbers instead of unsigned integers.</li>
+<li><strong><code>-endian &lt;lsb|msb&gt;</code></strong>: Specifies
+byte ordering. Most modern CPU architectures (x86_64, ARM) output
+little-endian (<code>lsb</code>) data.</li>
+<li><strong>Format Specifiers</strong>: Tells ImageMagick the channel
+arrangement. Standard identifiers include <code>gray:</code>,
+<code>rgb:</code>, and <code>rgba:</code>.</li>
+</ul>
+<h2 id="ingestion-methods">Ingestion Methods</h2>
+<h3 id="method-1-using-quantum-format-definition">Method 1: Using
+Quantum Format Definition</h3>
+<p>The standard method uses the
+<code>-define quantum:format=floating-point</code> flag combined with
+standard raw channel formats.</p>
+<p><strong>Grayscale (Single Channel):</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_float32.bin <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-depth</span> 32 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> quantum:format=floating-point <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-endian</span> lsb <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  gray:- output.png</span></code></pre></div>
+<p><strong>RGB (Three Channels):</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_float32_rgb.bin <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-depth</span> 32 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> quantum:format=floating-point <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-endian</span> lsb <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  rgb:- output.tif</span></code></pre></div>
+<h3 id="method-2-using-floating-point-shorthand-formats">Method 2: Using
+Floating-Point Shorthand Formats</h3>
+<p>ImageMagick includes built-in floating-point raw formats that
+eliminate the need to specify the <code>-depth</code> and
+<code>-define</code> flags manually:</p>
+<ul>
+<li><code>GRAYF:</code> – Grayscale single-precision float</li>
+<li><code>RGBF:</code> – 3-channel RGB single-precision float</li>
+<li><code>RGBAF:</code> – 4-channel RGBA single-precision float</li>
+</ul>
+<p><strong>Grayscale Example:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_float32.bin <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-endian</span> lsb grayf:- output.exr</span></code></pre></div>
+<p><strong>RGBA Example:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_float32_rgba.bin <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 1024x768 <span class="at">-endian</span> lsb rgbaf:- output.exr</span></code></pre></div>
+<h2 id="handling-dynamic-range-and-output-formats">Handling Dynamic
+Range and Output Formats</h2>
+<p>Float32 image data is typically normalized in the range
+<code>[0.0, 1.0]</code>. When saving to integer formats (like 8-bit PNG
+or JPEG), values outside this range are clipped:</p>
+<ul>
+<li><strong>Retaining High Dynamic Range (HDR):</strong> Output to
+formats that support float representations natively, such as
+<code>.exr</code> or floating-point <code>.tif</code>.</li>
+<li><strong>Clamping/Scaling Values:</strong> If converting to standard
+8-bit formats and the data contains values outside
+<code>[0.0, 1.0]</code>, apply <code>-auto-level</code> to normalize the
+dynamic range before writing the output:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_float32.bin <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 512x512 <span class="at">-endian</span> lsb grayf:- <span class="at">-auto-level</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

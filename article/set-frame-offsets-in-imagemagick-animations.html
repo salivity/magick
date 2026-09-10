@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Frame Offsets in ImageMagick Animations - magick</title>
+    <meta name="description" content="This guide explains how to set custom canvas offsets for individual animation sub-frames using ImageMagick. By defining spatial offsets (+X+Y) for specific frames, you can position smaller image elements across a larger canvas without rendering full-size">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-frame-offsets-in-imagemagick-animations">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set Frame Offsets in ImageMagick Animations - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-frame-offsets-in-imagemagick-animations" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to set custom canvas offsets for individual animation sub-frames using ImageMagick. By defining spatial offsets (+X+Y) for specific frames, you can position smaller image elements across a larger canvas without rendering full-size" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-frame-offsets-in-imagemagick-animations">Set Frame Offsets
+in ImageMagick Animations</h1>
+<p>This guide explains how to set custom canvas offsets for individual
+animation sub-frames using ImageMagick. By defining spatial offsets
+(<code>+X+Y</code>) for specific frames, you can position smaller image
+elements across a larger canvas without rendering full-sized frames for
+every step, reducing file sizes and controlling frame positioning in
+formats like GIF or APNG.</p>
+<h2 id="setting-offsets-when-creating-new-animations">Setting Offsets
+When Creating New Animations</h2>
+<p>To assign specific coordinates to individual frames when generating a
+new animation, use the <code>-page</code> geometry setting before
+specifying each input file. Define the overall canvas size on the first
+frame, followed by relative or absolute pixel offsets for subsequent
+frames.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-dispose</span> previous <span class="at">-delay</span> 20 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> 500x500+0+0   frame0.png <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +50+50        frame1.png <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +120+80       frame2.png <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +200+150      frame3.png <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<ul>
+<li><strong><code>500x500+0+0</code></strong>: Sets the master canvas
+size (500x500 pixels) and positions the base frame at the top-left
+corner.</li>
+<li><strong><code>+X+Y</code></strong>: Specifies the horizontal
+(<code>X</code>) and vertical (<code>Y</code>) offset from the canvas
+origin for each corresponding sub-frame.</li>
+<li><strong><code>-dispose previous</code></strong>: Ensures previous
+sub-frames are cleared before drawing the next frame at its new
+offset.</li>
+</ul>
+<h2 id="modifying-offsets-on-existing-animations">Modifying Offsets on
+Existing Animations</h2>
+<p>To adjust the offsets of specific frames in an already existing
+animation file, use frame indexing combined with the
+<code>( ... )</code> operators and the <code>-repage</code> or
+<code>-set page</code> options.</p>
+<h3 id="adjusting-specific-frames-by-index">Adjusting Specific Frames by
+Index</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 1 <span class="at">-repage</span> +80+40 <span class="dt">\)</span> <span class="at">-swap</span> 1,2 +delete <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 2 <span class="at">-repage</span> +150+90 <span class="dt">\)</span> <span class="at">-swap</span> 2,3 +delete <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<ol type="1">
+<li><strong><code>-coalesce</code></strong>: Reconstructs the full
+frames from the original animation, ensuring accurate dimensions.</li>
+<li><strong><code>\( -clone [index] -repage +X+Y \)</code></strong>:
+Targets the specific sub-frame (0-indexed) and assigns the new canvas
+offset.</li>
+<li><strong><code>-swap</code> and <code>+delete</code></strong>:
+Replaces the original frame with the modified offset version.</li>
+</ol>
+<h3 id="setting-offsets-globally-across-all-sub-frames">Setting Offsets
+Globally Across All Sub-Frames</h3>
+<p>If you want to apply a uniform shifting rule or reset offsets to
+absolute zero for the entire animation:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-repage</span> +0+0 output.gif</span></code></pre></div>
+<h2 id="important-settings-for-canvas-offsets">Important Settings for
+Canvas Offsets</h2>
+<ul>
+<li><strong><code>-page WxH+X+Y</code></strong>: Configures the total
+canvas dimensions (<code>WxH</code>) alongside the top-left offset
+(<code>+X+Y</code>) for incoming source images.</li>
+<li><strong><code>-repage +X+Y</code></strong>: Modifies the virtual
+canvas offset of images already loaded into memory.</li>
+<li><strong><code>-dispose</code></strong>: Defines what happens to the
+canvas area when advancing to the next frame. Use
+<code>-dispose background</code> or <code>-dispose previous</code> when
+sub-frames are smaller than the main canvas to avoid ghosting
+artifacts.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

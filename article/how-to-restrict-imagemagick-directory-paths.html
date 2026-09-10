@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Restrict ImageMagick Directory Paths - magick</title>
+    <meta name="description" content="ImageMagick can be configured to enforce strict directory restrictions for reading and writing files by editing its security policy file (policy.xml). Restricting path access prevents unauthorized file system access, mitigating vulnerabilities such as ar">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-restrict-imagemagick-directory-paths">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Restrict ImageMagick Directory Paths - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-restrict-imagemagick-directory-paths" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick can be configured to enforce strict directory restrictions for reading and writing files by editing its security policy file (policy.xml). Restricting path access prevents unauthorized file system access, mitigating vulnerabilities such as ar" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-restrict-imagemagick-directory-paths">How to Restrict
+ImageMagick Directory Paths</h1>
+<p>ImageMagick can be configured to enforce strict directory
+restrictions for reading and writing files by editing its security
+policy file (<code>policy.xml</code>). Restricting path access prevents
+unauthorized file system access, mitigating vulnerabilities such as
+arbitrary file disclosure and unintended file overwrite. This guide
+explains how to establish a default-deny security posture and grant read
+or write permissions only to designated directory paths.</p>
+<h3 id="1-locate-the-policyxml-file">1. Locate the
+<code>policy.xml</code> File</h3>
+<p>ImageMagick manages its security configurations through
+<code>policy.xml</code>. The location of this file depends on your
+operating system and ImageMagick version:</p>
+<ul>
+<li><strong>Ubuntu / Debian:</strong>
+<code>/etc/ImageMagick-6/policy.xml</code> or
+<code>/etc/ImageMagick-7/policy.xml</code></li>
+<li><strong>CentOS / RHEL / Fedora:</strong>
+<code>/etc/ImageMagick/policy.xml</code></li>
+<li><strong>Custom Builds / Source:</strong>
+<code>/usr/local/etc/ImageMagick-7/policy.xml</code></li>
+</ul>
+<p>You can verify the active policy path by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">identify</span> <span class="at">-list</span> policy</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or for ImageMagick 7:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> policy</span></code></pre></div>
+<hr />
+<h3 id="2-configure-path-domain-policies">2. Configure Path Domain
+Policies</h3>
+<p>ImageMagick uses the <code>path</code> domain in
+<code>policy.xml</code> to control access to the filesystem using
+standard glob patterns.</p>
+<p>To secure your installation, follow a least-privilege approach: deny
+all directory access first, then explicitly whitelist only the paths
+your application requires.</p>
+<p>Open <code>policy.xml</code> in a text editor with administrative
+privileges:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/ImageMagick-6/policy.xml</span></code></pre></div>
+<p>Insert the following rules inside the <code>&lt;policymap&gt;</code>
+element:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- 1. Deny read and write access to the entire filesystem by default --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;*&quot;</span> /&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- 2. Allow read access to required application assets and temp directories --&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/var/www/my-app/uploads/*&quot;</span> /&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/tmp/*&quot;</span> /&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- 3. Allow write access only to specific output destinations --&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/var/www/my-app/processed/*&quot;</span> /&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/tmp/*&quot;</span> /&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- 4. (Optional) Allow access to standard system fonts if generating text --&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/usr/share/fonts/*&quot;</span> /&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<hr />
+<h3 id="3-policy-attributes-explained">3. Policy Attributes
+Explained</h3>
+<ul>
+<li><strong><code>domain="path"</code></strong>: Specifies that the rule
+applies to filesystem paths and filenames.</li>
+<li><strong><code>pattern</code></strong>: The path expression to match.
+Use explicit paths along with wildcards (e.g.,
+<code>/path/to/dir/*</code> or <code>/path/to/dir/**</code> for
+recursive directories).</li>
+<li><strong><code>rights</code></strong>: Defines the permitted
+operation:
+<ul>
+<li><code>none</code>: Prohibits all access (read and write).</li>
+<li><code>read</code>: Permits reading files from the matched path.</li>
+<li><code>write</code>: Permits writing files to the matched path.</li>
+<li><code>read|write</code>: Permits both reading and writing.</li>
+</ul></li>
+</ul>
+<p>Policies are evaluated in the order they appear. Placing
+<code>&lt;policy domain="path" rights="none" pattern="*" /&gt;</code> at
+the top ensures all unlisted directories are blocked.</p>
+<hr />
+<h3 id="4-verify-the-configuration">4. Verify the Configuration</h3>
+<p>Test the policy to confirm that unauthorized paths are blocked and
+authorized paths remain accessible.</p>
+<p><strong>Test Unauthorized Read Access:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> /etc/passwd /tmp/test.png</span></code></pre></div>
+<p><em>Expected Result:</em> ImageMagick returns an error indicating
+that access to <code>/etc/passwd</code> is not authorized by the
+security policy.</p>
+<p><strong>Test Authorized Read and Write Access:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> /var/www/my-app/uploads/input.jpg /var/www/my-app/processed/output.png</span></code></pre></div>
+<p><em>Expected Result:</em> The operation completes successfully.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

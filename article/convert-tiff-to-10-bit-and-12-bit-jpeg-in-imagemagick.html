@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert TIFF to 10-Bit and 12-Bit JPEG in ImageMagick - magick</title>
+    <meta name="description" content="Converting high-bit-depth TIFF images—such as 16-bit captures—into 10-bit or 12-bit JPEGs preserves smooth gradients and dynamic range while reducing file size. This guide covers how to execute these conversions using ImageMagick command-line tools,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-tiff-to-10-bit-and-12-bit-jpeg-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert TIFF to 10-Bit and 12-Bit JPEG in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-tiff-to-10-bit-and-12-bit-jpeg-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting high-bit-depth TIFF images—such as 16-bit captures—into 10-bit or 12-bit JPEGs preserves smooth gradients and dynamic range while reducing file size. This guide covers how to execute these conversions using ImageMagick command-line tools," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-tiff-to-10-bit-and-12-bit-jpeg-in-imagemagick">Convert
+TIFF to 10-Bit and 12-Bit JPEG in ImageMagick</h1>
+<p>Converting high-bit-depth TIFF images—such as 16-bit captures—into
+10-bit or 12-bit JPEGs preserves smooth gradients and dynamic range
+while reducing file size. This guide covers how to execute these
+conversions using ImageMagick command-line tools, the underlying
+software requirements for deep-color JPEG encoding, and how to verify
+your output files.</p>
+<h3 id="understanding-jpeg-bit-depths">Understanding JPEG Bit
+Depths</h3>
+<p>Standard baseline JPEG (ISO/IEC 10918-1) is restricted to 8-bit
+precision. The standard also defines an extended sequential discrete
+cosine transform (DCT) mode that supports 12-bit precision.</p>
+<p>Because traditional JPEG standards define 8-bit and 12-bit modes,
+there is no discrete 10-bit specification for standard <code>.jpg</code>
+files. When requesting 10-bit precision, you must either scale it into a
+12-bit container or target modern formats like JPEG 2000
+(<code>.jp2</code>) or JPEG XL (<code>.jxl</code>), which natively
+support 10-bit data.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To handle deep-color conversions, your ImageMagick installation must
+meet two criteria:</p>
+<ol type="1">
+<li><strong>High Quantum Build:</strong> ImageMagick must be compiled
+with <code>Q16</code> or <code>Q32</code> (standard or HDRI). An 8-bit
+build (<code>Q8</code>) will downsample images immediately upon
+loading.</li>
+<li><strong>12-bit Delegate Support:</strong> The underlying JPEG
+library (such as <code>libjpeg</code> or <code>libjpeg-turbo</code>)
+must be compiled with 12-bit support enabled.</li>
+</ol>
+<p>Verify your ImageMagick build by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Ensure the output contains <code>Q16</code> or <code>Q32</code> in
+the features list.</p>
+<h3 id="converting-tiff-to-12-bit-jpeg">Converting TIFF to 12-Bit
+JPEG</h3>
+<p>To convert a 16-bit TIFF directly into an extended 12-bit JPEG, use
+the <code>-depth</code> flag set to <code>12</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff <span class="at">-depth</span> 12 output_12bit.jpg</span></code></pre></div>
+<p>To preserve maximum fidelity, define the compression quality and
+retain the original color profile:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff <span class="at">-quality</span> 95 <span class="at">-depth</span> 12 output_12bit.jpg</span></code></pre></div>
+<p>If the underlying JPEG delegate was not compiled with 12-bit support,
+ImageMagick will issue an error or default back to 8-bit encoding.</p>
+<h3 id="converting-tiff-to-10-bit">Converting TIFF to 10-Bit</h3>
+<p>Because traditional JPEG delegates do not write true 10-bit
+streams:</p>
+<h4 id="option-a-package-10-bit-data-in-a-12-bit-jpeg">Option A: Package
+10-bit Data in a 12-bit JPEG</h4>
+<p>Setting <code>-depth 10</code> instructs ImageMagick to quantize the
+data to 10 bits, but the writer will store the values within a 12-bit
+JPEG structure:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff <span class="at">-depth</span> 10 output_10bit_in_12bit.jpg</span></code></pre></div>
+<h4 id="option-b-target-jpeg-2000-for-true-10-bit-storage">Option B:
+Target JPEG 2000 for True 10-Bit Storage</h4>
+<p>If your target workflow requires a strictly defined 10-bit file
+rather than a padded 12-bit container, output to JPEG 2000 using the
+OpenJPEG delegate:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff <span class="at">-depth</span> 10 output_10bit.jp2</span></code></pre></div>
+<h3 id="verifying-the-output-file">Verifying the Output File</h3>
+<p>To verify that the resulting file retained the expected bit depth,
+run ImageMagick's <code>identify</code> tool:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output_12bit.jpg</span></code></pre></div>
+<p>Locate the <code>Depth:</code> field in the output. A successfully
+converted file will report:</p>
+<pre class="text"><code>Depth: 12-bit</code></pre></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

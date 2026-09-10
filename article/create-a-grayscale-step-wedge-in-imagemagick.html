@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Grayscale Step Wedge in ImageMagick - magick</title>
+    <meta name="description" content="Creating an exact step wedge of grayscale intensities is essential for calibrating imaging hardware, testing dynamic range, and verifying color profiles. This guide demonstrates how to generate mathematically precise grayscale step wedges using ImageMagi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-a-grayscale-step-wedge-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create a Grayscale Step Wedge in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-a-grayscale-step-wedge-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating an exact step wedge of grayscale intensities is essential for calibrating imaging hardware, testing dynamic range, and verifying color profiles. This guide demonstrates how to generate mathematically precise grayscale step wedges using ImageMagi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-a-grayscale-step-wedge-in-imagemagick">Create a Grayscale
+Step Wedge in ImageMagick</h1>
+<p>Creating an exact step wedge of grayscale intensities is essential
+for calibrating imaging hardware, testing dynamic range, and verifying
+color profiles. This guide demonstrates how to generate mathematically
+precise grayscale step wedges using ImageMagick's command-line tools,
+covering both evenly distributed linear steps and custom, manually
+defined patches.</p>
+<h2
+id="method-1-using-gradients-and-point-sampling-best-for-even-steps">Method
+1: Using Gradients and Point Sampling (Best for Even Steps)</h2>
+<p>The fastest and most accurate way to create an evenly spaced step
+wedge is to generate a 1-pixel-tall linear gradient containing the exact
+number of desired steps, then scale it up using point/box sampling
+(<code>-scale</code> or <code>-sample</code>) to prevent
+interpolation.</p>
+<h3 id="11-step-wedge-0-to-100-in-10-increments">11-Step Wedge (0% to
+100% in 10% Increments)</h3>
+<p>To create an 11-step horizontal wedge (from pure black to pure white)
+scaled to 1100 pixels wide by 200 pixels high:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 11x1 gradient:black-white <span class="at">-scale</span> 1100x200! step_wedge_11.png</span></code></pre></div>
+<ul>
+<li><code>-size 11x1</code>: Defines the image canvas as 11 pixels wide
+by 1 pixel tall, ensuring exactly 11 distinct discrete value
+points.</li>
+<li><code>gradient:black-white</code>: Generates a linear transition
+from <code>#000000</code> to <code>#FFFFFF</code>.</li>
+<li><code>-scale 1100x200!</code>: Resizes the 11-pixel strip to
+1100×200 pixels using box sampling (no blur or anti-aliasing between
+steps), allocating 100 horizontal pixels per step.</li>
+</ul>
+<h3 id="21-step-wedge-5-increments">21-Step Wedge (5% Increments)</h3>
+<p>For a 21-step wedge (0%, 5%, 10%, ..., 100%):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 21x1 gradient:black-white <span class="at">-scale</span> 1050x200! step_wedge_21.png</span></code></pre></div>
+<h3 id="vertical-step-wedge">Vertical Step Wedge</h3>
+<p>To create a vertical wedge instead of horizontal, generate a
+1-pixel-wide canvas and scale it vertically:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1x11 gradient:white-black <span class="at">-scale</span> 200x1100! step_wedge_vertical.png</span></code></pre></div>
+<hr />
+<h2
+id="method-2-appending-explicit-intensity-values-best-for-custom-steps">Method
+2: Appending Explicit Intensity Values (Best for Custom Steps)</h2>
+<p>If you need specific, non-linear values (such as standard optical
+density steps, gamma-corrected targets, or irregular intervals), create
+individual color swatches and append them horizontally.</p>
+<h3 id="example-using-percentages">Example Using Percentages</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:gray0% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:gray18% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:gray50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:gray75% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:gray100% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  +append step_wedge_custom.png</span></code></pre></div>
+<ul>
+<li><code>xc:grayX%</code>: Sets a specific constant color intensity
+using percentage values.</li>
+<li><code>+append</code>: Joins all created canvases horizontally
+side-by-side.</li>
+</ul>
+<h3 id="example-using-8-bit-integer-intensities-0255">Example Using
+8-bit Integer Intensities (0–255)</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:<span class="st">&quot;rgb(0,0,0)&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:<span class="st">&quot;rgb(64,64,64)&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:<span class="st">&quot;rgb(128,128,128)&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:<span class="st">&quot;rgb(192,192,192)&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 100x200 xc:<span class="st">&quot;rgb(255,255,255)&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  +append step_wedge_8bit.png</span></code></pre></div>
+<hr />
+<h2 id="verifying-step-accuracy">Verifying Step Accuracy</h2>
+<p>To verify that the generated image contains the exact intended
+intensity values, run ImageMagick's histogram or unique color
+analyzer:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> step_wedge_11.png <span class="at">-unique-colors</span> <span class="at">-depth</span> 8 txt:-</span></code></pre></div>
+<p>This output lists every distinct RGB and grayscale value present in
+the image along with their exact hex codes and coordinate positions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

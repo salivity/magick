@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scale Animated GIFs in ImageMagick - magick</title>
+    <meta name="description" content="Resizing an animated GIF while preserving its animation requires handling individual frames properly to prevent visual artifacts and distortion. This guide provides the exact ImageMagick syntax to scale all frames of an animated GIF to fit within a speci">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/scale-animated-gifs-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Scale Animated GIFs in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/scale-animated-gifs-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Resizing an animated GIF while preserving its animation requires handling individual frames properly to prevent visual artifacts and distortion. This guide provides the exact ImageMagick syntax to scale all frames of an animated GIF to fit within a speci" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="scale-animated-gifs-in-imagemagick">Scale Animated GIFs in
+ImageMagick</h1>
+<p>Resizing an animated GIF while preserving its animation requires
+handling individual frames properly to prevent visual artifacts and
+distortion. This guide provides the exact ImageMagick syntax to scale
+all frames of an animated GIF to fit within a specific bounding box
+while maintaining the aspect ratio, along with an explanation of each
+parameter used in the command.</p>
+<h3 id="the-command-syntax">The Command Syntax</h3>
+<p>To scale an animated GIF so that it fits inside a specific bounding
+box (for example, 500x500 pixels), use the following syntax in
+ImageMagick:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-resize</span> 500x500<span class="dt">\&gt;</span> <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<p><em>(Note: In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<hr />
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ol type="1">
+<li><p><strong><code>input.gif</code></strong><br />
+The source animated GIF file.</p></li>
+<li><p><strong><code>-coalesce</code></strong><br />
+Animated GIFs often use frame disposal methods that only store the
+differences between consecutive frames to save space. The
+<code>-coalesce</code> option rebuilds each frame completely to its full
+visual state before resizing. Skipping this step often results in broken
+or distorted animations after scaling.</p></li>
+<li><p><strong><code>-resize 500x500\&gt;</code></strong><br />
+Specifies the target bounding box dimensions (Width x Height).</p>
+<ul>
+<li>By default, <code>-resize 500x500</code> scales the image so that
+the longest side fits within 500 pixels while strictly preserving the
+aspect ratio.</li>
+<li>The <code>\&gt;</code> symbol ensures the image is only downscaled
+if it is larger than the bounding box. If you are using Windows Command
+Prompt instead of Bash, omit the backslash and use
+<code>"500x500&gt;"</code>.</li>
+</ul></li>
+<li><p><strong><code>-layers Optimize</code></strong><br />
+After resizing, the frames are re-optimized to reduce file size by
+discarding redundant pixel data between frames. This replaces the older
+<code>-deconstruct</code> parameter and ensures the output file size
+remains as small as possible.</p></li>
+<li><p><strong><code>output.gif</code></strong><br />
+The name of the generated, scaled GIF.</p></li>
+</ol>
+<hr />
+<h3 id="geometry-variations-for-bounding-boxes">Geometry Variations for
+Bounding Boxes</h3>
+<p>Depending on your scaling requirements, you can modify the geometry
+string:</p>
+<ul>
+<li><strong>Fit within box (shrink only):</strong>
+<code>500x500\&gt;</code> (Only resizes if larger than 500x500)</li>
+<li><strong>Fit within box (shrink or enlarge):</strong>
+<code>500x500</code> (Resizes larger images down and smaller images up
+to fit)</li>
+<li><strong>Fit to fixed width:</strong> <code>500x</code> (Maintains
+aspect ratio based on width)</li>
+<li><strong>Fit to fixed height:</strong> <code>x500</code> (Maintains
+aspect ratio based on height)</li>
+<li><strong>Force exact bounding box (ignore aspect ratio):</strong>
+<code>500x500\!</code></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

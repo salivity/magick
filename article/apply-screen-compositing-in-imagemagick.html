@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Screen Compositing in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a quick guide on how to lighten overlapping images using the Screen compositing mode in ImageMagick. You will learn the basic command-line syntax for applying the Screen blend operation, how the blend mode works mathematically to br">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-screen-compositing-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Screen Compositing in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-screen-compositing-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick guide on how to lighten overlapping images using the Screen compositing mode in ImageMagick. You will learn the basic command-line syntax for applying the Screen blend operation, how the blend mode works mathematically to br" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-screen-compositing-in-imagemagick">Apply Screen
+Compositing in ImageMagick</h1>
+<p>This article provides a quick guide on how to lighten overlapping
+images using the Screen compositing mode in ImageMagick. You will learn
+the basic command-line syntax for applying the Screen blend operation,
+how the blend mode works mathematically to brighten pixels, and how to
+control the intensity of the blend using opacity adjustments.</p>
+<hr />
+<h3 id="what-is-the-screen-composite-mode">What is the Screen Composite
+Mode?</h3>
+<p>The Screen blend mode multiplies the inverse of the base and overlay
+image colors, then inverts the result. This always produces a color that
+is lighter than or equal to both input images.</p>
+<ul>
+<li><strong>Black pixels</strong> in the overlay produce no change
+(acting as transparent).</li>
+<li><strong>White pixels</strong> in the overlay result in pure
+white.</li>
+<li><strong>Mid-tones</strong> lighten the underlying image based on
+their luminosity.</li>
+</ul>
+<h3 id="basic-screen-blending-command">Basic Screen Blending
+Command</h3>
+<p>In ImageMagick version 7, you combine images using the
+<code>magick</code> command with the <code>-compose Screen</code> and
+<code>-composite</code> operators.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> Screen <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><code>base.png</code>: The background layer.</li>
+<li><code>overlay.png</code>: The layer placed on top to brighten the
+background.</li>
+<li><code>-compose Screen</code>: Sets the compositing operator to
+Screen.</li>
+<li><code>-composite</code>: Executes the blend between the two loaded
+images.</li>
+<li><code>output.png</code>: The resulting blended image.</li>
+</ul>
+<h4 id="legacy-syntax-imagemagick-v6">Legacy Syntax (ImageMagick
+v6)</h4>
+<p>If you are using ImageMagick v6, you can use either the
+<code>convert</code> or <code>composite</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> base.png overlay.png <span class="at">-compose</span> Screen <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>Or using the dedicated <code>composite</code> tool (note the argument
+order where the overlay comes first):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">composite</span> <span class="at">-compose</span> Screen overlay.png base.png output.png</span></code></pre></div>
+<hr />
+<h3 id="adjusting-the-intensity-of-the-screen-effect">Adjusting the
+Intensity of the Screen Effect</h3>
+<p>If the Screen effect is too strong, you can reduce the opacity of the
+overlay image before blending it onto the base.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png <span class="er">(</span> <span class="ex">overlay.png</span> <span class="at">-alpha</span> set <span class="at">-channel</span> A <span class="at">-evaluate</span> multiply 0.5 +channel <span class="kw">)</span> <span class="ex">-compose</span> Screen <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><code>( ... )</code>: Groups the overlay image operations isolated
+from the base image.</li>
+<li><code>-alpha set</code>: Ensures the overlay image has an alpha
+channel.</li>
+<li><code>-channel A -evaluate multiply 0.5 +channel</code>: Lowers the
+transparency to 50%, reducing the overall brightness contribution of the
+overlay.</li>
+</ul>
+<hr />
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><strong>Light Leaks and Lens Flares:</strong> Adding lighting
+effects saved against black backgrounds onto a photograph.</li>
+<li><strong>Double Exposures:</strong> Blending high-contrast images to
+create artistic overlays.</li>
+<li><strong>Texture Overlays:</strong> Adding dust, scratches, or paper
+textures without darkening the underlying image.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

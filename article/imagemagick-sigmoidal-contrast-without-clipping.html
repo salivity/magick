@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Sigmoidal Contrast Without Clipping - magick</title>
+    <meta name="description" content="This article explains how the ImageMagick sigmoidal-contrast operator enhances image contrast while protecting highlights and shadows from clipping. By replacing standard linear scaling with an S-shaped non-linear mathematical curve, this tool increases">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-sigmoidal-contrast-without-clipping">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Sigmoidal Contrast Without Clipping - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-sigmoidal-contrast-without-clipping" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the ImageMagick sigmoidal-contrast operator enhances image contrast while protecting highlights and shadows from clipping. By replacing standard linear scaling with an S-shaped non-linear mathematical curve, this tool increases" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-sigmoidal-contrast-without-clipping">ImageMagick
+Sigmoidal Contrast Without Clipping</h1>
+<p>This article explains how the ImageMagick
+<code>sigmoidal-contrast</code> operator enhances image contrast while
+protecting highlights and shadows from clipping. By replacing standard
+linear scaling with an S-shaped non-linear mathematical curve, this tool
+increases dynamic punch in the midtones while smoothly rolling off
+extreme values, ensuring bright details remain intact without blowing
+out to pure white.</p>
+<h3 id="the-problem-with-linear-contrast">The Problem with Linear
+Contrast</h3>
+<p>Standard contrast adjustments apply a linear multiplier to pixel
+values centered around a midpoint. In a linear adjustment, pixels
+brighter than the midpoint are pushed upward proportionally, while
+darker pixels are pushed downward.</p>
+<p>Because digital color spaces have strict upper bounds (such as 255 in
+8-bit channels or 1.0 in normalized space), pixels that exceed the
+maximum value are truncated—a process known as clipping. This results in
+harsh, blown-out highlights where all subtle texture and detail are
+replaced with flat, pure white.</p>
+<h3 id="how-the-sigmoidal-function-works">How the Sigmoidal Function
+Works</h3>
+<p>ImageMagick's <code>sigmoidal-contrast</code> operator uses a
+continuous, non-linear logistic function (an S-curve) rather than a
+linear slope. The mathematical transformation maps an input value <span
+class="math inline">\(x\)</span> in the range <span
+class="math inline">\([0, 1]\)</span> to an output value <span
+class="math inline">\(y\)</span> in the range <span
+class="math inline">\([0, 1]\)</span> using two user-defined parameters:
+<strong>contrast</strong> (<span class="math inline">\(\alpha\)</span>)
+and <strong>midpoint</strong> (<span
+class="math inline">\(\beta\)</span>).</p>
+<p>The formula shifts the dynamic range based on these rules:</p>
+<ol type="1">
+<li><strong>Midpoint (<span
+class="math inline">\(\beta\)</span>):</strong> Defines the inflection
+point of the curve (commonly set to 50%). At this value, the curve is at
+its steepest slope.</li>
+<li><strong>Contrast (<span
+class="math inline">\(\alpha\)</span>):</strong> Determines the
+steepness of the curve around the midpoint. Higher values create a
+sharper transition in the midtones.</li>
+</ol>
+<h3 id="why-highlights-never-clip">Why Highlights Never Clip</h3>
+<p>The preservation of highlight details relies on the asymptotic nature
+of the sigmoid function at the extremes of the spectrum:</p>
+<ul>
+<li><strong>Variable Slope:</strong> In a sigmoidal curve, the
+derivative (rate of change) is highest at the midpoint and gradually
+flattens as it approaches zero (black) and one (white).</li>
+<li><strong>Asymptotic Compression (Shoulder Roll-Off):</strong> As
+pixel values approach maximum brightness, the curve gently bends into a
+horizontal slope known as the "shoulder." Extremely bright pixels are
+compressed closer together rather than pushed past the maximum
+limit.</li>
+<li><strong>Strict Range Mapping:</strong> The mathematical output of
+the sigmoid curve never exceeds <span class="math inline">\(1.0\)</span>
+or drops below <span class="math inline">\(0.0\)</span> for any valid
+input. Every distinct highlight value in the input image maps to a
+unique, preserved value in the output, preventing flat white
+cutoffs.</li>
+</ul>
+<h3 id="command-syntax">Command Syntax</h3>
+<p>In ImageMagick, the operator is called using:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-sigmoidal-contrast</span> 6,50% output.jpg</span></code></pre></div>
+<ul>
+<li>The first number (<code>6</code>) represents the contrast
+factor.</li>
+<li>The second number (<code>50%</code>) sets the midpoint
+threshold.</li>
+</ul>
+<p>Using the <code>+sigmoidal-contrast</code> variant reverses the
+curve, compressing midtones while expanding shadows and highlights,
+which can be used to recover dynamic range in high-contrast images.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

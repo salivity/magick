@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick OpenMP Thread Contention on NUMA - magick</title>
+    <meta name="description" content="Executing ImageMagick using OpenMP across multi-socket Non-Uniform Memory Access (NUMA) architectures frequently introduces severe thread contention, high interconnect latency, and degraded scaling. Because ImageMagick parallelizes pixel-processing loops">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-openmp-thread-contention-on-numa">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick OpenMP Thread Contention on NUMA - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-openmp-thread-contention-on-numa" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Executing ImageMagick using OpenMP across multi-socket Non-Uniform Memory Access (NUMA) architectures frequently introduces severe thread contention, high interconnect latency, and degraded scaling. Because ImageMagick parallelizes pixel-processing loops" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-openmp-thread-contention-on-numa">ImageMagick OpenMP
+Thread Contention on NUMA</h1>
+<p>Executing ImageMagick using OpenMP across multi-socket Non-Uniform
+Memory Access (NUMA) architectures frequently introduces severe thread
+contention, high interconnect latency, and degraded scaling. Because
+ImageMagick parallelizes pixel-processing loops across all detected
+logical cores by default, scaling across physical socket boundaries
+causes CPU cores to compete for shared memory buses and cache lines.
+Achieving optimal throughput requires understanding the mechanics of
+remote memory access, cache coherency overhead, and explicit thread and
+process affinity controls.</p>
+<h3 id="the-problem-of-cross-socket-memory-latency">The Problem of
+Cross-Socket Memory Latency</h3>
+<p>In a multi-socket NUMA system, each CPU socket controls its own local
+memory channels. When ImageMagick initializes an OpenMP parallel region,
+memory for the source and destination image buffers is typically
+allocated on the NUMA node where the initial thread resides.</p>
+<p>As OpenMP distributes chunked pixel rows across threads spanning
+multiple sockets:</p>
+<ul>
+<li><strong>Remote Access Latency:</strong> Threads executing on remote
+sockets must traverse the inter-socket interconnect (such as Intel UPI
+or AMD Infinity Fabric) to read source pixels and write modified data.
+Remote memory accesses incur significantly higher latency and lower
+bandwidth than local accesses.</li>
+<li><strong>Interconnect Saturation:</strong> Image processing is
+predominantly memory-bandwidth-bound rather than compute-bound.
+Saturating the inter-socket interconnect with raw pixel data creates a
+major system bottleneck, causing CPU execution pipelines to stall while
+waiting for data fetches.</li>
+</ul>
+<h3 id="cache-coherency-and-false-sharing">Cache Coherency and False
+Sharing</h3>
+<p>ImageMagick loops often operate on consecutive scanlines or adjacent
+pixel blocks. When threads on different sockets process data structures
+located within the same 64-byte cache line:</p>
+<ul>
+<li><strong>Cache Line Invalidation:</strong> Updating a pixel value
+causes the corresponding cache line to be marked invalid across all
+other processor caches via the cache coherency protocol (e.g.,
+MESI/MOESI).</li>
+<li><strong>Bus Contention:</strong> The cache line must continuously
+bounce back and forth between physical sockets. This phenomenon, known
+as false sharing, severely magnifies cross-socket traffic, introducing
+CPU pipeline stalls and high thread contention even when threads work on
+logically distinct pixels.</li>
+</ul>
+<h3 id="barrier-synchronization-and-tail-latency">Barrier
+Synchronization and Tail Latency</h3>
+<p>OpenMP loops in ImageMagick generally end with an implicit barrier
+where all participating threads must synchronize before moving to the
+next pipeline stage.</p>
+<ul>
+<li>Because threads on remote NUMA nodes take longer to finish their
+assigned pixel blocks due to memory latency disparities, faster local
+threads sit idle at the synchronization barrier.</li>
+<li>Tail latency from a single cross-socket straggler thread effectively
+bounds the entire operation to the speed of the slowest memory
+path.</li>
+</ul>
+<h3 id="mitigation-and-optimization-strategies">Mitigation and
+Optimization Strategies</h3>
+<p>To minimize thread contention and maximize performance on
+multi-socket servers, you must constrain thread placement and memory
+topology:</p>
+<ol type="1">
+<li><strong>Limit Thread Counts per Process:</strong> Setting
+<code>OMP_NUM_THREADS</code> or the ImageMagick configuration variable
+<code>MAGICK_THREAD_LIMIT</code> to the number of physical cores on a
+single NUMA node prevents OpenMP from scheduling work across socket
+boundaries.</li>
+<li><strong>Apply Process Pinning via <code>numactl</code>:</strong>
+Pinning an ImageMagick execution to a single NUMA node binds both
+execution threads and memory allocations locally:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">numactl</span> <span class="at">--cpunodebind</span><span class="op">=</span>0 <span class="at">--membind</span><span class="op">=</span>0 magick input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div></li>
+<li><strong>Configure OpenMP Thread Affinity:</strong> Explicitly
+enforce thread binding using standard OpenMP environment variables to
+prevent thread migration across cores and sockets:
+<ul>
+<li><code>OMP_PROC_BIND=close</code> keeps threads clustered near the
+primary thread.</li>
+<li><code>OMP_PLACES=cores</code> ensures each thread maps directly to
+an individual physical execution core.</li>
+</ul></li>
+<li><strong>Scale Horizontally Instead of Vertically:</strong> In
+high-throughput environments (such as web servers or batch conversion
+pipelines), optimal resource utilization is achieved by running multiple
+independent ImageMagick processes pinned to individual NUMA nodes,
+rather than running a single multi-threaded process across all
+sockets.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

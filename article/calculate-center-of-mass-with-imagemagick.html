@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Center of Mass with ImageMagick - magick</title>
+    <meta name="description" content="Calculating the center of mass (or centroid) of an isolated object is a standard computer vision task used to determine the balance point or positional anchor of a shape. This guide explains how to preprocess an image to isolate a target object and use I">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/calculate-center-of-mass-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Calculate Center of Mass with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/calculate-center-of-mass-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Calculating the center of mass (or centroid) of an isolated object is a standard computer vision task used to determine the balance point or positional anchor of a shape. This guide explains how to preprocess an image to isolate a target object and use I" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="calculate-center-of-mass-with-imagemagick">Calculate Center of
+Mass with ImageMagick</h1>
+<p>Calculating the center of mass (or centroid) of an isolated object is
+a standard computer vision task used to determine the balance point or
+positional anchor of a shape. This guide explains how to preprocess an
+image to isolate a target object and use ImageMagick's built-in moment
+analysis tools to calculate and extract its precise center of mass
+coordinates.</p>
+<hr />
+<h3 id="step-1-preprocess-the-image-into-a-binary-mask">Step 1:
+Preprocess the Image into a Binary Mask</h3>
+<p>The center of mass is calculated based on pixel intensity weights. To
+calculate the geometric centroid of an isolated object, the object
+should be represented as solid white (intensity value 1) against a solid
+black background (intensity value 0).</p>
+<p>Run the following command to convert the image to grayscale and apply
+a threshold:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% mask.png</span></code></pre></div>
+<p><em>Note: If the target object is dark on a light background, add the
+<code>-negate</code> flag to invert the colors so the object becomes
+white.</em></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-negate</span> mask.png</span></code></pre></div>
+<hr />
+<h3 id="step-2-compute-moments-and-extract-centroid-coordinates">Step 2:
+Compute Moments and Extract Centroid Coordinates</h3>
+<p>ImageMagick provides the <code>-moments</code> operator, which
+calculates raw and normalized image moments. The centroid coordinates
+<span class="math inline">\((X_c, Y_c)\)</span> correspond to the ratio
+of the first-order spatial moments to the zero-order moment (<span
+class="math inline">\(M_{10}/M_{00}\)</span> and <span
+class="math inline">\(M_{01}/M_{00}\)</span>).</p>
+<p>To display the computed moments for the image, run:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mask.png <span class="at">-moments</span> <span class="at">-identify</span> null:</span></code></pre></div>
+<p>Look for the <code>Centroid:</code> line under the channel moment
+statistics in the output:</p>
+<pre class="text"><code>Image moments:
+  Channel 0:
+    Centroid: 142.35, 98.62</code></pre>
+<p>In this example, the center of mass for the object is located at
+<span class="math inline">\(X = 142.35\)</span> and <span
+class="math inline">\(Y = 98.62\)</span>.</p>
+<hr />
+<h3 id="step-3-run-as-a-single-line-pipeline">Step 3: Run as a
+Single-Line Pipeline</h3>
+<p>You can combine the preprocessing and coordinate extraction into a
+single command without creating intermediate files.</p>
+<p>For ImageMagick 7 on Unix-like systems (Linux/macOS):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-moments</span> info: <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-m</span> 1 <span class="st">&quot;Centroid:&quot;</span></span></code></pre></div>
+<p>For ImageMagick 6:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-moments</span> <span class="at">-verbose</span> info: <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-m</span> 1 <span class="st">&quot;Centroid:&quot;</span></span></code></pre></div>
+<hr />
+<h3 id="step-4-verify-the-coordinates-visually">Step 4: Verify the
+Coordinates Visually</h3>
+<p>To verify the calculated center of mass, draw a marker (such as a
+small colored circle) at the coordinates on the original image:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> red <span class="at">-stroke</span> red <span class="at">-draw</span> <span class="st">&quot;circle 142.35,98.62 142.35,101.62&quot;</span> verified.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

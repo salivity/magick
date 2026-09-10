@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Transverse vs Vertical Flip - magick</title>
+    <meta name="description" content="ImageMagick provides several geometric operators to manipulate image orientation, with -flip and -transverse representing two distinct types of reflections. A simple vertical flip reflects pixels exclusively across the horizontal centerline without modif">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-transverse-vs-vertical-flip">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Transverse vs Vertical Flip - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-transverse-vs-vertical-flip" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides several geometric operators to manipulate image orientation, with -flip and -transverse representing two distinct types of reflections. A simple vertical flip reflects pixels exclusively across the horizontal centerline without modif" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-transverse-vs-vertical-flip">ImageMagick Transverse
+vs Vertical Flip</h1>
+<p>ImageMagick provides several geometric operators to manipulate image
+orientation, with <code>-flip</code> and <code>-transverse</code>
+representing two distinct types of reflections. A simple vertical flip
+reflects pixels exclusively across the horizontal centerline without
+modifying the image's canvas dimensions. In contrast, a transverse
+transformation reflects an image across its bottom-left to top-right
+anti-diagonal, simultaneously inverting axes and swapping the canvas
+width and height. This article breaks down how ImageMagick executes
+these two operations at the pixel and matrix levels, detailing
+coordinate mapping, aspect ratio changes, and computational
+differences.</p>
+<h3 id="the-mechanics-of-a-simple-vertical-flip--flip">The Mechanics of
+a Simple Vertical Flip (<code>-flip</code>)</h3>
+<p>In ImageMagick, the <code>-flip</code> operator executes a standard
+vertical reflection. It scans the source image along the vertical axis
+and swaps the scanlines from top to bottom while leaving the horizontal
+axis completely untouched.</p>
+<ul>
+<li><strong>Coordinate Transformation:</strong> A pixel located at
+coordinates <span class="math inline">\((x, y)\)</span> in an image with
+width <span class="math inline">\(W\)</span> and height <span
+class="math inline">\(H\)</span> is mapped directly to <span
+class="math inline">\((x, H - 1 - y)\)</span>.</li>
+<li><strong>Dimensional Impact:</strong> The output dimensions remain
+identical to the input dimensions (<span class="math inline">\(W \times
+H\)</span>).</li>
+<li><strong>Memory Handling:</strong> Because entire horizontal
+scanlines remain intact, ImageMagick can process a vertical flip with
+relatively low memory overhead by swapping row pointers or copying rows
+in reverse order without transposing pixel buffers.</li>
+</ul>
+<p>Command syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-flip</span> output.png</span></code></pre></div>
+<h3 id="the-mechanics-of-a-transverse-transformation--transverse">The
+Mechanics of a Transverse Transformation (<code>-transverse</code>)</h3>
+<p>The <code>-transverse</code> operator performs a reflection across
+the secondary diagonal (the anti-diagonal line extending from the
+bottom-left corner to the top-right corner of the image canvas).</p>
+<ul>
+<li><strong>Coordinate Transformation:</strong> A pixel at coordinate
+<span class="math inline">\((x, y)\)</span> is remapped to <span
+class="math inline">\((H - 1 - y, W - 1 - x)\)</span>. Both spatial
+coordinates are inverted and swapped.</li>
+<li><strong>Dimensional Impact:</strong> The image's aspect ratio
+changes if the source is rectangular. An image with dimensions <span
+class="math inline">\(W \times H\)</span> becomes <span
+class="math inline">\(H \times W\)</span>.</li>
+<li><strong>Compound Equivalence:</strong> In terms of standard affine
+operations, a transverse transformation is functionally identical to
+rotating the image 270 degrees clockwise and then applying a vertical
+flip (<code>-rotate 270 -flip</code>), or rotating 90 degrees clockwise
+and applying a horizontal flip (<code>-rotate 90 -flop</code>).</li>
+<li><strong>Memory Handling:</strong> Because pixels along horizontal
+rows must be relocated into vertical columns, the operation requires
+non-contiguous memory access or full buffer transposition, making it
+more computationally intensive than a single-axis flip.</li>
+</ul>
+<p>Command syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-transverse</span> output.png</span></code></pre></div>
+<h3 id="key-differences-summary">Key Differences Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Vertical Flip (<code>-flip</code>)</th>
+<th style="text-align: left;">Transverse (<code>-transverse</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Reflection Axis</strong></td>
+<td style="text-align: left;">Horizontal axis (<span
+class="math inline">\(Y = H / 2\)</span>)</td>
+<td style="text-align: left;">Anti-diagonal (bottom-left to
+top-right)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Axis Inversion</strong></td>
+<td style="text-align: left;">Vertical axis only</td>
+<td style="text-align: left;">Both horizontal and vertical axes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Coordinate Mapping</strong></td>
+<td style="text-align: left;"><span class="math inline">\((x, y) \to (x,
+H - 1 - y)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\((x, y) \to (H
+- 1 - y, W - 1 - x)\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Canvas Dimensions</strong></td>
+<td style="text-align: left;">Preserved (<span class="math inline">\(W
+\times H\)</span>)</td>
+<td style="text-align: left;">Transposed (<span class="math inline">\(H
+\times W\)</span>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Equivalent Steps</strong></td>
+<td style="text-align: left;">Single-step mirror</td>
+<td style="text-align: left;">90° rotation + horizontal reflection</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhance Faded Handwriting Using ImageMagick - magick</title>
+    <meta name="description" content="Digitizing historical documents often reveals faded, low-contrast handwriting that is difficult to read or process with optical character recognition (OCR). ImageMagick provides a powerful suite of command-line tools to isolate ink pigments, eliminate ba">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/enhance-faded-handwriting-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Enhance Faded Handwriting Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/enhance-faded-handwriting-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Digitizing historical documents often reveals faded, low-contrast handwriting that is difficult to read or process with optical character recognition (OCR). ImageMagick provides a powerful suite of command-line tools to isolate ink pigments, eliminate ba" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="enhance-faded-handwriting-using-imagemagick">Enhance Faded
+Handwriting Using ImageMagick</h1>
+<p>Digitizing historical documents often reveals faded, low-contrast
+handwriting that is difficult to read or process with optical character
+recognition (OCR). ImageMagick provides a powerful suite of command-line
+tools to isolate ink pigments, eliminate background yellowing, and
+increase text contrast. This guide explains how to enhance faint strokes
+on aged paper using color channel extraction, level adjustments,
+adaptive thresholding, and morphological filters.</p>
+<h3 id="1-convert-to-grayscale-and-maximize-dynamic-range">1. Convert to
+Grayscale and Maximize Dynamic Range</h3>
+<p>Aging paper usually yellows or browns over time, reducing the
+contrast between the ink and the background. Converting the image to
+grayscale and stretching the dynamic range is the first step toward
+boosting readability.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-auto-level</span> output_autolevel.png</span></code></pre></div>
+<ul>
+<li><code>-colorspace Gray</code> removes distracting paper
+discoloration.</li>
+<li><code>-auto-level</code> stretches the pixel values to span the full
+range from pure black to pure white.</li>
+</ul>
+<h3 id="2-isolate-ink-via-specific-color-channels">2. Isolate Ink via
+Specific Color Channels</h3>
+<p>Faded iron gall or carbon inks often retain more contrast in specific
+color channels. Extracting the green or blue channel typically
+suppresses paper foxing and background stains while keeping the text
+dark.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-channel</span> Green <span class="at">-separate</span> <span class="at">-contrast-stretch</span> 1%x1% output_channel.png</span></code></pre></div>
+<ul>
+<li><code>-channel Green -separate</code> isolates the green spectrum,
+where faded dark ink is usually most distinct from aged parchment.</li>
+<li><code>-contrast-stretch 1%x1%</code> clips the darkest 1% of pixels
+to black and the lightest 1% to white, significantly darkening faint
+strokes.</li>
+</ul>
+<h3 id="3-handle-uneven-lighting-with-local-adaptive-thresholding">3.
+Handle Uneven Lighting with Local Adaptive Thresholding</h3>
+<p>Historical scans often suffer from uneven lighting, bleed-through, or
+blotches. Standard global thresholding can wipe out faint text in
+lighter areas. Local Adaptive Thresholding evaluates pixels relative to
+their local neighborhood.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-lat</span> 25x25+10% <span class="at">-negate</span> output_lat.png</span></code></pre></div>
+<ul>
+<li><code>25x25</code> defines the pixel window size (adjust according
+to the resolution and font size).</li>
+<li><code>+10%</code> sets the offset threshold value.</li>
+<li><code>-negate</code> inverts the colors before and after to ensure
+text remains dark on a clean white background.</li>
+</ul>
+<h3 id="4-thicken-broken-strokes-with-morphology">4. Thicken Broken
+Strokes with Morphology</h3>
+<p>If the handwriting consists of broken, faint lines, morphological
+dilation can connect gaps and reinforce stroke weight.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-level</span> 20%,80% <span class="at">-morphology</span> Erode Diamond:1 output_thickened.png</span></code></pre></div>
+<ul>
+<li><code>-level 20%,80%</code> increases the steepness of the midtone
+contrast.</li>
+<li><code>-morphology Erode Diamond:1</code> expands darker pixels (the
+text) by one pixel in a diamond pattern, making thin, faded pen strokes
+more legible.</li>
+</ul>
+<h3 id="5-recommended-all-in-one-command-recipe">5. Recommended
+All-in-One Command Recipe</h3>
+<p>For general historical documents with faint ink and yellowed
+parchment, combining channel isolation, unsharp masking, and level
+adjustments yields the best visual result without introducing heavy
+digital artifacts:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> Green <span class="at">-separate</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-unsharp</span> 0x1.5+1.0+0.05 <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-level</span> 15%,75%,0.9 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-despeckle</span> <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  output_restored.png</span></code></pre></div>
+<ul>
+<li><code>-unsharp 0x1.5+1.0+0.05</code> sharpens edge definition around
+faint strokes.</li>
+<li><code>-level 15%,75%,0.9</code> darkens blacks (15%), brightens
+paper (75%), and adjusts gamma (0.9) to bring out mid-tone pen
+marks.</li>
+<li><code>-despeckle</code> removes minor grain noise introduced by
+contrast amplification.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

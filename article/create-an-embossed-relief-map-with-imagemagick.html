@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create an Embossed Relief Map with ImageMagick - magick</title>
+    <meta name="description" content="Creating an embossed relief map transforms a flat heightmap or aerial image into a simulated 3D topographic visualization by applying directional lighting and shadow effects. This guide explains how to use ImageMagick's command-line tools to generate cle">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-an-embossed-relief-map-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create an Embossed Relief Map with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-an-embossed-relief-map-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating an embossed relief map transforms a flat heightmap or aerial image into a simulated 3D topographic visualization by applying directional lighting and shadow effects. This guide explains how to use ImageMagick's command-line tools to generate cle" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-an-embossed-relief-map-with-imagemagick">Create an
+Embossed Relief Map with ImageMagick</h1>
+<p>Creating an embossed relief map transforms a flat heightmap or aerial
+image into a simulated 3D topographic visualization by applying
+directional lighting and shadow effects. This guide explains how to use
+ImageMagick's command-line tools to generate clean, highly customizable
+relief maps using built-in shading, convolution, and image blending
+techniques.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Ensure you have ImageMagick installed on your system. Modern
+installations use the <code>magick</code> command, while legacy versions
+use <code>convert</code>. Prepare a grayscale heightmap or digital
+elevation model (DEM) where lighter shades represent higher elevations
+and darker shades represent valleys.</p>
+<h3 id="method-1-using-the-built-in-emboss-filter">Method 1: Using the
+Built-In Emboss Filter</h3>
+<p>The most direct way to create a basic relief texture is the
+<code>-emboss</code> operator. This applies a directional edge-detection
+convolution matrix to your image.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_dem.png <span class="at">-emboss</span> 2 relief_map.png</span></code></pre></div>
+<p>The numeric argument (e.g., <code>2</code>) controls the radius of
+the embossing effect. Higher values increase the perceived depth of the
+terrain features.</p>
+<h3 id="method-2-realistic-relief-shading-with--shade">Method 2:
+Realistic Relief Shading with <code>-shade</code></h3>
+<p>For true cartographic hillshading, the <code>-shade</code> operator
+yields superior results compared to standard embossing. It allows you to
+define the exact position of the virtual light source.</p>
+<p>The syntax requires setting the light source angle: <strong>Azimuth ×
+Elevation</strong> (degrees):</p>
+<ul>
+<li><strong>Azimuth (0–360):</strong> The direction from which the light
+originates (315° is standard cartographic northwest lighting).</li>
+<li><strong>Elevation (0–90):</strong> The height of the sun above the
+horizon (45° is standard).</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_dem.png <span class="at">-shade</span> 315x45 shaded_relief.png</span></code></pre></div>
+<p>To normalize the contrast and enhance the depth of the terrain:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_dem.png <span class="at">-shade</span> 315x45 <span class="at">-auto-level</span> shaded_relief_enhanced.png</span></code></pre></div>
+<h3 id="method-3-blending-shaded-relief-with-color-textures">Method 3:
+Blending Shaded Relief with Color Textures</h3>
+<p>To create a full-color topographic map, combine the grayscale shaded
+relief layer with a color-coded elevation map or satellite photo.</p>
+<ol type="1">
+<li><p><strong>Generate the shaded relief:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> heightmap.png <span class="at">-shade</span> 315x45 relief.png</span></code></pre></div></li>
+<li><p><strong>Blend the relief with the base texture using Overlay
+composition:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> color_map.png relief.png <span class="at">-compose</span> Overlay <span class="at">-composite</span> final_relief_map.png</span></code></pre></div></li>
+</ol>
+<p>If the shadows are too harsh, adjust the opacity of the relief layer
+before compositing using the <code>-define compose:args</code> parameter
+or by adjusting brightness and contrast:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> color_map.png <span class="dt">\(</span> relief.png <span class="at">-brightness-contrast</span> 0x-20 <span class="dt">\)</span> <span class="at">-compose</span> SoftLight <span class="at">-composite</span> final_relief_map.png</span></code></pre></div>
+<h3 id="complete-one-line-script">Complete One-Line Script</h3>
+<p>You can perform the entire process—from raw heightmap to color-shaded
+relief—in a single ImageMagick command without creating temporary
+intermediate files:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> color_map.png <span class="dt">\(</span> heightmap.png <span class="at">-shade</span> 315x45 <span class="at">-auto-level</span> <span class="dt">\)</span> <span class="at">-compose</span> Overlay <span class="at">-composite</span> output_map.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

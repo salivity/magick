@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick YDbDr in SECAM Video Processing - magick</title>
+    <meta name="description" content="The ImageMagick -colorspace YDbDr option enables direct conversion between standard digital color models and the specific color space used by the SECAM analog television standard. Utilizing this setting is essential for engineers, archivists, and video r">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-ydbdr-in-secam-video-processing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick YDbDr in SECAM Video Processing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-ydbdr-in-secam-video-processing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -colorspace YDbDr option enables direct conversion between standard digital color models and the specific color space used by the SECAM analog television standard. Utilizing this setting is essential for engineers, archivists, and video r" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-ydbdr-in-secam-video-processing">ImageMagick YDbDr
+in SECAM Video Processing</h1>
+<p>The ImageMagick <code>-colorspace YDbDr</code> option enables direct
+conversion between standard digital color models and the specific color
+space used by the SECAM analog television standard. Utilizing this
+setting is essential for engineers, archivists, and video restoration
+specialists who need to accurately simulate, process, or restore legacy
+SECAM video frames. By isolating luminance from SECAM-scaled chrominance
+signals, users can perform precise channel-specific operations that
+mirror real-world broadcast hardware.</p>
+<h3 id="understanding-the-ydbdr-color-model">Understanding the YDbDr
+Color Model</h3>
+<p>YDbDr is the color space natively used by the SECAM (Séquentiel
+Couleur à Mémoire) analog broadcast standard, historically adopted
+across France, Eastern Europe, and parts of Africa.</p>
+<p>In this system:</p>
+<ul>
+<li><strong>Y</strong> represents luminance (perceived brightness),
+derived identically to the Y component in standard YUV or YIQ
+systems.</li>
+<li><strong>Db</strong> represents the blue color difference (<span
+class="math inline">\(D_b \approx 1.505(B&#39; - Y)\)</span>).</li>
+<li><strong>Dr</strong> represents the red color difference (<span
+class="math inline">\(D_r \approx -1.902(R&#39; - Y)\)</span>).</li>
+</ul>
+<p>The unique scaling factors applied to the color-difference components
+in YDbDr were engineered specifically to optimize the frequency
+modulation (FM) carrier limits used by SECAM transmitters.</p>
+<h3 id="channel-specific-filtering-and-noise-reduction">Channel-Specific
+Filtering and Noise Reduction</h3>
+<p>Because SECAM transmits chrominance signals using frequency
+modulation on alternating scanlines, historical SECAM recordings (such
+as analog tapes in VHS, Betamax, or U-matic formats) frequently suffer
+from chrominance-specific artifacts, including tape dropouts, chroma
+delay errors, and severe high-frequency noise.</p>
+<p>Using ImageMagick to transform an RGB frame into YDbDr via
+<code>-colorspace YDbDr</code> isolates the color difference channels
+(<span class="math inline">\(Db\)</span> and <span
+class="math inline">\(Dr\)</span>) from luminance (<span
+class="math inline">\(Y\)</span>). This enables targeted spatial
+processing:</p>
+<ul>
+<li><strong>Chroma Denoising:</strong> Noise filters or blurs can be
+applied solely to the <span class="math inline">\(Db\)</span> and <span
+class="math inline">\(Dr\)</span> channels without softening sharp image
+edges located in the <span class="math inline">\(Y\)</span>
+channel.</li>
+<li><strong>Bandwidth Limiting:</strong> Digital restorations can
+emulate or correct the analog bandwidth limitations unique to SECAM
+chrominance subcarriers.</li>
+</ul>
+<h3 id="emulating-secam-broadcast-characteristics">Emulating SECAM
+Broadcast Characteristics</h3>
+<p>For retro video production and television emulation, recreating
+realistic SECAM aesthetics requires working within the native
+mathematics of the standard. Converting an image to YDbDr allows artists
+and software developers to manipulate the individual subcarriers, apply
+the characteristic SECAM pre-emphasis filtering, or simulate alternating
+line dropouts before converting the frame back to RGB with
+<code>-colorspace sRGB</code>. Attempting these effects in generic YUV
+(YCbCr) leads to incorrect color shifts because the chrominance
+weighting differs substantially.</p>
+<h3 id="workflow-integration">Workflow Integration</h3>
+<p>In an automated digitization pipeline, ImageMagick provides a
+scriptable, command-line interface to apply batch color-space
+conversions across thousands of extracted video frames:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_in.png <span class="at">-colorspace</span> YDbDr <span class="at">-separate</span> chroma_%d.png</span></code></pre></div>
+<p>By supporting YDbDr directly, ImageMagick eliminates the need to
+calculate custom color-transformation matrices, providing a
+mathematically accurate and standards-compliant bridge between modern
+RGB digital frames and vintage SECAM broadcast data.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

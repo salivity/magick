@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiling ImageMagick for AWS Graviton ARM - magick</title>
+    <meta name="description" content="Compiling ImageMagick from source on AWS Graviton processors allows you to leverage architecture-specific hardware capabilities, resulting in significantly higher image processing throughput and lower memory consumption. By tailoring compiler flags to AR">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compiling-imagemagick-for-aws-graviton-arm">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compiling ImageMagick for AWS Graviton ARM - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compiling-imagemagick-for-aws-graviton-arm" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Compiling ImageMagick from source on AWS Graviton processors allows you to leverage architecture-specific hardware capabilities, resulting in significantly higher image processing throughput and lower memory consumption. By tailoring compiler flags to AR" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compiling-imagemagick-for-aws-graviton-arm">Compiling
+ImageMagick for AWS Graviton ARM</h1>
+<p>Compiling ImageMagick from source on AWS Graviton processors allows
+you to leverage architecture-specific hardware capabilities, resulting
+in significantly higher image processing throughput and lower memory
+consumption. By tailoring compiler flags to ARM Neoverse cores and
+selecting the appropriate <code>./configure</code> parameters, you can
+fully exploit SIMD vector instructions, optimize multi-threaded
+performance, and strip unnecessary overhead for cloud production
+workloads.</p>
+<h3 id="compiler-flags-for-arm-architecture">Compiler Flags for ARM
+Architecture</h3>
+<p>Before running <code>./configure</code>, set the <code>CFLAGS</code>
+and <code>CXXFLAGS</code> environment variables to instruct the compiler
+to generate machine code specifically for the underlying Graviton
+microarchitecture.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CFLAGS</span><span class="op">=</span><span class="st">&quot;-O3 -march=native -pipe&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CXXFLAGS</span><span class="op">=</span><span class="st">&quot;-O3 -march=native -pipe&quot;</span></span></code></pre></div>
+<ul>
+<li><strong><code>-O3</code></strong>: Enables aggressive optimization,
+including auto-vectorization using ARM NEON (and SVE on Graviton3 and
+Graviton4).</li>
+<li><strong><code>-march=native</code></strong>: Automatically detects
+and targets the specific Graviton CPU generation running the build. If
+cross-compiling or targeting a specific generation explicitly:
+<ul>
+<li><strong>Graviton2</strong>: Use <code>-mcpu=neoverse-n1</code></li>
+<li><strong>Graviton3</strong>: Use <code>-mcpu=neoverse-v1</code></li>
+<li><strong>Graviton4</strong>: Use <code>-mcpu=neoverse-v2</code></li>
+</ul></li>
+</ul>
+<h3 id="critical-configure-optimization-flags">Critical
+<code>./configure</code> Optimization Flags</h3>
+<p>Execute the <code>./configure</code> script with flags that maximize
+processing speed and remove unused abstractions.</p>
+<h4 id="1-quantum-depth-and-hdri">1. Quantum Depth and HDRI</h4>
+<p>By default, ImageMagick compiles with 16-bit quantum depth and High
+Dynamic Range Imaging (HDRI) enabled, which doubles or quadruples memory
+usage and slows down processing.</p>
+<ul>
+<li><code>--with-quantum-depth=8</code>: If your application primarily
+handles standard web images (JPEG, PNG, WebP), set the quantum depth to
+8. This reduces memory footprint by 50% and improves cache locality on
+ARM cores.</li>
+<li><code>--disable-hdri</code>: Disables floating-point operations for
+color calculations, drastically speeding up transformations when HDR
+precision is not required.</li>
+</ul>
+<h4 id="2-concurrency-and-threading">2. Concurrency and Threading</h4>
+<ul>
+<li><code>--enable-openmp</code>: Ensures OpenMP support is active,
+allowing ImageMagick to distribute pixel calculations across all
+available Graviton vCPUs.</li>
+<li><code>--enable-threads=posix</code>: Utilizes native POSIX threads
+for task scheduling.</li>
+</ul>
+<h4 id="3-stripping-unnecessary-modules">3. Stripping Unnecessary
+Modules</h4>
+<p>Headless cloud environments do not need graphical user interface
+libraries or extra documentation:</p>
+<ul>
+<li><code>--without-x</code>: Disables the X11 window system interface
+to avoid overhead and GUI library dependencies.</li>
+<li><code>--without-dps</code>: Removes Display PostScript support.</li>
+<li><code>--disable-docs</code>: Skips building documentation to
+accelerate compilation times.</li>
+</ul>
+<h3 id="optimized-delegate-libraries">Optimized Delegate Libraries</h3>
+<p>ImageMagick relies on external delegates for core image formats.
+Ensure these delegates are compiled with ARM SIMD support before
+configuring ImageMagick:</p>
+<ul>
+<li><strong>libjpeg-turbo</strong>: Ensure ImageMagick links against
+<code>libjpeg-turbo</code> instead of standard <code>libjpeg</code>.
+<code>libjpeg-turbo</code> contains hand-crafted ARM NEON assembly that
+dramatically speeds up JPEG decompression and compression.</li>
+<li><strong>libpng</strong> and <strong>libwebp</strong>: Both libraries
+contain built-in NEON acceleration that should be enabled during their
+respective builds.</li>
+</ul>
+<h3 id="complete-recommended-configuration-command">Complete Recommended
+Configuration Command</h3>
+<p>Combine these parameters into the following configuration
+command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    CFLAGS=<span class="st">&quot;-O3 -march=native -pipe&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    CXXFLAGS=<span class="st">&quot;-O3 -march=native -pipe&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-shared</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-static</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-quantum-depth</span><span class="op">=</span>8 <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-hdri</span> <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-openmp</span> <span class="dt">\</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-threads</span><span class="op">=</span>posix <span class="dt">\</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-x</span> <span class="dt">\</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-docs</span> <span class="dt">\</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-modules</span> <span class="dt">\</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-turbojpeg</span></span></code></pre></div>
+<p>After configuration finishes, inspect the configuration summary to
+ensure <code>OpenMP</code> is set to <code>yes</code>,
+<code>Quantum depth</code> is <code>8</code>, and the desired delegates
+(such as <code>JPEG</code> and <code>PNG</code>) are properly detected.
+Complete the installation by running <code>make -j$(nproc)</code>
+followed by <code>sudo make install</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

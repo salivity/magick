@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Image to LMS Color Space in ImageMagick - magick</title>
+    <meta name="description" content="Converting an image to the LMS (Long, Medium, Short) cone response color space in ImageMagick requires transforming color values to match the human eye's photoreceptor responses. Because ImageMagick does not feature a dedicated, built-in -colorspace LMS">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-image-to-lms-color-space-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Image to LMS Color Space in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-image-to-lms-color-space-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting an image to the LMS (Long, Medium, Short) cone response color space in ImageMagick requires transforming color values to match the human eye's photoreceptor responses. Because ImageMagick does not feature a dedicated, built-in -colorspace LMS" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-image-to-lms-color-space-in-imagemagick">Convert Image
+to LMS Color Space in ImageMagick</h1>
+<p>Converting an image to the LMS (Long, Medium, Short) cone response
+color space in ImageMagick requires transforming color values to match
+the human eye's photoreceptor responses. Because ImageMagick does not
+feature a dedicated, built-in <code>-colorspace LMS</code> setting, the
+conversion is achieved by linearizing the image and applying a
+transformation matrix using the <code>-color-matrix</code> operator.
+This guide outlines the exact matrix operations and commands required to
+execute this conversion accurately.</p>
+<h3 id="understanding-the-conversion-process">Understanding the
+Conversion Process</h3>
+<p>The LMS color space represents the spectral sensitivities of the
+human eye's three cone types. Standard displays use non-linear sRGB,
+meaning the image must first be linearized or mapped to a standard CIE
+space (such as CIE XYZ), after which an LMS transformation matrix (such
+as CAT02 or Hunt-Pointer-Estevez) can be applied.</p>
+<p>Because LMS values can exceed standard 8-bit integer boundaries,
+outputting to a format that supports high dynamic range and
+floating-point data (such as TIFF, MIFF, or OpenEXR) is recommended.</p>
+<hr />
+<h3 id="method-1-converting-via-cie-xyz-cat02-matrix">Method 1:
+Converting via CIE XYZ (CAT02 Matrix)</h3>
+<p>The most common approach maps sRGB to the CIE XYZ color space first,
+followed by the CAT02 transformation matrix to obtain LMS values.</p>
+<h4 id="the-cat02-matrix-values">The CAT02 Matrix Values</h4>
+<p>The standard CAT02 matrix to convert from XYZ to LMS is:</p>
+<ul>
+<li><strong>L:</strong> <code> 0.7328,  0.4296, -0.1624</code></li>
+<li><strong>M:</strong> <code>-0.7036,  1.6975,  0.0061</code></li>
+<li><strong>S:</strong> <code> 0.0030,  0.0136,  0.9834</code></li>
+</ul>
+<h4 id="imagemagick-command-v7">ImageMagick Command (v7)</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> XYZ <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-color-matrix</span> <span class="st">&quot; 0.7328  0.4296 -0.1624 </span><span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">                 -0.7036  1.6975  0.0061 </span><span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">                  0.0030  0.0136  0.9834&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> quantum:format=floating-point output_lms.tiff</span></code></pre></div>
+<p><em>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<hr />
+<h3 id="method-2-direct-linear-srgb-to-lms-conversion">Method 2: Direct
+Linear sRGB to LMS Conversion</h3>
+<p>If you prefer to bypass XYZ and convert directly from linear sRGB to
+LMS, you can use the combined linear sRGB-to-LMS matrix (derived from
+the sRGB-to-XYZ and CAT02 matrices).</p>
+<h4 id="the-direct-matrix-values">The Direct Matrix Values</h4>
+<ul>
+<li><strong>L:</strong>
+<code>0.3904724, 0.5499923, 0.0089018</code></li>
+<li><strong>M:</strong>
+<code>0.0709259, 0.9631074, 0.0013580</code></li>
+<li><strong>S:</strong>
+<code>0.0231427, 0.1108620, 0.9496354</code></li>
+</ul>
+<h4 id="imagemagick-command-v7-1">ImageMagick Command (v7)</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> RGB <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-color-matrix</span> <span class="st">&quot;0.3904724 0.5499923 0.0089018 </span><span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">                 0.0709259 0.9631074 0.0013580 </span><span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">                 0.0231427 0.1108620 0.9496354&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> quantum:format=floating-point output_lms.tiff</span></code></pre></div>
+<p><em>Note: In ImageMagick, <code>-colorspace RGB</code> transforms
+non-linear sRGB into linear RGB, which is necessary before applying the
+matrix.</em></p>
+<hr />
+<h3 id="verifying-the-channels">Verifying the Channels</h3>
+<p>After processing:</p>
+<ul>
+<li><strong>Red Channel:</strong> Corresponds to the <strong>L</strong>
+(Long wavelength) cone response.</li>
+<li><strong>Green Channel:</strong> Corresponds to the
+<strong>M</strong> (Medium wavelength) cone response.</li>
+<li><strong>Blue Channel:</strong> Corresponds to the <strong>S</strong>
+(Short wavelength) cone response.</li>
+</ul>
+<p>To inspect or extract individual cone responses, use the
+<code>-channel</code> operator or separate them into distinct grayscale
+images:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> output_lms.tiff <span class="at">-separate</span> cone_%d.tiff</span></code></pre></div>
+<p>This produces <code>cone_0.tiff</code> (L), <code>cone_1.tiff</code>
+(M), and <code>cone_2.tiff</code> (S).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

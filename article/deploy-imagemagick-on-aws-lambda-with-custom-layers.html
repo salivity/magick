@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy ImageMagick on AWS Lambda with Custom Layers - magick</title>
+    <meta name="description" content="This article provides a step-by-step guide to deploying ImageMagick within AWS Lambda functions using AWS Lambda Layers. You will learn how to compile ImageMagick binaries compatible with the Amazon Linux runtime using Docker, package the binaries into a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/deploy-imagemagick-on-aws-lambda-with-custom-layers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Deploy ImageMagick on AWS Lambda with Custom Layers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/deploy-imagemagick-on-aws-lambda-with-custom-layers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a step-by-step guide to deploying ImageMagick within AWS Lambda functions using AWS Lambda Layers. You will learn how to compile ImageMagick binaries compatible with the Amazon Linux runtime using Docker, package the binaries into a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="deploy-imagemagick-on-aws-lambda-with-custom-layers">Deploy
+ImageMagick on AWS Lambda with Custom Layers</h1>
+<p>This article provides a step-by-step guide to deploying ImageMagick
+within AWS Lambda functions using AWS Lambda Layers. You will learn how
+to compile ImageMagick binaries compatible with the Amazon Linux runtime
+using Docker, package the binaries into a reusable custom layer, publish
+the layer via the AWS CLI, and invoke ImageMagick commands directly from
+your serverless function code.</p>
+<h2 id="1-compile-imagemagick-using-docker">1. Compile ImageMagick Using
+Docker</h2>
+<p>AWS Lambda executes in an Amazon Linux environment (Amazon Linux 2 or
+Amazon Linux 2023). To ensure binary compatibility, compile ImageMagick
+inside an official Amazon Linux Docker container.</p>
+<p>Create a <code>Dockerfile</code> with the following build
+instructions:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> amazonlinux:2</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Install build tools and libraries</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">yum</span> update <span class="at">-y</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">yum</span> groupinstall <span class="at">-y</span> <span class="st">&quot;Development Tools&quot;</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">yum</span> install <span class="at">-y</span> libpng-devel libjpeg-devel libtiff-devel</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Download and compile ImageMagick</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /tmp</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">curl</span> <span class="at">-O</span> https://download.imagemagick.org/ImageMagick/download/ImageMagick.tar.gz <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tar</span> <span class="at">-xvzf</span> ImageMagick.tar.gz <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">cd</span> ImageMagick-<span class="pp">*</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">./configure</span> <span class="at">--prefix</span><span class="op">=</span>/opt <span class="at">--without-x</span> <span class="at">--without-perl</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">make</span> <span class="kw">&amp;&amp;</span> <span class="dt">\</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">make</span> install</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Package the binaries and libraries</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="kw">WORKDIR</span> /opt</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="kw">CMD</span> <span class="fu">tar</span> <span class="at">-czvf</span> /out/imagemagick-layer.tar.gz bin lib</span></code></pre></div>
+<p>Build the Docker image and extract the compiled archive to your host
+system:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> build output</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-t</span> imagemagick-lambda-builder .</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-v</span> <span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/output:/out imagemagick-lambda-builder</span></code></pre></div>
+<h2 id="2-structure-and-zip-the-lambda-layer">2. Structure and Zip the
+Lambda Layer</h2>
+<p>Lambda automatically extracts layer contents into the
+<code>/opt</code> directory of the execution environment. To ensure the
+binaries and shared libraries are discovered properly:</p>
+<ol type="1">
+<li>Extract the compiled archive into a folder structure matching
+<code>/opt/bin</code> and <code>/opt/lib</code>.</li>
+<li>Package the directory into a standard <code>.zip</code> file.</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> layer-package/bin layer-package/lib</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xzvf</span> output/imagemagick-layer.tar.gz <span class="at">-C</span> layer-package/</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> layer-package</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">zip</span> <span class="at">-r</span> ../imagemagick-layer.zip bin lib</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span></code></pre></div>
+<h2 id="3-publish-the-custom-lambda-layer">3. Publish the Custom Lambda
+Layer</h2>
+<p>Publish the zip file as a Lambda Layer using the AWS Command Line
+Interface (AWS CLI):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> lambda publish-layer-version <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--layer-name</span> <span class="st">&quot;imagemagick-layer&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--description</span> <span class="st">&quot;ImageMagick binaries for Amazon Linux 2&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--zip-file</span> <span class="st">&quot;fileb://imagemagick-layer.zip&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--compatible-runtimes</span> <span class="st">&quot;nodejs18.x&quot;</span> <span class="st">&quot;nodejs20.x&quot;</span> <span class="st">&quot;python3.10&quot;</span> <span class="st">&quot;python3.11&quot;</span></span></code></pre></div>
+<p>Save the <code>LayerVersionArn</code> returned in the output
+JSON.</p>
+<h2 id="4-attach-the-layer-to-your-lambda-function">4. Attach the Layer
+to Your Lambda Function</h2>
+<p>Add the published layer to your existing Lambda function using the
+AWS Management Console or the CLI:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> lambda update-function-configuration <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--function-name</span> <span class="st">&quot;your-function-name&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--layers</span> <span class="st">&quot;arn:aws:lambda:region:account-id:layer:imagemagick-layer:1&quot;</span></span></code></pre></div>
+<p>Set the <code>PATH</code> and <code>LD_LIBRARY_PATH</code>
+environment variables on the function if they are not already pointing
+to <code>/opt/bin</code> and <code>/opt/lib</code>:</p>
+<ul>
+<li><strong>PATH:</strong>
+<code>/usr/local/bin:/usr/bin:/bin:/opt/bin</code></li>
+<li><strong>LD_LIBRARY_PATH:</strong>
+<code>/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib</code></li>
+</ul>
+<h2 id="5-execute-imagemagick-in-lambda-code">5. Execute ImageMagick in
+Lambda Code</h2>
+<p>With the layer attached, ImageMagick utilities such as
+<code>magick</code>, <code>convert</code>, and <code>identify</code> can
+be invoked using subprocess execution in your runtime.</p>
+<h3 id="nodejs-example">Node.js Example</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> { execSync } <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;child_process&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;fs&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>exports<span class="op">.</span><span class="at">handler</span> <span class="op">=</span> <span class="kw">async</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Check if ImageMagick is executable</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> version <span class="op">=</span> <span class="fu">execSync</span>(<span class="st">&#39;/opt/bin/magick -version&#39;</span>)<span class="op">.</span><span class="fu">toString</span>()<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(version)<span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Example image conversion: Convert input.jpg to output.png in the /tmp directory</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">execSync</span>(<span class="st">&#39;/opt/bin/magick /tmp/input.jpg -resize 50% /tmp/output.png&#39;</span>)<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">statusCode</span><span class="op">:</span> <span class="dv">200</span><span class="op">,</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">body</span><span class="op">:</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>({ <span class="dt">message</span><span class="op">:</span> <span class="st">&quot;Image processed successfully&quot;</span> })</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    }<span class="op">;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="python-example">Python Example</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lambda_handler(event, context):</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Check ImageMagick installation</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> subprocess.run([<span class="st">&#39;/opt/bin/magick&#39;</span>, <span class="st">&#39;-version&#39;</span>], capture_output<span class="op">=</span><span class="va">True</span>, text<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(result.stdout)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Example image resize operation</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    subprocess.run([<span class="st">&#39;/opt/bin/magick&#39;</span>, <span class="st">&#39;/tmp/input.jpg&#39;</span>, <span class="st">&#39;-resize&#39;</span>, <span class="st">&#39;50%&#39;</span>, <span class="st">&#39;/tmp/output.png&#39;</span>], check<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;statusCode&#39;</span>: <span class="dv">200</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&#39;body&#39;</span>: json.dumps({<span class="st">&#39;message&#39;</span>: <span class="st">&#39;Image processed successfully&#39;</span>})</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

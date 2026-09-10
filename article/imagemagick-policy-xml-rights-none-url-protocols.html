@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick policy.xml rights="none" URL Protocols - magick</title>
+    <meta name="description" content="This article explains how ImageMagick utilizes its policy.xml configuration file to restrict remote resource fetching. By configuring the rights="none" attribute across coder and delegate domains, administrators can intercept network requests, block spec">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-policy-xml-rights-none-url-protocols">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick policy.xml rights="none" URL Protocols - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-policy-xml-rights-none-url-protocols" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick utilizes its policy.xml configuration file to restrict remote resource fetching. By configuring the rights="none" attribute across coder and delegate domains, administrators can intercept network requests, block spec" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-policyxml-rightsnone-url-protocols">ImageMagick
+policy.xml rights="none" URL Protocols</h1>
+<p>This article explains how ImageMagick utilizes its
+<code>policy.xml</code> configuration file to restrict remote resource
+fetching. By configuring the <code>rights="none"</code> attribute across
+coder and delegate domains, administrators can intercept network
+requests, block specific URL schemes, and effectively prevent
+Server-Side Request Forgery (SSRF) and arbitrary remote file inclusion
+vulnerabilities.</p>
+<h3 id="the-role-of-policyxml-in-imagemagick-security">The Role of
+policy.xml in ImageMagick Security</h3>
+<p>ImageMagick processes a vast array of image formats, many of which
+(such as SVG, MVG, and generic text delegates) can reference external
+resources over network protocols like HTTP, HTTPS, and FTP. The
+<code>policy.xml</code> file acts as the primary access control
+configuration for the ImageMagick security subsystem. It establishes
+operational boundaries by regulating resource limits, execution rights,
+system path access, and coder capabilities before any media processing
+takes place.</p>
+<h3 id="the-mechanism-of-rightsnone">The Mechanism of rights="none"</h3>
+<p>When a policy defines <code>rights="none"</code>, ImageMagick removes
+all read, write, and execute permissions for the targeted pattern. For
+network fetching, this restriction is typically applied to two main
+domains: <code>coder</code> and <code>delegate</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;URL&quot;</span> /&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTPS&quot;</span> /&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTP&quot;</span> /&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;FTP&quot;</span> /&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTPS&quot;</span> /&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;delegate&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTP&quot;</span> /&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong>The Coder Domain:</strong> Coders handle the decoding and
+encoding of specific formats or pseudo-protocols. When a filename or URI
+prefixed with <code>http://</code>, <code>https://</code>, or
+<code>ftp://</code> is passed, ImageMagick identifies the prefix as an
+internal protocol coder. Setting
+<code>domain="coder" rights="none" pattern="HTTP"</code> explicitly
+revokes permission to initialize that handler.</li>
+<li><strong>The Delegate Domain:</strong> Delegates are external
+third-party programs (such as <code>curl</code> or <code>wget</code>)
+invoked by ImageMagick to handle tasks it cannot perform natively,
+including remote file retrieval. Restricting the delegate domain ensures
+that ImageMagick cannot spawn external processes to fetch URLs.</li>
+</ul>
+<h3 id="internal-request-interception">Internal Request
+Interception</h3>
+<p>The enforcement happens at the API and core library level before
+network sockets are created or external commands are executed:</p>
+<ol type="1">
+<li><strong>Protocol Parsing:</strong> When an image input or embedded
+reference is parsed, ImageMagick extracts the protocol scheme (for
+example, <code>https://example.com/image.png</code>).</li>
+<li><strong>Policy Lookup:</strong> The internal security check queries
+the active policy table loaded in memory from <code>policy.xml</code>.
+It checks whether the protocol matches any registered pattern in the
+<code>coder</code> or <code>delegate</code> domains.</li>
+<li><strong>Permission Evaluation:</strong> If a match is found and the
+assigned <code>rights</code> mask evaluates to <code>0</code>
+(corresponding to <code>none</code>), the security manager immediately
+denies access.</li>
+<li><strong>Operation Termination:</strong> ImageMagick aborts the read
+routine and throws a fatal security exception (such as
+<code>not authorized 'HTTPS' @ error/constitute.c/ReadImage</code>). No
+network handshake, DNS resolution, or external process execution is
+allowed to occur.</li>
+</ol>
+<p>By applying <code>rights="none"</code> to URL-related patterns, the
+security subsystem neutralizes external fetch attempts entirely within
+the application layer, ensuring isolated and deterministic local image
+processing.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

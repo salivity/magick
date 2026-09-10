@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract a Single Page from a TIFF Using ImageMagick - magick</title>
+    <meta name="description" content="Extracting a specific page from a multi-directory or multipage TIFF file is a quick and simple process when using ImageMagick. This guide explains how to use ImageMagick's command-line tools to select and export any individual frame from a multi-page TIF">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-a-single-page-from-a-tiff-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract a Single Page from a TIFF Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-a-single-page-from-a-tiff-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Extracting a specific page from a multi-directory or multipage TIFF file is a quick and simple process when using ImageMagick. This guide explains how to use ImageMagick's command-line tools to select and export any individual frame from a multi-page TIF" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-a-single-page-from-a-tiff-using-imagemagick">Extract a
+Single Page from a TIFF Using ImageMagick</h1>
+<p>Extracting a specific page from a multi-directory or multipage TIFF
+file is a quick and simple process when using ImageMagick. This guide
+explains how to use ImageMagick's command-line tools to select and
+export any individual frame from a multi-page TIFF document into a
+separate single-page TIFF or another image format.</p>
+<h2 id="understanding-zero-based-indexing">Understanding Zero-Based
+Indexing</h2>
+<p>ImageMagick identifies pages (or directories) within a multi-image
+file using a zero-based index enclosed in square brackets
+<code>[]</code> directly appended to the input filename:</p>
+<ul>
+<li><code>input.tiff[0]</code> refers to the <strong>first
+page</strong>.</li>
+<li><code>input.tiff[1]</code> refers to the <strong>second
+page</strong>.</li>
+<li><code>input.tiff[2]</code> refers to the <strong>third
+page</strong>, and so on.</li>
+</ul>
+<h2 id="the-basic-command">The Basic Command</h2>
+<p>Depending on the version of ImageMagick installed on your system, you
+will use either the <code>magick</code> command (ImageMagick 7) or the
+<code>convert</code> command (ImageMagick 6).</p>
+<h3 id="imagemagick-7">ImageMagick 7</h3>
+<p>To extract the first page of a multi-directory TIFF file and save it
+as a new TIFF file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output_page1.tiff</span></code></pre></div>
+<p>To extract the third page:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">2</span><span class="pp">]</span> output_page3.tiff</span></code></pre></div>
+<h3 id="imagemagick-6">ImageMagick 6</h3>
+<p>If you are using legacy ImageMagick 6, use the <code>convert</code>
+utility:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output_page1.tiff</span></code></pre></div>
+<h2 id="converting-to-different-formats">Converting to Different
+Formats</h2>
+<p>You can change the output format simply by modifying the file
+extension of the target file. ImageMagick will automatically handle the
+conversion.</p>
+<ul>
+<li><p><strong>Extract to PNG:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output_page1.png</span></code></pre></div></li>
+<li><p><strong>Extract to JPEG:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output_page1.jpg</span></code></pre></div></li>
+</ul>
+<h2 id="preserving-compression-settings">Preserving Compression
+Settings</h2>
+<p>TIFF files often use specific compression algorithms (such as LZW,
+Zip, or Group4). To maintain or change the compression type during
+extraction, use the <code>-compress</code> flag:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> <span class="at">-compress</span> lzw output_page1.tiff</span></code></pre></div>
+<p>For black-and-white scanned documents, Group4 compression is commonly
+used:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> <span class="at">-compress</span> Group4 output_page1.tiff</span></code></pre></div>
+<h2 id="extracting-multiple-specific-pages">Extracting Multiple Specific
+Pages</h2>
+<p>If you need to extract more than one page at a time:</p>
+<ul>
+<li><p><strong>Page range:</strong> Extract pages 1 through 3:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">-</span><span class="ss">2</span><span class="pp">]</span> output_pages.tiff</span></code></pre></div></li>
+<li><p><strong>Non-consecutive pages:</strong> Extract pages 1 and
+4:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> input.tiff<span class="pp">[</span><span class="ss">3</span><span class="pp">]</span> output_selected.tiff</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

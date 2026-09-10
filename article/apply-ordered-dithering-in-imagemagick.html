@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Ordered Dithering in ImageMagick - magick</title>
+    <meta name="description" content="Ordered dithering is an algorithmic method used to approximate shades and gradients when reducing an image to a limited color palette by applying a repeating threshold matrix. This guide explains how to use ImageMagick's -ordered-dither operator to apply">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-ordered-dithering-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Ordered Dithering in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-ordered-dithering-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Ordered dithering is an algorithmic method used to approximate shades and gradients when reducing an image to a limited color palette by applying a repeating threshold matrix. This guide explains how to use ImageMagick's -ordered-dither operator to apply" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-ordered-dithering-in-imagemagick">Apply Ordered Dithering
+in ImageMagick</h1>
+<p>Ordered dithering is an algorithmic method used to approximate shades
+and gradients when reducing an image to a limited color palette by
+applying a repeating threshold matrix. This guide explains how to use
+ImageMagick's <code>-ordered-dither</code> operator to apply predefined
+patterns—such as standard Bayer matrices and halftone screens—as well as
+how to control color depth levels and configure custom threshold
+maps.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick (version 7 and newer), the primary command syntax for
+applying an ordered dither is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> <span class="op">&lt;</span>threshold_map<span class="op">&gt;</span>[,<span class="op">&lt;</span>level<span class="op">&gt;</span>...] output.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="predefined-dither-matrices">Predefined Dither Matrices</h2>
+<p>ImageMagick includes a variety of built-in matrix patterns:</p>
+<ul>
+<li><strong>Bayer Matrices:</strong> <code>o2x2</code>,
+<code>o3x3</code>, <code>o4x4</code>, <code>o8x8</code> (standard
+ordered dither patterns that create classic crosshatch textures).</li>
+<li><strong>Halftone Dots:</strong> <code>h6x6a</code>,
+<code>h8x8a</code>, <code>h16x16a</code> (angled halftone screens).</li>
+<li><strong>Circles and Shapes:</strong> <code>c5x5b</code>,
+<code>c5x5w</code>, <code>c6x6b</code>, <code>c6x6w</code> (circular
+clustered dots).</li>
+</ul>
+<p>To list all available threshold maps installed on your system,
+run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> threshold</span></code></pre></div>
+<h2 id="controlling-color-levels">Controlling Color Levels</h2>
+<p>The <code>-ordered-dither</code> option allows you to define how many
+distinct color levels each channel should be reduced to.</p>
+<h3 id="1-bit-monochrome-black-and-white">1-Bit Monochrome (Black and
+White)</h3>
+<p>To reduce an image to strictly black and white using an 8x8 Bayer
+matrix, specify <code>2</code> levels (black and white):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> o8x8,2 output.png</span></code></pre></div>
+<h3 id="grayscale-with-multiple-levels">Grayscale with Multiple
+Levels</h3>
+<p>To produce a grayscale image with a specific number of tones, such as
+4 levels (2-bit gray):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-ordered-dither</span> o8x8,4 output.png</span></code></pre></div>
+<h3 id="color-palette-quantization">Color Palette Quantization</h3>
+<p>You can control the red, green, and blue channel depths separately by
+supplying individual values for each channel:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 8 levels of Red, 8 levels of Green, 4 levels of Blue (similar to 8-bit color)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> o8x8,8,8,4 output.png</span></code></pre></div>
+<p>If only one level argument is provided (e.g., <code>o8x8,4</code>),
+that level count is applied uniformly to all active image channels.</p>
+<h2 id="applying-custom-dither-matrices">Applying Custom Dither
+Matrices</h2>
+<p>ImageMagick loads its threshold matrices from an XML configuration
+file named <code>thresholds.xml</code>. To create and use a custom
+dither matrix:</p>
+<ol type="1">
+<li>Locate your configuration directory using
+<code>magick -list path</code> or create a <code>thresholds.xml</code>
+file in your working directory or home configuration folder
+(<code>~/.config/ImageMagick/</code> on Linux/macOS).</li>
+<li>Define a <code>&lt;threshold&gt;</code> element containing the
+matrix dimensions, divisor, and threshold values:</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">thresholdmap</span>&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom2x2&quot;</span> <span class="ot">alias=</span><span class="st">&quot;c2&quot;</span>&gt;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 2x2 Matrix&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span> <span class="ot">width=</span><span class="st">&quot;2&quot;</span> <span class="ot">height=</span><span class="st">&quot;2&quot;</span> <span class="ot">divisor=</span><span class="st">&quot;4&quot;</span>&gt;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      0  2</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      3  1</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">thresholdmap</span>&gt;</span></code></pre></div>
+<ol start="3" type="1">
+<li>Call the custom map directly by the name assigned in the XML:</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom2x2,2 output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

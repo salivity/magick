@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create an Embossed Watermark in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to generate a semi-transparent, embossed watermark logo on an image using ImageMagick. By combining alpha channel extraction, directional shading, and composite blending modes, you can produce a professional, non-intrusive 3D">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-an-embossed-watermark-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create an Embossed Watermark in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-an-embossed-watermark-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to generate a semi-transparent, embossed watermark logo on an image using ImageMagick. By combining alpha channel extraction, directional shading, and composite blending modes, you can produce a professional, non-intrusive 3D" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-an-embossed-watermark-in-imagemagick">Create an Embossed
+Watermark in ImageMagick</h1>
+<p>This guide demonstrates how to generate a semi-transparent, embossed
+watermark logo on an image using ImageMagick. By combining alpha channel
+extraction, directional shading, and composite blending modes, you can
+produce a professional, non-intrusive 3D watermark effect that blends
+seamlessly across both light and dark backgrounds.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Ensure you have ImageMagick 7 installed. Commands use the modern
+<code>magick</code> binary. Your watermark source should ideally be a
+transparent PNG file where the graphic elements have a clean alpha
+channel.</p>
+<h3 id="the-single-command-method">The Single-Command Method</h3>
+<p>You can generate the embossed watermark and apply it directly onto
+your target image in a single execution:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> target.jpg <span class="dt">\(</span> logo.png <span class="at">-alpha</span> extract <span class="at">-shade</span> 135x45 <span class="at">-auto-level</span> <span class="at">-alpha</span> on <span class="at">-channel</span> A <span class="at">-evaluate</span> multiply 0.5 +channel <span class="dt">\)</span> <span class="at">-gravity</span> southeast <span class="at">-geometry</span> +20+20 <span class="at">-compose</span> Hardlight <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h3 id="how-the-parameters-work">How the Parameters Work</h3>
+<p>The command uses parenthesis-based subprocessing to process the logo
+before overlaying it:</p>
+<ol type="1">
+<li><strong><code>target.jpg</code></strong>: Specifies the base image
+you want to protect.</li>
+<li><strong><code>logo.png -alpha extract</code></strong>: Extracts the
+shape of your transparent logo as a grayscale silhouette, discarding
+original colors.</li>
+<li><strong><code>-shade 135x45</code></strong>: Creates the 3D embossed
+lighting effect. The first number (<code>135</code>) is the azimuth (the
+angle of the light source in degrees), and the second number
+(<code>45</code>) is the elevation above the horizon.</li>
+<li><strong><code>-auto-level</code></strong>: Normalizes the shaded
+mask to maximize contrast between the highlighted edges and shadowed
+edges.</li>
+<li><strong><code>-alpha on -channel A -evaluate multiply 0.5 +channel</code></strong>:
+Re-enables the alpha channel and reduces the overall opacity to 50%.
+Adjust <code>0.5</code> higher or lower to change visibility.</li>
+<li><strong><code>-gravity southeast -geometry +20+20</code></strong>:
+Positions the watermark in the bottom-right corner with a 20-pixel
+padding from the edges.</li>
+<li><strong><code>-compose Hardlight -composite</code></strong>: Blends
+the shaded watermark into the base image. The <code>Hardlight</code> (or
+<code>Overlay</code>) compose method allows the lighter edges to
+brighten the underlying image and darker edges to darken it, achieving
+the transparent embossed appearance.</li>
+<li><strong><code>output.jpg</code></strong>: The resulting watermarked
+image.</li>
+</ol>
+<h3 id="alternative-two-step-method">Alternative Two-Step Method</h3>
+<p>If you need to apply the same watermark across multiple images,
+generate the reusable embossed asset first:</p>
+<p><strong>Step 1: Create the reusable transparent embossed
+asset</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> logo.png <span class="at">-alpha</span> extract <span class="at">-shade</span> 135x45 <span class="at">-auto-level</span> <span class="at">-channel</span> A <span class="at">-evaluate</span> set 40% +channel embossed_watermark.png</span></code></pre></div>
+<p><strong>Step 2: Overlay it onto a base image</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> target.jpg embossed_watermark.png <span class="at">-gravity</span> center <span class="at">-compose</span> Overlay <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>Using <code>-compose Overlay</code> or
+<code>-compose Hardlight</code> ensures the neutral 50% gray base of the
+shaded graphic becomes invisible, leaving only the raised edges visible
+over the image beneath.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

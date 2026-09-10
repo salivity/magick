@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Reads and Writes Radiance HDR Files - magick</title>
+    <meta name="description" content="This article explains how ImageMagick processes Radiance HDR files (.hdr, .pic) using the 32-bit RGBE format developed by Greg Ward. ImageMagick translates high-dynamic-range color data between its internal pixel representation and the RGBE structure by">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-reads-and-writes-radiance-hdr-files">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Reads and Writes Radiance HDR Files - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-reads-and-writes-radiance-hdr-files" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick processes Radiance HDR files (.hdr, .pic) using the 32-bit RGBE format developed by Greg Ward. ImageMagick translates high-dynamic-range color data between its internal pixel representation and the RGBE structure by" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-reads-and-writes-radiance-hdr-files">How
+ImageMagick Reads and Writes Radiance HDR Files</h1>
+<p>This article explains how ImageMagick processes Radiance HDR files
+(.hdr, .pic) using the 32-bit RGBE format developed by Greg Ward.
+ImageMagick translates high-dynamic-range color data between its
+internal pixel representation and the RGBE structure by parsing
+metadata, applying run-length compression, and mathematically converting
+linear floating-point color values to and from shared-exponent byte
+structures. Understanding this pipeline clarifies how ImageMagick
+maintains dynamic range precision while reading and writing
+high-contrast imagery.</p>
+<h3 id="the-rgbe-format-architecture">The RGBE Format Architecture</h3>
+<p>The Radiance HDR format stores high-dynamic-range color using 32 bits
+per pixel. Instead of storing independent 16-bit or 32-bit floats for
+each color channel (which would require 48 to 96 bits per pixel), it
+packs three color channels and a shared exponent into four 8-bit
+bytes:</p>
+<ul>
+<li><strong>R (Red):</strong> 8-bit mantissa</li>
+<li><strong>G (Green):</strong> 8-bit mantissa</li>
+<li><strong>B (Blue):</strong> 8-bit mantissa</li>
+<li><strong>E (Exponent):</strong> 8-bit shared exponent biased by
+128</li>
+</ul>
+<p>This structure covers a dynamic range of over 76 orders of magnitude,
+providing sufficient precision for human visual perception while keeping
+file sizes compact.</p>
+<h3 id="reading-radiance-hdr-files-in-imagemagick">Reading Radiance HDR
+Files in ImageMagick</h3>
+<p>When ImageMagick encounters a Radiance HDR file, it uses its
+dedicated HDR coder (<code>coders/hdr.c</code>) to parse and reconstruct
+the pixel data through several sequential stages:</p>
+<h4 id="1-header-parsing">1. Header Parsing</h4>
+<p>The decoder reads the plain-text ASCII header that begins with
+identification signatures such as <code>#?RADIANCE</code> or
+<code>#?RGBE</code>. It scans variables like
+<code>FORMAT=32-bit_rle_rgbe</code> to verify data compatibility and
+processes exposure or color-correction modifiers. It then reads the
+resolution string (e.g., <code>-Y [height] +X [width]</code>), which
+defines the image dimensions and scanline orientation.</p>
+<h4 id="2-run-length-decoding-rle">2. Run-Length Decoding (RLE)</h4>
+<p>Radiance HDR files typically compress scanlines using run-length
+encoding. The decoder inspects the beginning of each scanline:</p>
+<ul>
+<li><strong>Modern Adaptive RLE:</strong> A scanline starting with byte
+values <code>0x02, 0x02</code> followed by the 16-bit scanline width
+indicates modern RLE. In this mode, the R, G, B, and E channels are
+de-interleaved across the scanline. ImageMagick unpacks each channel run
+separately for the full row.</li>
+<li><strong>Legacy RLE / Flat Data:</strong> If the signature is absent,
+ImageMagick falls back to decoding interleaved 4-byte pixels directly,
+handling simple run-length patterns if flagged.</li>
+</ul>
+<h4 id="3-floating-point-reconstruction">3. Floating-Point
+Reconstruction</h4>
+<p>Once four bytes (<span class="math inline">\(R_{byte}, G_{byte},
+B_{byte}, E_{byte}\)</span>) are unpacked for a pixel, ImageMagick
+restores the linear floating-point values using the standard Radiance
+formula:</p>
+<p><span class="math display">\[V = \frac{C_{byte} + 0.5}{256} \times
+2^{(E_{byte} - 128)}\]</span></p>
+<p>Where <span class="math inline">\(C_{byte}\)</span> is the red,
+green, or blue byte, and <span class="math inline">\(V\)</span> is the
+resulting linear color channel intensity. If <span
+class="math inline">\(E_{byte}\)</span> is zero, all color channels are
+evaluated as zero.</p>
+<h4 id="4-loading-into-the-pixel-cache">4. Loading into the Pixel
+Cache</h4>
+<p>ImageMagick writes the calculated values directly to its internal
+pixel cache. If ImageMagick is compiled with High Dynamic-range Image
+support (HDRI enabled, which is the default in modern versions like
+ImageMagick 7), the floating-point values are preserved in memory
+without clipping. If HDRI is disabled, values above 1.0 are clamped to
+the maximum integer quantum, truncating the dynamic range.</p>
+<h3 id="writing-radiance-hdr-files-in-imagemagick">Writing Radiance HDR
+Files in ImageMagick</h3>
+<p>Writing an HDR file reverses the decode process by converting
+internal linear floating-point pixel data into the quantized RGBE
+representation.</p>
+<h4 id="1-writing-the-header">1. Writing the Header</h4>
+<p>ImageMagick generates a standard Radiance ASCII header
+containing:</p>
+<ul>
+<li>The magic identifier <code>#?RADIANCE</code>.</li>
+<li>Program metadata and gamma information (<code>GAMMA=1.0</code> to
+denote linear space).</li>
+<li>The required format specifier:
+<code>FORMAT=32-bit_rle_rgbe</code>.</li>
+<li>The coordinate orientation and dimensions (typically
+<code>-Y [height] +X [width]</code>).</li>
+</ul>
+<h4 id="2-rgbe-conversion">2. RGBE Conversion</h4>
+<p>For each pixel in the scanline, ImageMagick reads linear <span
+class="math inline">\(R\)</span>, <span
+class="math inline">\(G\)</span>, and <span
+class="math inline">\(B\)</span> values from the pixel cache:</p>
+<ol type="1">
+<li><strong>Find the Maximum Component:</strong> It identifies the
+highest intensity among the three channels: <span
+class="math inline">\(M = \max(R, G, B)\)</span>.</li>
+<li><strong>Calculate the Common Exponent:</strong> If <span
+class="math inline">\(M\)</span> is smaller than a minimal threshold
+(<span class="math inline">\(&lt; 10^{-32}\)</span>), the entire pixel
+is encoded as <code>[0, 0, 0, 0]</code>. Otherwise, it uses the standard
+C library function <code>frexp()</code> to determine the exponent: <span
+class="math display">\[E = \lfloor \log_2(M) \rfloor + 1\]</span> This
+is biased by adding 128: <span class="math display">\[E_{byte} = E +
+128\]</span></li>
+<li><strong>Scale Mantissas:</strong> The individual color channels are
+scaled against this shared exponent into the range <span
+class="math inline">\([0, 255]\)</span>: <span
+class="math display">\[C_{byte} = \min\left(255, \left\lfloor \frac{C
+\times 256}{2^E} \right\rfloor\right)\]</span></li>
+</ol>
+<h4 id="3-run-length-encoding-and-output">3. Run-Length Encoding and
+Output</h4>
+<p>ImageMagick writes scanlines using modern de-interleaved RLE:</p>
+<ol type="1">
+<li>It outputs the 4-byte scanline marker: <code>0x02, 0x02</code>,
+followed by the two-byte row width.</li>
+<li>It groups all <span class="math inline">\(R\)</span> bytes together,
+followed by all <span class="math inline">\(G\)</span> bytes, all <span
+class="math inline">\(B\)</span> bytes, and all <span
+class="math inline">\(E\)</span> bytes.</li>
+<li>Each component array is compressed using run-length encoding
+(identifying repeated sequences of identical bytes) before writing the
+binary stream to disk.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

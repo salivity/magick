@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chebyshev vs Manhattan Distance in ImageMagick - magick</title>
+    <meta name="description" content="This article provides an overview of the differences between Chebyshev and Manhattan metric kernels when performing distance transforms in ImageMagick. A distance transform replaces each pixel value in a binary image with the distance to the nearest boun">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/chebyshev-vs-manhattan-distance-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Chebyshev vs Manhattan Distance in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/chebyshev-vs-manhattan-distance-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the differences between Chebyshev and Manhattan metric kernels when performing distance transforms in ImageMagick. A distance transform replaces each pixel value in a binary image with the distance to the nearest boun" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="chebyshev-vs-manhattan-distance-in-imagemagick">Chebyshev vs
+Manhattan Distance in ImageMagick</h1>
+<p>This article provides an overview of the differences between
+Chebyshev and Manhattan metric kernels when performing distance
+transforms in ImageMagick. A distance transform replaces each pixel
+value in a binary image with the distance to the nearest boundary pixel.
+While both metrics generate spatial distance maps using ImageMagick’s
+morphological operations, they rely on fundamentally different
+mathematical definitions of space and neighbor connectivity, resulting
+in distinct geometric outputs.</p>
+<h3 id="distance-transforms-in-imagemagick">Distance Transforms in
+ImageMagick</h3>
+<p>In ImageMagick, distance transforms are executed using the morphology
+operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Distance:<span class="op">&lt;</span>value<span class="op">&gt;</span> Manhattan output.png</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Distance:<span class="op">&lt;</span>value<span class="op">&gt;</span> Chebyshev output.png</span></code></pre></div>
+<p>The algorithm propagates distances from the object boundary across
+the image canvas. The chosen kernel determines how steps across
+neighboring pixels are accumulated.</p>
+<h3 id="the-manhattan-metric-l1-norm">The Manhattan Metric (L1
+Norm)</h3>
+<p>The Manhattan metric, also known as the City Block or <span
+class="math inline">\(L_1\)</span> distance, measures the path between
+two points strictly along grid axes.</p>
+<ul>
+<li><strong>Movement Rules:</strong> Only orthogonal movements (up,
+down, left, right) are allowed. Diagonal transitions are not permitted
+as single steps.</li>
+<li><strong>Connectivity:</strong> It operates using
+4-connectivity.</li>
+<li><strong>Mathematical Formula:</strong> <span
+class="math display">\[D_{\text{Manhattan}} = |x_1 - x_2| + |y_1 -
+y_2|\]</span></li>
+<li><strong>Diagonal Step Cost:</strong> Moving diagonally to an
+adjacent pixel requires two steps (one horizontal and one vertical),
+yielding a distance value of 2.</li>
+<li><strong>Visual Contour:</strong> Distance isolines propagate outward
+in diamond shapes (rhombuses) centered around isolated point
+sources.</li>
+</ul>
+<p>In ImageMagick, the <code>Manhattan</code> kernel generates sharp,
+diamond-shaped gradients around discrete features. It is ideal for
+grid-constrained routing simulations, taxicab geometry models, or when
+diagonal proximity should be penalized.</p>
+<h3 id="the-chebyshev-metric-l-infinity-norm">The Chebyshev Metric
+(L-infinity Norm)</h3>
+<p>The Chebyshev metric, also referred to as the Chessboard or <span
+class="math inline">\(L_\infty\)</span> distance, measures distance
+assuming movement in any adjacent direction carries equal cost.</p>
+<ul>
+<li><strong>Movement Rules:</strong> Both orthogonal and diagonal
+movements are treated identically, mirroring the movements of a King
+piece on a chessboard.</li>
+<li><strong>Connectivity:</strong> It operates using
+8-connectivity.</li>
+<li><strong>Mathematical Formula:</strong> <span
+class="math display">\[D_{\text{Chebyshev}} = \max(|x_1 - x_2|, |y_1 -
+y_2|)\]</span></li>
+<li><strong>Diagonal Step Cost:</strong> Moving diagonally to an
+adjacent pixel costs only 1 unit, identical to an orthogonal step.</li>
+<li><strong>Visual Contour:</strong> Distance isolines propagate outward
+as concentric squares aligned with the pixel grid.</li>
+</ul>
+<p>In ImageMagick, the <code>Chebyshev</code> kernel produces square
+distance maps around single points. It is suited for applications where
+diagonal adjacency has the exact same weight as orthogonal adjacency,
+such as boundary containment checks, tile-based game mechanics, or
+maximum-range calculations.</p>
+<h3 id="summary-of-differences">Summary of Differences</h3>
+<ul>
+<li><strong>Path Geometry:</strong> Manhattan creates diamond-shaped
+expansions; Chebyshev creates square-shaped expansions.</li>
+<li><strong>Neighborhood Reach:</strong> Manhattan evaluates a
+4-neighborhood; Chebyshev evaluates an 8-neighborhood.</li>
+<li><strong>Diagonal Handling:</strong> Manhattan assigns diagonal steps
+a weight of 2; Chebyshev assigns diagonal steps a weight of 1.</li>
+<li><strong>Distance Values:</strong> For any diagonal vector, the
+Manhattan distance will always be greater than or equal to the Chebyshev
+distance.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

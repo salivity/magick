@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Q16 HDRI Memory Footprint Explained - magick</title>
+    <meta name="description" content="Compiling ImageMagick with High Dynamic Range Imaging (HDRI) enabled in a Q16 build significantly changes internal data representation, effectively doubling the memory footprint per pixel channel. In a standard non-HDRI Q16 configuration, each color chan">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-q16-hdri-memory-footprint-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Q16 HDRI Memory Footprint Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-q16-hdri-memory-footprint-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Compiling ImageMagick with High Dynamic Range Imaging (HDRI) enabled in a Q16 build significantly changes internal data representation, effectively doubling the memory footprint per pixel channel. In a standard non-HDRI Q16 configuration, each color chan" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-q16-hdri-memory-footprint-explained">ImageMagick Q16
+HDRI Memory Footprint Explained</h1>
+<p>Compiling ImageMagick with High Dynamic Range Imaging (HDRI) enabled
+in a Q16 build significantly changes internal data representation,
+effectively doubling the memory footprint per pixel channel. In a
+standard non-HDRI Q16 configuration, each color channel is stored as a
+16-bit unsigned integer using 2 bytes of memory. Enabling HDRI changes
+the underlying storage type to a 32-bit single-precision floating-point
+number, increasing the requirement to 4 bytes per channel to allow for
+values outside the normal display range.</p>
+<h3 id="the-underlying-data-type-shift">The Underlying Data Type
+Shift</h3>
+<p>ImageMagick defines pixel channel depth using the
+<code>Quantum</code> type. In a standard Q16 build without HDRI:</p>
+<ul>
+<li><strong>Data Type:</strong> 16-bit unsigned integer
+(<code>unsigned short</code>).</li>
+<li><strong>Value Range:</strong> Fixed integer values between 0 and
+65,535.</li>
+<li><strong>Per-Channel Size:</strong> 16 bits (2 bytes).</li>
+</ul>
+<p>When HDRI is compiled into a Q16 installation, the purpose is to
+prevent clipping of values that fall below pure black (negative values)
+or above pure white (exceeding standard maximum limits), as well as to
+minimize cumulative rounding errors during multi-step image processing
+pipelines. To support these fractional and out-of-bounds calculations,
+ImageMagick alters the <code>Quantum</code> type:</p>
+<ul>
+<li><strong>Data Type:</strong> 32-bit single-precision float
+(<code>float</code>).</li>
+<li><strong>Value Range:</strong> Floating-point representations,
+typically normalized or scaled around 0.0 to 65,535.0, but capable of
+going lower or higher without truncation.</li>
+<li><strong>Per-Channel Size:</strong> 32 bits (4 bytes).</li>
+</ul>
+<h3 id="impact-on-overall-pixel-memory">Impact on Overall Pixel
+Memory</h3>
+<p>Because each individual channel doubles in size, the aggregate memory
+allocated for full pixel structures scales proportionally:</p>
+<ul>
+<li><strong>Grayscale (1 channel):</strong> Increases from 2 bytes to 4
+bytes per pixel.</li>
+<li><strong>RGB (3 channels):</strong> Increases from 6 bytes to 12
+bytes per pixel.</li>
+<li><strong>RGBA or CMYK (4 channels):</strong> Increases from 8 bytes
+to 16 bytes per pixel.</li>
+<li><strong>CMYKA (5 channels):</strong> Increases from 10 bytes to 20
+bytes per pixel.</li>
+</ul>
+<h3 id="practical-implications">Practical Implications</h3>
+<p>The primary consequence of doubling the per-channel footprint is a
+substantial increase in resident memory (RAM) usage during
+high-resolution processing. A 50-megapixel 16-bit RGBA image requires
+roughly 400 MB of uncompressed raster data in a standard Q16 build, but
+this expands to approximately 800 MB under Q16 HDRI before factoring in
+scratch buffers, undo caches, or multi-threaded image pipeline
+overhead.</p>
+<p>This added memory overhead makes the process more likely to hit
+resource limits defined in ImageMagick's <code>policy.xml</code>. Once
+system RAM limits are exceeded, ImageMagick offloads the pixel cache to
+disk, which introduces a substantial performance penalty due to disk I/O
+operations. Therefore, HDRI in Q16 should be selected when operations
+require linear color workflows, scientific imaging, or extreme dynamic
+range processing, while standard Q16 remains preferable for maximizing
+throughput and minimizing hardware resource consumption.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

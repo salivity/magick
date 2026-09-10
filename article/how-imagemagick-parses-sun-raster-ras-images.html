@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Parses Sun Raster RAS Images - magick</title>
+    <meta name="description" content="This article examines how ImageMagick reads and interprets legacy Sun Raster (RAS) image files, commonly generated as screen dumps on vintage Unix workstations. It covers the detection of the format's signature magic number, the processing of big-endian">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-parses-sun-raster-ras-images">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Parses Sun Raster RAS Images - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-parses-sun-raster-ras-images" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines how ImageMagick reads and interprets legacy Sun Raster (RAS) image files, commonly generated as screen dumps on vintage Unix workstations. It covers the detection of the format's signature magic number, the processing of big-endian" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-parses-sun-raster-ras-images">How ImageMagick
+Parses Sun Raster RAS Images</h1>
+<p>This article examines how ImageMagick reads and interprets legacy Sun
+Raster (RAS) image files, commonly generated as screen dumps on vintage
+Unix workstations. It covers the detection of the format's signature
+magic number, the processing of big-endian header metadata, the
+extraction of color maps, the decoding of run-length compressed
+scanlines, and the transformation of raw raster scanlines into
+ImageMagick's internal pixel representation.</p>
+<h3 id="header-validation-and-architecture-handling">Header Validation
+and Architecture Handling</h3>
+<p>When ImageMagick encounters a Sun Raster file, the decoding process
+is handled by the dedicated SUN coder (<code>ReadSUNImage</code> in
+<code>coders/sun.c</code>). The reader first inspects the initial 32
+bytes of the file stream to validate the unique 32-bit magic number:
+<code>0x59a66a95</code>.</p>
+<p>Because Sun Microsystems hardware (such as SPARC and Motorola 68000
+architectures) was natively big-endian, the raster header structure is
+stored in most-significant-byte (MSB) order. ImageMagick uses MSB
+reading routines to extract the following structural parameters
+regardless of the host machine's native endianness:</p>
+<ul>
+<li><strong>Width and Height:</strong> The horizontal and vertical
+dimensions of the screen dump in pixels.</li>
+<li><strong>Depth:</strong> The bit depth per pixel, typically 1
+(monochrome), 8 (indexed color or grayscale), 24 (true color), or 32
+(true color with padding or alpha).</li>
+<li><strong>Length:</strong> The byte size of the image payload
+following the header and colormap.</li>
+<li><strong>Type:</strong> The encoding scheme, which determines whether
+the data is raw (<code>RT_STANDARD</code>), run-length encoded
+(<code>RT_BYTE_ENCODED</code>), or formatted in alternative RGB channel
+sequences (<code>RT_FORMAT_RGB</code>).</li>
+<li><strong>Map Type and Map Length:</strong> Flags indicating whether
+an indexed palette is present (<code>RMT_EQUAL_RGB</code>) or omitted
+(<code>RMT_NONE</code>), followed by the byte size of the palette.</li>
+</ul>
+<h3 id="colormap-extraction">Colormap Extraction</h3>
+<p>If the header defines a colormap type of <code>RMT_EQUAL_RGB</code>,
+ImageMagick allocates an internal palette table. Sun Raster colormaps
+store color data in non-interleaved arrays where all red values appear
+first, followed by all green values, and then all blue values.</p>
+<p>The reader reads the entire palette chunk and populates the pixel
+colormap accordingly. If the image bit depth is 8 but no palette is
+declared (<code>RMT_NONE</code>), ImageMagick builds a linear grayscale
+ramp as a fallback to ensure the image displays properly.</p>
+<h3 id="scanline-decoding-and-padding-alignment">Scanline Decoding and
+Padding Alignment</h3>
+<p>A defining characteristic of the Sun Raster format is 16-bit scanline
+alignment: every row of pixels must end on an even 2-byte boundary. If a
+calculated scanline width in bytes is odd, an extra padding byte is
+appended at the end of the line. ImageMagick accounts for this padding
+during stream traversal.</p>
+<p>The payload decompression proceeds based on the format type:</p>
+<ul>
+<li><strong>Standard (Raw):</strong> ImageMagick reads pixel rows
+directly from the file into memory buffers, discarding any line-padding
+bytes at the end of each scanline.</li>
+<li><strong>Byte-Encoded (RLE):</strong> For compressed screen dumps,
+ImageMagick evaluates byte streams using an escape-code system based on
+the byte value <code>0x80</code>. If <code>0x80</code> is followed by a
+non-zero count byte, the subsequent byte is repeated <span
+class="math inline">\((count + 1)\)</span> times. A literal
+<code>0x80</code> value within the stream is represented by the sequence
+<code>0x80 0x00</code>. ImageMagick expands this run directly into a
+temporary scanline buffer until the row width, including padding, is
+satisfied.</li>
+</ul>
+<h3 id="pixel-mapping-and-color-space-conversion">Pixel Mapping and
+Color Space Conversion</h3>
+<p>Once a scanline is decoded into raw bytes, ImageMagick converts the
+data into internal quantum pixels using its cache views:</p>
+<ul>
+<li><strong>1-bit:</strong> The coder processes each bit individually,
+setting pixels to black or white (or indexing entries 0 and 1 of the
+colormap).</li>
+<li><strong>8-bit:</strong> Each byte indexes directly into
+ImageMagick's internal colormap.</li>
+<li><strong>24-bit and 32-bit:</strong> Sun screen dumps typically store
+color components in BGR or standard RGB order depending on the header
+type. For 32-bit files, the first byte of every four-byte quad is often
+an unused padding byte, followed by red, green, and blue. ImageMagick
+maps the channels into their corresponding red, green, and blue quantum
+storage, discarding the pad byte unless an alpha channel is explicitly
+designated.</li>
+</ul>
+<p>After all scanlines are processed and assigned to the pixel cache,
+ImageMagick finalizes the image geometry and returns the decoded raster
+image for rendering, conversion, or display.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Ruby RMagick Interacts with ImageMagick C Libraries - magick</title>
+    <meta name="description" content="The RMagick gem acts as a direct bridge between the Ruby runtime and ImageMagick by functioning as a native C extension. Rather than executing shell commands or wrapping a command-line interface, RMagick compiles C code that binds directly to ImageMagick">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-ruby-rmagick-interacts-with-imagemagick-c-libraries">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Ruby RMagick Interacts with ImageMagick C Libraries - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-ruby-rmagick-interacts-with-imagemagick-c-libraries" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The RMagick gem acts as a direct bridge between the Ruby runtime and ImageMagick by functioning as a native C extension. Rather than executing shell commands or wrapping a command-line interface, RMagick compiles C code that binds directly to ImageMagick" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-ruby-rmagick-interacts-with-imagemagick-c-libraries">How
+Ruby RMagick Interacts with ImageMagick C Libraries</h1>
+<p>The RMagick gem acts as a direct bridge between the Ruby runtime and
+ImageMagick by functioning as a native C extension. Rather than
+executing shell commands or wrapping a command-line interface, RMagick
+compiles C code that binds directly to ImageMagick’s native shared
+libraries (<code>libMagickCore</code> or <code>libMagickWand</code>).
+This allows Ruby scripts to call high-performance C routines, manage
+underlying ImageMagick data structures in memory, and process images
+natively with minimal overhead.</p>
+<h2 id="the-c-extension-architecture">The C Extension Architecture</h2>
+<p>RMagick is packaged with both Ruby code and C source files
+(<code>.c</code> and <code>.h</code>). When the gem is installed, Ruby's
+built-in <code>mkmf</code> (MakeMakefile) library executes
+<code>extconf.rb</code> to detect the host system’s ImageMagick
+installation.</p>
+<p>During this compilation step:</p>
+<ol type="1">
+<li><code>extconf.rb</code> queries tools like <code>pkg-config</code>
+to locate ImageMagick’s header files (such as <code>MagickCore.h</code>)
+and compiled shared objects (<code>.so</code>, <code>.dylib</code>, or
+<code>.dll</code>).</li>
+<li>The script verifies that compatible versions of ImageMagick
+functions are available.</li>
+<li>A <code>Makefile</code> is generated, and the system compiler
+compiles RMagick's C source code into a shared binary library (typically
+<code>RMagick2.so</code> or <code>RMagick2.bundle</code>).</li>
+</ol>
+<p>When your application boots and executes
+<code>require 'rmagick'</code>, Ruby's VM dynamically loads this
+compiled shared binary directly into its process memory space.</p>
+<h2 id="wrapping-c-pointers-in-ruby-objects">Wrapping C Pointers in Ruby
+Objects</h2>
+<p>Ruby provides a native C API that allows developers to define Ruby
+classes, modules, and methods directly inside C. RMagick uses these APIs
+(such as <code>rb_define_class_under</code> and
+<code>rb_define_method</code>) to create Ruby-level representations of
+ImageMagick entities, such as <code>Magick::Image</code> and
+<code>Magick::Draw</code>.</p>
+<p>To link a Ruby object to a C structure, RMagick utilizes Ruby's typed
+data wrapping mechanisms (<code>Data_Wrap_Struct</code> or
+<code>TypedData_Wrap_Struct</code>):</p>
+<ul>
+<li><strong>Underlying Structs:</strong> ImageMagick handles images via
+internal C structures such as <code>Image</code> or
+<code>ImageInfo</code>.</li>
+<li><strong>Object Encapsulation:</strong> When an image is initialized,
+RMagick allocates or receives a pointer to the ImageMagick C structure
+and wraps that pointer inside a standard Ruby <code>VALUE</code>
+object.</li>
+<li><strong>Extraction:</strong> Whenever a method is called on a
+<code>Magick::Image</code> instance, the underlying C function extracts
+the raw C pointer from the Ruby object to perform operations.</li>
+</ul>
+<h2 id="direct-execution-flow">Direct Execution Flow</h2>
+<p>When a Ruby script executes an image modification method—such as
+resizing an image—the interaction follows a direct path through
+memory:</p>
+<ol type="1">
+<li><strong>Method Dispatch:</strong> The Ruby VM routes a call like
+<code>image.resize(200, 200)</code> to the corresponding C function
+defined in RMagick (for example, <code>Image_resize</code>).</li>
+<li><strong>Argument Conversion:</strong> The C extension uses Ruby API
+functions (like <code>NUM2INT</code> or <code>rb_scan_args</code>) to
+convert Ruby objects (such as integers or strings) into native C types
+(<code>long</code>, <code>char*</code>, etc.).</li>
+<li><strong>Shared Library Call:</strong> The C extension directly
+invokes the ImageMagick C function (such as <code>ResizeImage</code>
+from <code>libMagickCore</code>), passing the unwrapped C pointers and
+converted parameters.</li>
+<li><strong>Result Packaging:</strong> The ImageMagick library creates a
+new <code>Image</code> C struct containing the modified pixel data.
+RMagick wraps this new pointer into a fresh <code>Magick::Image</code>
+Ruby object.</li>
+<li><strong>Return:</strong> The new Ruby object is returned to the Ruby
+call stack.</li>
+</ol>
+<p>Because this communication occurs in-process via C function pointers,
+there is no inter-process communication (IPC), serialization, or disk
+I/O overhead involved in passing commands.</p>
+<h2 id="memory-management-and-garbage-collection">Memory Management and
+Garbage Collection</h2>
+<p>ImageMagick allocates memory on the system heap using its own memory
+allocation routines, independent of the Ruby garbage collector (GC). To
+prevent memory leaks, RMagick binds the lifecycle of ImageMagick's C
+allocations to Ruby's object lifecycle:</p>
+<ul>
+<li>When RMagick wraps an ImageMagick pointer into a Ruby object, it
+registers a custom C callback function (often invoking
+<code>DestroyImage</code> or <code>DestroyImageInfo</code>).</li>
+<li>When the Ruby GC determines that a <code>Magick::Image</code>
+instance is no longer referenced anywhere in the Ruby application, it
+runs this registered free function.</li>
+<li>The free function calls ImageMagick's native cleanup routines,
+releasing the raw image buffer and associated C structures from system
+memory.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

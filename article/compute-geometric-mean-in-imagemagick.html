@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compute Geometric Mean in ImageMagick - magick</title>
+    <meta name="description" content="Calculating the geometric mean across multiple image exposures reduces noise and blends bracketed photos by determining the $n$-th root of the product of $n$ images. ImageMagick accomplishes this efficiently by combining the -evaluate-sequence multiply o">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compute-geometric-mean-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compute Geometric Mean in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compute-geometric-mean-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Calculating the geometric mean across multiple image exposures reduces noise and blends bracketed photos by determining the $n$-th root of the product of $n$ images. ImageMagick accomplishes this efficiently by combining the -evaluate-sequence multiply o" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compute-geometric-mean-in-imagemagick">Compute Geometric Mean in
+ImageMagick</h1>
+<p>Calculating the geometric mean across multiple image exposures
+reduces noise and blends bracketed photos by determining the <span
+class="math inline">\(n\)</span>-th root of the product of <span
+class="math inline">\(n\)</span> images. ImageMagick accomplishes this
+efficiently by combining the <code>-evaluate-sequence multiply</code>
+operation with an exponentiation step using <code>-evaluate pow</code>.
+This guide outlines the precise syntax required to execute this
+computation using ImageMagick's command-line tools.</p>
+<h2 id="the-standard-command-syntax">The Standard Command Syntax</h2>
+<p>To compute the geometric mean, load your exposure sequence, multiply
+all frames together, and raise the resulting composite to the power of
+<span class="math inline">\(1/n\)</span> (where <span
+class="math inline">\(n\)</span> is the total number of images).</p>
+<p>For a set of three images, the syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input1.tif input2.tif input3.tif <span class="at">-evaluate-sequence</span> multiply <span class="at">-evaluate</span> pow 0.333333 output.tif</span></code></pre></div>
+<p>For <span class="math inline">\(n\)</span> images, replace
+<code>0.333333</code> with the decimal value of <span
+class="math inline">\(1/n\)</span>:</p>
+<ul>
+<li><strong>2 images:</strong> <code>-evaluate pow 0.5</code></li>
+<li><strong>4 images:</strong> <code>-evaluate pow 0.25</code></li>
+<li><strong>5 images:</strong> <code>-evaluate pow 0.2</code></li>
+</ul>
+<h2 id="automatic-calculation-in-imagemagick-7">Automatic Calculation in
+ImageMagick 7</h2>
+<p>ImageMagick 7 allows you to compute the exponent dynamically based on
+the number of input files (<code>%n</code>) using inline percent escapes
+and mathematical expressions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> exposure_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> multiply <span class="at">-evaluate</span> pow <span class="st">&quot;%[fx:1/%n]&quot;</span> output.tif</span></code></pre></div>
+<p>This command automatically reads all matching files, multiplies their
+pixel values across identical coordinates, calculates <span
+class="math inline">\(1/n\)</span>, and applies the exponent to yield
+the correct geometric mean without requiring manual calculation.</p>
+<h2 id="important-considerations">Important Considerations</h2>
+<ul>
+<li><strong>HDRI Support:</strong> Ensure your ImageMagick installation
+has High Dynamic Range Imaging (HDRI) enabled (standard in ImageMagick
+7). When multiplying pixel values represented as normalized floats
+between <code>0.0</code> and <code>1.0</code>, precision will quickly
+degrade under standard integer builds.</li>
+<li><strong>Zero Values:</strong> Pixels containing absolute black
+(<code>0.0</code>) in any exposure will cause the geometric mean at that
+coordinate to evaluate to zero. If your exposures contain clipped shadow
+data, normalize or lift the black level slightly prior to
+multiplication.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Displace Operator and Displacement Vectors - magick</title>
+    <meta name="description" content="The ImageMagick -displace operator is a distortion tool used to warp a source image using the pixel values of a secondary control image known as a displacement map. This article explains what the -displace operator does, how displacement vectors use colo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-displace-operator-and-displacement-vectors">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Displace Operator and Displacement Vectors - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-displace-operator-and-displacement-vectors" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -displace operator is a distortion tool used to warp a source image using the pixel values of a secondary control image known as a displacement map. This article explains what the -displace operator does, how displacement vectors use colo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-displace-operator-and-displacement-vectors">ImageMagick
+Displace Operator and Displacement Vectors</h1>
+<p>The ImageMagick <code>-displace</code> operator is a distortion tool
+used to warp a source image using the pixel values of a secondary
+control image known as a displacement map. This article explains what
+the <code>-displace</code> operator does, how displacement vectors use
+color values to calculate pixel shifts, and how to control the scale and
+direction of the distortion effect.</p>
+<h2 id="what-is-the--displace-operator">What is the
+<code>-displace</code> Operator?</h2>
+<p>In ImageMagick, <code>-displace</code> is a composite operator that
+shifts pixels in a base image according to the brightness values of a
+displacement map. Rather than applying a uniform geometric
+transformation (such as a rotation or perspective change),
+<code>-displace</code> enables localized, pixel-by-pixel
+transformations. This makes it ideal for simulating optical effects like
+glass refraction, water ripples, heat hazes, and custom texture
+wrapping.</p>
+<p>The basic syntax requires two images: the background (source image)
+and the overlay (displacement map):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> source.png displacement_map.png <span class="at">-displace</span> <span class="op">&lt;</span>X-scale<span class="op">&gt;</span>x<span class="op">&lt;</span>Y-scale<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p>The scale arguments determine the maximum distance (in pixels) that
+source pixels can be moved along the horizontal (X) and vertical (Y)
+axes.</p>
+<h2 id="how-displacement-vectors-work">How Displacement Vectors
+Work</h2>
+<p>A displacement vector defines the direction and distance a source
+pixel will move to its new location. In ImageMagick, these vectors are
+calculated on a relative lookup basis: the operator looks at a target
+pixel coordinate, samples the displacement map, and fetches the color
+from an offset coordinate in the source image.</p>
+<p>Displacement vectors are encoded directly into the color channels of
+the displacement map:</p>
+<ul>
+<li><strong>Red Channel (X Vector):</strong> Controls horizontal
+displacement (left or right).</li>
+<li><strong>Green Channel (Y Vector):</strong> Controls vertical
+displacement (up or down).</li>
+<li><strong>Grayscale Image:</strong> If a single grayscale image is
+used, the same values are applied to both the X and Y vectors
+equally.</li>
+</ul>
+<h3 id="the-50-neutral-point">The 50% Neutral Point</h3>
+<p>Displacement uses a signed offset system centered at mid-gray (50%
+intensity):</p>
+<ul>
+<li><strong>50% Gray (RGB 128, 128, 128):</strong> Represents a vector
+value of zero. Pixels at this point experience no displacement and
+remain in their original positions.</li>
+<li><strong>Values Greater Than 50% (51% to 100% / White):</strong>
+Produce a positive displacement vector, shifting pixels down and to the
+right.</li>
+<li><strong>Values Less Than 50% (0% / Black to 49%):</strong> Produce a
+negative displacement vector, shifting pixels up and to the left.</li>
+</ul>
+<h3 id="calculating-pixel-offsets">Calculating Pixel Offsets</h3>
+<p>The formula for the final displacement offset <span
+class="math inline">\(D\)</span> for any axis is:</p>
+<p><span class="math display">\[D = \text{Scale} \times
+\left(\frac{\text{Channel Value} -
+\text{Midpoint}}{\text{Midpoint}}\right)\]</span></p>
+<p>For an 8-bit image where the midpoint is 128:</p>
+<ul>
+<li>A pixel value of 255 (pure white) with a scale of <code>20</code>
+results in a <span class="math inline">\(+20\text{px}\)</span> shift:
+<span class="math inline">\(20 \times (255 - 128) / 127 \approx
++20\text{px}\)</span>.</li>
+<li>A pixel value of 0 (pure black) with a scale of <code>20</code>
+results in a <span class="math inline">\(-20\text{px}\)</span> shift:
+<span class="math inline">\(20 \times (0 - 128) / 128 =
+-20\text{px}\)</span>.</li>
+</ul>
+<h2 id="displacement-map-configuration">Displacement Map
+Configuration</h2>
+<p>By designing smooth gradients in the red and green channels, you can
+construct complex vector fields. A smooth linear gradient from black to
+white creates a continuous stretching effect, while a radial gradient
+creates spherical bulge or pinch distortions. Using interpolated
+lookups, ImageMagick ensures that sub-pixel vector offsets remain smooth
+without producing jagged aliasing artifacts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

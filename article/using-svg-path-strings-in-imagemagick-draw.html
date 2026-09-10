@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using SVG Path Strings in ImageMagick Draw - magick</title>
+    <meta name="description" content="ImageMagick enables the rendering of complex vector graphics directly onto raster canvases through its -draw "path '...'" syntax, which directly implements the W3C SVG path specification. This article details how ImageMagick interprets standard SVG path">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/using-svg-path-strings-in-imagemagick-draw">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Using SVG Path Strings in ImageMagick Draw - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/using-svg-path-strings-in-imagemagick-draw" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick enables the rendering of complex vector graphics directly onto raster canvases through its -draw "path '...'" syntax, which directly implements the W3C SVG path specification. This article details how ImageMagick interprets standard SVG path" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="using-svg-path-strings-in-imagemagick-draw">Using SVG Path
+Strings in ImageMagick Draw</h1>
+<p>ImageMagick enables the rendering of complex vector graphics directly
+onto raster canvases through its <code>-draw "path '...'"</code> syntax,
+which directly implements the W3C SVG path specification. This article
+details how ImageMagick interprets standard SVG path data commands,
+coordinates, and styling options, allowing developers to execute precise
+vector operations via the command-line interface without converting
+entire SVG files.</p>
+<h3 id="the--draw-path--primitive">The <code>-draw "path '...'"</code>
+Primitive</h3>
+<p>ImageMagick's <code>-draw</code> option provides a <code>path</code>
+graphic primitive designed to parse SVG path syntax
+(<code>d="..."</code> in standard SVG). Because the path data contains
+spaces and coordinate pairs, proper shell quoting is required:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;path &#39;M 50,50 L 200,50 L 200,200 Z&#39;&quot;</span> output.png</span></code></pre></div>
+<p>The string passed inside the nested quotes follows standard SVG
+whitespace-separated or comma-separated command and coordinate
+structures.</p>
+<h3 id="supported-svg-path-commands">Supported SVG Path Commands</h3>
+<p>ImageMagick supports the core SVG path commands, differentiating
+between absolute coordinates (uppercase letters) and relative
+coordinates (lowercase letters):</p>
+<ul>
+<li><strong>MoveTo (<code>M</code>, <code>m</code>):</strong> Sets the
+current point without drawing. <code>M x,y</code> moves to an absolute
+position, while <code>m dx,dy</code> moves relative to the previous
+point.</li>
+<li><strong>LineTo (<code>L</code>, <code>l</code>, <code>H</code>,
+<code>h</code>, <code>V</code>, <code>v</code>):</strong> Draws straight
+lines. <code>L x,y</code> draws to an absolute point;
+<code>l dx,dy</code> draws to a relative point. Horizontal
+(<code>H</code>, <code>h</code>) and vertical (<code>V</code>,
+<code>v</code>) shortcuts take single-axis values.</li>
+<li><strong>Cubic Bézier Curve (<code>C</code>, <code>c</code>,
+<code>S</code>, <code>s</code>):</strong> <code>C x1,y1 x2,y2 x,y</code>
+creates a cubic Bézier curve using two control points and an endpoint.
+Smooth cubic Bézier (<code>S</code>, <code>s</code>) assumes the first
+control point is a reflection of the previous curve's control
+point.</li>
+<li><strong>Quadratic Bézier Curve (<code>Q</code>, <code>q</code>,
+<code>T</code>, <code>t</code>):</strong> <code>Q x1,y1 x,y</code> draws
+a curve with a single control point. Smooth quadratic Bézier
+(<code>T</code>, <code>t</code>) continues the curve using a mirrored
+control point.</li>
+<li><strong>Elliptical Arc (<code>A</code>, <code>a</code>):</strong>
+<code>A rx ry x-axis-rotation large-arc-flag sweep-flag x y</code> draws
+an elliptical arc based on radii, rotation, and boolean flags
+controlling arc orientation.</li>
+<li><strong>ClosePath (<code>Z</code>, <code>z</code>):</strong>
+Connects the current position back to the initial point of the current
+subpath.</li>
+</ul>
+<h3 id="controlling-vector-styles">Controlling Vector Styles</h3>
+<p>Path geometry rendered through <code>-draw 'path'</code> inherits
+properties from preceding ImageMagick settings rather than embedding CSS
+or inline XML attributes:</p>
+<ul>
+<li><strong>Fill and Stroke:</strong> Controlled using
+<code>-fill &lt;color&gt;</code> and <code>-stroke &lt;color&gt;</code>.
+Setting <code>-fill none</code> creates open, stroked paths.</li>
+<li><strong>Stroke Width and Caps:</strong> Configured using
+<code>-strokewidth &lt;pixels&gt;</code>,
+<code>-strokelinecap &lt;butt|round|square&gt;</code>, and
+<code>-strokelinejoin &lt;miter|round|bevel&gt;</code>.</li>
+<li><strong>Fill Rule:</strong> Handled via
+<code>-fill-rule &lt;evenodd|nonzero&gt;</code>, replicating SVG's
+winding rules for overlapping or self-intersecting path segments.</li>
+</ul>
+<h3 id="coordinate-systems-and-canvas-bounds">Coordinate Systems and
+Canvas Bounds</h3>
+<p>Path calculations rely on pixel coordinates based from the top-left
+origin <code>(0,0)</code> of the input or defined canvas. ImageMagick
+renders these paths using internal anti-aliasing algorithms to project
+continuous mathematical curves onto discrete pixel grids, providing
+visual parity with standard SVG renderers while operating within a pure
+raster pipeline.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

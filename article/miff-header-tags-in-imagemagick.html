@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIFF Header Tags in ImageMagick - magick</title>
+    <meta name="description" content="The Magick Image File Format (MIFF) is ImageMagick's native raster format, designed to preserve the complete internal state of an image in memory when written to disk. When exporting raster data to MIFF, ImageMagick writes a human-readable, text-based he">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/miff-header-tags-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MIFF Header Tags in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/miff-header-tags-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Magick Image File Format (MIFF) is ImageMagick's native raster format, designed to preserve the complete internal state of an image in memory when written to disk. When exporting raster data to MIFF, ImageMagick writes a human-readable, text-based he" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="miff-header-tags-in-imagemagick">MIFF Header Tags in
+ImageMagick</h1>
+<p>The Magick Image File Format (MIFF) is ImageMagick's native raster
+format, designed to preserve the complete internal state of an image in
+memory when written to disk. When exporting raster data to MIFF,
+ImageMagick writes a human-readable, text-based header consisting of
+<code>keyword=value</code> pairs followed by a form-feed character
+(<code>\x0c</code>) and a colon delimiter before the raw binary pixel
+payload begins. This article details the primary header tags stored
+during the export process and their roles in defining the raster image's
+attributes.</p>
+<h3 id="structural-and-identification-tags">Structural and
+Identification Tags</h3>
+<ul>
+<li><strong><code>id</code></strong>: Identifies the file format. For
+standard MIFF files, this is set to <code>id=ImageMagick</code>.</li>
+<li><strong><code>class</code></strong>: Defines the pixel storage
+model. It is typically set to <code>DirectClass</code> (for direct
+truecolor representations) or <code>PseudoClass</code> (for
+colormapped/indexed images).</li>
+<li><strong><code>columns</code></strong>: Specifies the width of the
+image in pixels as an integer.</li>
+<li><strong><code>rows</code></strong>: Specifies the height of the
+image in pixels as an integer.</li>
+<li><strong><code>depth</code></strong>: Indicates the bit depth per
+color channel (such as 8, 16, or 32 bits), reflecting the quantum depth
+of the ImageMagick build and export settings.</li>
+</ul>
+<h3 id="color-and-channel-tags">Color and Channel Tags</h3>
+<ul>
+<li><strong><code>colorspace</code></strong>: Specifies the color model
+used for the pixel data, such as <code>sRGB</code>, <code>RGB</code>,
+<code>CMYK</code>, <code>Gray</code>, or <code>Lab</code>.</li>
+<li><strong><code>alpha</code></strong> (or
+<strong><code>matte</code></strong> in legacy versions): Set to
+<code>True</code> or <code>False</code> to indicate whether an alpha
+transparency channel is present in the binary payload.</li>
+<li><strong><code>colors</code></strong>: Used primarily when
+<code>class=PseudoClass</code>, indicating the number of colors
+contained in the accompanying color lookup table.</li>
+<li><strong><code>gamma</code></strong>: Stores the gamma correction
+exponent of the image data.</li>
+<li><strong><code>rendering-intent</code></strong>: Defines the ICC
+color rendering intent (e.g., <code>Perceptual</code>,
+<code>Relative</code>, <code>Saturation</code>, or
+<code>Absolute</code>).</li>
+</ul>
+<h3 id="encoding-and-storage-tags">Encoding and Storage Tags</h3>
+<ul>
+<li><strong><code>compression</code></strong>: Identifies the
+compression algorithm applied to the binary raster payload. Common
+values include <code>None</code>, <code>BZip</code>, <code>Fax</code>,
+<code>JPEG</code>, <code>LZW</code>, <code>RLE</code>, and
+<code>Zip</code>.</li>
+<li><strong><code>quality</code></strong>: An integer indicating the
+compression quality or level requested during the save operation.</li>
+<li><strong><code>endian</code></strong>: Declares the byte ordering of
+multi-byte binary values, set to either <code>MSB</code> (Most
+Significant Byte / big-endian) or <code>LSB</code> (Least Significant
+Byte / little-endian).</li>
+</ul>
+<h3 id="sizing-and-geometry-tags">Sizing and Geometry Tags</h3>
+<ul>
+<li><strong><code>resolution</code></strong>: The horizontal and
+vertical resolution of the image, written in the format
+<code>WidthxHeight</code> (e.g., <code>300x300</code>).</li>
+<li><strong><code>units</code></strong>: The metric used for resolution
+measurements, commonly <code>PixelsPerInch</code> or
+<code>PixelsPerCentimeter</code>.</li>
+<li><strong><code>page</code></strong>: The canvas geometry or offset
+for layered images, stored in geometry syntax (e.g.,
+<code>800x600+0+0</code>).</li>
+<li><strong><code>scene</code></strong>: The index or frame number of
+the image within an animation or multi-image sequence.</li>
+</ul>
+<h3 id="profiles-and-custom-metadata">Profiles and Custom Metadata</h3>
+<ul>
+<li><strong><code>profile-[name]</code></strong>: Embedded metadata
+profiles—such as ICC, EXIF, IPTC, or XMP—are saved with their byte
+length specified as the tag value, immediately followed by the raw
+profile data within the header section.</li>
+<li><strong>Arbitrary Key-Value Attributes</strong>: Any custom
+properties or EXIF metadata fields associated with the image artifact
+(such as <code>date:create</code>, <code>comment</code>, or software
+identifiers) are appended as literal text key-value pairs directly in
+the header text block.</li>
+</ul>
+<h3 id="header-termination">Header Termination</h3>
+<p>The MIFF header is terminated by the sequence <code>\x0c\n:</code> (a
+form-feed character, newline, and colon). ImageMagick uses this distinct
+boundary to halt text parsing and immediately begin streaming the binary
+colormap (if <code>PseudoClass</code>) and raster pixel packets.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

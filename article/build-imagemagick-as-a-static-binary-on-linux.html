@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build ImageMagick as a Static Binary on Linux - magick</title>
+    <meta name="description" content="Building ImageMagick as a fully static, standalone binary on Linux allows you to distribute and run the magick executable across any distribution without shared library dependencies or glibc version conflicts. This guide provides a direct, step-by-step w">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/build-imagemagick-as-a-static-binary-on-linux">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Build ImageMagick as a Static Binary on Linux - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/build-imagemagick-as-a-static-binary-on-linux" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Building ImageMagick as a fully static, standalone binary on Linux allows you to distribute and run the magick executable across any distribution without shared library dependencies or glibc version conflicts. This guide provides a direct, step-by-step w" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="build-imagemagick-as-a-static-binary-on-linux">Build ImageMagick
+as a Static Binary on Linux</h1>
+<p>Building ImageMagick as a fully static, standalone binary on Linux
+allows you to distribute and run the <code>magick</code> executable
+across any distribution without shared library dependencies or glibc
+version conflicts. This guide provides a direct, step-by-step
+walkthrough to compiling ImageMagick using Alpine Linux and
+<code>musl-libc</code>—the most reliable environment for producing true
+static binaries—including downloading source code, compiling static
+delegates for image format support, configuring static linkage flags,
+and verifying the final output.</p>
+<h2 id="why-use-alpine-linux-musl-libc">Why Use Alpine Linux
+(musl-libc)</h2>
+<p>While it is possible to compile statically on glibc-based systems
+(like Ubuntu or CentOS), glibc is not designed for true static linking
+and often issues runtime warnings regarding Name Service Switch (NSS)
+functions. Alpine Linux uses <code>musl</code>, which fully supports
+100% static compilation. You can run these commands inside an Alpine
+Linux container or directly on an Alpine host.</p>
+<h2 id="step-1-install-build-dependencies-and-static-delegates">Step 1:
+Install Build Dependencies and Static Delegates</h2>
+<p>Launch an Alpine Linux shell and install the build tools and static
+development packages for the image formats you intend to support:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">apk</span> update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">apk</span> add <span class="at">--no-cache</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    build-base <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    pkgconf <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    curl <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    tar <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    zlib-dev zlib-static <span class="dt">\</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    libpng-dev libpng-static <span class="dt">\</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    libjpeg-turbo-dev libjpeg-turbo-static <span class="dt">\</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    libwebp-dev libwebp-static <span class="dt">\</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    freetype-dev freetype-static <span class="dt">\</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    libxml2-dev libxml2-static</span></code></pre></div>
+<p>If you require other delegates (such as OpenJPEG, TIFF, or
+Ghostscript), ensure you install their corresponding static
+(<code>*-static</code>) packages.</p>
+<h2 id="step-2-download-and-extract-imagemagick-source">Step 2: Download
+and Extract ImageMagick Source</h2>
+<p>Fetch the latest source release from ImageMagick's source
+repository:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">IMAGE_MAGICK_VER</span><span class="op">=</span><span class="st">&quot;7.1.1-43&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-LO</span> https://download.imagemagick.org/ImageMagick/download/ImageMagick-<span class="va">${IMAGE_MAGICK_VER}</span>.tar.gz</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xzf</span> ImageMagick-<span class="va">${IMAGE_MAGICK_VER}</span>.tar.gz</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ImageMagick-<span class="va">${IMAGE_MAGICK_VER}</span></span></code></pre></div>
+<h2 id="step-3-configure-the-build-for-static-compilation">Step 3:
+Configure the Build for Static Compilation</h2>
+<p>Configure the build system to enforce static linking, disable dynamic
+loading, and disable shared libraries:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    CC=gcc <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    CXX=g++ <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    CFLAGS=<span class="st">&quot;-O2 -fPIC&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    CXXFLAGS=<span class="st">&quot;-O2 -fPIC&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    LDFLAGS=<span class="st">&quot;-static -all-static&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    PKG_CONFIG=<span class="st">&quot;pkg-config --static&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-static</span> <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-shared</span> <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-modules</span> <span class="dt">\</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-installed</span> <span class="dt">\</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-x</span> <span class="dt">\</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-utilities-extra</span> <span class="dt">\</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-perl</span> <span class="dt">\</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-magick-plus-plus</span> <span class="dt">\</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-zlib</span><span class="op">=</span>yes <span class="dt">\</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-png</span><span class="op">=</span>yes <span class="dt">\</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-jpeg</span><span class="op">=</span>yes <span class="dt">\</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-webp</span><span class="op">=</span>yes <span class="dt">\</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-freetype</span><span class="op">=</span>yes <span class="dt">\</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-xml</span><span class="op">=</span>yes</span></code></pre></div>
+<p>Key configuration flags explained:</p>
+<ul>
+<li><code>--enable-static --disable-shared</code>: Builds static
+archives (<code>.a</code>) instead of dynamic objects
+(<code>.so</code>).</li>
+<li><code>--disable-modules</code>: Links all delegate decoders and
+encoders directly into the core binary rather than loading them as
+external <code>.so</code> plugins.</li>
+<li><code>LDFLAGS="-static -all-static"</code>: Directs the linker to
+bind all C runtime and delegate library symbols into the
+executable.</li>
+<li><code>PKG_CONFIG="pkg-config --static"</code>: Ensures dependent
+library flags pull in their nested dependencies.</li>
+</ul>
+<h2 id="step-4-compile-and-link">Step 4: Compile and Link</h2>
+<p>Compile the project using all available CPU cores:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span></code></pre></div>
+<p>Once compilation completes, the main standalone binary will be
+located at <code>utilities/magick</code>.</p>
+<p>You can optionally strip debug symbols to significantly reduce binary
+size:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">strip</span> <span class="at">--strip-all</span> utilities/magick</span></code></pre></div>
+<h2 id="step-5-verify-the-static-binary">Step 5: Verify the Static
+Binary</h2>
+<p>Verify that the binary has no shared library dependencies by running
+<code>ldd</code> and <code>file</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">file</span> utilities/magick</span></code></pre></div>
+<p>The output should report:
+<code>ELF 64-bit LSB executable, statically linked</code>.</p>
+<p>Next, run:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ldd</span> utilities/magick</span></code></pre></div>
+<p>The output should state:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">utilities/magick:</span> Not a dynamic executable</span></code></pre></div>
+<p>Test image format decoding and conversion:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./utilities/magick</span> <span class="at">-version</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./utilities/magick</span> logo: logo.png</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./utilities/magick</span> logo.png logo.jpg</span></code></pre></div>
+<p>The resulting <code>magick</code> file is now a completely portable,
+standalone binary that can be copied to and run on any x86_64 Linux
+machine.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Add TIFF Software Tags in ImageMagick - magick</title>
+    <meta name="description" content="This article demonstrates how to inject custom ASCII software tags into a TIFF image header using the ImageMagick command-line suite. You will learn the exact syntax for modifying the standard TIFF Software metadata field (Tag 305), writing arbitrary ASC">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-add-tiff-software-tags-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Add TIFF Software Tags in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-add-tiff-software-tags-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article demonstrates how to inject custom ASCII software tags into a TIFF image header using the ImageMagick command-line suite. You will learn the exact syntax for modifying the standard TIFF Software metadata field (Tag 305), writing arbitrary ASC" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-add-tiff-software-tags-in-imagemagick">How to Add TIFF
+Software Tags in ImageMagick</h1>
+<p>This article demonstrates how to inject custom ASCII software tags
+into a TIFF image header using the ImageMagick command-line suite. You
+will learn the exact syntax for modifying the standard TIFF Software
+metadata field (Tag 305), writing arbitrary ASCII tags, and verifying
+that the updated header information has been properly written to the
+file.</p>
+<h3 id="writing-to-the-standard-tiff-software-tag">Writing to the
+Standard TIFF Software Tag</h3>
+<p>The TIFF specification designates Tag 305 (hexadecimal
+<code>0x0131</code>) as the standard ASCII field to identify the
+software used to create or modify an image. In ImageMagick, you can set
+this field using the <code>-set</code> operator followed by the
+<code>tiff:software</code> property key.</p>
+<p>For ImageMagick v7, use the <code>magick</code> command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-set</span> <span class="st">&quot;tiff:software&quot;</span> <span class="st">&quot;MyCustomSoftware v1.0&quot;</span> output.tif</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.tif <span class="at">-set</span> <span class="st">&quot;tiff:software&quot;</span> <span class="st">&quot;MyCustomSoftware v1.0&quot;</span> output.tif</span></code></pre></div>
+<h3 id="adding-arbitrary-or-custom-ascii-tags">Adding Arbitrary or
+Custom ASCII Tags</h3>
+<p>If you need to write custom ASCII tags outside the standard
+<code>tiff:software</code> property, ImageMagick supports passing
+arbitrary TIFF tags via the <code>-define</code> operator using the tag
+ID number and type.</p>
+<p>To add a generic ASCII tag, define the tag identifier and append the
+string value:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-define</span> tiff:tag:65000=<span class="st">&quot;Custom ASCII Payload&quot;</span> output.tif</span></code></pre></div>
+<p><em>Note: Ensure custom tag numbers avoid reserved baseline TIFF
+ranges (1–37000) to prevent conflicts with standard readers.</em></p>
+<h3 id="verifying-the-tag-in-the-tiff-header">Verifying the Tag in the
+TIFF Header</h3>
+<p>After writing the file, confirm the ASCII tag exists within the
+header using ImageMagick's <code>identify</code> tool:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.tif <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;tiff:software&quot;</span></span></code></pre></div>
+<p>The output will display the custom string set during processing:</p>
+<pre class="text"><code>tiff:software: MyCustomSoftware v1.0</code></pre></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

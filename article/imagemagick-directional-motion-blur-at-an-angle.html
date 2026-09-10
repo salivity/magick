@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Directional Motion Blur at an Angle - magick</title>
+    <meta name="description" content="Applying a directional motion blur at an arbitrary angle in ImageMagick is achieved using the built-in -motion-blur operator. This guide explains the correct syntax for specifying the blur radius, strength, and angle, providing direct command-line exampl">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-directional-motion-blur-at-an-angle">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Directional Motion Blur at an Angle - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-directional-motion-blur-at-an-angle" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a directional motion blur at an arbitrary angle in ImageMagick is achieved using the built-in -motion-blur operator. This guide explains the correct syntax for specifying the blur radius, strength, and angle, providing direct command-line exampl" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-directional-motion-blur-at-an-angle">ImageMagick
+Directional Motion Blur at an Angle</h1>
+<p>Applying a directional motion blur at an arbitrary angle in
+ImageMagick is achieved using the built-in <code>-motion-blur</code>
+operator. This guide explains the correct syntax for specifying the blur
+radius, strength, and angle, providing direct command-line examples for
+both ImageMagick v7 and v6 so you can accurately simulate directional
+movement in any image.</p>
+<hr />
+<h3 id="the--motion-blur-syntax">The <code>-motion-blur</code>
+Syntax</h3>
+<p>The operator uses the following geometry parameter format:</p>
+<pre class="text"><code>-motion-blur {radius}x{sigma}+{angle}</code></pre>
+<ul>
+<li><strong><code>radius</code></strong>: The size of the blur matrix in
+pixels. Setting this to <code>0</code> allows ImageMagick to calculate
+an optimal radius automatically based on the <code>sigma</code>
+value.</li>
+<li><strong><code>sigma</code></strong>: The standard deviation of the
+blur. This effectively controls the distance/length of the motion
+streak.</li>
+<li><strong><code>angle</code></strong>: The direction of the blur in
+degrees, measured counter-clockwise from the horizontal axis:
+<ul>
+<li><code>0</code>: Horizontal blur (left-to-right / right-to-left)</li>
+<li><code>45</code>: Diagonal blur (bottom-left to top-right)</li>
+<li><code>90</code>: Vertical blur (straight up and down)</li>
+<li><code>135</code>, <code>180</code>, <code>270</code>: Custom
+arbitrary angles</li>
+</ul></li>
+</ul>
+<hr />
+<h3 id="basic-command-examples">Basic Command Examples</h3>
+<h4 id="imagemagick-v7-current-standard">ImageMagick v7 (Current
+Standard)</h4>
+<p>To apply a motion blur of length 20 at a 45-degree angle:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-motion-blur</span> 0x20+45 output.jpg</span></code></pre></div>
+<h4 id="imagemagick-v6-legacy">ImageMagick v6 (Legacy)</h4>
+<p>For older installations using the <code>convert</code> binary:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-motion-blur</span> 0x20+45 output.jpg</span></code></pre></div>
+<hr />
+<h3 id="common-angle-configurations">Common Angle Configurations</h3>
+<ul>
+<li><p><strong>Horizontal Motion Blur (0°):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-motion-blur</span> 0x15+0 output_horizontal.jpg</span></code></pre></div></li>
+<li><p><strong>Vertical Motion Blur (90°):</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-motion-blur</span> 0x15+90 output_vertical.jpg</span></code></pre></div></li>
+<li><p><strong>Diagonal Motion Blur (60°):</strong></p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-motion-blur</span> 0x25+60 output_diagonal.jpg</span></code></pre></div></li>
+</ul>
+<hr />
+<h3 id="handling-blur-intensity-and-edges">Handling Blur Intensity and
+Edges</h3>
+<ol type="1">
+<li><strong>Increasing Streak Length</strong>: Increase the
+<code>sigma</code> value (e.g., <code>0x40+30</code> creates a much
+longer blur trail than <code>0x10+30</code>).</li>
+<li><strong>Preventing Edge Artifacts</strong>: High-sigma values near
+image borders can cause dark edges. To mitigate this, add a virtual
+pixel setting before applying the blur:
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-virtual-pixel</span> Mirror <span class="at">-motion-blur</span> 0x30+45 output.jpg</span></code></pre></div></li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

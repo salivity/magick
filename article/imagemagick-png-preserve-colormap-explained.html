@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick png:preserve-colormap Explained - magick</title>
+    <meta name="description" content="The png:preserve-colormap define in ImageMagick prevents the PNG encoder from reorganizing, re-indexing, or pruning an image's existing color palette during export. By default, ImageMagick optimizes palette-based (indexed) PNG files by sorting colors and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-png-preserve-colormap-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick png:preserve-colormap Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-png-preserve-colormap-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The png:preserve-colormap define in ImageMagick prevents the PNG encoder from reorganizing, re-indexing, or pruning an image's existing color palette during export. By default, ImageMagick optimizes palette-based (indexed) PNG files by sorting colors and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-pngpreserve-colormap-explained">ImageMagick
+png:preserve-colormap Explained</h1>
+<p>The <code>png:preserve-colormap</code> define in ImageMagick prevents
+the PNG encoder from reorganizing, re-indexing, or pruning an image's
+existing color palette during export. By default, ImageMagick optimizes
+palette-based (indexed) PNG files by sorting colors and removing unused
+colormap entries to achieve smaller file sizes. Enabling this define
+forces the encoder to retain the exact order, index positions, and
+unused slots of the original colormap.</p>
+<h3 id="default-imagemagick-palette-behavior">Default ImageMagick
+Palette Behavior</h3>
+<p>When exporting an indexed image (such as PNG8) without special
+defines, ImageMagick performs automatic palette optimization:</p>
+<ul>
+<li><strong>Reordering Indices:</strong> It often sorts the colormap
+entries by luminance or frequency, or places transparent pixels at
+specific low index positions to improve PNG compression.</li>
+<li><strong>Removing Unused Colors:</strong> Any palette entries not
+actively referenced by pixel data in the image are stripped to minimize
+the size of the <code>PLTE</code> chunk.</li>
+<li><strong>Re-indexing Pixels:</strong> Pixel values are updated to
+match the new positions of their corresponding colors in the newly
+structured palette.</li>
+</ul>
+<p>While this optimization is ideal for standard web graphics, it alters
+the underlying byte-level index assignments.</p>
+<h3 id="what-pngpreserve-colormap-changes">What
+<code>png:preserve-colormap</code> Changes</h3>
+<p>Setting <code>-define png:preserve-colormap=true</code> instructs the
+PNG encoder to bypass its default optimization steps. Specifically, it
+guarantees that:</p>
+<ol type="1">
+<li><strong>Index Order Remains Intact:</strong> Color index 0, 1, 2,
+and so forth remain identical to their original values in the source
+image's colormap.</li>
+<li><strong>Unused Slots Are Kept:</strong> If an original 256-color
+palette contains entries that are not used by any pixels, those empty or
+unused entries are still written to the final output file.</li>
+<li><strong>No Pixel Re-mapping Occurs:</strong> The image data
+continues to reference the original index numbers directly, avoiding any
+shift in pixel data mapping.</li>
+</ol>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<p>Preserving the colormap is critical in specialized workflows where
+the color index itself carries functional meaning beyond visual
+display:</p>
+<ul>
+<li><strong>Retro Game Development:</strong> Sprite sheets and textures
+frequently rely on palette shifting, palette cycling, or specific index
+ranges for dynamic in-engine recoloring.</li>
+<li><strong>Scientific and GIS Data:</strong> Indexed images often store
+non-color metadata (such as elevation, classification, or heat maps),
+where a pixel's value strictly corresponds to a categorized data point
+rather than an arbitrary display color.</li>
+<li><strong>Strict Format Pipelines:</strong> Downstream software or
+legacy hardware decoders may expect fixed palette layouts that break
+when optimized dynamically.</li>
+</ul>
+<h3 id="how-to-use-the-define">How to Use the Define</h3>
+<p>To use this option, apply the define along with an indexed PNG format
+or palette setting:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> png:preserve-colormap=true output.png</span></code></pre></div>
+<p>If converting from a truecolor image to a palette image while
+attempting to preserve a specific external colormap, the source must
+already possess a defined palette (such as an image reduced via
+<code>-remap</code> or converted to indexed color before saving) so that
+the encoder has an existing colormap structure to preserve.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Animated GIF Page Geometry in ImageMagick - magick</title>
+    <meta name="description" content="When working with animated GIFs in ImageMagick, frame offsets and virtual canvas metadata can cause visual artifacts, misaligned animations, or incorrect bounding boxes after operations like cropping or resizing. This guide explains how to completely res">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/reset-animated-gif-page-geometry-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Reset Animated GIF Page Geometry in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/reset-animated-gif-page-geometry-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When working with animated GIFs in ImageMagick, frame offsets and virtual canvas metadata can cause visual artifacts, misaligned animations, or incorrect bounding boxes after operations like cropping or resizing. This guide explains how to completely res" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="reset-animated-gif-page-geometry-in-imagemagick">Reset Animated
+GIF Page Geometry in ImageMagick</h1>
+<p>When working with animated GIFs in ImageMagick, frame offsets and
+virtual canvas metadata can cause visual artifacts, misaligned
+animations, or incorrect bounding boxes after operations like cropping
+or resizing. This guide explains how to completely reset the page
+geometry offsets across all frames of an animated GIF using
+ImageMagick's <code>+repage</code> operator.</p>
+<h3 id="the-command-repage">The Command: <code>+repage</code></h3>
+<p>In ImageMagick, the operator used to reset canvas offsets and page
+geometry is <code>+repage</code>.</p>
+<p>While <code>-repage</code> allows you to define specific canvas
+dimensions and offsets (for example,
+<code>-repage 500x500+10+10</code>), using the plus sign
+(<code>+repage</code>) instructs ImageMagick to remove all virtual
+canvas offset information, resetting the page canvas to match the exact
+dimensions of each individual frame.</p>
+<h3 id="basic-usage">Basic Usage</h3>
+<p>To reset the page offsets of an existing animated GIF, run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif +repage output.gif</span></code></pre></div>
+<p><em>(Note: In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h3 id="handling-optimized-gifs-with--coalesce">Handling Optimized GIFs
+with <code>-coalesce</code></h3>
+<p>Animated GIFs frequently use optimization techniques where individual
+frames only contain the changed pixels and rely on offset coordinates to
+display in the correct location. If you modify or reset the geometry of
+an optimized GIF directly, the frames can become distorted.</p>
+<p>To safely reset geometry while preserving the animation, pair
+<code>+repage</code> with <code>-coalesce</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> +repage output.gif</span></code></pre></div>
+<ul>
+<li><code>-coalesce</code> fully reconstructs every frame to its
+complete display state, removing partial-frame dependencies.</li>
+<li><code>+repage</code> strips the existing offset data across every
+frame.</li>
+</ul>
+<h3 id="cropping-or-resizing-workflow">Cropping or Resizing
+Workflow</h3>
+<p>When modifying the dimensions of an animated GIF,
+<code>+repage</code> should be placed immediately after the
+transformation operator to prevent the cropped or resized frames from
+retaining obsolete canvas coordinates:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-crop</span> 300x300+50+50 +repage <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<p>In this sequence:</p>
+<ol type="1">
+<li><code>-coalesce</code> expands the frames.</li>
+<li><code>-crop</code> cuts out the specified region.</li>
+<li><code>+repage</code> resets the page geometry so the frames no
+longer look for the pre-crop canvas coordinates.</li>
+<li><code>-layers optimize</code> reapplies GIF frame optimization to
+reduce the final file size.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Proportional Height Scaling - magick</title>
+    <meta name="description" content="Scaling portrait photos to a uniform height while preserving their original aspect ratio is a common image processing requirement. This article explains how to use ImageMagick's command-line tools to apply proportional, height-based scaling to portrait p">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-proportional-height-scaling">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Proportional Height Scaling - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-proportional-height-scaling" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Scaling portrait photos to a uniform height while preserving their original aspect ratio is a common image processing requirement. This article explains how to use ImageMagick's command-line tools to apply proportional, height-based scaling to portrait p" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-proportional-height-scaling">ImageMagick
+Proportional Height Scaling</h1>
+<p>Scaling portrait photos to a uniform height while preserving their
+original aspect ratio is a common image processing requirement. This
+article explains how to use ImageMagick's command-line tools to apply
+proportional, height-based scaling to portrait photos individually or in
+bulk, preventing distortion by allowing the width to adjust
+automatically.</p>
+<h3 id="the-height-only-geometry-syntax">The Height-Only Geometry
+Syntax</h3>
+<p>ImageMagick controls resizing dimensions using geometry arguments
+passed to the <code>-resize</code> option. To constrain the height while
+letting the width calculate proportionally, omit the width parameter and
+precede the height value with an <code>x</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> x1200 output.jpg</span></code></pre></div>
+<p>In this command, <code>x1200</code> instructs ImageMagick to set the
+height to exactly 1200 pixels. Because no value precedes the
+<code>x</code>, the horizontal dimension scales automatically according
+to the original aspect ratio. For ImageMagick 6, replace
+<code>magick</code> with <code>convert</code>.</p>
+<h3 id="correcting-exif-orientation-first">Correcting EXIF Orientation
+First</h3>
+<p>Portrait photos taken on digital cameras and smartphones often
+contain an EXIF orientation flag rather than physically rotated pixel
+data. If you scale the image without handling this tag, ImageMagick may
+interpret the photo as landscape and scale the wrong edge. Use
+<code>-auto-orient</code> before the resize operation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-auto-orient</span> <span class="at">-resize</span> x1200 output.jpg</span></code></pre></div>
+<h3 id="conditional-height-scaling">Conditional Height Scaling</h3>
+<p>You can add condition flags directly to the geometry string to limit
+when resizing occurs:</p>
+<ul>
+<li><strong>Scale down only:</strong> To prevent enlarging photos
+smaller than your target height, append the <code>&gt;</code> flag. In
+most shells, escape the character with a backslash or wrap the argument
+in quotes:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-auto-orient</span> <span class="at">-resize</span> <span class="st">&quot;x1200&gt;&quot;</span> output.jpg</span></code></pre></div></li>
+<li><strong>Scale up only:</strong> To enlarge images without shrinking
+larger ones, use the <code>&lt;</code> flag:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-auto-orient</span> <span class="at">-resize</span> <span class="st">&quot;x1200&lt;&quot;</span> output.jpg</span></code></pre></div></li>
+</ul>
+<h3 id="batch-processing-portrait-photos">Batch Processing Portrait
+Photos</h3>
+<h4 id="using-mogrify-in-place-overwrite">Using <code>mogrify</code>
+(In-Place Overwrite)</h4>
+<p>To batch process a directory of images and overwrite the originals
+with the resized versions:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-auto-orient</span> <span class="at">-resize</span> x1200 <span class="pp">*</span>.jpg</span></code></pre></div>
+<h4 id="using-a-shell-loop-preserving-originals">Using a Shell Loop
+(Preserving Originals)</h4>
+<p>To maintain original files and save processed portraits to a separate
+directory, run a shell loop:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> resized</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> <span class="at">-auto-orient</span> <span class="at">-resize</span> x1200 <span class="st">&quot;resized/</span><span class="va">$img</span><span class="st">&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>This workflow ensures every portrait image adopts a consistent
+vertical measurement across digital displays, galleries, and print
+layouts while maintaining proper proportions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

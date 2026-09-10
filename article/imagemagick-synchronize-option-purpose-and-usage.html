@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -synchronize Option: Purpose and Usage - magick</title>
+    <meta name="description" content="This article explains the purpose and functionality of the -synchronize option in ImageMagick when writing images to storage. It details how this setting modifies standard operating system write caching to guarantee physical disk writes, why it is critic">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-synchronize-option-purpose-and-usage">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -synchronize Option: Purpose and Usage - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-synchronize-option-purpose-and-usage" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the purpose and functionality of the -synchronize option in ImageMagick when writing images to storage. It details how this setting modifies standard operating system write caching to guarantee physical disk writes, why it is critic" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--synchronize-option-purpose-and-usage">ImageMagick
+-synchronize Option: Purpose and Usage</h1>
+<p>This article explains the purpose and functionality of the
+<code>-synchronize</code> option in ImageMagick when writing images to
+storage. It details how this setting modifies standard operating system
+write caching to guarantee physical disk writes, why it is critical for
+preventing file corruption during power failures or system crashes, and
+the associated performance trade-offs.</p>
+<h2 id="how-the--synchronize-option-works">How the -synchronize Option
+Works</h2>
+<p>When software writes files to a disk, the operating system normally
+buffers the data in memory cache (page cache) and confirms the write
+operation immediately to improve system performance. The actual physical
+write to the storage hardware occurs asynchronously in the background
+moments later.</p>
+<p>The ImageMagick <code>-synchronize</code> command-line option alters
+this behavior by instructing the program to force the operating system
+to flush the image data directly to physical storage before the
+operation is marked complete. Under the hood, this relies on low-level
+system calls such as <code>fsync()</code> on Unix-like systems or
+<code>FlushFileBuffers()</code> on Windows.</p>
+<h2 id="why-use--synchronize">Why Use -synchronize?</h2>
+<p>Using <code>-synchronize</code> ensures data integrity in
+environments where write failures cannot be tolerated:</p>
+<ul>
+<li><strong>Preventing Data Loss and Corruption:</strong> If a sudden
+system crash, kernel panic, or power outage occurs immediately after an
+ImageMagick command finishes, standard buffered data might be lost,
+resulting in zero-byte or corrupted image files. The
+<code>-synchronize</code> option ensures the file physically exists on
+the disk platter or flash cells before the process exits.</li>
+<li><strong>Network and Distributed File Systems:</strong> When writing
+to Network File Systems (NFS), cloud volumes, or shared storage
+clusters, client-side caching can cause race conditions where another
+node tries to read an image that has not yet been synced. Enabling
+<code>-synchronize</code> guarantees immediate consistency across
+distributed systems.</li>
+<li><strong>Mission-Critical Pipelines:</strong> Automated processing
+pipelines that immediately trigger secondary workflows (such as moving,
+deleting, or archiving source files based on the success of the output)
+benefit from verified physical writes to avoid acting on incomplete
+data.</li>
+</ul>
+<h2 id="syntax-and-examples">Syntax and Examples</h2>
+<p>The <code>-synchronize</code> option is a simple flag placed in the
+ImageMagick command string:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600 <span class="at">-synchronize</span> output.jpg</span></code></pre></div>
+<p>To explicitly disable synchronization (which is generally the default
+behavior for faster execution), use <code>+synchronize</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600 +synchronize output.jpg</span></code></pre></div>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<p>The primary drawback of the <code>-synchronize</code> option is
+reduced throughput. Because the command must block execution and wait
+for the physical storage medium to acknowledge the write, batch
+processing operations will run noticeably slower—especially on
+traditional hard disk drives (HDDs) or high-latency network storage.</p>
+<p>It is best reserved for single, high-value image operations or
+environments with unstable power and storage setups rather than
+high-volume, rapid-fire batch conversions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

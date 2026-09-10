@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect Image Steganography with ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to determine whether an image has been altered to conceal hidden data using ImageMagick command-line utilities. You will learn how to perform differential analysis against an original carrier, isolate least significant bit (LSB)">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/detect-image-steganography-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Detect Image Steganography with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/detect-image-steganography-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to determine whether an image has been altered to conceal hidden data using ImageMagick command-line utilities. You will learn how to perform differential analysis against an original carrier, isolate least significant bit (LSB)" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="detect-image-steganography-with-imagemagick">Detect Image
+Steganography with ImageMagick</h1>
+<p>This article explains how to determine whether an image has been
+altered to conceal hidden data using ImageMagick command-line utilities.
+You will learn how to perform differential analysis against an original
+carrier, isolate least significant bit (LSB) planes to detect
+steganographic noise, and audit file metadata for anomalies.</p>
+<h3 id="1-differential-analysis-with-the-compare-tool">1. Differential
+Analysis with the Compare Tool</h3>
+<p>If the original reference image is available, the fastest and most
+definitive method to detect modification is ImageMagick's
+<code>compare</code> utility. Steganographic techniques like LSB
+insertion alter pixel values slightly, which this tool can quantify and
+highlight.</p>
+<p>Run the following command to count the exact number of altered pixels
+using the Absolute Error (AE) metric:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> AE original.png suspected.png difference.png</span></code></pre></div>
+<ul>
+<li><strong>Output Metric:</strong> A value of <code>0</code> indicates
+no modification. Any integer greater than <code>0</code> indicates the
+number of pixels altered.</li>
+<li><strong>Visual Difference:</strong> The generated
+<code>difference.png</code> image highlights identical pixels in pale
+red and altered pixels in bright red.</li>
+</ul>
+<p>For a mathematical evaluation of the distortion, use the Peak
+Signal-to-Noise Ratio (PSNR):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> PSNR original.png suspected.png null:</span></code></pre></div>
+<p>A lower PSNR value indicates higher divergence from the original
+carrier, pointing to potential payload embedding.</p>
+<h3 id="2-extracting-least-significant-bits-blind-detection">2.
+Extracting Least Significant Bits (Blind Detection)</h3>
+<p>When an original carrier is unavailable, you must inspect the image
+for statistical anomalies. Natural images typically have correlated,
+smooth bit planes, whereas steganographic payloads (often encrypted or
+compressed) introduce high-entropy, randomized noise into the lower bit
+layers.</p>
+<p>To isolate the least significant bit of each color channel, mask all
+other bits and scale the remaining bit to full contrast:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> suspected.png <span class="at">-evaluate</span> And 1 <span class="at">-auto-level</span> lsb_plane.png</span></code></pre></div>
+<p>Inspect <code>lsb_plane.png</code>:</p>
+<ul>
+<li><strong>Natural Image:</strong> Shows recognizable silhouettes,
+contours, and gradual gradients matching the image content.</li>
+<li><strong>Modified Carrier:</strong> Displays homogeneous,
+television-static-like noise across regions where data has been
+injected, breaking the natural spatial correlation of the image.</li>
+</ul>
+<p>To analyze a specific channel (such as Blue, a common target for LSB
+steganography):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> suspected.png <span class="at">-channel</span> B <span class="at">-separate</span> <span class="at">-evaluate</span> And 1 <span class="at">-auto-level</span> blue_lsb.png</span></code></pre></div>
+<h3 id="3-inspecting-metadata-and-structural-anomalies">3. Inspecting
+Metadata and Structural Anomalies</h3>
+<p>Steganographic tools sometimes append data directly to the end of a
+file (injection) or embed payloads inside metadata fields (such as EXIF,
+IPTC, or comments).</p>
+<p>Run the <code>identify</code> command with verbose output to inspect
+image properties:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> suspected.png</span></code></pre></div>
+<p>Check the output for the following indicators:</p>
+<ul>
+<li><strong>Unusual Profiles or Comments:</strong> Look under the
+<code>Properties</code> section for oversized base64 strings or
+arbitrary text stored in standard tags.</li>
+<li><strong>Colorspace Discrepancies:</strong> Ensure the color count
+matches expectations. Some tools force 24-bit TrueColor onto simple
+graphics to hide payloads, altering the expected palette size.</li>
+<li><strong>File Size vs. Pixel Dimensions:</strong> Compare the actual
+file size against the theoretical raw size
+(<code>width × height × bytes_per_pixel</code>). Disproportionately
+large file sizes often indicate appended data past the image's End of
+File (EOF) marker.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

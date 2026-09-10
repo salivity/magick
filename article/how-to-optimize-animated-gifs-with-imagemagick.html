@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Optimize Animated GIFs with ImageMagick - magick</title>
+    <meta name="description" content="Animated GIFs often contain duplicate or unchanged pixels across consecutive frames, which significantly inflates file sizes. This guide explains how to compress animated GIFs by stripping redundant pixel data using ImageMagick's frame-differencing and l">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-optimize-animated-gifs-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Optimize Animated GIFs with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-optimize-animated-gifs-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Animated GIFs often contain duplicate or unchanged pixels across consecutive frames, which significantly inflates file sizes. This guide explains how to compress animated GIFs by stripping redundant pixel data using ImageMagick's frame-differencing and l" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-optimize-animated-gifs-with-imagemagick">How to Optimize
+Animated GIFs with ImageMagick</h1>
+<p>Animated GIFs often contain duplicate or unchanged pixels across
+consecutive frames, which significantly inflates file sizes. This guide
+explains how to compress animated GIFs by stripping redundant pixel data
+using ImageMagick's frame-differencing and layer-optimization
+commands.</p>
+<h2 id="understanding-gif-pixel-redundancy">Understanding GIF Pixel
+Redundancy</h2>
+<p>A standard, uncompressed GIF stores every frame as a complete,
+full-sized image. In most animations, large portions of the background
+or stationary objects remain unchanged from one frame to the next. By
+replacing unchanged pixels with transparent pixels or cropping frames to
+only contain moving areas, you can dramatically reduce the total file
+size without degrading visual playback.</p>
+<h2 id="the-standard-layer-optimization-command">The Standard Layer
+Optimization Command</h2>
+<p>ImageMagick provides a built-in operator called
+<code>-layers Optimize</code> that performs both frame cropping and
+transparency-based pixel deduplication.</p>
+<p>To optimize an animated GIF, run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<p><em>Note: For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<p>This command analyzes the sequence of frames and performs two key
+tasks automatically:</p>
+<ol type="1">
+<li><strong>OptimizeTransparency</strong>: It detects pixels that match
+the previous frame and replaces them with transparent pixels.</li>
+<li><strong>OptimizeFrame</strong>: It shrinks the bounding box of each
+frame to encompass only the region containing modified pixels.</li>
+</ol>
+<h2 id="specific-optimization-methods">Specific Optimization
+Methods</h2>
+<p>If you want finer control over how ImageMagick handles the frames,
+you can call specific optimization sub-methods instead of the all-in-one
+<code>-layers Optimize</code> command.</p>
+<h3 id="1-removing-duplicate-pixels-with-transparency">1. Removing
+Duplicate Pixels with Transparency</h3>
+<p>If you only want to turn redundant pixels into transparency without
+modifying the frame dimensions, use
+<code>OptimizeTransparency</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-layers</span> OptimizeTransparency output.gif</span></code></pre></div>
+<h3 id="2-cropping-to-bounding-boxes">2. Cropping to Bounding Boxes</h3>
+<p>To crop each frame to the smallest rectangle covering only the
+changed pixels, use <code>OptimizeFrame</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-layers</span> OptimizeFrame output.gif</span></code></pre></div>
+<h2 id="using-fuzz-to-remove-near-identical-pixels">Using Fuzz to Remove
+Near-Identical Pixels</h2>
+<p>Due to compression artifacts, slight color gradients, or noise,
+pixels that appear identical may have slightly different color values.
+The <code>-fuzz</code> parameter allows ImageMagick to treat colors
+within a specified margin of error as identical, enabling significantly
+higher compression.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-fuzz</span> 3% <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<p>A fuzz value between <code>2%</code> and <code>5%</code> typically
+yields noticeable size reductions without causing visible artifacts in
+the final animation.</p>
+<h2
+id="complete-workflow-combining-color-and-layer-optimization">Complete
+Workflow: Combining Color and Layer Optimization</h2>
+<p>To achieve the smallest possible file size, combine redundant pixel
+elimination with color palette reduction:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-fuzz</span> 2% <span class="at">-layers</span> Optimize <span class="at">-colors</span> 128 output.gif</span></code></pre></div>
+<p>This pipeline compares frames, discards redundant pixel data, bounds
+the active animation area, and reduces the global color palette to 128
+colors in a single pass.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

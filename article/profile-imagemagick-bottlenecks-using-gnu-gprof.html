@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile ImageMagick Bottlenecks Using GNU gprof - magick</title>
+    <meta name="description" content="This guide provides a direct walkthrough on identifying execution bottlenecks in ImageMagick using GNU gprof. Profiling requires compiling ImageMagick from source with profiling symbols enabled, executing a representative command to generate profiling me">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/profile-imagemagick-bottlenecks-using-gnu-gprof">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Profile ImageMagick Bottlenecks Using GNU gprof - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/profile-imagemagick-bottlenecks-using-gnu-gprof" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides a direct walkthrough on identifying execution bottlenecks in ImageMagick using GNU gprof. Profiling requires compiling ImageMagick from source with profiling symbols enabled, executing a representative command to generate profiling me" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="profile-imagemagick-bottlenecks-using-gnu-gprof">Profile
+ImageMagick Bottlenecks Using GNU gprof</h1>
+<p>This guide provides a direct walkthrough on identifying execution
+bottlenecks in ImageMagick using GNU <code>gprof</code>. Profiling
+requires compiling ImageMagick from source with profiling symbols
+enabled, executing a representative command to generate profiling
+metrics, and analyzing the resulting flat profile and call graph. By
+following these steps, you can pinpoint the exact functions and
+algorithms consuming the most CPU cycles during image processing
+tasks.</p>
+<h3 id="1-download-and-configure-imagemagick-source">1. Download and
+Configure ImageMagick Source</h3>
+<p>To profile with <code>gprof</code>, the executable and its core
+libraries must be compiled with the <code>-pg</code> flag. Additionally,
+static linking is recommended so that internal functions within
+<code>libMagickCore</code> and <code>libMagickWand</code> are properly
+instrumented rather than skipped as external shared library calls.</p>
+<p>Clone the ImageMagick source code and navigate into the
+repository:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/ImageMagick/ImageMagick.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ImageMagick</span></code></pre></div>
+<p>Configure the build system with the <code>-pg</code> profiling flags
+enabled and shared libraries disabled:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> CFLAGS=<span class="st">&quot;-pg -O2&quot;</span> CXXFLAGS=<span class="st">&quot;-pg -O2&quot;</span> LDFLAGS=<span class="st">&quot;-pg&quot;</span> <span class="at">--disable-shared</span> <span class="at">--enable-static</span></span></code></pre></div>
+<p><em>Note: You can use <code>-O2</code> for realistic optimization
+performance, or <code>-O0</code> alongside <code>-g</code> for detailed
+debugging without compiler function inlining.</em></p>
+<h3 id="2-compile-the-binaries">2. Compile the Binaries</h3>
+<p>Build the project using <code>make</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span></code></pre></div>
+<p>Verify that the generated binary contains profiling instrumentation
+by inspecting it with <code>nm</code> or <code>objdump</code>, or
+proceed directly to testing.</p>
+<h3 id="3-generate-the-profiling-data">3. Generate the Profiling
+Data</h3>
+<p>Run the specific ImageMagick operation that is exhibiting performance
+issues. Running the instrumented binary automatically writes execution
+statistics to a file named <code>gmon.out</code> in the current working
+directory upon normal program exit.</p>
+<p>For example, run a resize operation using the compiled local
+binary:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./utilities/magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-resize</span> 4000x4000 output.png</span></code></pre></div>
+<p>Ensure the command finishes completely; interrupting it prematurely
+(such as with <code>Ctrl+C</code>) may prevent <code>gmon.out</code>
+from being written.</p>
+<h3 id="4-analyze-the-performance-report">4. Analyze the Performance
+Report</h3>
+<p>Use <code>gprof</code> to translate the raw output from
+<code>gmon.out</code> against the binary's symbol table:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gprof</span> utilities/magick gmon.out <span class="op">&gt;</span> analysis.txt</span></code></pre></div>
+<p>Open <code>analysis.txt</code> in a text editor to evaluate the
+results. The report contains two primary sections:</p>
+<ul>
+<li><strong>The Flat Profile:</strong> Lists each function sorted by
+total time spent. Pay attention to <code>% time</code> (percentage of
+total run time) and <code>self seconds</code> (time spent directly
+inside the function, excluding its sub-calls). This section quickly
+reveals CPU hotspots, such as inner pixel loops or heavy mathematical
+functions.</li>
+<li><strong>The Call Graph:</strong> Displays parent-child relationships
+between callers and callees. Use this to determine which high-level
+operations (e.g., specific filters, color transformations, or decoders)
+are repeatedly invoking the lower-level bottlenecks identified in the
+flat profile.</li>
+</ul>
+<h3 id="5-interpreting-common-imagemagick-bottlenecks">5. Interpreting
+Common ImageMagick Bottlenecks</h3>
+<ul>
+<li><strong>Pixel Access Hotspots:</strong> High self-time in functions
+like <code>GetVirtualPixels</code> or <code>QueueAuthenticPixels</code>
+typically indicates cache misses or non-sequential memory
+traversal.</li>
+<li><strong>Resampling Algorithms:</strong> Heavy time spent in
+<code>InterpolatePixelInfo</code> or filter-weight calculations implies
+that a complex filter (such as <code>Lanczos</code> or
+<code>Mitchell</code>) is being evaluated over large sample
+windows.</li>
+<li><strong>Color-Space Conversions:</strong> Frequent calls to matrix
+conversion functions indicate implicit color-space translations
+occurring between operations.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

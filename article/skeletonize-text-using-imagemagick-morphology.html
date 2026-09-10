@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skeletonize Text Using ImageMagick Morphology - magick</title>
+    <meta name="description" content="This guide explains how to reduce text characters to one-pixel-wide centerlines—known as a skeleton—and clean up unwanted artifacts using morphological pruning in ImageMagick. You will learn how to prepare high-contrast text images, apply skeletoniza">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/skeletonize-text-using-imagemagick-morphology">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Skeletonize Text Using ImageMagick Morphology - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/skeletonize-text-using-imagemagick-morphology" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to reduce text characters to one-pixel-wide centerlines—known as a skeleton—and clean up unwanted artifacts using morphological pruning in ImageMagick. You will learn how to prepare high-contrast text images, apply skeletoniza" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="skeletonize-text-using-imagemagick-morphology">Skeletonize Text
+Using ImageMagick Morphology</h1>
+<p>This guide explains how to reduce text characters to one-pixel-wide
+centerlines—known as a skeleton—and clean up unwanted artifacts using
+morphological pruning in ImageMagick. You will learn how to prepare
+high-contrast text images, apply skeletonization kernels, and prune
+extraneous spurs to produce clean, single-pixel vector-ready paths.</p>
+<h3 id="1-prepare-the-binary-text-image">1. Prepare the Binary Text
+Image</h3>
+<p>ImageMagick’s morphology operators expect the foreground object to be
+white and the background to be black. If your source text image has dark
+text on a white background, it must be inverted and thresholded to
+ensure clean binary edges.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_text.png <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-threshold</span> 50% binary_text.png</span></code></pre></div>
+<h3 id="2-apply-skeletonization">2. Apply Skeletonization</h3>
+<p>To thin the white character glyphs down to their centerlines, use the
+<code>Thinning</code> morphological method with the
+<code>Skeleton</code> kernel. The parameter <code>-1</code> instructs
+ImageMagick to repeat the thinning process until the image no longer
+changes (the point of convergence).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary_text.png <span class="at">-morphology</span> Thinning:-1 Skeleton skeleton.png</span></code></pre></div>
+<p>At this stage, the characters are reduced to continuous
+one-pixel-thick representations. However, natural anti-aliasing and
+rough edges on the original font often produce small, unwanted branch
+artifacts known as "spurs."</p>
+<h3 id="3-prune-spurious-branches">3. Prune Spurious Branches</h3>
+<p>Morphological pruning removes dead ends and short branches without
+breaking closed loops. In ImageMagick, pruning is performed using the
+<code>Thinning</code> method paired with the <code>LineEnds</code>
+kernel.</p>
+<p>Instead of running to convergence (which would erase all non-looping
+lines completely), specify a limited number of iterations. Each
+iteration strips one pixel from every exposed endpoint:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> skeleton.png <span class="at">-morphology</span> Thinning:2 LineEnds pruned_skeleton.png</span></code></pre></div>
+<p>In this command, <code>:2</code> removes two pixels from every line
+terminal, trimming off small spurs while keeping the core stroke
+structure of the characters intact. Adjust this value depending on the
+resolution of your original text and the size of the artifacts.</p>
+<h3 id="4-combine-into-a-single-command">4. Combine into a Single
+Command</h3>
+<p>You can chain the binarization, skeletonization, and pruning steps
+into a single, efficient command that processes an input image and
+outputs the final pruned skeleton:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_text.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Thinning:-1 Skeleton <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Thinning:3 LineEnds <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  output_skeleton.png</span></code></pre></div>
+<p>If your final workflow requires black strokes on a white background,
+append <code>-negate</code> right before the output file name to invert
+the result.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

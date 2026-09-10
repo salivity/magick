@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Clear Composition Operator Explained - magick</title>
+    <meta name="description" content="The Clear composition operator in ImageMagick is a Porter-Duff compositing method designed to erase pixel data within a target image. Rather than blending or replacing colors, it uses the shape and coverage of a source image to turn overlapping destinati">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-clear-composition-operator-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Clear Composition Operator Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-clear-composition-operator-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Clear composition operator in ImageMagick is a Porter-Duff compositing method designed to erase pixel data within a target image. Rather than blending or replacing colors, it uses the shape and coverage of a source image to turn overlapping destinati" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-clear-composition-operator-explained">ImageMagick
+Clear Composition Operator Explained</h1>
+<p>The <code>Clear</code> composition operator in ImageMagick is a
+Porter-Duff compositing method designed to erase pixel data within a
+target image. Rather than blending or replacing colors, it uses the
+shape and coverage of a source image to turn overlapping destination
+pixels completely transparent. This article explains the underlying
+Porter-Duff mechanics, the mathematical formula behind the operation,
+and how ImageMagick handles transparency channels during the clearing
+process.</p>
+<h3 id="the-porter-duff-compositing-foundation">The Porter-Duff
+Compositing Foundation</h3>
+<p>ImageMagick implements alpha compositing using rules established by
+Thomas Porter and Tom Duff in 1984. In digital compositing, an operation
+involves two layers:</p>
+<ul>
+<li><strong>Source (<span class="math inline">\(A\)</span>):</strong>
+The overlay or mask image dictating where the operation occurs.</li>
+<li><strong>Destination (<span
+class="math inline">\(B\)</span>):</strong> The background image that
+receives the modification.</li>
+</ul>
+<p>Most standard operators (such as <code>Over</code> or
+<code>Multiply</code>) blend source color data into the destination. The
+<code>Clear</code> operator, however, discards color and alpha
+information wherever the source image exists.</p>
+<h3 id="the-mathematics-behind-clear">The Mathematics Behind
+<code>Clear</code></h3>
+<p>In Porter-Duff algebra, the final color (<span
+class="math inline">\(C\)</span>) and opacity (<span
+class="math inline">\(\alpha\)</span>) of an output pixel are calculated
+using contribution factors:</p>
+<p><span class="math display">\[\alpha_{out} = \alpha_A \cdot F_A +
+\alpha_B \cdot F_B\]</span> <span class="math display">\[C_{out} = C_A
+\cdot F_A + C_B \cdot F_B\]</span></p>
+<p>For the <code>Clear</code> operator, the blending factors are defined
+as:</p>
+<ul>
+<li><span class="math inline">\(F_A = 0\)</span></li>
+<li><span class="math inline">\(F_B = 0\)</span></li>
+</ul>
+<p>When applied, the output color and alpha for the intersecting region
+calculate strictly to zero:</p>
+<p><span class="math display">\[\alpha_{out} = 0\]</span> <span
+class="math display">\[C_{out} = 0\]</span></p>
+<p>As a result, any target pixel covered by an opaque source pixel is
+converted to transparent black (<code>rgba(0, 0, 0, 0)</code>).</p>
+<h3 id="how-imagemagick-processes-the-operation">How ImageMagick
+Processes the Operation</h3>
+<p>When ImageMagick executes a command using
+<code>-compose Clear -composite</code>, it evaluates the geometry and
+alpha channel of the source image against the destination canvas:</p>
+<ol type="1">
+<li><strong>Coverage Mapping:</strong> ImageMagick reads the alpha
+channel of the source image. Fully opaque pixels in the source mark the
+destination pixels for complete erasure.</li>
+<li><strong>Partial Transparency:</strong> If the source image contains
+semi-transparent pixels (anti-aliased edges or feathered masks),
+ImageMagick reduces the destination alpha proportionally. The
+destination's alpha channel is multiplied by the inverted alpha of the
+source: <span class="math display">\[\alpha_{dest\_new} = \alpha_{dest}
+\cdot (1 - \alpha_{src})\]</span> This ensures smooth, anti-aliased
+cutouts rather than jagged, binary edges.</li>
+<li><strong>Channel Preservation:</strong> The <code>Clear</code>
+operation targets the alpha channel directly. If the destination image
+does not already possess an alpha channel, ImageMagick automatically
+enables one so the cleared pixels can exist as transparent space. If the
+target file format does not support transparency (such as JPEG), the
+cleared region reverts to the default background canvas color upon
+export.</li>
+</ol>
+<h3 id="practical-usage-pattern">Practical Usage Pattern</h3>
+<p>In typical workflows, the <code>Clear</code> operator acts as a
+digital hole punch. When an overlay shape is composited onto a
+background image using <code>Clear</code>, ImageMagick removes the
+destination pixels without transferring any pixels from the source
+itself:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> destination.png mask.png <span class="at">-compose</span> Clear <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>The resulting <code>output.png</code> retains the background image
+everywhere except in the areas defined by <code>mask.png</code>, where
+the target pixels are converted entirely to transparent space.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

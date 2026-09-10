@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Aliased Alpha Edges in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to soften jagged, aliased transparency edges on images using ImageMagick. By isolating and feathering the alpha channel with a Gaussian blur and tone adjustments, you can eliminate harsh, stair-stepped silhouettes and produce">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/smooth-aliased-alpha-edges-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Smooth Aliased Alpha Edges in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/smooth-aliased-alpha-edges-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to soften jagged, aliased transparency edges on images using ImageMagick. By isolating and feathering the alpha channel with a Gaussian blur and tone adjustments, you can eliminate harsh, stair-stepped silhouettes and produce" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="smooth-aliased-alpha-edges-in-imagemagick">Smooth Aliased Alpha
+Edges in ImageMagick</h1>
+<p>This guide demonstrates how to soften jagged, aliased transparency
+edges on images using ImageMagick. By isolating and feathering the alpha
+channel with a Gaussian blur and tone adjustments, you can eliminate
+harsh, stair-stepped silhouettes and produce smooth, anti-aliased
+borders without altering the interior colors of your graphic.</p>
+<h3 id="the-direct-alpha-blur-method">The Direct Alpha Blur Method</h3>
+<p>The fastest way to feather aliased edges in ImageMagick (v7) is to
+restrict processing exclusively to the alpha channel using the
+<code>-channel A</code> flag.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> A <span class="at">-blur</span> 0x1.5 +channel output.png</span></code></pre></div>
+<ul>
+<li><code>-channel A</code>: Directs subsequent image operations solely
+to the alpha channel, leaving RGB color values untouched.</li>
+<li><code>-blur 0x1.5</code>: Applies a Gaussian blur. The
+<code>0</code> lets ImageMagick calculate an optimal radius
+automatically, while <code>1.5</code> represents the standard deviation
+(sigma) in pixels. A higher sigma increases the softness and spread of
+the feathering.</li>
+<li><code>+channel</code>: Resets channel operations to default so
+future operations apply to all channels.</li>
+</ul>
+<h3 id="controlling-edge-tightness-with-levels">Controlling Edge
+Tightness with Levels</h3>
+<p>Applying a blur alone can make the transition overly translucent,
+causing the edges to look faint or eroded. To retain the shape's
+original boundary while smoothing stair-stepped pixels, pair the blur
+with the <code>-level</code> operator to compress the semi-transparent
+gradient:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> A <span class="at">-blur</span> 0x2 <span class="at">-level</span> 20%,80% +channel output.png</span></code></pre></div>
+<p>The <code>-level 20%,80%</code> command increases the contrast of the
+alpha channel. It cuts off low-opacity fringing below 20% and forces
+opacity above 80% to be fully opaque, keeping the feather tight and
+focused right on the jagged edge.</p>
+<h3 id="mask-extraction-and-recomposition-method">Mask Extraction and
+Recomposition Method</h3>
+<p>For complex assets where direct channel modification produces halo
+artifacts around the perimeter, isolating the alpha mask as a separate
+layer gives you total control over the edge treatment:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-alpha</span> extract <span class="at">-blur</span> 0x1.5 <span class="at">-level</span> 10%,90% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div>
+<ol type="1">
+<li><code>+clone -alpha extract</code>: Duplicates the image and
+converts its alpha channel into an isolated grayscale mask where opaque
+regions are white and transparent regions are black.</li>
+<li><code>-blur 0x1.5 -level 10%,90%</code>: Feathers the grayscale
+mask.</li>
+<li><code>-alpha off</code>: Disables the initial alpha channel on the
+base image to prevent conflicts.</li>
+<li><code>-compose CopyOpacity -composite</code>: Takes the smoothed
+grayscale mask and maps it back onto the original image as its new alpha
+channel.</li>
+</ol>
+<h3 id="fine-tuning-recommendations">Fine-Tuning Recommendations</h3>
+<ul>
+<li><strong>Subtle anti-aliasing:</strong> Use <code>-blur 0x0.75</code>
+to remove pixel stepping without introducing a noticeable soft-glow
+effect.</li>
+<li><strong>Moderate feathering:</strong> Use <code>-blur 0x2</code>
+paired with <code>-level 25%,75%</code> to create a smooth, clean
+vignette on hard cutouts.</li>
+<li><strong>ImageMagick 6 Legacy:</strong> If using ImageMagick 6,
+replace the executable <code>magick</code> with <code>convert</code> in
+all commands above.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

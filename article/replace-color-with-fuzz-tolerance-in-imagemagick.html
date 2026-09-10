@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replace Color with Fuzz Tolerance in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to replace a specific color and its nearby color variations in an image using ImageMagick's fuzz tolerance functionality. By combining the -fuzz, -fill, and -opaque operators, you can target a specific shade and automatically subs">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/replace-color-with-fuzz-tolerance-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Replace Color with Fuzz Tolerance in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/replace-color-with-fuzz-tolerance-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to replace a specific color and its nearby color variations in an image using ImageMagick's fuzz tolerance functionality. By combining the -fuzz, -fill, and -opaque operators, you can target a specific shade and automatically subs" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="replace-color-with-fuzz-tolerance-in-imagemagick">Replace Color
+with Fuzz Tolerance in ImageMagick</h1>
+<p>This guide explains how to replace a specific color and its nearby
+color variations in an image using ImageMagick's fuzz tolerance
+functionality. By combining the <code>-fuzz</code>, <code>-fill</code>,
+and <code>-opaque</code> operators, you can target a specific shade and
+automatically substitute all closely matching pixels with a new target
+color or transparency.</p>
+<h2 id="the-basic-command">The Basic Command</h2>
+<p>To replace a color within a specific tolerance, use the following
+syntax:</p>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fuzz</span> 15% <span class="at">-fill</span> <span class="st">&quot;#00FF00&quot;</span> <span class="at">-opaque</span> <span class="st">&quot;#FF0000&quot;</span> output.png</span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-fuzz</span> 15% <span class="at">-fill</span> <span class="st">&quot;#00FF00&quot;</span> <span class="at">-opaque</span> <span class="st">&quot;#FF0000&quot;</span> output.png</span></code></pre></div>
+<h2 id="how-the-parameters-work">How the Parameters Work</h2>
+<ul>
+<li><strong><code>-fuzz &lt;distance&gt;</code></strong>: Sets the
+tolerance range. It is most commonly expressed as a percentage (e.g.,
+<code>10%</code>, <code>20%</code>). A value of <code>0%</code> requires
+an exact color match, while higher values expand the range to include
+lighter, darker, or slightly different shades of the target color.</li>
+<li><strong><code>-fill &lt;new_color&gt;</code></strong>: Defines the
+replacement color. You can use standard color names (like
+<code>blue</code> or <code>none</code>), hex codes (like
+<code>#1A2B3C</code>), or RGB values (like
+<code>rgb(255,0,0)</code>).</li>
+<li><strong><code>-opaque &lt;old_color&gt;</code></strong>: Identifies
+the base color you want to replace. Any pixel within the defined
+<code>-fuzz</code> distance of this color will change to the
+<code>-fill</code> color.</li>
+</ul>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<h3 id="1-replacing-a-named-color-with-another">1. Replacing a Named
+Color with Another</h3>
+<p>To replace variations of red with solid blue:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fuzz</span> 12% <span class="at">-fill</span> blue <span class="at">-opaque</span> red output.jpg</span></code></pre></div>
+<h3 id="2-making-a-background-color-transparent">2. Making a Background
+Color Transparent</h3>
+<p>To turn an off-white or solid background into a transparent alpha
+channel:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fuzz</span> 10% <span class="at">-fill</span> none <span class="at">-opaque</span> white output.png</span></code></pre></div>
+<p><em>Note: Ensure your output format supports transparency (such as
+PNG or WebP).</em></p>
+<h3 id="3-replacing-hex-colors">3. Replacing Hex Colors</h3>
+<p>To replace a specific hex color shade with another:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fuzz</span> 8% <span class="at">-fill</span> <span class="st">&quot;#336699&quot;</span> <span class="at">-opaque</span> <span class="st">&quot;#CCCCCC&quot;</span> output.png</span></code></pre></div>
+<h2 id="finding-the-right-fuzz-value">Finding the Right Fuzz Value</h2>
+<ul>
+<li><strong>Start Low:</strong> Begin with a low tolerance, such as
+<code>5%</code> to <code>10%</code>, to prevent overwriting colors in
+adjacent areas that share similar tones.</li>
+<li><strong>Gradually Increase:</strong> If artifacts or original border
+pixels remain around the targeted area, increase the percentage in
+increments of 2% to 5% until the selection covers the entire desired
+area cleanly.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

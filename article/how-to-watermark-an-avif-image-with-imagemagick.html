@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Watermark an AVIF Image With ImageMagick? - magick</title>
+    <meta name="description" content="Applying a watermark to an AVIF image with ImageMagick involves compositing either a text string or a secondary graphic onto your base AVIF file while preserving AVIF encoding parameters. This guide covers how to verify your ImageMagick build supports th">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-watermark-an-avif-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Watermark an AVIF Image With ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-watermark-an-avif-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a watermark to an AVIF image with ImageMagick involves compositing either a text string or a secondary graphic onto your base AVIF file while preserving AVIF encoding parameters. This guide covers how to verify your ImageMagick build supports th" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-watermark-an-avif-image-with-imagemagick">How to
+Watermark an AVIF Image With ImageMagick?</h1>
+<p>Applying a watermark to an AVIF image with ImageMagick involves
+compositing either a text string or a secondary graphic onto your base
+AVIF file while preserving AVIF encoding parameters. This guide covers
+how to verify your ImageMagick build supports the AVIF format, how to
+apply both text and transparent image watermarks using command-line
+syntax, and how to automate the procedure across batch folders.</p>
+<h2 id="verifying-avif-support-in-imagemagick">Verifying AVIF Support in
+ImageMagick</h2>
+<p>Before running conversion commands, verify that your local
+installation of ImageMagick includes support for the AVIF format via
+<code>libheif</code>. Open your terminal or command prompt and check the
+recognized delegates:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>heif</code> in the
+<code>Delegates</code> line. You can also query the format decoder list
+directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> avif</span></code></pre></div>
+<p>If the output lists <code>AVIF</code> with read and write
+(<code>rw+</code>) capabilities, your installation is ready. If AVIF
+support is missing, update ImageMagick using a package manager that
+includes <code>libheif</code> support (such as Homebrew on macOS via
+<code>brew install imagemagick</code> or the official precompiled
+binaries on Linux and Windows).</p>
+<h2 id="adding-a-text-watermark-to-an-avif-image">Adding a Text
+Watermark to an AVIF Image</h2>
+<p>To overlay text such as copyright notices or domain names directly
+onto an AVIF image, use the <code>magick</code> command with the
+<code>-annotate</code> or <code>-draw</code> options.</p>
+<h3 id="basic-corner-text-watermark">Basic Corner Text Watermark</h3>
+<p>The following command places a semi-transparent text watermark in the
+bottom-right corner of the image:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> Arial <span class="at">-pointsize</span> 28 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="st">&quot;rgba(255, 255, 255, 0.6)&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> Southeast <span class="at">-annotate</span> +20+20 <span class="st">&quot;© 2026 Your Name&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  output.avif</span></code></pre></div>
+<h3 id="breakdown-of-parameters">Breakdown of Parameters</h3>
+<ul>
+<li><code>input.avif</code>: The original image file.</li>
+<li><code>-font</code>: Specifies the typeface to use for the
+overlay.</li>
+<li><code>-pointsize</code>: Defines the text size in points.</li>
+<li><code>-fill "rgba(255, 255, 255, 0.6)"</code>: Sets the text color
+to white with 60% opacity.</li>
+<li><code>-gravity Southeast</code>: Anchors the positioning to the
+bottom-right corner.</li>
+<li><code>-annotate +20+20</code>: Offsets the text 20 pixels inwards
+from the right and bottom edges.</li>
+<li><code>output.avif</code>: The destination AVIF image.</li>
+</ul>
+<h2 id="adding-an-image-or-logo-watermark-to-an-avif-image">Adding an
+Image or Logo Watermark to an AVIF Image</h2>
+<p>If you have a transparent PNG logo, you can composite it over the
+base AVIF image using the <code>-composite</code> operator.</p>
+<h3 id="standard-logo-overlay">Standard Logo Overlay</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif logo.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> Center <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> +0+0 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  output.avif</span></code></pre></div>
+<h3 id="controlling-logo-transparency">Controlling Logo
+Transparency</h3>
+<p>If your logo image is completely opaque, you can blend it dynamically
+using the <code>-blend</code> flag with the <code>composite</code>
+tool:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> composite <span class="at">-blend</span> 35% <span class="at">-gravity</span> SouthEast <span class="at">-geometry</span> +15+15 logo.png input.avif output.avif</span></code></pre></div>
+<p>This ensures the watermark stays subtle without totally obscuring the
+underlying picture content.</p>
+<h2 id="preserving-compression-quality">Preserving Compression
+Quality</h2>
+<p>AVIF uses advanced compression profiles. By default, ImageMagick
+applies standard compression settings when writing to an AVIF container,
+but you can explicitly define quality levels to avoid unwanted file size
+inflation or excessive degradation:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif logo.png <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> Southeast <span class="at">-geometry</span> +20+20 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-quality</span> 65 <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> heic:speed=4 <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  output.avif</span></code></pre></div>
+<p>Setting <code>-quality 65</code> provides an optimal balance between
+visual fidelity and small file size for AVIF files, while
+<code>-define heic:speed=4</code> sets the encoding speed preset.</p>
+<h2 id="batch-watermarking-multiple-avif-files">Batch Watermarking
+Multiple AVIF Files</h2>
+<p>To process an entire folder of AVIF files at once on Linux or macOS,
+use a shell loop:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> watermarked_output</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.avif<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> logo.png <span class="at">-gravity</span> Southeast <span class="at">-geometry</span> +20+20 <span class="at">-composite</span> <span class="at">-quality</span> 65 <span class="st">&quot;watermarked_output/</span><span class="va">$img</span><span class="st">&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>On Windows Command Prompt, run:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">mkdir</span> watermarked_output</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="er">%i</span> <span class="er">in</span> <span class="er">(*.avif)</span> <span class="er">do</span> <span class="er">magick</span> <span class="er">&quot;%i&quot;</span> <span class="er">logo.png</span> <span class="er">-gravity</span> <span class="er">Southeast</span> <span class="er">-geometry</span> <span class="er">+20+20</span> <span class="er">-composite</span> <span class="er">-quality</span> <span class="er">65</span> <span class="er">&quot;watermarked_output\%i&quot;</span></span></code></pre></div>
+<p>This iterates through every <code>.avif</code> file in the current
+working directory, applies the specified watermark, and outputs the
+result into a separate folder without altering your original files.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

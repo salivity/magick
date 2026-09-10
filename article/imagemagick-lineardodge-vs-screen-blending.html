@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick LinearDodge vs Screen Blending - magick</title>
+    <meta name="description" content="Both the LinearDodge and Screen composition methods in ImageMagick are designed to increase the brightness of an image by combining the color values of a source and destination layer. However, they achieve this through fundamentally different mathematica">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-lineardodge-vs-screen-blending">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick LinearDodge vs Screen Blending - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-lineardodge-vs-screen-blending" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Both the LinearDodge and Screen composition methods in ImageMagick are designed to increase the brightness of an image by combining the color values of a source and destination layer. However, they achieve this through fundamentally different mathematica" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-lineardodge-vs-screen-blending">ImageMagick
+LinearDodge vs Screen Blending</h1>
+<p>Both the <code>LinearDodge</code> and <code>Screen</code> composition
+methods in ImageMagick are designed to increase the brightness of an
+image by combining the color values of a source and destination layer.
+However, they achieve this through fundamentally different mathematical
+formulas: <code>LinearDodge</code> utilizes direct linear addition,
+producing aggressive highlights and rapid clipping to pure white,
+whereas <code>Screen</code> applies an inverted multiplication algorithm
+that yields a softer, more gradual brightening curve that preserves
+highlight details.</p>
+<h3 id="the-mathematical-formulas">The Mathematical Formulas</h3>
+<p>The primary difference between the two blending modes lies in the
+underlying math applied to normalized color values (where black is 0.0
+and white is 1.0):</p>
+<ul>
+<li><strong>LinearDodge (Add):</strong> The formula is simply
+<code>Result = A + B</code>. The pixel values of both images are summed
+directly. If the sum exceeds 1.0 (or 255 in standard 8-bit channels),
+the value is clipped to white.</li>
+<li><strong>Screen:</strong> The formula is
+<code>Result = 1 - (1 - A) * (1 - B)</code>, which simplifies
+algebraically to <code>Result = A + B - (A * B)</code>. By subtracting
+the product of the two layers, the operation prevents the sum from
+easily reaching absolute white unless one of the contributing pixels is
+already pure white.</li>
+</ul>
+<h3 id="visual-differences-and-highlight-retention">Visual Differences
+and Highlight Retention</h3>
+<p>Because <code>LinearDodge</code> directly sums values, it
+significantly boosts exposure and contrast. It pushes midtones toward
+pure white very quickly, often leading to blown-out, clipped highlights
+with high color saturation. This makes it ideal for producing glowing
+special effects, light flares, laser beams, or intense optical
+luminescence where severe clipping is desirable.</p>
+<p>In contrast, <code>Screen</code> behaves like projecting two
+photographic slides simultaneously onto the same white screen. It
+brightens darker tones while compressing highlights, ensuring that tonal
+gradation and fine texture in bright areas are preserved rather than
+clipped. Colors rendered with <code>Screen</code> appear lighter and
+slightly desaturated compared to the punchy, high-contrast output of
+<code>LinearDodge</code>.</p>
+<h3 id="imagemagick-usage">ImageMagick Usage</h3>
+<p>In ImageMagick, you define these blending modes using the
+<code>-compose</code> operator alongside <code>-composite</code>.</p>
+<p>For standard additive brightening with high contrast:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> LinearDodge <span class="at">-composite</span> output_dodge.png</span></code></pre></div>
+<p>For softer, highlight-safe brightening:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> Screen <span class="at">-composite</span> output_screen.png</span></code></pre></div>
+<p>When deciding between the two methods, choose <code>Screen</code> for
+natural photographic adjustments, blending exposures, or rendering
+translucent elements like smoke and fog. Choose <code>LinearDodge</code>
+when you need high-energy lighting effects, intense specular highlights,
+or strict mathematical summation of pixel values.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

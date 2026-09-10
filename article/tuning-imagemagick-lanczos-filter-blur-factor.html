@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuning ImageMagick Lanczos Filter Blur Factor - magick</title>
+    <meta name="description" content="Tuning the blur factor of the Lanczos filter in ImageMagick gives you precise control over the trade-off between image sharpness and ringing artifacts during resizing. This guide explains how to apply the -define filter:blur setting with the Lanczos filt">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/tuning-imagemagick-lanczos-filter-blur-factor">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tuning ImageMagick Lanczos Filter Blur Factor - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/tuning-imagemagick-lanczos-filter-blur-factor" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Tuning the blur factor of the Lanczos filter in ImageMagick gives you precise control over the trade-off between image sharpness and ringing artifacts during resizing. This guide explains how to apply the -define filter:blur setting with the Lanczos filt" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tuning-imagemagick-lanczos-filter-blur-factor">Tuning
+ImageMagick Lanczos Filter Blur Factor</h1>
+<p>Tuning the blur factor of the Lanczos filter in ImageMagick gives you
+precise control over the trade-off between image sharpness and ringing
+artifacts during resizing. This guide explains how to apply the
+<code>-define filter:blur</code> setting with the Lanczos filter, how
+different multiplier values affect image quality, and the exact commands
+needed to produce optimal scaling results.</p>
+<h3 id="the-imagemagick-blur-parameter">The ImageMagick Blur
+Parameter</h3>
+<p>In ImageMagick, the blur factor acts as a scaling multiplier applied
+directly to the filter's support radius. A lower blur factor shrinks the
+filter support to produce sharper edges, while a higher blur factor
+broadens it to reduce moiré patterns and ringing at the cost of overall
+sharpness.</p>
+<p>The standard syntax uses the
+<code>-define filter:blur=&lt;factor&gt;</code> setting alongside the
+<code>-filter Lanczos</code> option before your <code>-resize</code> or
+<code>-distort</code> operation.</p>
+<h3 id="basic-command-syntax">Basic Command Syntax</h3>
+<p>For ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.88 <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.88 <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<h3 id="understanding-blur-values">Understanding Blur Values</h3>
+<ul>
+<li><strong>Blur = 1.0 (Standard default):</strong> Uses the standard
+mathematical support for the windowed sinc function. It provides
+balanced sharpness but can produce minor ringing (haloing) around
+high-contrast edges.</li>
+<li><strong>Blur &lt; 1.0 (Sharpening):</strong> Values between
+<code>0.80</code> and <code>0.95</code> narrow the filter kernel. This
+increases perceived sharpness and edge clarity. However, dropping below
+<code>0.80</code> can introduce excessive ringing, edge overshoot, and
+aliasing.</li>
+<li><strong>Blur &gt; 1.0 (Smoothing):</strong> Values between
+<code>1.05</code> and <code>1.25</code> widen the filter kernel,
+softening the image. This is useful when downscaling images with fine
+recurring textures to prevent moiré patterns.</li>
+</ul>
+<h3 id="recommended-value-settings">Recommended Value Settings</h3>
+<ul>
+<li><strong>LanczosSharp for Downscaling:</strong> A value around
+<code>0.88549</code> is standard for standard 3-lobe Lanczos to reduce
+blur without introducing extreme ringing artifacts:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.88549 <span class="at">-resize</span> 50% output.jpg</span></code></pre></div>
+<ul>
+<li><strong>Lanczos2 (2-Lobe) Alternative:</strong> If 3-lobe Lanczos
+with a modified blur still produces unwanted halos, switch to
+<code>Lanczos2</code> with a standard or slightly adjusted blur factor
+for a cleaner transition:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos2 <span class="at">-define</span> filter:blur=0.95 <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<ul>
+<li><strong>Elliptical Weighted Average (EWA) Resampling:</strong> When
+using <code>-distort Resize</code> instead of <code>-resize</code>, the
+blur parameter modifies the cylindrical EWA Lanczos filter. A blur value
+of <code>0.926462</code> is generally recommended for optimal circular
+reconstruction.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> filter:blur=0.926462 <span class="at">-distort</span> Resize 800x600 output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

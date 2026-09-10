@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFT Spatial Frequency Analysis in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a practical guide on performing spatial frequency analysis using ImageMagick’s Fast Fourier Transform (FFT) tools. You will learn how to decompose an image into its frequency domain components, visualize and interpret the magnitud">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/fft-spatial-frequency-analysis-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FFT Spatial Frequency Analysis in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/fft-spatial-frequency-analysis-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on performing spatial frequency analysis using ImageMagick’s Fast Fourier Transform (FFT) tools. You will learn how to decompose an image into its frequency domain components, visualize and interpret the magnitud" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="fft-spatial-frequency-analysis-in-imagemagick">FFT Spatial
+Frequency Analysis in ImageMagick</h1>
+<p>This article provides a practical guide on performing spatial
+frequency analysis using ImageMagick’s Fast Fourier Transform (FFT)
+tools. You will learn how to decompose an image into its frequency
+domain components, visualize and interpret the magnitude spectrum, apply
+frequency filters to isolate or remove specific patterns, and
+reconstruct the final image using the Inverse Fast Fourier Transform
+(IFT).</p>
+<h2 id="understanding-the-fft-process-in-imagemagick">Understanding the
+FFT Process in ImageMagick</h2>
+<p>ImageMagick processes an image in the spatial domain (pixels) and
+transforms it into the frequency domain using the <code>-fft</code>
+operator. This operation produces two separate grayscale images:</p>
+<ol type="1">
+<li><strong>Magnitude Component (Index 0):</strong> Represents the
+strength or amplitude of spatial frequencies. Low frequencies (smooth
+gradients, broad areas) gather at the center, while high frequencies
+(edges, fine details, noise) spread toward the outer edges.</li>
+<li><strong>Phase Component (Index 1):</strong> Encodes the structural
+alignment and spatial location of the frequencies. Both components are
+required to accurately reconstruct the original image.</li>
+</ol>
+<h2 id="generating-the-frequency-spectrum">Generating the Frequency
+Spectrum</h2>
+<p>To compute the forward FFT on an image, run the following command in
+your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fft</span> fft_output_%d.png</span></code></pre></div>
+<p>This generates two files: <code>fft_output_0.png</code> (Magnitude)
+and <code>fft_output_1.png</code> (Phase). ImageMagick automatically
+centers the zero-frequency (DC) component in the magnitude image.</p>
+<h2 id="visualizing-the-magnitude-spectrum">Visualizing the Magnitude
+Spectrum</h2>
+<p>Because the magnitude spectrum has a high dynamic range with massive
+values concentrated at the center, the raw output image often appears
+entirely black with a single bright dot. To make the full frequency
+distribution visible for analysis, apply a logarithmic transformation
+and normalize the levels:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> fft_output_0.png <span class="at">-evaluate</span> log 10000 <span class="at">-auto-level</span> magnitude_visible.png</span></code></pre></div>
+<p>In the resulting image:</p>
+<ul>
+<li><strong>Center brightness:</strong> Represents the overall average
+brightness (DC component) and low frequencies.</li>
+<li><strong>Radial distance from center:</strong> Corresponds to
+increasing spatial frequency.</li>
+<li><strong>Directional spikes or dots:</strong> Represent periodic
+noise, lines, or repeating grid patterns oriented perpendicular to the
+spike direction.</li>
+</ul>
+<h2 id="filtering-spatial-frequencies">Filtering Spatial
+Frequencies</h2>
+<p>To alter or remove features in the spatial domain, modify the
+magnitude image while keeping the phase image intact.</p>
+<h3 id="1-removing-periodic-patterns-notch-filtering">1. Removing
+Periodic Patterns (Notch Filtering)</h3>
+<p>If an image contains repetitive scanlines or grid artifacts, they
+appear as distinct bright dots off-center in the magnitude spectrum.
+Paint over these specific dots with black (value 0) in an image editor
+or using an overlay mask to eliminate the frequency.</p>
+<h3 id="2-low-pass-filtering-smoothing">2. Low-Pass Filtering
+(Smoothing)</h3>
+<p>To retain only low frequencies and blur high-frequency details, mask
+out the outer regions:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> fft_output_0.png <span class="dt">\(</span> <span class="at">-size</span> 512x512 radial-gradient:white-black <span class="dt">\)</span> <span class="at">-compose</span> Multiply <span class="at">-composite</span> filtered_magnitude.png</span></code></pre></div>
+<p><em>(Note: Adjust the dimensions to match your input image.)</em></p>
+<h3 id="3-high-pass-filtering-edge-isolation">3. High-Pass Filtering
+(Edge Isolation)</h3>
+<p>To remove flat surfaces and isolate edges, attenuate the center
+values by inverting the radial mask before multiplying.</p>
+<h2 id="reconstructing-the-image-inverse-fft">Reconstructing the Image
+(Inverse FFT)</h2>
+<p>After modifying the magnitude component, recombine it with the
+original phase component using the <code>-ift</code> operator to convert
+the data back into a viewable spatial image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> filtered_magnitude.png fft_output_1.png <span class="at">-ift</span> reconstructed.png</span></code></pre></div>
+<p>The resulting <code>reconstructed.png</code> reflects your
+frequency-domain adjustments in the spatial domain.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check ICC Profile Without Decoding in ImageMagick - magick</title>
+    <meta name="description" content="Verifying whether an image contains an embedded ICC color profile does not require decoding the entire pixel dataset. By using ImageMagick's lightweight -ping flag, you can read only the file headers and metadata structures, allowing you to instantly det">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/check-icc-profile-without-decoding-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Check ICC Profile Without Decoding in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/check-icc-profile-without-decoding-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Verifying whether an image contains an embedded ICC color profile does not require decoding the entire pixel dataset. By using ImageMagick's lightweight -ping flag, you can read only the file headers and metadata structures, allowing you to instantly det" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="check-icc-profile-without-decoding-in-imagemagick">Check ICC
+Profile Without Decoding in ImageMagick</h1>
+<p>Verifying whether an image contains an embedded ICC color profile
+does not require decoding the entire pixel dataset. By using
+ImageMagick's lightweight <code>-ping</code> flag, you can read only the
+file headers and metadata structures, allowing you to instantly detect
+ICC profiles on large images or high-volume batches with minimal CPU and
+memory overhead.</p>
+<h2 id="the-role-of-the--ping-option">The Role of the <code>-ping</code>
+Option</h2>
+<p>By default, ImageMagick decompresses and decodes the full image data
+into memory when performing operations. The <code>-ping</code> option
+alters this behavior by instructing the command to read only the image
+dimensions, characteristics, and embedded metadata headers. This reduces
+execution time from seconds to milliseconds, especially when working
+with high-resolution TIFF, JPEG, or PNG files.</p>
+<h2 id="checking-for-embedded-profiles">Checking for Embedded
+Profiles</h2>
+<p>To determine if any color profile is attached to an image, use the
+<code>identify</code> utility combined with the <code>-format</code>
+attribute to query embedded profile names:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-ping</span> <span class="at">-format</span> <span class="st">&quot;%[profiles]\n&quot;</span> input.jpg</span></code></pre></div>
+<p><em>(Note: For ImageMagick v6, replace <code>magick identify</code>
+with <code>identify</code>.)</em></p>
+<p>If an ICC profile is embedded, the output will list <code>icc</code>.
+If no profiles are present, the command returns an empty string or omits
+the profile label.</p>
+<h2 id="extracting-specific-icc-metadata">Extracting Specific ICC
+Metadata</h2>
+<p>If you want to verify the presence of the profile and extract its
+descriptive name without reading pixel data, query the profile
+description directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-ping</span> <span class="at">-format</span> <span class="st">&quot;%[icc:description]\n&quot;</span> input.jpg</span></code></pre></div>
+<p>If a valid ICC profile (such as sRGB, Display P3, or Adobe RGB)
+exists, its descriptor will be printed to standard output. If no ICC
+profile is present, nothing is returned.</p>
+<h2 id="automation-and-scripting">Automation and Scripting</h2>
+<p>You can integrate this verification into shell scripts to
+conditionally process files based on the presence of an ICC profile:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="va">FILE</span><span class="op">=</span><span class="st">&quot;input.jpg&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">PROFILE</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-ping</span> <span class="at">-format</span> <span class="st">&quot;%[icc:description]&quot;</span> <span class="st">&quot;</span><span class="va">$FILE</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="va">)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="va">$PROFILE</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;ICC Profile found: </span><span class="va">$PROFILE</span><span class="st">&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;No ICC Profile embedded.&quot;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<p>Using this approach guarantees fast metadata extraction across large
+image archives while keeping system resource consumption to an absolute
+minimum.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

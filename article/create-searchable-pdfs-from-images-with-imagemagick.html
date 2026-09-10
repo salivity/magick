@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Searchable PDFs from Images with ImageMagick - magick</title>
+    <meta name="description" content="Creating a searchable PDF from a collection of images requires both an image-processing utility and an Optical Character Recognition (OCR) engine. While ImageMagick is ideal for combining and enhancing images into a standard PDF, it outputs pure raster g">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-searchable-pdfs-from-images-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Searchable PDFs from Images with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-searchable-pdfs-from-images-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a searchable PDF from a collection of images requires both an image-processing utility and an Optical Character Recognition (OCR) engine. While ImageMagick is ideal for combining and enhancing images into a standard PDF, it outputs pure raster g" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-searchable-pdfs-from-images-with-imagemagick">Create
+Searchable PDFs from Images with ImageMagick</h1>
+<p>Creating a searchable PDF from a collection of images requires both
+an image-processing utility and an Optical Character Recognition (OCR)
+engine. While ImageMagick is ideal for combining and enhancing images
+into a standard PDF, it outputs pure raster graphics without an embedded
+text layer. To make the resulting document fully searchable, you must
+pair ImageMagick’s image-merging capabilities with an OCR tool like
+OCRmyPDF or Tesseract.</p>
+<h3 id="why-imagemagick-alone-is-not-enough">Why ImageMagick Alone Is
+Not Enough</h3>
+<p>ImageMagick treats every input as pixels. When you run a command like
+<code>magick *.jpg output.pdf</code>, it packages the raster images into
+a PDF wrapper, but it cannot analyze the shapes of letters or create
+selectable, searchable text.</p>
+<p>Furthermore, you should avoid using ImageMagick to merge PDF pages
+that already contain OCR text, as ImageMagick rasterizes input PDFs via
+Ghostscript by default, destroying any existing text layer. The
+standard, effective pipeline is to use ImageMagick to optimize and merge
+the raw images, then apply OCR to inject the hidden text layer.</p>
+<hr />
+<h3 id="step-1-optimize-and-merge-images-using-imagemagick">Step 1:
+Optimize and Merge Images Using ImageMagick</h3>
+<p>Before running OCR, clean up your scanned images to improve text
+recognition accuracy, then compile them into an initial PDF
+document.</p>
+<p>Open your terminal and run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert <span class="pp">*</span>.jpg <span class="at">-deskew</span> 40% <span class="at">-contrast-stretch</span> 0.15x0.05% temp_merged.pdf</span></code></pre></div>
+<ul>
+<li><strong><code>-deskew 40%</code></strong>: Automatically straightens
+crooked scans.</li>
+<li><strong><code>-contrast-stretch</code></strong>: Enhances text
+contrast by whitening the background and darkening the text.</li>
+<li><strong><code>temp_merged.pdf</code></strong>: The intermediate,
+non-searchable PDF file.</li>
+</ul>
+<p>If your images are already clean and oriented properly, you can
+combine them directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert page1.png page2.png page3.png temp_merged.pdf</span></code></pre></div>
+<hr />
+<h3 id="step-2-add-searchable-text-layer-with-ocrmypdf">Step 2: Add
+Searchable Text Layer with OCRmyPDF</h3>
+<p>The most reliable way to turn the intermediate PDF into a searchable
+document is using <strong>OCRmyPDF</strong>, a command-line tool built
+on top of the Tesseract OCR engine.</p>
+<ol type="1">
+<li><p><strong>Install OCRmyPDF</strong> (via Homebrew on macOS, or apt
+on Ubuntu/Debian):</p>
+<ul>
+<li>macOS: <code>brew install ocrmypdf</code></li>
+<li>Linux: <code>sudo apt install ocrmypdf</code></li>
+</ul></li>
+<li><p><strong>Generate the searchable PDF</strong>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ocrmypdf</span> temp_merged.pdf final_searchable.pdf</span></code></pre></div></li>
+</ol>
+<p>OCRmyPDF inspects the pages, extracts the text using Tesseract, and
+layers invisible, selectable text directly over your original images
+without re-compressing them unnecessarily.</p>
+<hr />
+<h3 id="alternative-method-direct-processing-with-tesseract">Alternative
+Method: Direct Processing with Tesseract</h3>
+<p>If you prefer not to create an intermediate merged PDF, you can use
+Tesseract directly to convert each image into an individual searchable
+PDF, then merge them using a tool like <code>pdfunite</code>.</p>
+<ol type="1">
+<li><p><strong>Convert images to single-page searchable
+PDFs</strong>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">tesseract</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">${img</span><span class="op">%</span>.<span class="pp">*</span><span class="va">}</span><span class="st">&quot;</span> pdf</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>This generates a <code>.pdf</code> file for every <code>.jpg</code>
+image, complete with an embedded text layer.</p></li>
+<li><p><strong>Combine the searchable PDFs without losing the
+text</strong>: Use <code>pdfunite</code> (part of the Poppler utility
+suite) instead of ImageMagick so the text layer is preserved:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pdfunite</span> page1.pdf page2.pdf page3.pdf final_searchable.pdf</span></code></pre></div></li>
+</ol>
+<h3 id="verification">Verification</h3>
+<p>Open <code>final_searchable.pdf</code> in any standard PDF reader
+(such as Adobe Acrobat, Preview, or a web browser). Test the document by
+pressing <code>Ctrl+F</code> (or <code>Cmd+F</code> on macOS) to search
+for a word, or click and drag your cursor to highlight and copy text
+directly from the scanned pages.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

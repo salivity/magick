@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculating TAC Limits in ImageMagick - magick</title>
+    <meta name="description" content="Total Area Coverage (TAC), also known as Total Ink Coverage (TIC), measures the combined percentage of Cyan, Magenta, Yellow, and Black inks applied to a printed page, with a theoretical maximum of 400%. This guide explains how to calculate, detect, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/calculating-tac-limits-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Calculating TAC Limits in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/calculating-tac-limits-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Total Area Coverage (TAC), also known as Total Ink Coverage (TIC), measures the combined percentage of Cyan, Magenta, Yellow, and Black inks applied to a printed page, with a theoretical maximum of 400%. This guide explains how to calculate, detect, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="calculating-tac-limits-in-imagemagick">Calculating TAC Limits in
+ImageMagick</h1>
+<p>Total Area Coverage (TAC), also known as Total Ink Coverage (TIC),
+measures the combined percentage of Cyan, Magenta, Yellow, and Black
+inks applied to a printed page, with a theoretical maximum of 400%. This
+guide explains how to calculate, detect, and enforce TAC limits in CMYK
+images using ImageMagick command-line tools.</p>
+<h2 id="the-tac-calculation-formula">The TAC Calculation Formula</h2>
+<p>In CMYK printing, TAC is the sum of the individual ink densities for
+any given pixel:</p>
+<p><span class="math display">\[\text{TAC} = C\% + M\% + Y\% +
+K\%\]</span></p>
+<p>Most commercial offset printing standards enforce limits between 280%
+and 340% to prevent ink smearing, drying delays, and paper
+saturation.</p>
+<h2 id="measuring-the-maximum-tac-in-an-image">Measuring the Maximum TAC
+in an Image</h2>
+<p>ImageMagick can calculate the ink total of every pixel using the
+<code>-fx</code> operator to identify the highest TAC value present in a
+file.</p>
+<p>Run the following command to output the maximum TAC percentage:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-colorspace</span> CMYK <span class="at">-fx</span> <span class="st">&quot;u.c + u.m + u.y + u.k&quot;</span> <span class="at">-format</span> <span class="st">&quot;%[fx:maxima * 100]%%\n&quot;</span> info:</span></code></pre></div>
+<h3 id="explanation">Explanation:</h3>
+<ul>
+<li><code>-colorspace CMYK</code>: Ensures the image channels are
+properly mapped as Cyan, Magenta, Yellow, and Black.</li>
+<li><code>-fx "u.c + u.m + u.y + u.k"</code>: Sums the four ink channels
+for each pixel (where 0.0 to 1.0 maps to 0% to 100%).</li>
+<li><code>-format "%[fx:maxima * 100]%%\n" info:</code>: Extracts the
+highest calculated value from the generated layer and multiplies it by
+100 to display the TAC as a percentage.</li>
+</ul>
+<h2 id="identifying-and-highlighting-over-limit-pixels">Identifying and
+Highlighting Over-Limit Pixels</h2>
+<p>For large print files, using <code>-evaluate-sequence</code> is
+significantly faster than <code>-fx</code> to detect pixels that exceed
+a specified TAC threshold (e.g., 300%).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-colorspace</span> CMYK <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> CMYK <span class="at">-separate</span> +channel <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-evaluate-sequence</span> add <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 300% <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  tac_overload_mask.png</span></code></pre></div>
+<h3 id="explanation-1">Explanation:</h3>
+<ol type="1">
+<li><code>-separate</code>: Breaks the CMYK image into four individual
+grayscale channel layers.</li>
+<li><code>-evaluate-sequence add</code>: Sums the values of all four
+layers into a single intensity map.</li>
+<li><code>-threshold 300%</code>: Turns pixels that exceed 300% total
+ink into solid white and all compliant pixels into solid black, creating
+a visual inspection mask.</li>
+</ol>
+<h2 id="enforcing-tac-limits-in-imagemagick">Enforcing TAC Limits in
+ImageMagick</h2>
+<p>To permanently reduce TAC to a compliant limit without distorting
+color balance, convert the image using an ICC color profile designed
+with the required TAC restriction:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_unconstrained.tif <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> USWebCoatedSWOP.icc <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> ISOcoated_v2_300_eci.icc <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  output_compliant.tif</span></code></pre></div>
+<p>Using ICC color profile transformations handles Under Color Removal
+(UCR) and Gray Component Replacement (GCR) automatically, bringing
+high-density areas within the specified TAC limit while preserving color
+accuracy.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Custom Colors to Hex in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick allows you to define custom color names and map them directly to specific RGBA hexadecimal values using internal XML configuration files. This guide explains how to create, configure, and apply custom color mappings so you can use proprietary">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/map-custom-colors-to-hex-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Map Custom Colors to Hex in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/map-custom-colors-to-hex-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick allows you to define custom color names and map them directly to specific RGBA hexadecimal values using internal XML configuration files. This guide explains how to create, configure, and apply custom color mappings so you can use proprietary" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="map-custom-colors-to-hex-in-imagemagick">Map Custom Colors to
+Hex in ImageMagick</h1>
+<p>ImageMagick allows you to define custom color names and map them
+directly to specific RGBA hexadecimal values using internal XML
+configuration files. This guide explains how to create, configure, and
+apply custom color mappings so you can use proprietary, branded, or
+project-specific color names directly within your ImageMagick
+command-line operations.</p>
+<h3 id="understanding-the-colorsxml-file">Understanding the colors.xml
+File</h3>
+<p>ImageMagick resolves color names using an internal configuration file
+named <code>colors.xml</code>. You can override or extend the default
+color list by creating your own <code>colors.xml</code> file in your
+local ImageMagick configuration directory.</p>
+<h3 id="step-1-locate-the-configuration-directory">Step 1: Locate the
+Configuration Directory</h3>
+<p>ImageMagick looks for user-defined configuration files in specific
+directories depending on your operating system:</p>
+<ul>
+<li><strong>Linux / macOS:</strong> <code>~/.config/ImageMagick/</code>
+or <code>~/.magick/</code></li>
+<li><strong>Windows:</strong> <code>%APPDATA%\ImageMagick\</code></li>
+</ul>
+<p>If the directory does not exist, create it manually.</p>
+<h3 id="step-2-create-the-custom-colorsxml-file">Step 2: Create the
+Custom colors.xml File</h3>
+<p>Create a file named <code>colors.xml</code> inside your configuration
+directory. Define your custom color names and their 8-character RGBA hex
+values using the <code>&lt;color&gt;</code> element.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">colormap</span> <span class="dt">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!ELEMENT</span> <span class="dt">colormap</span> (color)+<span class="dt">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!ELEMENT</span> <span class="dt">color</span> EMPTY<span class="dt">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!ATTLIST</span> <span class="dt">color</span> name CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!ATTLIST</span> <span class="dt">color</span> compliance CDATA #IMPLIED<span class="dt">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!ATTLIST</span> <span class="dt">color</span> color CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="dt">]&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">colormap</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">color</span> <span class="ot">name=</span><span class="st">&quot;brand_primary&quot;</span> <span class="ot">color=</span><span class="st">&quot;#1A73E8FF&quot;</span> <span class="ot">compliance=</span><span class="st">&quot;SVG, X11, XPM&quot;</span> /&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">color</span> <span class="ot">name=</span><span class="st">&quot;brand_accent&quot;</span> <span class="ot">color=</span><span class="st">&quot;#FF5722CC&quot;</span> <span class="ot">compliance=</span><span class="st">&quot;SVG, X11, XPM&quot;</span> /&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">color</span> <span class="ot">name=</span><span class="st">&quot;translucent_dark&quot;</span> <span class="ot">color=</span><span class="st">&quot;#00000080&quot;</span> <span class="ot">compliance=</span><span class="st">&quot;SVG, X11, XPM&quot;</span> /&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">colormap</span>&gt;</span></code></pre></div>
+<p>In the RGBA hex format (<code>#RRGGBBAA</code>):</p>
+<ul>
+<li><code>RR</code> represents Red (00–FF).</li>
+<li><code>GG</code> represents Green (00–FF).</li>
+<li><code>BB</code> represents Blue (00–FF).</li>
+<li><code>AA</code> represents Alpha / Opacity (<code>00</code> is fully
+transparent, <code>FF</code> is fully opaque).</li>
+</ul>
+<h3 id="step-3-using-an-environment-variable-alternative-method">Step 3:
+Using an Environment Variable (Alternative Method)</h3>
+<p>If you prefer to keep your custom configuration in a project
+repository rather than the system-wide user profile, you can set the
+<code>MAGICK_CONFIGURE_PATH</code> environment variable to point to the
+directory containing your custom <code>colors.xml</code>.</p>
+<p><strong>Linux / macOS:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_CONFIGURE_PATH</span><span class="op">=</span><span class="st">&quot;/path/to/custom/config&quot;</span></span></code></pre></div>
+<p><strong>Windows (Command Prompt):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">MAGICK_CONFIGURE_PATH</span>=C:\path\to\custom\config</span></code></pre></div>
+<h3 id="step-4-verify-the-custom-colors">Step 4: Verify the Custom
+Colors</h3>
+<p>Check if ImageMagick recognizes your newly defined colors by querying
+the color list:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> color <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;brand_&quot;</span></span></code></pre></div>
+<h3 id="step-5-use-custom-colors-in-commands">Step 5: Use Custom Colors
+in Commands</h3>
+<p>Once mapped, your custom color names can be used anywhere a standard
+color name or hex code is accepted:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x200 xc:brand_primary <span class="at">-fill</span> brand_accent <span class="at">-draw</span> <span class="st">&quot;circle 200,100 200,50&quot;</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

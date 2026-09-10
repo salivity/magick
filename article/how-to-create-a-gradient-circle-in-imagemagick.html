@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Create a Gradient Circle in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to generate a smooth, anti-aliased circle filled with a gradient using ImageMagick. By combining gradient canvas generation with vector shape masking, you can produce crisp, anti-aliased edges and custom color blends for both">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-create-a-gradient-circle-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Create a Gradient Circle in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-create-a-gradient-circle-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to generate a smooth, anti-aliased circle filled with a gradient using ImageMagick. By combining gradient canvas generation with vector shape masking, you can produce crisp, anti-aliased edges and custom color blends for both" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-create-a-gradient-circle-in-imagemagick">How to Create a
+Gradient Circle in ImageMagick</h1>
+<p>This guide demonstrates how to generate a smooth, anti-aliased circle
+filled with a gradient using ImageMagick. By combining gradient canvas
+generation with vector shape masking, you can produce crisp,
+anti-aliased edges and custom color blends for both radial and linear
+gradients.</p>
+<h2 id="the-imagemagick-command">The ImageMagick Command</h2>
+<p>To render a 400x400 anti-aliased circle filled with a radial gradient
+on a transparent background, run the following command in ImageMagick
+7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 radial-gradient:gold-crimson <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">\(</span> <span class="at">-size</span> 400x400 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 200,200 200,20&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>-compose DstIn <span class="at">-composite</span> gradient_circle.png</span></code></pre></div>
+<p>For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-size</span> 400x400 radial-gradient:gold-crimson <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">\(</span> <span class="at">-size</span> 400x400 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 200,200 200,20&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>-compose DstIn <span class="at">-composite</span> gradient_circle.png</span></code></pre></div>
+<h2 id="how-the-command-works">How the Command Works</h2>
+<ol type="1">
+<li><strong><code>-size 400x400 radial-gradient:gold-crimson</code></strong>:
+Creates the base canvas with a radial color transition starting from
+<code>gold</code> at the center to <code>crimson</code> at the
+edges.</li>
+<li><strong><code>\( -size 400x400 xc:none -fill white -draw "circle 200,200 200,20" \)</code></strong>:
+Creates an in-memory mask.
+<ul>
+<li><code>xc:none</code> establishes a fully transparent
+background.</li>
+<li><code>-draw "circle 200,200 200,20"</code> draws a circle with the
+center at coordinate (200, 200) and a perimeter point at (200, 20),
+resulting in a radius of 180 pixels. ImageMagick applies anti-aliasing
+to vector drawings by default.</li>
+</ul></li>
+<li><strong><code>-compose DstIn -composite</code></strong>: Applies the
+mask to the gradient. The <code>DstIn</code> composition operator
+retains the gradient only where the mask contains pixels, smoothly
+preserving the anti-aliased edges.</li>
+<li><strong><code>gradient_circle.png</code></strong>: Outputs the
+result as a PNG file supporting alpha transparency.</li>
+</ol>
+<h2 id="using-a-linear-gradient">Using a Linear Gradient</h2>
+<p>To use a linear gradient instead of a radial gradient, replace
+<code>radial-gradient:</code> with <code>gradient:</code> and specify
+your angle using <code>-define</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 <span class="at">-define</span> gradient:angle=45 gradient:#00c6ff-#0072ff <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">\(</span> <span class="at">-size</span> 400x400 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 200,200 200,20&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>-compose DstIn <span class="at">-composite</span> linear_gradient_circle.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

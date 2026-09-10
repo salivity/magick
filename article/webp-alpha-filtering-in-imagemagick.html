@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP Alpha Filtering in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to configure the alpha channel filtering method for WebP images using ImageMagick. When encoding images with transparent or semi-transparent backgrounds to the WebP format, ImageMagick provides specific configuration flags to ba">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/webp-alpha-filtering-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebP Alpha Filtering in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/webp-alpha-filtering-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to configure the alpha channel filtering method for WebP images using ImageMagick. When encoding images with transparent or semi-transparent backgrounds to the WebP format, ImageMagick provides specific configuration flags to ba" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="webp-alpha-filtering-in-imagemagick">WebP Alpha Filtering in
+ImageMagick</h1>
+<p>This article explains how to configure the alpha channel filtering
+method for WebP images using ImageMagick. When encoding images with
+transparent or semi-transparent backgrounds to the WebP format,
+ImageMagick provides specific configuration flags to balance encoding
+speed, file size, and visual quality. Below is a straightforward guide
+to the exact define setting required, the available values, and
+practical command-line examples.</p>
+<h2 id="the-alpha-filtering-define">The Alpha Filtering Define</h2>
+<p>In ImageMagick, the define that controls the WebP alpha filtering
+method is:</p>
+<pre class="text"><code>-define webp:alpha-filtering=&lt;method&gt;</code></pre>
+<p>This setting directly configures the underlying <code>libwebp</code>
+encoder's predictive spatial filtering for transparency channels before
+compression.</p>
+<h2 id="available-values">Available Values</h2>
+<p>The <code>webp:alpha-filtering</code> define accepts either numeric
+values or descriptive keywords:</p>
+<ul>
+<li><strong><code>none</code> (or <code>0</code>):</strong> Disables
+alpha filtering entirely. This yields the fastest encoding times but
+typically results in larger file sizes for transparent areas.</li>
+<li><strong><code>fast</code> (or <code>1</code>):</strong> Enables fast
+predictive filtering. This is generally the default behavior in
+<code>libwebp</code>, offering a good compromise between processing
+speed and compression ratio.</li>
+<li><strong><code>best</code> (or <code>2</code>):</strong> Enables
+comprehensive spatial filtering. The encoder evaluates multiple
+prediction modes to maximize compression efficiency, producing the
+smallest possible file sizes at the cost of increased encoding
+time.</li>
+</ul>
+<h2 id="usage-examples">Usage Examples</h2>
+<p>To set the alpha filtering method to the highest compression
+efficiency using ImageMagick version 7, use the <code>magick</code>
+command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:alpha-filtering=best output.webp</span></code></pre></div>
+<p>To optimize for encoding speed when handling large batches of images,
+disable the filtering:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:alpha-filtering=none output.webp</span></code></pre></div>
+<p>If you are using legacy ImageMagick 6, the syntax applies directly to
+the <code>convert</code> tool:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> webp:alpha-filtering=fast output.webp</span></code></pre></div>
+<h2 id="related-alpha-settings">Related Alpha Settings</h2>
+<p>To gain full control over transparency in WebP conversions, this
+define is often paired with:</p>
+<ul>
+<li><strong><code>webp:alpha-compression</code>:</strong> Set to
+<code>0</code> (uncompressed) or <code>1</code> (compressed, default).
+Filtering only applies when alpha compression is enabled.</li>
+<li><strong><code>webp:alpha-quality</code>:</strong> An integer between
+<code>0</code> and <code>100</code> that specifies the lossy quality
+level of the alpha channel (defaults to <code>100</code> for lossless
+alpha).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

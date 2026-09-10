@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Cos Pixel Intensity Modulation - magick</title>
+    <meta name="description" content="The ImageMagick -evaluate Cos operator transforms image pixel values using a trigonometric cosine function, mapping input channel values to smooth, oscillating intensity waves. By applying this operator to a pre-existing intensity gradient across an imag">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-cos-pixel-intensity-modulation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Cos Pixel Intensity Modulation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-cos-pixel-intensity-modulation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -evaluate Cos operator transforms image pixel values using a trigonometric cosine function, mapping input channel values to smooth, oscillating intensity waves. By applying this operator to a pre-existing intensity gradient across an imag" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-cos-pixel-intensity-modulation">ImageMagick
+Evaluate Cos Pixel Intensity Modulation</h1>
+<p>The ImageMagick <code>-evaluate Cos</code> operator transforms image
+pixel values using a trigonometric cosine function, mapping input
+channel values to smooth, oscillating intensity waves. By applying this
+operator to a pre-existing intensity gradient across an image grid,
+linear changes in brightness are converted into periodic sinusoidal
+patterns scaled precisely to the system's dynamic range.</p>
+<h2 id="the-mathematical-transformation">The Mathematical
+Transformation</h2>
+<p>ImageMagick processes pixel intensities using an internal dynamic
+scale called <code>QuantumRange</code> (typically 0 to 255 for 8-bit
+installations, or 0 to 65535 for 16-bit installations). The
+<code>-evaluate Cos</code> operation normalizes the input intensity,
+applies the cosine function scaled by a frequency multiplier, and
+rescales the output back to the full dynamic range.</p>
+<p>The formula applied to each channel value (<span
+class="math inline">\(I_{\text{in}}\)</span>) is:</p>
+<p><span class="math display">\[I_{\text{out}} = \text{QuantumRange}
+\times \left[ 0.5 \times \cos\left(2\pi \times \text{frequency} \times
+\frac{I_{\text{in}}}{\text{QuantumRange}}\right) + 0.5
+\right]\]</span></p>
+<p>In this function:</p>
+<ul>
+<li><span
+class="math inline">\(\frac{I_{\text{in}}}{\text{QuantumRange}}\)</span>
+maps the input pixel intensity to the normalized range <span
+class="math inline">\([0.0, 1.0]\)</span>.</li>
+<li>The parameter supplied to <code>Cos</code> acts as the frequency
+factor, determining how many complete cycles occur over the dynamic
+range.</li>
+<li>The factor of <span class="math inline">\(2\pi\)</span> converts the
+normalized value into radians.</li>
+<li>Scaling by <span class="math inline">\(0.5\)</span> and adding <span
+class="math inline">\(0.5\)</span> shifts the cosine range from <span
+class="math inline">\([-1.0, 1.0]\)</span> to <span
+class="math inline">\([0.0, 1.0]\)</span>, preventing negative clipping
+and ensuring full dynamic utilization.</li>
+<li>Multiplying by <code>QuantumRange</code> restores standard integer
+or floating-point pixel representation.</li>
+</ul>
+<h2 id="spatial-modulation-across-the-grid">Spatial Modulation Across
+the Grid</h2>
+<p>The <code>-evaluate</code> operator acts on pixel values rather than
+spatial coordinates (<span class="math inline">\(x, y\)</span>).
+Therefore, spatial modulation across an image grid relies on the
+underlying distribution of pixel values already present in the
+canvas.</p>
+<h3 id="linear-gradients">Linear Gradients</h3>
+<p>When applied to a linear horizontal gradient where pixel intensity
+increases from left to right (<span class="math inline">\(0 \to
+\text{QuantumRange}\)</span>):</p>
+<ul>
+<li>An argument of <code>1</code> produces one full cosine cycle:
+starting at maximum intensity (white), dropping to minimum (black) in
+the center, and returning to maximum at the far edge.</li>
+<li>An argument of <span class="math inline">\(N\)</span> generates
+<span class="math inline">\(N\)</span> complete alternating light and
+dark bands (fringes) across the grid.</li>
+</ul>
+<h3 id="radial-and-complex-gradients">Radial and Complex Gradients</h3>
+<p>When applied to non-linear intensity structures:</p>
+<ul>
+<li><strong>Radial Gradients:</strong> Modulating a center-to-edge
+radial gradient produces concentric rings (Airy-disk-like
+patterns).</li>
+<li><strong>Two-Dimensional Coordinates:</strong> Applying the operation
+to combined <span class="math inline">\(X\)</span> and <span
+class="math inline">\(Y\)</span> gradients creates interference grids or
+checkerboard-style ripples.</li>
+<li><strong>Natural Images:</strong> Applying the command to a standard
+photograph maps smooth tonal transitions into topographical-style
+contours, creating a solarized or psychedelic banding effect wherever
+luminance varies smoothly.</li>
+</ul>
+<h2 id="frequency-control-and-phase">Frequency Control and Phase</h2>
+<p>The scalar parameter supplied to <code>-evaluate Cos</code> dictates
+the frequency of the modulation:</p>
+<ul>
+<li><strong>Fractional Frequencies (e.g., <code>0.5</code>):</strong>
+Traverses only half a cosine wave over the input range, converting a
+linear black-to-white transition into a smooth transition from white to
+black.</li>
+<li><strong>Integer Frequencies (e.g., <code>2</code>, <code>5</code>,
+<code>10</code>):</strong> Multiplies the density of the fringe cycles
+across the spatial gradient, producing tighter oscillations between
+dynamic limits.</li>
+<li><strong>Phase Offset:</strong> Because standard cosine starts at
+peak amplitude when the input is <span class="math inline">\(0\)</span>,
+an input of zero intensity results in maximum brightness. To achieve a
+sine response (starting at zero intensity), you must pre-offset or
+post-offset the intensity using <code>-evaluate Add</code> or chain
+complementary transformations.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Rotational Blur Filter Parameters - magick</title>
+    <meta name="description" content="ImageMagick provides the -rotational-blur operator to simulate the effect of a camera rotating around a central axis during exposure. This filter radially blurs pixels along concentric circular paths, producing a dynamic spinning effect. Configuring this">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-rotational-blur-filter-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Rotational Blur Filter Parameters - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-rotational-blur-filter-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides the -rotational-blur operator to simulate the effect of a camera rotating around a central axis during exposure. This filter radially blurs pixels along concentric circular paths, producing a dynamic spinning effect. Configuring this" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-rotational-blur-filter-parameters">ImageMagick
+Rotational Blur Filter Parameters</h1>
+<p>ImageMagick provides the <code>-rotational-blur</code> operator to
+simulate the effect of a camera rotating around a central axis during
+exposure. This filter radially blurs pixels along concentric circular
+paths, producing a dynamic spinning effect. Configuring this filter
+involves setting the rotation angle as its primary argument, alongside
+complementary settings like channel selection and virtual pixel handling
+to control how the blur interacts with the image boundaries and color
+layers.</p>
+<h3 id="primary-parameter-angle">Primary Parameter: Angle</h3>
+<p>The <code>-rotational-blur</code> operator accepts a single numerical
+parameter:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-rotational-blur</span> <span class="op">&lt;</span>angle<span class="op">&gt;</span> output.jpg</span></code></pre></div>
+<ul>
+<li><strong><code>angle</code> (Degrees):</strong> Specifies the sweep
+of the blur in degrees. A larger floating-point or integer value
+produces a stronger, wider blur effect, while smaller values (such as
+<code>2</code> to <code>10</code>) provide subtle motion. Setting the
+angle to <code>0</code> results in no blur.</li>
+</ul>
+<h3 id="blur-center-point">Blur Center Point</h3>
+<p>By default, <code>-rotational-blur</code> applies the rotational
+effect centered precisely at the geometric middle of the image
+(<code>width / 2</code>, <code>height / 2</code>).</p>
+<p>To change the origin of the blur to a custom coordinate, you must
+translate the image canvas using operators like <code>-roll</code> or
+<code>-distort</code> before applying the filter, and then translate it
+back:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Blurs around an offset point (e.g., shifted by +100,+50 pixels)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-roll</span> +100+50 <span class="at">-rotational-blur</span> 15 <span class="at">-roll</span> <span class="at">-100-50</span> output.jpg</span></code></pre></div>
+<h3 id="channel-selection">Channel Selection</h3>
+<p>You can restrict the rotational blur to specific color components or
+alpha channels using the <code>-channel</code> setting before calling
+the blur operator:</p>
+<ul>
+<li><strong><code>-channel RGB</code>:</strong> Blurs only the color
+information, leaving the alpha channel intact.</li>
+<li><strong><code>-channel A</code>:</strong> Blurs only the
+alpha/transparency mask.</li>
+<li><strong><code>-channel R</code> / <code>-channel G</code> /
+<code>-channel B</code>:</strong> Blurs an individual color channel to
+create chromatic aberration effects.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Blur only the red channel</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-channel</span> R <span class="at">-rotational-blur</span> 20 +channel output.jpg</span></code></pre></div>
+<h3 id="edge-handling-with-virtual-pixels">Edge Handling with Virtual
+Pixels</h3>
+<p>When pixels near the perimeter rotate, they may sample data from
+outside the original image boundaries. The <code>-virtual-pixel</code>
+setting controls how these edge pixels are sampled:</p>
+<ul>
+<li><strong><code>edge</code> (Default behavior in many
+operations):</strong> Extends the outermost pixel colors outward.</li>
+<li><strong><code>mirror</code>:</strong> Reflects the image data back
+across the boundary.</li>
+<li><strong><code>dither</code> or <code>transparent</code>:</strong>
+Treats areas outside the boundary as transparent.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-virtual-pixel</span> mirror <span class="at">-rotational-blur</span> 15 output.jpg</span></code></pre></div>
+<h3 id="summary-of-usage">Summary of Usage</h3>
+<ul>
+<li><strong>Basic rotation:</strong>
+<code>magick input.png -rotational-blur 10 output.png</code></li>
+<li><strong>Intense rotation:</strong>
+<code>magick input.png -rotational-blur 45 output.png</code></li>
+<li><strong>Selective channel rotation:</strong>
+<code>magick input.png -channel G,B -rotational-blur 12 +channel output.png</code></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

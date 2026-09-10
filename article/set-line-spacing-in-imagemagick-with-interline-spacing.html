@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Line Spacing in ImageMagick with Interline-Spacing - magick</title>
+    <meta name="description" content="This article explains how to adjust the vertical gap between lines of multiline text in ImageMagick using the -interline-spacing option. You will learn the command syntax, how positive and negative pixel offsets affect text layout, and practical examples">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-line-spacing-in-imagemagick-with-interline-spacing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set Line Spacing in ImageMagick with Interline-Spacing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-line-spacing-in-imagemagick-with-interline-spacing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to adjust the vertical gap between lines of multiline text in ImageMagick using the -interline-spacing option. You will learn the command syntax, how positive and negative pixel offsets affect text layout, and practical examples" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-line-spacing-in-imagemagick-with-interline-spacing">Set Line
+Spacing in ImageMagick with Interline-Spacing</h1>
+<p>This article explains how to adjust the vertical gap between lines of
+multiline text in ImageMagick using the <code>-interline-spacing</code>
+option. You will learn the command syntax, how positive and negative
+pixel offsets affect text layout, and practical examples using common
+text operators like <code>caption:</code> and <code>label:</code>.</p>
+<h3 id="the--interline-spacing-setting">The
+<code>-interline-spacing</code> Setting</h3>
+<p>ImageMagick controls line spacing using the
+<code>-interline-spacing</code> option. This setting defines an extra
+vertical pixel offset added between consecutive lines of text.</p>
+<ul>
+<li><strong>Positive value (e.g., <code>10</code>):</strong> Adds
+additional space between lines, expanding the total height of the text
+block.</li>
+<li><strong>Negative value (e.g., <code>-5</code>):</strong> Decreases
+the gap between lines, condensing the lines closer together.</li>
+<li><strong>Default value (<code>0</code>):</strong> Uses the font's
+standard built-in line height metrics.</li>
+</ul>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>To apply line spacing, specify
+<code>-interline-spacing &lt;pixels&gt;</code> before defining your text
+operator (<code>caption:</code>, <code>label:</code>, or
+<code>-annotate</code>):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x200 xc:white <span class="at">-font</span> Arial <span class="at">-pointsize</span> 24 <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-interline-spacing</span> 15 caption:<span class="st">&quot;First line of text\nSecond line of text&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<h3 id="examples">Examples</h3>
+<h4 id="increasing-line-spacing-with-caption">Increasing Line Spacing
+with <code>caption:</code></h4>
+<p>When generating blocks of wrapped text with <code>caption:</code>,
+you can enhance readability by increasing line spacing:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x300 xc:#f4f4f4 <span class="at">-fill</span> <span class="co">#333333 \</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-font</span> DejaVu-Sans <span class="at">-pointsize</span> 20 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-interline-spacing</span> 12 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  caption:<span class="st">&quot;ImageMagick allows you to format text blocks dynamically and control line heights directly from the terminal.&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  spaced_text.png</span></code></pre></div>
+<h4 id="decreasing-line-spacing-with-negative-offsets">Decreasing Line
+Spacing with Negative Offsets</h4>
+<p>If a font has naturally wide line spacing or you need to fit
+multiline text into a constrained area, pass a negative integer:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x150 xc:white <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> Arial <span class="at">-pointsize</span> 28 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-interline-spacing</span> <span class="at">-6</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  label:<span class="st">&quot;COMPACT\nHEADLINE&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  compact_text.png</span></code></pre></div>
+<h4 id="applying-spacing-with--annotate">Applying Spacing with
+<code>-annotate</code></h4>
+<p>When overlaying multiline text directly onto an existing image using
+<code>-annotate</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-font</span> Arial <span class="at">-pointsize</span> 22 <span class="at">-fill</span> white <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-interline-spacing</span> 8 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> south <span class="at">-annotate</span> +0+20 <span class="st">&quot;Line One\nLine Two&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  annotated.jpg</span></code></pre></div>
+<h3 id="key-considerations">Key Considerations</h3>
+<ul>
+<li><strong>Option Order:</strong> In ImageMagick (especially version 7
+and later), <code>-interline-spacing</code> is a setting. It must appear
+on the command line <em>before</em> the text generation operator
+(<code>caption:</code>, <code>label:</code>) or <code>-annotate</code>
+command to take effect.</li>
+<li><strong>Excessive Negative Values:</strong> Setting a negative value
+larger than the font's baseline-to-baseline distance will cause lines to
+overlap.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handling Display P3 Profiles in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick handles wide-gamut Display P3 colorspace profiles by leveraging LittleCMS (lcms2) color management to parse embedded ICC color profiles, map wide-gamut chromaticities, and convert between color spaces accurately. This guide explains how Image">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/handling-display-p3-profiles-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Handling Display P3 Profiles in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/handling-display-p3-profiles-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick handles wide-gamut Display P3 colorspace profiles by leveraging LittleCMS (lcms2) color management to parse embedded ICC color profiles, map wide-gamut chromaticities, and convert between color spaces accurately. This guide explains how Image" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="handling-display-p3-profiles-in-imagemagick">Handling Display P3
+Profiles in ImageMagick</h1>
+<p>ImageMagick handles wide-gamut Display P3 colorspace profiles by
+leveraging LittleCMS (lcms2) color management to parse embedded ICC
+color profiles, map wide-gamut chromaticities, and convert between color
+spaces accurately. This guide explains how ImageMagick reads, converts,
+and preserves Display P3 profiles to prevent color clipping,
+desaturation, or hue shifts during automated image processing
+workflows.</p>
+<h2 id="understanding-display-p3-in-imagemagick">Understanding Display
+P3 in ImageMagick</h2>
+<p>Display P3 is a wide-gamut color space that encompasses roughly 25%
+more color volume than standard sRGB, offering richer greens and reds.
+Because ImageMagick historically treats untagged RGB image data as
+standard sRGB, explicit profile management is necessary to interpret and
+render Display P3 assets properly.</p>
+<p>ImageMagick provides two primary methods for managing color: the
+<code>-profile</code> operator (ICC profile-based color management) and
+the <code>-colorspace</code> operator (direct mathematical
+transformations).</p>
+<h2 id="managing-display-p3-with-icc-profiles">Managing Display P3 with
+ICC Profiles</h2>
+<p>The most accurate method for handling Display P3 assets in
+ImageMagick is using the <code>-profile</code> operator alongside the
+LittleCMS delegate library.</p>
+<h3 id="preserving-embedded-p3-profiles">Preserving Embedded P3
+Profiles</h3>
+<p>When reading an image that contains an embedded Display P3 profile,
+ImageMagick retains the profile metadata throughout the operation
+pipeline. As long as you do not invoke <code>-strip</code>, the output
+file retains the embedded profile, allowing modern browsers and
+operating systems to display the wide-gamut colors correctly.</p>
+<h3 id="converting-display-p3-to-srgb">Converting Display P3 to
+sRGB</h3>
+<p>To ensure maximum compatibility across legacy devices and web
+platforms, wide-gamut images often need to be converted to sRGB:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_p3.jpg <span class="at">-profile</span> /path/to/sRGB.icc output_srgb.jpg</span></code></pre></div>
+<p>If the input file already has an embedded Display P3 profile,
+LittleCMS automatically uses it as the source profile and remaps the
+color gamut into the target sRGB profile using perceptual or relative
+colorimetric intent.</p>
+<h3 id="assigning-a-missing-display-p3-profile">Assigning a Missing
+Display P3 Profile</h3>
+<p>If an image is encoded using Display P3 primaries but lacks an
+embedded profile tag, assigning the profile directly associates the
+color space without altering pixel values:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> untagged_p3.jpg <span class="at">-profile</span> /path/to/DisplayP3.icc output_tagged_p3.jpg</span></code></pre></div>
+<h2 id="the--colorspace-operator-vs-icc-profiles">The
+<code>-colorspace</code> Operator vs. ICC Profiles</h2>
+<p>ImageMagick 7 includes internal support for the Display P3 colorspace
+via the <code>-colorspace DisplayP3</code> command.</p>
+<p>While <code>-colorspace</code> mathematically shifts pixel values to
+match Display P3 transfer characteristics and primaries, it does not
+automatically embed an ICC profile into the output container. Because
+web browsers and image viewers rely heavily on embedded ICC metadata to
+trigger wide-gamut rendering, using ICC profiles via
+<code>-profile</code> remains the standard practice for production
+workflows.</p>
+<h2 id="best-practices-for-display-p3-workflows">Best Practices for
+Display P3 Workflows</h2>
+<ul>
+<li><strong>Verify LittleCMS Support:</strong> Check that your
+ImageMagick build includes LittleCMS by running
+<code>magick -version</code> and confirming that <code>lcms</code> is
+listed under <code>Delegates</code>.</li>
+<li><strong>Avoid Stripping Unconverted Files:</strong> Applying
+<code>-strip</code> to a Display P3 image deletes the ICC profile
+without converting the pixels. Browsers will interpret the raw values as
+sRGB, causing colors to appear desaturated and flat.</li>
+<li><strong>Use 16-bit Builds (Q16):</strong> When mapping wide gamuts,
+use 16-bit ImageMagick builds (<code>Q16</code> or <code>Q16HDRI</code>)
+to eliminate banding and posterization during color space
+conversion.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

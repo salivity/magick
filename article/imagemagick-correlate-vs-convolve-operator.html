@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Correlate vs Convolve Operator - magick</title>
+    <meta name="description" content="In ImageMagick, both the Correlate and Convolve morphology operators apply a matrix kernel to an image using a sum of products across local pixel neighborhoods. The fundamental difference between them lies in the orientation of the kernel: the Convolve o">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-correlate-vs-convolve-operator">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Correlate vs Convolve Operator - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-correlate-vs-convolve-operator" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, both the Correlate and Convolve morphology operators apply a matrix kernel to an image using a sum of products across local pixel neighborhoods. The fundamental difference between them lies in the orientation of the kernel: the Convolve o" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-correlate-vs-convolve-operator">ImageMagick
+Correlate vs Convolve Operator</h1>
+<p>In ImageMagick, both the <code>Correlate</code> and
+<code>Convolve</code> morphology operators apply a matrix kernel to an
+image using a sum of products across local pixel neighborhoods. The
+fundamental difference between them lies in the orientation of the
+kernel: the <code>Convolve</code> operator rotates the kernel 180
+degrees before applying it to the image, whereas the
+<code>Correlate</code> operator applies the kernel exactly as written
+without any rotation.</p>
+<h2 id="the-kernel-rotation-difference">The Kernel Rotation
+Difference</h2>
+<p>When applying a neighborhood filter, the kernel represents a grid of
+weights applied to surrounding pixels.</p>
+<ul>
+<li><strong>Convolve:</strong> In mathematical convolution, the kernel
+is flipped horizontally and vertically (equivalent to a 180-degree
+rotation) before it slides across the image. ImageMagick mirrors this
+behavior internally when using <code>-morphology Convolve</code>.</li>
+<li><strong>Correlate:</strong> In cross-correlation, the kernel is
+overlaid directly onto the target neighborhood with no flipping or
+rotation. ImageMagick preserves the explicit layout of the kernel when
+using <code>-morphology Correlate</code>.</li>
+</ul>
+<h2 id="when-the-operators-produce-identical-output">When the Operators
+Produce Identical Output</h2>
+<p>If you use a kernel that is centrally or horizontally and vertically
+symmetric, both operators produce identical visual and numerical
+results. Common symmetric kernels include:</p>
+<ul>
+<li>Gaussian blurs</li>
+<li>Box blurs</li>
+<li>Laplacian edge detectors</li>
+<li>Circular disk filters</li>
+</ul>
+<p>Because rotating a symmetric kernel 180 degrees results in the exact
+same matrix, swapping between <code>Convolve</code> and
+<code>Correlate</code> for these filters has no effect on the
+output.</p>
+<h2 id="when-the-operators-produce-different-results">When the Operators
+Produce Different Results</h2>
+<p>The difference becomes visible when using directional, asymmetric, or
+custom-pattern kernels:</p>
+<ul>
+<li><strong>Directional Edge Detection:</strong> A kernel designed to
+detect light-to-dark transitions moving from top to bottom (like a
+directional Sobel or Prewitt filter) will invert its directional
+sensitivity when convolved versus correlated. If correlated detects top
+edges, convolved will detect bottom edges instead.</li>
+<li><strong>Pattern Matching:</strong> When attempting to locate a
+specific pixel pattern or shape using morphology, <code>Correlate</code>
+ensures the search matrix matches the target image orientation. Using
+<code>Convolve</code> would instead search for an upside-down, mirrored
+version of the desired pattern.</li>
+</ul>
+<h2 id="practical-use-cases">Practical Use Cases</h2>
+<ul>
+<li><strong>Use Convolve</strong> when performing standard linear
+filtering operations, digital signal processing tasks, or implementing
+equations defined in academic literature that explicitly call for
+two-dimensional mathematical convolution.</li>
+<li><strong>Use Correlate</strong> when using directional filters where
+you want the weights to align intuitively with the coordinate space, or
+when implementing template matching and hit-and-miss-style pattern
+correlation.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

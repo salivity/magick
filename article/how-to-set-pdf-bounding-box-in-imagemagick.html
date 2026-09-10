@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set PDF Bounding Box in ImageMagick - magick</title>
+    <meta name="description" content="When rendering or converting PDF files using ImageMagick, the software relies on Ghostscript to interpret the document dimensions defined by various PDF page boundaries. By default, ImageMagick often falls back to the CropBox or MediaBox. However, you ca">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-set-pdf-bounding-box-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set PDF Bounding Box in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-set-pdf-bounding-box-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When rendering or converting PDF files using ImageMagick, the software relies on Ghostscript to interpret the document dimensions defined by various PDF page boundaries. By default, ImageMagick often falls back to the CropBox or MediaBox. However, you ca" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-pdf-bounding-box-in-imagemagick">How to Set PDF
+Bounding Box in ImageMagick</h1>
+<p>When rendering or converting PDF files using ImageMagick, the
+software relies on Ghostscript to interpret the document dimensions
+defined by various PDF page boundaries. By default, ImageMagick often
+falls back to the <code>CropBox</code> or <code>MediaBox</code>.
+However, you can explicitly specify which bounding box—such as
+<code>CropBox</code>, <code>TrimBox</code>, <code>BleedBox</code>, or
+<code>ArtBox</code>—to use during rasterization by passing dedicated
+<code>-define</code> options before reading the input PDF.</p>
+<h2 id="understanding-pdf-bounding-boxes">Understanding PDF Bounding
+Boxes</h2>
+<p>PDF documents can define up to five distinct bounding boxes per
+page:</p>
+<ul>
+<li><strong>MediaBox:</strong> The physical size of the medium/page
+(default fallback if others are missing).</li>
+<li><strong>CropBox:</strong> The region displayed on screen or printed
+by default.</li>
+<li><strong>BleedBox:</strong> The region including the extra margin
+required for professional printing bleeds.</li>
+<li><strong>TrimBox:</strong> The intended final dimensions of the
+printed page after trimming.</li>
+<li><strong>ArtBox:</strong> The meaningful content area of the
+page.</li>
+</ul>
+<h2 id="using--define-to-select-a-bounding-box">Using
+<code>-define</code> to Select a Bounding Box</h2>
+<p>To specify a bounding box, apply the <code>-define</code> option
+<strong>before</strong> the input file path in your ImageMagick
+command.</p>
+<h3 id="1-using-the-cropbox">1. Using the CropBox</h3>
+<p>To force ImageMagick to use the CropBox:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> pdf:use-cropbox=true input.pdf output.png</span></code></pre></div>
+<h3 id="2-using-the-trimbox">2. Using the TrimBox</h3>
+<p>To render only the trimmed area of a print-ready PDF:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> pdf:use-trimbox=true input.pdf output.png</span></code></pre></div>
+<h3 id="3-using-the-bleedbox">3. Using the BleedBox</h3>
+<p>To include printing bleed margins:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> pdf:use-bleedbox=true input.pdf output.png</span></code></pre></div>
+<h3 id="4-using-the-artbox">4. Using the ArtBox</h3>
+<p>To render according to the content boundaries defined in the
+ArtBox:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> pdf:use-artbox=true input.pdf output.png</span></code></pre></div>
+<h3 id="5-using-the-mediabox">5. Using the MediaBox</h3>
+<p>To revert to the full physical media dimensions, disable the other
+boxes (or ensure cropbox is set to false):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> pdf:use-cropbox=false input.pdf output.png</span></code></pre></div>
+<h2 id="legacy-imagemagick-v6-syntax">Legacy ImageMagick (v6)
+Syntax</h2>
+<p>For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-define</span> pdf:use-trimbox=true input.pdf output.png</span></code></pre></div>
+<h2 id="important-considerations">Important Considerations</h2>
+<ul>
+<li><strong>Placement Matters:</strong> The <code>-define</code> flag
+must precede the input PDF filename. If placed after, ImageMagick will
+read the PDF using its default settings before the rule is applied.</li>
+<li><strong>Resolution/Density:</strong> When converting vector PDFs to
+raster formats, pair the bounding box define with the
+<code>-density</code> flag (placed before the input file) to maintain
+image clarity.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 <span class="at">-define</span> pdf:use-trimbox=true input.pdf output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

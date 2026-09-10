@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Animated GIF to PDF with ImageMagick - magick</title>
+    <meta name="description" content="Converting an animated GIF to a PDF document using ImageMagick transforms the animation into a multi-page document where each individual frame is rendered as a separate static page. Because PDF does not support native GIF-style looping animations through">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-animated-gif-to-pdf-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Animated GIF to PDF with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-animated-gif-to-pdf-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting an animated GIF to a PDF document using ImageMagick transforms the animation into a multi-page document where each individual frame is rendered as a separate static page. Because PDF does not support native GIF-style looping animations through" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-animated-gif-to-pdf-with-imagemagick">Convert Animated
+GIF to PDF with ImageMagick</h1>
+<p>Converting an animated GIF to a PDF document using ImageMagick
+transforms the animation into a multi-page document where each
+individual frame is rendered as a separate static page. Because PDF does
+not support native GIF-style looping animations through standard
+conversion commands, ImageMagick breaks the file down into its component
+images. This guide explains how the conversion process behaves,
+addresses the common visual glitches caused by GIF optimization, and
+details the correct commands to use for clean results.</p>
+<h3 id="frame-by-page-mapping">Frame-by-Page Mapping</h3>
+<p>When ImageMagick reads an animated GIF, it treats each sequential
+frame as a distinct, indexed image within a stack. When exporting this
+image sequence to a format that supports multiple pages—such as
+PDF—ImageMagick automatically assigns each frame to its own page. For
+example, a GIF composed of 30 frames will produce a 30-page PDF
+document, effectively turning the animation into a static, sequential
+storyboard.</p>
+<h3 id="the-frame-optimization-problem">The Frame Optimization
+Problem</h3>
+<p>Directly converting an animated GIF using a basic command like
+<code>magick input.gif output.pdf</code> often produces distorted or
+incomplete pages. This occurs because GIFs typically use optimization
+techniques where only the pixels that change from one frame to the next
+are stored, rather than the full image. Subsequent frames rely on
+transparent backgrounds and coordinate offsets relative to the base
+frame.</p>
+<p>If you convert an optimized GIF directly, ImageMagick exports these
+raw, partial delta frames onto individual PDF pages. As a result, pages
+after the first one may contain fragmented graphics, floating elements,
+or transparent holes instead of the complete scene.</p>
+<h3 id="the-solution-using-the--coalesce-flag">The Solution: Using the
+<code>-coalesce</code> Flag</h3>
+<p>To ensure every page in the PDF displays the complete visual state of
+the animation at that exact moment, the frames must be reconstructed
+before they are saved. ImageMagick includes the <code>-coalesce</code>
+operator for this purpose.</p>
+<p>The <code>-coalesce</code> command reads the canvas dimensions, image
+offsets, and disposal methods of each frame, then paints them
+sequentially to generate a complete, full-size image for every step in
+the animation.</p>
+<p>To convert an animated GIF correctly, use the following syntax:</p>
+<p><code>magick input.gif -coalesce output.pdf</code></p>
+<p>For older versions of ImageMagick (v6 and earlier), the syntax uses
+the <code>convert</code> binary:</p>
+<p><code>convert input.gif -coalesce output.pdf</code></p>
+<h3 id="extracting-specific-frames">Extracting Specific Frames</h3>
+<p>If a multi-page PDF containing every single frame is not desirable,
+you can extract individual frames using bracket notation:</p>
+<ul>
+<li><strong>Extract only the first frame (single-page
+PDF):</strong><br />
+<code>magick input.gif[0] output.pdf</code></li>
+<li><strong>Extract a specific range of frames:</strong><br />
+<code>magick "input.gif[0-9]" -coalesce output.pdf</code></li>
+</ul>
+<p>GIFs with high frame counts can result in excessively large PDF
+files. Extracting select frames or downsampling the frame rate
+beforehand is recommended to maintain manageable file sizes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

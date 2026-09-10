@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Stack Planetary Video Frames with ImageMagick - magick</title>
+    <meta name="description" content="Stacking planetary astrophotography video frames reduces atmospheric noise and dramatically increases the signal-to-noise ratio to reveal fine surface details on targets like Jupiter, Saturn, or the Moon. While dedicated graphical software exists for thi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-stack-planetary-video-frames-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Stack Planetary Video Frames with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-stack-planetary-video-frames-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Stacking planetary astrophotography video frames reduces atmospheric noise and dramatically increases the signal-to-noise ratio to reveal fine surface details on targets like Jupiter, Saturn, or the Moon. While dedicated graphical software exists for thi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-stack-planetary-video-frames-with-imagemagick">How to
+Stack Planetary Video Frames with ImageMagick</h1>
+<p>Stacking planetary astrophotography video frames reduces atmospheric
+noise and dramatically increases the signal-to-noise ratio to reveal
+fine surface details on targets like Jupiter, Saturn, or the Moon. While
+dedicated graphical software exists for this task, ImageMagick provides
+a lightweight, highly customizable, scriptable command-line alternative.
+This guide covers how to extract video frames, pre-process them, stack
+them using statistical blending methods, and apply initial sharpening
+using ImageMagick.</p>
+<h3 id="step-1-extract-video-frames">Step 1: Extract Video Frames</h3>
+<p>Before stacking, decompose your planetary video capture (typically
+recorded in AVI, SER, or MP4 formats) into uncompressed sequential image
+files like PNG or TIFF to preserve dynamic range.</p>
+<p>If your ImageMagick installation includes the FFmpeg delegate,
+extract the frames directly with the following command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> capture.avi frame_%04d.png</span></code></pre></div>
+<p>Alternatively, you can use FFmpeg directly to ensure lossless
+extraction:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-i</span> capture.avi <span class="at">-pix_fmt</span> rgb24 frame_%04d.png</span></code></pre></div>
+<h3 id="step-2-crop-and-center-the-planet">Step 2: Crop and Center the
+Planet</h3>
+<p>Planetary stacking produces the best results when the planet occupies
+the same pixel coordinates across all frames. If your telescope tracking
+has slight drift, you can crop to a Region of Interest (ROI) centered on
+the frame to eliminate extraneous black space and speed up
+processing:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-gravity</span> center <span class="at">-crop</span> 600x600+0+0 +repage frame_<span class="pp">*</span>.png</span></code></pre></div>
+<h3 id="step-3-stack-the-frames">Step 3: Stack the Frames</h3>
+<p>ImageMagick utilizes the <code>-evaluate-sequence</code> operator to
+perform mathematical stacking across multiple images.</p>
+<p><strong>Mean Stacking (Average):</strong> Mean stacking sums pixel
+values across all frames and divides by the total frame count. This is
+ideal for smooth noise reduction across hundreds or thousands of
+frames.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_<span class="pp">*</span>.png <span class="at">-evaluate-sequence</span> mean stacked_mean.png</span></code></pre></div>
+<p><strong>Median Stacking:</strong> Median stacking selects the median
+pixel value at each coordinate. This method is effective for eliminating
+transient artifacts like satellite trails, hot pixels, or severe cosmic
+ray hits.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_<span class="pp">*</span>.png <span class="at">-evaluate-sequence</span> median stacked_median.png</span></code></pre></div>
+<p>For high-bit-depth output (recommended for astronomical data),
+explicitly set the depth to 16-bit:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_<span class="pp">*</span>.png <span class="at">-depth</span> 16 <span class="at">-evaluate-sequence</span> mean stacked_mean.tiff</span></code></pre></div>
+<h3 id="step-4-sharpening-and-post-processing">Step 4: Sharpening and
+Post-Processing</h3>
+<p>Planetary images appear soft and blurry immediately after stacking
+due to atmospheric seeing. To bring out latent planetary belts, craters,
+or rings, apply an unsharp mask:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> stacked_mean.tiff <span class="at">-unsharp</span> 0x3+1.5+0.005 planet_sharpened.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>0</code> lets ImageMagick determine the optimal radius
+automatically based on sigma.</li>
+<li><code>3</code> is the sigma value (blur radius to compare
+against).</li>
+<li><code>1.5</code> is the sharpening strength (amount).</li>
+<li><code>0.005</code> is the threshold to prevent sharpening flat
+background noise.</li>
+</ul>
+<p>Adjust the sigma and amount parameters incrementally to enhance
+surface features without amplifying unwanted background grain.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick AVIF Quality Configuration - magick</title>
+    <meta name="description" content="This guide explains how to configure quality and compression settings for AVIF image output using ImageMagick. You will learn the correct usage of the -quality parameter, recommended value ranges for web use, lossless encoding methods, and advanced encod">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-avif-quality-configuration">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick AVIF Quality Configuration - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-avif-quality-configuration" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure quality and compression settings for AVIF image output using ImageMagick. You will learn the correct usage of the -quality parameter, recommended value ranges for web use, lossless encoding methods, and advanced encod" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-avif-quality-configuration">ImageMagick AVIF Quality
+Configuration</h1>
+<p>This guide explains how to configure quality and compression settings
+for AVIF image output using ImageMagick. You will learn the correct
+usage of the <code>-quality</code> parameter, recommended value ranges
+for web use, lossless encoding methods, and advanced encoder defines to
+optimize file size and encoding performance.</p>
+<h2 id="the-imagemagick-avif-quality-setting">The ImageMagick AVIF
+Quality Setting</h2>
+<p>ImageMagick controls AVIF compression primarily through the standard
+<code>-quality</code> command-line option. When writing AVIF files
+(typically via the <code>libheif</code> delegate with an underlying AV1
+encoder such as <code>libaom</code> or <code>rav1e</code>), the quality
+setting accepts values from <strong>1 to 100</strong>.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-quality</span> 60 output.avif</span></code></pre></div>
+<h3 id="recommended-quality-ranges">Recommended Quality Ranges</h3>
+<ul>
+<li><strong>1–40 (High Compression):</strong> Noticeable reduction in
+visual quality; best suited for extreme bandwidth constraints or small
+thumbnails.</li>
+<li><strong>50–65 (Recommended for Web):</strong> The sweet spot for
+most web photographs. This range provides visually lossless results with
+significant file size savings compared to JPEG or WebP.</li>
+<li><strong>70–85 (High Fidelity):</strong> Near-flawless quality for
+high-resolution photography, preserving fine grain and subtle
+gradients.</li>
+<li><strong>90–100 (Maximum / Lossless):</strong> Produces the largest
+file sizes. Setting <code>-quality 100</code> targets the highest visual
+fidelity or lossless mode depending on the delegate configuration.</li>
+</ul>
+<h2 id="lossless-avif-encoding">Lossless AVIF Encoding</h2>
+<p>To guarantee true lossless compression when converting graphics,
+diagrams, or archival images to AVIF, set <code>-quality 100</code> or
+use the explicit <code>heic:lossless</code> define:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> heic:lossless=true output.avif</span></code></pre></div>
+<h2 id="advanced-encoder-settings">Advanced Encoder Settings</h2>
+<p>ImageMagick supports <code>-define</code> options to fine-tune the
+AVIF encoder's speed, compression efficiency, and color handling.</p>
+<h3 id="1-encoding-speed-heicspeed">1. Encoding Speed
+(<code>heic:speed</code>)</h3>
+<p>AV1 encoding can be CPU-intensive. You can control the trade-off
+between encoding time and file size using the <code>heic:speed</code>
+define (values typically range from <code>0</code> to
+<code>9</code>):</p>
+<ul>
+<li><code>0</code> (Slowest): Maximum compression efficiency.</li>
+<li><code>6</code> (Default/Balanced): Good balance of encoding speed
+and compression.</li>
+<li><code>9</code> (Fastest): Quickest conversion, resulting in slightly
+larger output files.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-quality</span> 65 <span class="at">-define</span> heic:speed=4 output.avif</span></code></pre></div>
+<h3 id="2-chroma-subsampling-heicchroma">2. Chroma Subsampling
+(<code>heic:chroma</code>)</h3>
+<p>By default, AVIF uses 4:2:0 subsampling (<code>420</code>) to
+minimize file size. For pixel art, text, or sharp user-interface
+graphics, use 4:4:4 subsampling (<code>444</code>) to avoid color
+bleeding:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> graphic.png <span class="at">-quality</span> 80 <span class="at">-define</span> heic:chroma=444 output.avif</span></code></pre></div>
+<h2 id="example-production-ready-optimization">Example: Production-Ready
+Optimization</h2>
+<p>For general web delivery, combining a balanced quality setting with a
+moderate speed profile yields optimal results:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-quality</span> 60 <span class="at">-define</span> heic:speed=4 <span class="at">-define</span> heic:chroma=420 optimized.avif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

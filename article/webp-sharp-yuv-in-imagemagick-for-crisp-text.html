@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP Sharp YUV in ImageMagick for Crisp Text - magick</title>
+    <meta name="description" content="When encoding lossy WebP images containing colored text, high-contrast borders frequently suffer from color bleeding and blurring due to standard chroma subsampling. In ImageMagick, configuring the WebP encoder to use the sharp-yuv algorithm resolves thi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/webp-sharp-yuv-in-imagemagick-for-crisp-text">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebP Sharp YUV in ImageMagick for Crisp Text - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/webp-sharp-yuv-in-imagemagick-for-crisp-text" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When encoding lossy WebP images containing colored text, high-contrast borders frequently suffer from color bleeding and blurring due to standard chroma subsampling. In ImageMagick, configuring the WebP encoder to use the sharp-yuv algorithm resolves thi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="webp-sharp-yuv-in-imagemagick-for-crisp-text">WebP Sharp YUV in
+ImageMagick for Crisp Text</h1>
+<p>When encoding lossy WebP images containing colored text,
+high-contrast borders frequently suffer from color bleeding and blurring
+due to standard chroma subsampling. In ImageMagick, configuring the WebP
+encoder to use the <code>sharp-yuv</code> algorithm resolves this
+artifact by switching to an iterative, perceptually optimized RGB-to-YUV
+conversion. This article explains how ImageMagick implements this
+setting, how to configure it via the command line, and why it
+effectively preserves sharp text boundaries.</p>
+<h3 id="the-cause-of-blurry-colored-borders">The Cause of Blurry Colored
+Borders</h3>
+<p>Lossy WebP compression defaults to the YUV 4:2:0 color space. In
+standard 4:2:0 downsampling, color information (chroma) is reduced to
+half its horizontal and vertical resolution by averaging 2x2 pixel
+blocks. When a graphic features high-contrast transitions—such as red
+text against a white background—this simple averaging introduces
+intermediate color shades at the boundaries. The result is visible
+fringing, artifacting, and blurred edges around text and
+iconography.</p>
+<h3 id="how-sharp-yuv-preserves-edges">How Sharp YUV Preserves
+Edges</h3>
+<p>The Sharp YUV feature, developed within <code>libwebp</code>,
+replaces standard linear chroma averaging with an iterative optimization
+process. Instead of simply downsampling the color channels, Sharp YUV
+models the upsampling filter that the WebP decoder will eventually use
+to display the image. It then calculates the optimal 4:2:0 chroma values
+that, once unpacked and reconstructed by the decoder, will most closely
+match the original full-resolution RGB pixels. This mathematical
+alignment prevents color spillover and keeps high-contrast text borders
+sharp and legible.</p>
+<h3 id="configuring-sharp-yuv-in-imagemagick">Configuring Sharp YUV in
+ImageMagick</h3>
+<p>ImageMagick exposes WebP's underlying encoder settings through define
+switches. To enable Sharp YUV, pass the <code>webp:use-sharp-yuv</code>
+define set to <code>true</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:use-sharp-yuv=true output.webp</span></code></pre></div>
+<p>If you are using legacy ImageMagick (version 6), the syntax uses the
+<code>convert</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> webp:use-sharp-yuv=true output.webp</span></code></pre></div>
+<h3 id="underlying-implementation">Underlying Implementation</h3>
+<p>Internally, ImageMagick communicates with <code>libwebp</code> using
+the <code>WebPConfig</code> structure. When the coder processes
+<code>-define webp:use-sharp-yuv=true</code>, it assigns:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>config<span class="op">.</span>use_sharp_yuv <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span></code></pre></div>
+<p>This instructs the WebP encoder to allocate the necessary processing
+passes during the color conversion phase. Note that this feature
+requires ImageMagick to be linked against <code>libwebp</code> version
+0.6.0 or newer.</p>
+<h3 id="performance-trade-offs">Performance Trade-Offs</h3>
+<p>Using Sharp YUV does not meaningfully increase the final WebP file
+size; in fact, it often maintains the same bitrate while improving
+structural fidelity. However, the iterative optimization algorithm
+requires additional computational overhead, resulting in encoding times
+that are typically 1.5 to 2 times slower than default WebP conversions.
+Because of this, it is best reserved for UI assets, screenshots,
+typography, and graphics where edge contrast is paramount.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

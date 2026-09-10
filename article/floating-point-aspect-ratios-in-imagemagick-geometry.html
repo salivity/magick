@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating-Point Aspect Ratios in ImageMagick Geometry - magick</title>
+    <meta name="description" content="This article provides a quick overview of how to define and apply floating-point aspect ratios in ImageMagick using geometry strings, dimensional flags, and command-line options. While ImageMagick traditionally processes pixel dimensions as integers, mod">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/floating-point-aspect-ratios-in-imagemagick-geometry">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Floating-Point Aspect Ratios in ImageMagick Geometry - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/floating-point-aspect-ratios-in-imagemagick-geometry" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick overview of how to define and apply floating-point aspect ratios in ImageMagick using geometry strings, dimensional flags, and command-line options. While ImageMagick traditionally processes pixel dimensions as integers, mod" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="floating-point-aspect-ratios-in-imagemagick-geometry">Floating-Point
+Aspect Ratios in ImageMagick Geometry</h1>
+<p>This article provides a quick overview of how to define and apply
+floating-point aspect ratios in ImageMagick using geometry strings,
+dimensional flags, and command-line options. While ImageMagick
+traditionally processes pixel dimensions as integers, modern versions
+support decimal values and dynamic expressions to enforce exact
+proportional scaling, cropping, and canvas sizing. Below, you will learn
+the precise syntax and flags required to achieve floating-point aspect
+ratios across your image processing workflows.</p>
+<h2 id="understanding-imagemagick-geometry-syntax">Understanding
+ImageMagick Geometry Syntax</h2>
+<p>In ImageMagick, geometry specifications follow the basic format
+<code>[width][xheight][+x+y][flags]</code>. By default, omitting either
+the width or height causes ImageMagick to preserve the original image's
+aspect ratio. However, when forcing a specific non-integer ratio,
+standard integers are often insufficient.</p>
+<p>ImageMagick 7 and modern releases of ImageMagick 6 allow
+floating-point values directly within geometry specifications, which the
+renderer rounds to nearest whole pixels during final rasterization.</p>
+<h2
+id="using-direct-floating-point-dimensions-with-the-force-flag-">Using
+Direct Floating-Point Dimensions with the Force Flag
+(<code>!</code>)</h2>
+<p>To force an image into an exact floating-point aspect ratio, you can
+provide the ratio directly as a base dimension combined with the
+exclamation mark (<code>!</code>) flag. The <code>!</code> flag
+instructs ImageMagick to ignore the input image's native
+proportions.</p>
+<p>For example, to enforce a modern widescreen 16:9 ratio (which equates
+to approximately <code>1.7778:1</code>), you can run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&quot;177.78x100!&quot;</span> output.jpg</span></code></pre></div>
+<p>Alternatively, you can scale to an exact pixel bounding box while
+enforcing the float ratio:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&quot;1920x1079.98!&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="specifying-aspect-ratios-with-the--aspect-flag">Specifying
+Aspect Ratios with the <code>-aspect</code> Flag</h2>
+<p>ImageMagick includes a dedicated <code>-aspect</code> setting that
+accepts both integer ratios and floating-point representations. This
+flag alters the pixel aspect ratio or canvas metadata, which can be
+applied during operations or when outputting to formats that store
+aspect metadata.</p>
+<p>Pass the decimal value directly to the <code>-aspect</code> flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-aspect</span> 1.7778 output.png</span></code></pre></div>
+<p>To adjust an image visually according to this aspect ratio, follow
+<code>-aspect</code> with a resize or resample operation that relies on
+image metadata.</p>
+<h2 id="using-percentage-flags--for-proportional-adjustments">Using
+Percentage Flags (<code>%</code>) for Proportional Adjustments</h2>
+<p>The percent flag (<code>%</code>) allows you to resize widths and
+heights independently using floating-point scaling factors. This is
+useful for reshaping an image to a custom proportion without computing
+explicit pixel widths.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&quot;100x56.25%!&quot;</span> output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>100%</code> retains the original width.</li>
+<li><code>56.25%</code> sets the height to 9/16th of the original,
+converting a 1:1 input to a 16:9 ratio.</li>
+<li>The <code>!</code> flag forces independent horizontal and vertical
+scaling.</li>
+</ul>
+<h2 id="dynamic-aspect-ratios-with-fx-expressions-imagemagick-7">Dynamic
+Aspect Ratios with FX Expressions (ImageMagick 7)</h2>
+<p>ImageMagick 7 introduced embedded mathematical calculations inside
+geometry arguments using the <code>%[fx:...]</code> syntax. This is the
+most accurate method for applying floating-point aspect ratios, as it
+computes dimensions dynamically based on input properties.</p>
+<p>To crop an image to a floating-point aspect ratio of
+<code>2.39:1</code> (anamorphic cinema standard) while anchoring it to
+the center:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-gravity</span> center <span class="at">-crop</span> <span class="st">&quot;%[fx:w]x%[fx:w/2.39]+0+0&quot;</span> +repage output.jpg</span></code></pre></div>
+<p>To fit an image within a floating-point bounding area using the fill
+flag (<code>^</code>):</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&quot;%[fx:w]x%[fx:w/1.3333]^&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="summary-of-geometry-flags-for-aspect-adjustments">Summary of
+Geometry Flags for Aspect Adjustments</h2>
+<ul>
+<li><strong><code>!</code> (Force):</strong> Overrides native aspect
+ratio and forces the specified floating-point dimensions.</li>
+<li><strong><code>^</code> (Fill/Minimum):</strong> Scales the image to
+completely fill the floating-point dimensions while preserving native
+proportions.</li>
+<li><strong><code>%</code> (Percentage):</strong> Interprets
+floating-point numbers as percentage multipliers.</li>
+<li><strong><code>+repage</code>:</strong> Removes virtual canvas
+offsets after cropping to a new aspect ratio.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Multiply Blend Mode Math Explained - magick</title>
+    <meta name="description" content="The Multiply blend mode in ImageMagick is a basic compositing operation that darkens an image by multiplying the color values of the source and destination pixels. This article explains the underlying mathematical formula of the Multiply blend mode, how">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-multiply-blend-mode-math-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Multiply Blend Mode Math Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-multiply-blend-mode-math-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Multiply blend mode in ImageMagick is a basic compositing operation that darkens an image by multiplying the color values of the source and destination pixels. This article explains the underlying mathematical formula of the Multiply blend mode, how" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-multiply-blend-mode-math-explained">ImageMagick
+Multiply Blend Mode Math Explained</h1>
+<p>The Multiply blend mode in ImageMagick is a basic compositing
+operation that darkens an image by multiplying the color values of the
+source and destination pixels. This article explains the underlying
+mathematical formula of the Multiply blend mode, how ImageMagick handles
+color channels and dynamic range, and the visual effects produced by
+multiplying different color values.</p>
+<h3 id="the-mathematical-formula">The Mathematical Formula</h3>
+<p>At its core, the Multiply blend mode performs standard arithmetic
+multiplication on corresponding pixel color channels. However, because
+pixel values represent light intensity, they are calculated on a
+normalized scale from <span class="math inline">\(0.0\)</span> (pure
+black) to <span class="math inline">\(1.0\)</span> (pure white/maximum
+intensity).</p>
+<p>The normalized formula for each color channel (Red, Green, Blue)
+is:</p>
+<p><span class="math display">\[\text{Result} = \text{Source} \times
+\text{Destination}\]</span></p>
+<p>In ImageMagick, internal computations depend on the compiled quantum
+depth (such as Q8 for 8-bit or Q16 for 16-bit). For integer
+representations where values range from <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(\text{QuantumRange}\)</span> (e.g., <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(255\)</span> in 8-bit, or <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(65535\)</span> in 16-bit), the formula scales down
+by the quantum range to keep the output within the correct bounds:</p>
+<p><span class="math display">\[\text{Result} = \frac{\text{Source}
+\times \text{Destination}}{\text{QuantumRange}}\]</span></p>
+<h3 id="key-mathematical-properties-and-behavior">Key Mathematical
+Properties and Behavior</h3>
+<ol type="1">
+<li><p><strong>Multiplying by White (1.0 or QuantumRange):</strong> When
+any color is multiplied by pure white (<span
+class="math inline">\(1.0\)</span>), the output is identical to the
+original color (<span class="math inline">\(X \times 1.0 = X\)</span>).
+White acts as the multiplicative identity and has no visual effect on
+the base image.</p></li>
+<li><p><strong>Multiplying by Black (0.0):</strong> When any color is
+multiplied by pure black (<span class="math inline">\(0.0\)</span>), the
+result is always pure black (<span class="math inline">\(X \times 0.0 =
+0.0\)</span>).</p></li>
+<li><p><strong>Darkening Intermediate Values:</strong> Because all
+normalized color components lie between <span
+class="math inline">\(0.0\)</span> and <span
+class="math inline">\(1.0\)</span>, multiplying any two values less than
+<span class="math inline">\(1.0\)</span> always yields a smaller number.
+As a result, the Multiply blend mode always produces a result that is
+darker than or equal to the original inputs.</p></li>
+<li><p><strong>Commutativity:</strong> Multiplication is commutative
+(<span class="math inline">\(A \times B = B \times A\)</span>). In
+ImageMagick, swapping the source and destination layers produces the
+exact same color result, assuming both layers are fully opaque.</p></li>
+</ol>
+<h3 id="alpha-channel-consideration">Alpha Channel Consideration</h3>
+<p>When images include transparency, ImageMagick factors the alpha
+channel into the composite calculation. The color channels are blended
+proportionally to the overlapping alpha coverage using standard
+Porter-Duff compositing rules combined with the multiplicative color
+formula, ensuring smooth transitions along transparent and
+semi-transparent edges.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

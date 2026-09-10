@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Montage Frame Option Guide - magick</title>
+    <meta name="description" content="The -frame option in the ImageMagick montage command is used to place a decorative, three-dimensional border around individual image tiles within a composite grid. This article explains the purpose of the -frame option, breaks down its geometry syntax, d">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-montage-frame-option-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Montage Frame Option Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-montage-frame-option-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -frame option in the ImageMagick montage command is used to place a decorative, three-dimensional border around individual image tiles within a composite grid. This article explains the purpose of the -frame option, breaks down its geometry syntax, d" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-montage-frame-option-guide">ImageMagick Montage
+Frame Option Guide</h1>
+<p>The <code>-frame</code> option in the ImageMagick
+<code>montage</code> command is used to place a decorative,
+three-dimensional border around individual image tiles within a
+composite grid. This article explains the purpose of the
+<code>-frame</code> option, breaks down its geometry syntax,
+demonstrates how to customize its appearance, and provides practical
+command-line examples.</p>
+<h3 id="core-purpose-of-the--frame-option">Core Purpose of the
+<code>-frame</code> Option</h3>
+<p>When generating image grids or contact sheets using
+<code>montage</code>, images are placed side-by-side by default.
+Applying the <code>-frame</code> option surrounds each thumbnail with an
+ornamental frame that includes beveled edges, creating a raised,
+recessed, or picture-frame effect. This visually separates individual
+tiles, enhances aesthetics, and makes thumbnails stand out against the
+background.</p>
+<h3 id="syntax-and-geometry-breakdown">Syntax and Geometry
+Breakdown</h3>
+<p>The <code>-frame</code> option accepts a specific geometry
+format:</p>
+<pre class="text"><code>-frame &lt;width&gt;x&lt;height&gt;+&lt;outer-bevel&gt;+&lt;inner-bevel&gt;</code></pre>
+<ul>
+<li><strong><code>&lt;width&gt;x&lt;height&gt;</code></strong>: Defines
+the thickness (in pixels) of the horizontal and vertical sides of the
+frame.</li>
+<li><strong><code>+&lt;outer-bevel&gt;</code></strong>: Specifies the
+pixel depth of the outer highlight/shadow bevel.</li>
+<li><strong><code>+&lt;inner-bevel&gt;</code></strong>: Specifies the
+pixel depth of the inner bevel touching the image border.</li>
+</ul>
+<p>If the bevel values are omitted (e.g., <code>-frame 5x5</code>),
+ImageMagick automatically calculates proportional bevel depths.</p>
+<h3 id="customizing-frame-color">Customizing Frame Color</h3>
+<p>The frame's base color is controlled using the
+<code>-mattecolor</code> option, while the lighting effects (highlights
+and shadows) are automatically computed by ImageMagick based on that
+color:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.jpg <span class="at">-mattecolor</span> <span class="st">&quot;#dcdcdc&quot;</span> <span class="at">-frame</span> 8x8+3+3 output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li>Each image receives an 8-pixel horizontal and vertical frame.</li>
+<li>Both the outer and inner edges feature a 3-pixel 3D bevel.</li>
+<li>The frame color is light gray (<code>#dcdcdc</code>), producing
+realistic light and shade transitions along the beveled edges.</li>
+</ul>
+<h3 id="-frame-vs--border"><code>-frame</code> vs.
+<code>-border</code></h3>
+<p>While the <code>-border</code> option adds a flat, solid-colored
+rectangle around each image tile, <code>-frame</code> adds depth using
+shaded highlights and shadows. Use <code>-frame</code> whenever a
+physical, raised-mount, or classic framed gallery look is required.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

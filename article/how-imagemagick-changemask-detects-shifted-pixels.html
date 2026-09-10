@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick ChangeMask Detects Shifted Pixels - magick</title>
+    <meta name="description" content="The ImageMagick ChangeMask operator isolates visual differences between consecutive frames by evaluating coordinate-based color differences rather than tracking motion paths. This article explains how ChangeMask evaluates pixel positions, utilizes color">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-changemask-detects-shifted-pixels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick ChangeMask Detects Shifted Pixels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-changemask-detects-shifted-pixels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick ChangeMask operator isolates visual differences between consecutive frames by evaluating coordinate-based color differences rather than tracking motion paths. This article explains how ChangeMask evaluates pixel positions, utilizes color" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-changemask-detects-shifted-pixels">How
+ImageMagick ChangeMask Detects Shifted Pixels</h1>
+<p>The ImageMagick <code>ChangeMask</code> operator isolates visual
+differences between consecutive frames by evaluating coordinate-based
+color differences rather than tracking motion paths. This article
+explains how <code>ChangeMask</code> evaluates pixel positions, utilizes
+color distance thresholds to flag alterations, and converts static
+regions into transparency to optimize animations and highlight moving
+elements.</p>
+<h3 id="coordinate-based-comparison">Coordinate-Based Comparison</h3>
+<p><code>ChangeMask</code> does not use optical flow or vector
+estimation to follow a moving subject. Instead, it operates on a strict
+spatial grid, comparing the pixel at coordinate <span
+class="math inline">\((x, y)\)</span> in the source image directly to
+the pixel at coordinate <span class="math inline">\((x, y)\)</span> in
+the destination image.</p>
+<p>When an element shifts across the screen between two frames,
+<code>ChangeMask</code> detects that movement via two distinct
+coordinate events:</p>
+<ol type="1">
+<li><strong>The vacated region:</strong> The coordinates where the
+object used to be now contain background pixels, creating a color
+mismatch between the old frame and the new frame.</li>
+<li><strong>The newly occupied region:</strong> The coordinates where
+the object has moved now contain the object's pixels instead of the
+previous background, creating a second mismatch.</li>
+</ol>
+<p>Both regions register as changed coordinates under direct
+pixel-by-pixel inspection.</p>
+<h3 id="color-distance-and-the-fuzz-factor">Color Distance and the Fuzz
+Factor</h3>
+<p>To determine whether a pixel has changed, <code>ChangeMask</code>
+calculates the mathematical distance between the color values of the two
+corresponding coordinates. By default, any slight variation in RGB
+values registers as a change.</p>
+<p>Because video encoding, compression artifacts, and anti-aliasing can
+cause slight color drifts between frames, ImageMagick uses the
+<code>-fuzz</code> factor alongside <code>ChangeMask</code>. The fuzz
+distance represents a tolerance threshold (often defined as a
+percentage):</p>
+<ul>
+<li><strong>Within Fuzz Threshold:</strong> If the Euclidean distance
+between the color vectors of the two pixels is less than or equal to the
+fuzz threshold, ImageMagick treats the pixels as identical.</li>
+<li><strong>Exceeding Fuzz Threshold:</strong> If the color difference
+exceeds the fuzz threshold, ImageMagick flags the pixel as changed.</li>
+</ul>
+<h3 id="generating-the-mask-output">Generating the Mask Output</h3>
+<p>Once <code>ChangeMask</code> identifies which pixels match and which
+have changed, it alters the pixel data of the target frame:</p>
+<ul>
+<li><strong>Unchanged Pixels:</strong> Pixels determined to be identical
+(within the fuzz tolerance) are replaced with transparency (alpha
+channel set to 0).</li>
+<li><strong>Shifted or Changed Pixels:</strong> Pixels that have changed
+color retain their original color and opacity values from the incoming
+frame.</li>
+</ul>
+<p>The resulting output is a frame where all static content is stripped
+away, leaving only the newly introduced visual data and the background
+fills covering the previously occupied spaces. This mechanism forms the
+foundation for GIF animation optimization (such as
+<code>-layers OptimizeFrame</code>), significantly reducing file size by
+storing only the delta of shifted content.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

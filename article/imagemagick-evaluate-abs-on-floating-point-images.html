@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Abs on Floating-Point Images - magick</title>
+    <meta name="description" content="ImageMagick provides the -evaluate Abs operator to compute the mathematical absolute value of every pixel channel across an image. In floating-point and High Dynamic Range Imaging (HDRI) pipelines, pixel values can legitimately drop below zero, represent">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-abs-on-floating-point-images">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Abs on Floating-Point Images - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-abs-on-floating-point-images" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides the -evaluate Abs operator to compute the mathematical absolute value of every pixel channel across an image. In floating-point and High Dynamic Range Imaging (HDRI) pipelines, pixel values can legitimately drop below zero, represent" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-abs-on-floating-point-images">ImageMagick
+Evaluate Abs on Floating-Point Images</h1>
+<p>ImageMagick provides the <code>-evaluate Abs</code> operator to
+compute the mathematical absolute value of every pixel channel across an
+image. In floating-point and High Dynamic Range Imaging (HDRI)
+pipelines, pixel values can legitimately drop below zero, representing
+negative radiance, offset differences, or directional vectors. Applying
+<code>-evaluate Abs</code> converts these negative values into their
+positive equivalents while preserving their exact magnitude and dynamic
+range, ensuring data integrity without arbitrary clipping.</p>
+<h3 id="the-mathematics-of-the-abs-operator">The Mathematics of the Abs
+Operator</h3>
+<p>The <code>-evaluate</code> command applies an arithmetic function
+directly to the raw values of pixel channels. When supplied with the
+<code>Abs</code> argument, ImageMagick executes the standard absolute
+value function:</p>
+<p><span class="math display">\[f(x) = |x|\]</span></p>
+<p>For any pixel value <span class="math inline">\(x\)</span>:</p>
+<ul>
+<li>If <span class="math inline">\(x &lt; 0\)</span>, the output becomes
+<span class="math inline">\(-x\)</span> (positive).</li>
+<li>If <span class="math inline">\(x \ge 0\)</span>, the output remains
+unchanged.</li>
+</ul>
+<h3 id="negative-pixels-in-floating-point-formats">Negative Pixels in
+Floating-Point Formats</h3>
+<p>In traditional 8-bit or 16-bit integer formats, pixel values are
+clamped within a fixed interval (typically <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(255\)</span> or <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(65535\)</span>). Negative values cannot exist in
+these formats because any calculation yielding a result below zero
+immediately clips to zero.</p>
+<p>Floating-point formats (such as 32-bit TIFF, OpenEXR, or PFM) handled
+via an HDRI-enabled build of ImageMagick do not clamp data to this fixed
+interval. Negative pixel values commonly occur during:</p>
+<ul>
+<li>Image subtraction (e.g., difference maps).</li>
+<li>Convolution or high-pass filtering.</li>
+<li>Normal map and displacement map processing.</li>
+<li>Fourier transforms (FFT) and frequency domain operations.</li>
+</ul>
+<h3 id="transformation-behavior">Transformation Behavior</h3>
+<p>When <code>-evaluate Abs</code> is executed on a floating-point
+image, ImageMagick operates on the underlying IEEE 754 floating-point
+values for each channel:</p>
+<ol type="1">
+<li><strong>Sign Bit Inversion:</strong> The operation targets the sign
+bit of negative values. A value such as <code>-0.45</code> is
+transformed directly to <code>0.45</code>, and <code>-3.8</code> becomes
+<code>3.8</code>.</li>
+<li><strong>No Range Clamping:</strong> Because the image uses
+floating-point precision, values with an absolute magnitude greater than
+standard display limits (e.g., greater than <code>1.0</code> or
+<code>QuantumRange</code>) are not clipped to a maximum white threshold.
+They retain their high dynamic range.</li>
+<li><strong>Channel Independence:</strong> The transformation is applied
+independently to each color or alpha channel unless restricted by the
+<code>-channel</code> setting. For example, a pixel with RGB values
+<code>(-0.2, 0.5, -1.5)</code> transforms into
+<code>(0.2, 0.5, 1.5)</code>.</li>
+</ol>
+<h3 id="command-usage">Command Usage</h3>
+<p>To invert negative values to positive across a floating-point image,
+run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-evaluate</span> Abs output.exr</span></code></pre></div>
+<p>To limit the operation strictly to specific channels (such as red and
+green while leaving blue unaffected):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.exr <span class="at">-channel</span> RG <span class="at">-evaluate</span> Abs +channel output.exr</span></code></pre></div>
+<p>This ensures negative values are mapped to positive space
+predictably, making <code>-evaluate Abs</code> a fundamental tool for
+error metrics, edge detection magnitude calculation, and scientific
+image analysis.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

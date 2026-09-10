@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Morphology Distance: Euclidean vs Chamfer - magick</title>
+    <meta name="description" content="When generating a distance transform using ImageMagick's morphology operator, the choice between Euclidean and Chamfer kernels creates noticeable visual differences in the output gradient. While Euclidean kernels compute exact straight-line geometric dis">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-morphology-distance-euclidean-vs-chamfer">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Morphology Distance: Euclidean vs Chamfer - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-morphology-distance-euclidean-vs-chamfer" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When generating a distance transform using ImageMagick's morphology operator, the choice between Euclidean and Chamfer kernels creates noticeable visual differences in the output gradient. While Euclidean kernels compute exact straight-line geometric dis" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-morphology-distance-euclidean-vs-chamfer">ImageMagick
+Morphology Distance: Euclidean vs Chamfer</h1>
+<p>When generating a distance transform using ImageMagick's morphology
+operator, the choice between Euclidean and Chamfer kernels creates
+noticeable visual differences in the output gradient. While Euclidean
+kernels compute exact straight-line geometric distances to create
+smooth, circular gradients, Chamfer kernels use integer approximations
+that introduce polygonal faceting and directional artifacts.
+Understanding these visual distinctions is essential for choosing the
+right method for mask generation, morphological thinning, and bevel
+effects.</p>
+<h3 id="the-euclidean-kernel-true-circularity-and-smooth-curves">The
+Euclidean Kernel: True Circularity and Smooth Curves</h3>
+<p>The Euclidean distance metric calculates the true physical distance
+between pixels using the Pythagorean formula (<span
+class="math inline">\(\sqrt{\Delta x^2 + \Delta y^2}\)</span>).</p>
+<p>When rendered across an image, this produces:</p>
+<ul>
+<li><strong>Circular Isocontours:</strong> An isolated white pixel
+expanding into a distance map creates a perfectly smooth, circular
+gradient cone.</li>
+<li><strong>Rounded Corner Offsets:</strong> Sharp exterior corners of
+shapes round off smoothly as the distance increases, mimicking an
+accurate geometric expansion.</li>
+<li><strong>Continuous Gradients:</strong> Gray-level transitions are
+uniform and show no angular bias or seamlines along diagonal axes.</li>
+</ul>
+<p>Because ImageMagick's implementation computes true geometric vectors,
+the visual result is mathematically precise with zero geometric
+distortion.</p>
+<h3 id="the-chamfer-kernel-octagonal-and-polygonal-faceting">The Chamfer
+Kernel: Octagonal and Polygonal Faceting</h3>
+<p>Chamfer distance transforms approximate Euclidean distance by
+assigning fixed integer weights to orthogonal and diagonal pixel steps
+(such as 3 for orthogonal steps and 4 for diagonal steps in a standard
+<span class="math inline">\(3\times3\)</span> Chamfer kernel, or larger
+matrices like <span class="math inline">\(5\times5\)</span> for better
+precision).</p>
+<p>When visualized, Chamfer approximations produce distinct
+artifacts:</p>
+<ul>
+<li><strong>Polygonal Gradients:</strong> An isolated pixel does not
+render as a circle; instead, it expands into an octagon or diamond shape
+depending on the specific neighborhood size used.</li>
+<li><strong>Faceted Corners:</strong> Rather than smooth, circular arcs
+around sharp corners, Chamfer distance maps display segmented,
+flat-edged bands.</li>
+<li><strong>Directional Seams:</strong> Noticeable "creases" or diagonal
+ridges form along the axes where orthogonal and diagonal weighting
+boundaries meet.</li>
+</ul>
+<p>While higher-order Chamfer metrics (like <span
+class="math inline">\(5\times5\)</span> or <span
+class="math inline">\(7\times7\)</span>) reduce these visual artifacts
+by adding more intermediate angle approximations, the result remains
+fundamentally polygonal rather than curved.</p>
+<h3 id="key-visual-summary">Key Visual Summary</h3>
+<ul>
+<li><strong>Contour Shapes:</strong> Euclidean produces concentric
+circles; Chamfer produces concentric octagons or multisided
+polygons.</li>
+<li><strong>Corner Behavior:</strong> Euclidean creates smooth rounded
+radii; Chamfer creates chamfered (beveled) straight edges.</li>
+<li><strong>Gradient Uniformity:</strong> Euclidean provides seamless
+tone distribution; Chamfer displays subtle directional rays radiating
+along primary and diagonal axes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

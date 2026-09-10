@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick CopyAlpha for Alpha Stencils - magick</title>
+    <meta name="description" content="This article explains the role and mechanics of the CopyAlpha compositing operator in ImageMagick, focusing on how it generates alpha stencils. You will learn how CopyAlpha manipulates transparency channels, how it compares to alternative masking methods">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-copyalpha-for-alpha-stencils">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick CopyAlpha for Alpha Stencils - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-copyalpha-for-alpha-stencils" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the role and mechanics of the CopyAlpha compositing operator in ImageMagick, focusing on how it generates alpha stencils. You will learn how CopyAlpha manipulates transparency channels, how it compares to alternative masking methods" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-copyalpha-for-alpha-stencils">ImageMagick CopyAlpha
+for Alpha Stencils</h1>
+<p>This article explains the role and mechanics of the
+<code>CopyAlpha</code> compositing operator in ImageMagick, focusing on
+how it generates alpha stencils. You will learn how
+<code>CopyAlpha</code> manipulates transparency channels, how it
+compares to alternative masking methods, and how to implement it to
+carve shapes and graphics out of base images.</p>
+<h2 id="understanding-the-copyalpha-operator">Understanding the
+CopyAlpha Operator</h2>
+<p>The <code>CopyAlpha</code> compositing operator directly extracts the
+transparency or luminance data from a source image and injects it into
+the alpha channel of a destination image. Unlike blending modes that
+calculate transparency through color math (such as <code>Multiply</code>
+or <code>Screen</code>), <code>CopyAlpha</code> acts as a direct
+channel-assignment operation. It discards or overwrites the existing
+alpha channel of the base image, forcing the base image to conform
+exactly to the transparency profile defined by the incoming mask.</p>
+<h2 id="how-copyalpha-generates-an-alpha-stencil">How CopyAlpha
+Generates an Alpha Stencil</h2>
+<p>An alpha stencil functions as a digital cutout. In graphic workflows,
+a stencil defines which areas of a graphic are fully opaque, partially
+transparent, or completely invisible. <code>CopyAlpha</code> creates
+this stencil effect through a specific two-layer interaction:</p>
+<ol type="1">
+<li><strong>The Destination (Base Image):</strong> This is the image
+containing the visual content (such as a texture, photograph, or solid
+color) that will show through the stencil.</li>
+<li><strong>The Source (Stencil Mask):</strong> This is an image
+defining the boundary or shape. It can be an image with an existing
+alpha channel or a grayscale image where black represents complete
+transparency, white represents full opacity, and gray values represent
+anti-aliasing or semi-transparency.</li>
+</ol>
+<p>When the operation executes, ImageMagick reads the transparency layer
+or intensity values of the stencil mask and copies them onto the
+destination image. The RGB color data of the base image remains
+untouched, but its visibility is restricted to the contours of the
+stencil.</p>
+<h2 id="basic-command-syntax">Basic Command Syntax</h2>
+<p>In ImageMagick version 7, applying a stencil with
+<code>CopyAlpha</code> follows this command structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> destination.png stencil_mask.png <span class="at">-compose</span> CopyAlpha <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>If the stencil mask is a black-and-white graphic without an embedded
+alpha channel, you can convert the grayscale luminance into an explicit
+alpha channel before copying:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> destination.png <span class="er">(</span> <span class="ex">stencil_mask.png</span> <span class="at">-alpha</span> copy <span class="kw">)</span> <span class="ex">-compose</span> CopyAlpha <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>In this pipeline:</p>
+<ul>
+<li><code>destination.png</code> provides the visible pixels.</li>
+<li><code>stencil_mask.png</code> defines the shape.</li>
+<li><code>-compose CopyAlpha -composite</code> binds the mask's shape to
+the destination's alpha channel.</li>
+</ul>
+<h2 id="copyalpha-vs-dstin-masking">CopyAlpha vs. DstIn Masking</h2>
+<p>While both <code>CopyAlpha</code> and <code>DstIn</code> (Destination
+In) are used for masking in ImageMagick, their internal logic
+differs:</p>
+<ul>
+<li><strong>DstIn:</strong> Multiplies the destination alpha by the
+source alpha. If the destination image already contains transparent
+regions, <code>DstIn</code> preserves those transparent boundaries while
+cropping against the stencil.</li>
+<li><strong>CopyAlpha:</strong> Completely replaces the destination's
+alpha channel. It enforces the stencil's shape universally, making it
+the preferred choice when imposing a crisp, definitive boundary
+regardless of the destination image's original alpha state.</li>
+</ul>
+<h2 id="practical-applications">Practical Applications</h2>
+<ul>
+<li><strong>Text Cutouts:</strong> Placing a solid color or pattern
+behind text and using <code>CopyAlpha</code> to stamp the text shape out
+of the background.</li>
+<li><strong>Vignettes and Soft Borders:</strong> Applying a radial
+gradient with <code>CopyAlpha</code> to produce smooth, feathered fades
+around images.</li>
+<li><strong>Batch Watermarking:</strong> Applying a uniform, transparent
+logo silhouette onto product imagery without altering the color profiles
+of the underlying images.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

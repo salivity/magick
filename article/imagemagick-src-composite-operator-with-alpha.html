@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Src Composite Operator with Alpha - magick</title>
+    <meta name="description" content="This article provides an overview of the Src (Source) compositing operator in ImageMagick, focusing specifically on how it processes alpha channels and transparency. It covers the underlying Porter-Duff mechanics, the mathematical behavior of color and a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-src-composite-operator-with-alpha">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Src Composite Operator with Alpha - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-src-composite-operator-with-alpha" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the Src (Source) compositing operator in ImageMagick, focusing specifically on how it processes alpha channels and transparency. It covers the underlying Porter-Duff mechanics, the mathematical behavior of color and a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-src-composite-operator-with-alpha">ImageMagick Src
+Composite Operator with Alpha</h1>
+<p>This article provides an overview of the <code>Src</code> (Source)
+compositing operator in ImageMagick, focusing specifically on how it
+processes alpha channels and transparency. It covers the underlying
+Porter-Duff mechanics, the mathematical behavior of color and alpha
+channels, and the practical differences between <code>Src</code> and
+standard blending operators like <code>Over</code>.</p>
+<p>The <code>Src</code> operator is one of the classic Porter-Duff
+compositing rules implemented in ImageMagick. When applied,
+<code>Src</code> dictates that the source image completely overwrites
+the destination image within the composited area, ignoring whatever
+pixel data existed in the destination.</p>
+<h3 id="alpha-channel-mechanics">Alpha Channel Mechanics</h3>
+<p>When alpha channels are involved, standard blending operators (such
+as <code>Over</code>) use the source image's alpha channel to
+interpolate between the source and destination colors. The
+<code>Src</code> operator does not perform any interpolation or alpha
+blending. Instead, it copies both the color and the alpha values of the
+source directly into the target output.</p>
+<p>The mathematical rule governing the <code>Src</code> operator is:</p>
+<ul>
+<li><strong>Result Alpha:</strong> <span class="math inline">\(\alpha_R
+= \alpha_S\)</span></li>
+<li><strong>Result Color:</strong> <span class="math inline">\(C_R =
+C_S\)</span></li>
+</ul>
+<p>Because the destination's alpha (<span
+class="math inline">\(\alpha_D\)</span>) and color (<span
+class="math inline">\(C_D\)</span>) values are absent from this
+equation, the destination image contributes nothing to the final result
+within the bounds of the composite operation.</p>
+<h3 id="visual-implications">Visual Implications</h3>
+<p>The interaction between the source's alpha channel and the
+destination yields distinct visual results:</p>
+<ul>
+<li><strong>Opaque Source Pixels:</strong> Where the source is
+completely opaque (<span class="math inline">\(\alpha = 1.0\)</span>),
+the destination pixel is replaced with the source pixel color.</li>
+<li><strong>Semi-Transparent Source Pixels:</strong> Where the source
+contains partial transparency, the output pixel receives the exact color
+and alpha of the source. It does not show the destination through the
+transparency; the destination data underneath is discarded.</li>
+<li><strong>Fully Transparent Source Pixels:</strong> Where the source
+is fully transparent (<span class="math inline">\(\alpha =
+0.0\)</span>), the operation punches a clear hole directly into the
+destination. The existing destination pixels are erased, leaving fully
+transparent pixels in the output.</li>
+</ul>
+<h3 id="practical-applications">Practical Applications</h3>
+<p>Because the <code>Src</code> operator does not blend, it is primarily
+used for precise data replacement and masking tasks. Common use cases
+include:</p>
+<ul>
+<li><strong>Punching Holes:</strong> Cutting transparent shapes or
+windows through an existing image by applying a transparent source
+shape.</li>
+<li><strong>Overwriting Canvas Regions:</strong> Replacing a specific
+bounding box of an image with a new graphic without allowing the
+underlying layer to bleed through translucent edges.</li>
+<li><strong>Alpha Channel Resetting:</strong> Ensuring that both the
+color components and the exact transparency levels of an asset are
+preserved identically without compounding opacity.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

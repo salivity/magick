@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick GIF Palette Reduction: Global vs Local - magick</title>
+    <meta name="description" content="Choosing between a global color palette across combined frames and individual palettes for each frame is one of the most critical decisions when optimizing animated GIFs in ImageMagick. A GIF is limited to an 8-bit color space (up to 256 colors), and whe">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gif-palette-reduction-global-vs-local">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick GIF Palette Reduction: Global vs Local - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gif-palette-reduction-global-vs-local" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Choosing between a global color palette across combined frames and individual palettes for each frame is one of the most critical decisions when optimizing animated GIFs in ImageMagick. A GIF is limited to an 8-bit color space (up to 256 colors), and whe" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gif-palette-reduction-global-vs-local">ImageMagick
+GIF Palette Reduction: Global vs Local</h1>
+<p>Choosing between a global color palette across combined frames and
+individual palettes for each frame is one of the most critical decisions
+when optimizing animated GIFs in ImageMagick. A GIF is limited to an
+8-bit color space (up to 256 colors), and whether those colors are
+shared across the entire animation or re-indexed on every frame
+fundamentally dictates the resulting file size, visual stability, and
+compression efficiency. Understanding this mechanism allows you to
+balance color fidelity against bandwidth and playback performance.</p>
+<h3 id="visual-quality-and-artifacts">Visual Quality and Artifacts</h3>
+<p>Individual frame palettes allow each frame to utilize its own
+distinct 256-color Local Color Table (LCT). This yields higher color
+accuracy for scenes that change drastically or transition between
+diverse environments, as each frame allocates colors only to what is
+currently visible. However, this method frequently introduces "palette
+flicker" and temporal dithering noise. Because the color allocation
+shifts from frame to frame, static backgrounds often shimmer as
+dithering patterns change constantly across time.</p>
+<p>A combined global palette uses a single Global Color Table (GCT)
+derived from sampling all frames collectively. While static scenes or
+animations with broad color ranges may suffer from banding—since 256
+colors must stretch across the entire duration—the visual result is
+temporally stable. The static elements remain clean, color values stay
+constant, and visual noise between consecutive frames is eliminated.</p>
+<h3 id="compression-efficiency-and-file-size">Compression Efficiency and
+File Size</h3>
+<p>From a file size perspective, a global palette is vastly
+superior:</p>
+<ul>
+<li><strong>Inter-frame Optimization:</strong> ImageMagick's
+optimization algorithms (such as <code>-layers Optimize</code> or
+<code>-layers OptimizeFrame</code>) rely on making unchanged pixels
+transparent so that only the delta (changes) are drawn. For transparency
+and sub-frame cropping to work efficiently, the color indices must match
+identically between frames. A global palette ensures index consistency,
+allowing maximum reduction in stored pixel data.</li>
+<li><strong>LZW Compression:</strong> GIF uses LZW compression, which
+compresses recurring patterns of color indices. With a global palette,
+static areas share identical index values across time, maximizing
+compression ratios. Local palettes change the index mapping per frame,
+destroying repetitive patterns and reducing LZW efficiency.</li>
+<li><strong>Header Overhead:</strong> Local palettes inject up to 768
+bytes of color table data into the header of every single frame. In an
+animation with hundreds of frames, this overhead alone adds significant
+weight before pixel data is even factored in.</li>
+</ul>
+<h3 id="implementation-in-imagemagick">Implementation in
+ImageMagick</h3>
+<p>To produce individual palettes, ImageMagick performs quantization per
+frame by default when saving directly to a GIF without generating a
+unified colormap:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input_%03d.png <span class="at">-quantize</span> sRGB <span class="at">-colors</span> 256 output_local.gif</span></code></pre></div>
+<p>To create an optimized global palette, you must gather all frames,
+append them temporarily to extract a unified colormap, and remap the
+animation against that single palette:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input_%03d.png <span class="at">-coalesce</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="er">(</span> <span class="ex">-clone</span> 0--1 <span class="at">-append</span> <span class="at">-quantize</span> transparent <span class="at">-colors</span> 256 <span class="at">-write</span> mpr:palette +delete <span class="kw">)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-remap</span> mpr:palette <span class="at">-layers</span> Optimize output_global.gif</span></code></pre></div>
+<p>This workflow collects every frame into memory, builds an optimal
+256-color palette across the entire sequence, remaps all frames to those
+exact indexes, and crops out redundant pixel data using
+<code>-layers Optimize</code>.</p>
+<h3 id="which-should-you-choose">Which Should You Choose?</h3>
+<p>Use a <strong>global palette</strong> for virtually all video-to-GIF
+conversions, UI screencasts, and continuous animations. The temporal
+stability and vastly smaller file sizes far outweigh the slight loss in
+per-frame color diversity.</p>
+<p>Reserve <strong>individual palettes</strong> strictly for
+slideshow-style GIFs featuring completely different still images with
+low frame counts, where inter-frame delta compression is irrelevant and
+color accuracy per slide is paramount.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Morphology EdgeIn Explained - magick</title>
+    <meta name="description" content="The EdgeIn operator in ImageMagick is a mathematical morphology method used for edge detection, specifically designed to extract the inner boundary of shapes within an image. By subtracting an eroded version of an image from the original image, EdgeIn is">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-morphology-edgein-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Morphology EdgeIn Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-morphology-edgein-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The EdgeIn operator in ImageMagick is a mathematical morphology method used for edge detection, specifically designed to extract the inner boundary of shapes within an image. By subtracting an eroded version of an image from the original image, EdgeIn is" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-morphology-edgein-explained">ImageMagick Morphology
+EdgeIn Explained</h1>
+<p>The <code>EdgeIn</code> operator in ImageMagick is a mathematical
+morphology method used for edge detection, specifically designed to
+extract the inner boundary of shapes within an image. By subtracting an
+eroded version of an image from the original image, <code>EdgeIn</code>
+isolates pixels that lie directly along the inside perimeter of
+foreground objects. This guide explains how the operator works, how the
+chosen kernel affects the result, and how to implement it effectively
+using the ImageMagick command line.</p>
+<h3 id="how-the-edgein-operator-works">How the EdgeIn Operator
+Works</h3>
+<p>In mathematical morphology, edge detection is typically achieved by
+calculating the difference between an image and an altered version of
+itself. The <code>EdgeIn</code> operator generates an "inner edge" using
+the following formula:</p>
+<p><span class="math display">\[\text{EdgeIn} = \text{Original Image} -
+\text{Erosion}\]</span></p>
+<ol type="1">
+<li><strong>Erosion:</strong> The algorithm shrinks the bright
+(foreground) regions of the image based on a specified shape and size
+known as a kernel or structuring element.</li>
+<li><strong>Subtraction:</strong> The eroded image is subtracted
+pixel-by-pixel from the original image.</li>
+</ol>
+<p>Because the erosion operation eats away at the edges of shapes from
+the outside in, subtracting this smaller version from the original
+leaves behind only the thin shell of pixels that were removed.
+Consequently, the detected boundary lines fall entirely inside the
+original boundaries of the target object.</p>
+<h3 id="the-role-of-the-kernel">The Role of the Kernel</h3>
+<p>The appearance, thickness, and directional sensitivity of the
+resulting edge depend entirely on the kernel applied with the operator.
+ImageMagick allows you to specify various kernel shapes—such as
+<code>Disk</code>, <code>Diamond</code>, <code>Square</code>, or
+<code>Octagon</code>—along with a radius.</p>
+<ul>
+<li><strong>Radius/Size:</strong> A kernel with a radius of 1 produces a
+sharp, thin edge (typically 1 pixel wide). Increasing the kernel size
+broadens the erosion effect, producing a thicker inner border.</li>
+<li><strong>Shape:</strong> Symmetrical shapes like <code>Disk</code>
+produce smooth, uniform borders around curves, while shapes like
+<code>Diamond</code> or <code>Square</code> favor specific pixel
+connectivity (4-connected or 8-connected neighbors).</li>
+</ul>
+<h3 id="command-line-usage">Command-Line Usage</h3>
+<p>To use the <code>EdgeIn</code> operator in ImageMagick, combine the
+<code>-morphology</code> option with the <code>EdgeIn</code> method and
+your chosen kernel.</p>
+<p>Basic syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> EdgeIn Disk:1 output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.png</code> is the source image (typically a binary or
+high-contrast grayscale image for best results).</li>
+<li><code>-morphology EdgeIn</code> specifies the inner edge
+morphological operation.</li>
+<li><code>Disk:1</code> defines a disk-shaped kernel with a radius of 1
+pixel.</li>
+<li><code>output.png</code> is the resulting image showing only the
+inner perimeter of the shapes.</li>
+</ul>
+<h3 id="difference-between-edgein-edgeout-and-edge">Difference Between
+EdgeIn, EdgeOut, and Edge</h3>
+<p>ImageMagick provides three related morphological edge operators:</p>
+<ul>
+<li><strong>EdgeIn (Inner Edge):</strong> Subtracts the eroded image
+from the original (<span class="math inline">\(\text{Original} -
+\text{Erosion}\)</span>). The edge rests entirely inside the shape's
+original perimeter.</li>
+<li><strong>EdgeOut (Outer Edge):</strong> Subtracts the original image
+from the dilated image (<span class="math inline">\(\text{Dilation} -
+\text{Original}\)</span>). The edge rests completely outside the shape's
+original perimeter.</li>
+<li><strong>Edge (Morphological Gradient):</strong> Subtracts the eroded
+image from the dilated image (<span
+class="math inline">\(\text{Dilation} - \text{Erosion}\)</span>). The
+edge straddles the true boundary, overlapping both the inside and
+outside of the shape.</li>
+</ul>
+<p>The <code>EdgeIn</code> operator is ideal when object boundaries must
+not expand into neighboring elements or when preserving the exact
+exterior dimensions of an object is critical to the analysis.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

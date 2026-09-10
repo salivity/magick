@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recalculate ImageMagick Canvas Bounds After Rotation - magick</title>
+    <meta name="description" content="Rotating an image changes its spatial footprint, often requiring the canvas dimensions to adjust dynamically so corner data is not clipped. This guide explains how ImageMagick dynamically recalculates canvas bounds during and after a 30-degree rotation,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/recalculate-imagemagick-canvas-bounds-after-rotation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Recalculate ImageMagick Canvas Bounds After Rotation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/recalculate-imagemagick-canvas-bounds-after-rotation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rotating an image changes its spatial footprint, often requiring the canvas dimensions to adjust dynamically so corner data is not clipped. This guide explains how ImageMagick dynamically recalculates canvas bounds during and after a 30-degree rotation," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="recalculate-imagemagick-canvas-bounds-after-rotation">Recalculate
+ImageMagick Canvas Bounds After Rotation</h1>
+<p>Rotating an image changes its spatial footprint, often requiring the
+canvas dimensions to adjust dynamically so corner data is not clipped.
+This guide explains how ImageMagick dynamically recalculates canvas
+bounds during and after a 30-degree rotation, covering both the standard
+rotation method, the advanced <code>+distort</code> operator, and
+essential canvas reset techniques like <code>+repage</code>.</p>
+<h3 id="using-the-standard--rotate-operator">Using the Standard
+<code>-rotate</code> Operator</h3>
+<p>By default, ImageMagick's <code>-rotate</code> operator automatically
+recalculates the canvas dimensions to contain the entire rotated image
+without clipping. When applying a 30-degree rotation, it computes the
+new width and height based on the trigonometric projection of the
+original corners:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-background</span> none <span class="at">-rotate</span> 30 +repage output.png</span></code></pre></div>
+<p>Key components of this command:</p>
+<ul>
+<li><strong><code>-background none</code></strong>: Ensures any newly
+exposed canvas area outside the original image boundary remains
+transparent instead of defaulting to white.</li>
+<li><strong><code>-rotate 30</code></strong>: Dynamically calculates the
+new bounding box dimensions and shifts the image content into the
+expanded frame.</li>
+<li><strong><code>+repage</code></strong>: Strips the virtual canvas
+metadata. Without <code>+repage</code>, formats like PNG or GIF may
+retain original canvas offsets, leading to rendering discrepancies in
+web browsers and image viewers.</li>
+</ul>
+<h3 id="dynamic-canvas-recalculation-using-distort-srt">Dynamic Canvas
+Recalculation Using <code>+distort SRT</code></h3>
+<p>For higher precision, anti-aliased subpixel rendering, and flexible
+geometry adjustments, the Scale-Rotate-Translate (SRT) distortion
+operator is preferred. ImageMagick offers two variations:</p>
+<ul>
+<li><strong><code>-distort SRT</code></strong>: Retains the original
+image dimensions, clipping any content that rotates outside the existing
+canvas.</li>
+<li><strong><code>+distort SRT</code></strong> (plus sign variant):
+Forces ImageMagick to dynamically compute the new bounding box so that
+the entire rotated result fits onto the canvas.</li>
+</ul>
+<p>To rotate by 30 degrees while dynamically recalculating the
+viewport:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-virtual-pixel</span> none +distort SRT 30 +repage output.png</span></code></pre></div>
+<p>Here, <code>-virtual-pixel none</code> guarantees that the newly
+expanded areas beyond the original image boundaries remain transparent.
+The <code>+distort SRT 30</code> operation dynamically computes the
+minimal bounding rectangle required for the 30-degree rotation, and
+<code>+repage</code> updates the layer bounds to match the new image
+dimensions exactly.</p>
+<h3 id="tightening-the-canvas-to-content">Tightening the Canvas to
+Content</h3>
+<p>If a rotated image contains transparent padding that should not
+contribute to the final canvas size, use <code>-trim</code> immediately
+after rotation:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-background</span> none <span class="at">-rotate</span> 30 <span class="at">-trim</span> +repage output.png</span></code></pre></div>
+<p>The <code>-trim</code> operator removes any edge pixels matching the
+background color, while <code>+repage</code> recalculates the virtual
+canvas to snap directly to the visible boundaries of the rotated
+object.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

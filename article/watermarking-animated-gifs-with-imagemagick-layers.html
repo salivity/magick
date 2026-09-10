@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermarking Animated GIFs with ImageMagick -layers - magick</title>
+    <meta name="description" content="ImageMagick provides a specialized operator, -layers Composite, designed to merge a sequence of images or overlay a single static element across an entire multi-frame animated sequence. This article explains the internal mechanics of how -layers Composit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/watermarking-animated-gifs-with-imagemagick-layers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Watermarking Animated GIFs with ImageMagick -layers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/watermarking-animated-gifs-with-imagemagick-layers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides a specialized operator, -layers Composite, designed to merge a sequence of images or overlay a single static element across an entire multi-frame animated sequence. This article explains the internal mechanics of how -layers Composit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="watermarking-animated-gifs-with-imagemagick--layers">Watermarking
+Animated GIFs with ImageMagick -layers</h1>
+<p>ImageMagick provides a specialized operator,
+<code>-layers Composite</code>, designed to merge a sequence of images
+or overlay a single static element across an entire multi-frame animated
+sequence. This article explains the internal mechanics of how
+<code>-layers Composite</code> maps a single static watermark onto each
+frame of an animated image stack, detailing the processing pipeline, the
+role of layer coalescing, image list delimiters, and frame disposal
+preservation.</p>
+<p>ImageMagick manages files in an in-memory image list. When applying a
+static overlay (the source) onto an animation (the destination), the
+engine must distinguish where the destination frames end and the source
+layer begins. This distinction is made using the special image delimiter
+<code>null:</code>. When the <code>-layers Composite</code> command
+runs, ImageMagick divides the image sequence into two distinct
+sub-lists: the destination frames appearing before <code>null:</code>,
+and the source image appearing after <code>null:</code>.</p>
+<p>Before the composition occurs, handling frame geometry is essential.
+Animated formats like GIF often use delta-encoding optimizations, where
+frames only store pixel changes relative to prior frames rather than
+complete images. Applying a watermark directly to un-coalesced frames
+causes severe visual artifacts and offset errors. Calling the
+<code>-coalesce</code> operator rebuilds every frame into a fully
+rendered, full-sized canvas, establishing a uniform base across the
+entire animation.</p>
+<p>During execution, <code>-layers Composite</code> iterates through
+each destination frame one by one. Because only a single watermark image
+exists in the source sub-list, ImageMagick repeatedly pairs that same
+static image with each sequential destination frame. It applies any
+global settings specified in the command—such as <code>-gravity</code>
+for alignment, <code>-geometry</code> for coordinate offsets, and
+<code>-compose</code> for blending modes—to calculate the positioning
+and pixel integration on every frame. Crucially, each frame's temporal
+metadata, including frame delay and disposal settings, is carried over
+without interruption.</p>
+<p>Once all frames are composited with the watermark, the image sequence
+exists in memory as a series of fully drawn, uncompressed canvases. To
+mitigate the resulting increase in file size, the command pipeline
+typically concludes with <code>-layers Optimize</code>. This operator
+evaluates the newly watermarked frames, isolates identical pixel
+regions, and restores sub-frame cropping and transparency optimization
+before writing the final animated file to disk.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

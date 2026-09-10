@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark ImageMagick Speed Using -bench Operator - magick</title>
+    <meta name="description" content="Measuring image processing performance is essential for optimizing web servers, automated workflows, and batch-processing pipelines. ImageMagick includes a built-in -bench operator designed to measure execution speed, system resource usage, and command t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/benchmark-imagemagick-speed-using-bench-operator">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Benchmark ImageMagick Speed Using -bench Operator - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/benchmark-imagemagick-speed-using-bench-operator" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Measuring image processing performance is essential for optimizing web servers, automated workflows, and batch-processing pipelines. ImageMagick includes a built-in -bench operator designed to measure execution speed, system resource usage, and command t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="benchmark-imagemagick-speed-using--bench-operator">Benchmark
+ImageMagick Speed Using -bench Operator</h1>
+<p>Measuring image processing performance is essential for optimizing
+web servers, automated workflows, and batch-processing pipelines.
+ImageMagick includes a built-in <code>-bench</code> operator designed to
+measure execution speed, system resource usage, and command throughput
+across multiple iterations. This guide explains how to construct
+benchmark commands using <code>-bench</code>, interpret the resulting
+output metrics, and isolate processing speed from disk input/output
+bottlenecks.</p>
+<h3 id="basic-syntax-of-the--bench-operator">Basic Syntax of the -bench
+Operator</h3>
+<p>The <code>-bench</code> operator executes an entire ImageMagick
+operation sequence a specified number of times and outputs execution
+timing statistics.</p>
+<p>The standard syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-bench</span> <span class="op">&lt;</span>iterations<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">operations</span><span class="pp">]</span> output.jpg</span></code></pre></div>
+<p>To measure raw processing speed without the overhead of writing files
+to disk, redirect the output to ImageMagick's <code>null:</code> format
+discard sink:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-bench</span> 10 <span class="at">-resize</span> 800x600 null:</span></code></pre></div>
+<p>In this command, ImageMagick reads <code>input.jpg</code>, executes
+the <code>-resize</code> operation 10 times, and discards the rendered
+output after each run.</p>
+<h3 id="understanding-the-benchmark-output">Understanding the Benchmark
+Output</h3>
+<p>When the command completes, ImageMagick outputs performance data to
+the standard error stream. A typical output string looks like this:</p>
+<pre class="text"><code>Performance: 10i 1.250ips 7.820u 0:08.001</code></pre>
+<p>Each component of this output represents a distinct metric:</p>
+<ul>
+<li><strong><code>10i</code> (Iterations):</strong> The total number of
+completed test loops specified by the <code>-bench</code> argument.</li>
+<li><strong><code>1.250ips</code> (Iterations Per Second):</strong> The
+average throughput, representing how many times the command was fully
+processed per second. Higher numbers indicate faster performance.</li>
+<li><strong><code>7.820u</code> (User Time):</strong> The total CPU time
+spent in user-mode code across all iterations, measured in seconds.</li>
+<li><strong><code>0:08.001</code> (Wall-Clock Time):</strong> The actual
+total real-world elapsed time (minutes:seconds) taken to run the
+benchmark from start to finish.</li>
+</ul>
+<h3 id="practical-benchmarking-scenarios">Practical Benchmarking
+Scenarios</h3>
+<h4 id="comparing-resampling-filters">Comparing Resampling Filters</h4>
+<p>Different image processing algorithms have varying computational
+costs. You can benchmark two different resize filters to determine the
+speed trade-off:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark standard Lanczos filter</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-bench</span> 20 <span class="at">-filter</span> Lanczos <span class="at">-resize</span> 50% null:</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark faster Triangle (bilinear) filter</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-bench</span> 20 <span class="at">-filter</span> Triangle <span class="at">-resize</span> 50% null:</span></code></pre></div>
+<h4 id="isolating-threading-performance">Isolating Threading
+Performance</h4>
+<p>ImageMagick utilizes OpenMP for multi-core processing by default. You
+can benchmark single-threaded versus multi-threaded execution to see how
+well an operation scales across CPU cores using the <code>-limit</code>
+operator:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Single-threaded benchmark</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-limit</span> thread 1 <span class="at">-bench</span> 10 <span class="at">-blur</span> 0x8 null:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Multi-threaded benchmark (e.g., 4 threads)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="at">-limit</span> thread 4 <span class="at">-bench</span> 10 <span class="at">-blur</span> 0x8 null:</span></code></pre></div>
+<h3 id="best-practices-for-accurate-results">Best Practices for Accurate
+Results</h3>
+<ul>
+<li><strong>Use Sufficient Iterations:</strong> Set iterations high
+enough (typically 10 to 50) so the total run time exceeds several
+seconds. This minimizes variance caused by background OS processes.</li>
+<li><strong>Always Target <code>null:</code> Output:</strong> Writing
+large images repeatedly to SSDs or HDDs measures storage write speeds
+rather than ImageMagick's processing pipeline.</li>
+<li><strong>Pre-warm the File System Cache:</strong> Run the command
+once before recording benchmark results to ensure the source image is
+already cached in system RAM.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

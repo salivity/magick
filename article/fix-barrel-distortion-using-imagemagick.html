@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Barrel Distortion Using ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to correct barrel lens distortion in images using ImageMagick's command-line tools. You will learn the exact syntax for the -distort Barrel operator, understand how the distortion coefficients function, and see practical examp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/fix-barrel-distortion-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Fix Barrel Distortion Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/fix-barrel-distortion-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to correct barrel lens distortion in images using ImageMagick's command-line tools. You will learn the exact syntax for the -distort Barrel operator, understand how the distortion coefficients function, and see practical examp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="fix-barrel-distortion-using-imagemagick">Fix Barrel Distortion
+Using ImageMagick</h1>
+<p>This guide demonstrates how to correct barrel lens distortion in
+images using ImageMagick's command-line tools. You will learn the exact
+syntax for the <code>-distort Barrel</code> operator, understand how the
+distortion coefficients function, and see practical examples for
+correcting wide-angle and fisheye lens warps.</p>
+<h2 id="understanding-the-barrel-distortion-operator">Understanding the
+Barrel Distortion Operator</h2>
+<p>ImageMagick provides the <code>-distort Barrel</code> and
+<code>-distort BarrelInverse</code> operators to correct optical lens
+aberrations. The correction utilizes a radial polynomial model with four
+primary coefficients: <code>A</code>, <code>B</code>, <code>C</code>,
+and <code>D</code>.</p>
+<p>The mathematical formula applied to the radius <span
+class="math inline">\(r\)</span> from the center is:</p>
+<p><span class="math display">\[R_{src} = r \cdot (A \cdot r^3 + B \cdot
+r^2 + C \cdot r + D)\]</span></p>
+<ul>
+<li><strong>A</strong>: Corrects third-order distortion (often used for
+complex or mustache distortion).</li>
+<li><strong>B</strong>: Corrects second-order distortion (the primary
+parameter for standard barrel and pincushion correction).</li>
+<li><strong>C</strong>: Corrects first-order distortion (linear scaling
+with radius).</li>
+<li><strong>D</strong>: Acts as a global scaling factor to maintain
+image size. If omitted, ImageMagick automatically calculates <span
+class="math inline">\(D = 1 - (A + B + C)\)</span>.</li>
+</ul>
+<h2 id="basic-correction-command">Basic Correction Command</h2>
+<p>To correct typical barrel distortion, you generally need a negative
+value for the <code>B</code> coefficient when using
+<code>-distort Barrel</code>.</p>
+<h3 id="imagemagick-v7-syntax">ImageMagick v7 Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Barrel <span class="st">&quot;0.0 -0.05 0.0 1.05&quot;</span> output.jpg</span></code></pre></div>
+<h3 id="imagemagick-v6-syntax">ImageMagick v6 Syntax</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-distort</span> Barrel <span class="st">&quot;0.0 -0.05 0.0 1.05&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="step-by-step-parameter-tuning">Step-by-Step Parameter
+Tuning</h2>
+<ol type="1">
+<li><strong>Simple Barrel Correction</strong>: Start with only modifying
+the <code>B</code> parameter. Set <code>A</code> and <code>C</code> to
+<code>0.0</code>.
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Barrel <span class="st">&quot;0.0 -0.08 0.0 1.08&quot;</span> output.jpg</span></code></pre></div></li>
+<li><strong>Complex Fisheye Distortion</strong>: For severe wide-angle
+distortion, combine <code>A</code> and <code>B</code> terms:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Barrel <span class="st">&quot;0.02 -0.15 0.0 1.13&quot;</span> output.jpg</span></code></pre></div></li>
+<li><strong>Specifying an Off-Center Optical Axis</strong>: If the lens
+center does not align with the image center, append the <code>X</code>
+and <code>Y</code> pixel coordinates of the optical center:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Barrel <span class="st">&quot;0.0 -0.05 0.0 1.05 1920 1080&quot;</span> output.jpg</span></code></pre></div></li>
+</ol>
+<h2 id="handling-output-edges-and-canvas-size">Handling Output Edges and
+Canvas Size</h2>
+<p>Correcting barrel distortion pulls the outer edges outward, which can
+leave empty canvas borders or crop wanted details.</p>
+<ul>
+<li><p><strong>Retain All Pixels (Expanded Canvas)</strong>: Use
+<code>+distort</code> instead of <code>-distort</code> to automatically
+expand the output image bounds so no corrected pixel data is
+cropped:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +distort Barrel <span class="st">&quot;0.0 -0.05 0.0 1.05&quot;</span> output.png</span></code></pre></div></li>
+<li><p><strong>Set Virtual Pixel Color</strong>: Define how the newly
+exposed border areas should look (e.g., black, transparent, or edge
+replication):</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-virtual-pixel</span> black <span class="at">-distort</span> Barrel <span class="st">&quot;0.0 -0.05 0.0 1.05&quot;</span> output.jpg</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

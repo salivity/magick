@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Booklet Imposition for Printing - magick</title>
+    <meta name="description" content="This article explains how to create a 2-up booklet imposition layout from individual images or multi-page documents using ImageMagick. You will learn the specific command structure, how to correctly sequence page pairs for fold-and-staple binding, and th">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-booklet-imposition-for-printing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Booklet Imposition for Printing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-booklet-imposition-for-printing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to create a 2-up booklet imposition layout from individual images or multi-page documents using ImageMagick. You will learn the specific command structure, how to correctly sequence page pairs for fold-and-staple binding, and th" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-booklet-imposition-for-printing">ImageMagick Booklet
+Imposition for Printing</h1>
+<p>This article explains how to create a 2-up booklet imposition layout
+from individual images or multi-page documents using ImageMagick. You
+will learn the specific command structure, how to correctly sequence
+page pairs for fold-and-staple binding, and the key parameters required
+to assemble print-ready sheets.</p>
+<h2 id="the-core-command">The Core Command</h2>
+<p>Booklet imposition requires arranging pages side-by-side (2-up) in a
+specific non-sequential order so that, once printed double-sided and
+folded, the pages read chronologically. In ImageMagick, the primary tool
+for this layout is the <code>montage</code> command combined with page
+index selection and tiling flags.</p>
+<p>For an 8-page booklet sourced from a multi-page PDF or an image
+sequence, the command in ImageMagick 7 is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage input.pdf<span class="pp">[</span><span class="ss">7,0,1,6,5,2,3,4</span><span class="pp">]</span> <span class="at">-tile</span> 2x1 <span class="at">-geometry</span> +0+0 <span class="at">-density</span> 300 booklet_sheet_%d.pdf</span></code></pre></div>
+<p><em>(Note: For ImageMagick 6, replace <code>magick montage</code>
+with just <code>montage</code>.)</em></p>
+<h2 id="understanding-page-ordering">Understanding Page Ordering</h2>
+<p>ImageMagick uses zero-based indexing (<code>0</code> is page 1,
+<code>1</code> is page 2, etc.). For a standard saddle-stitch (folded)
+booklet, your total page count must be a multiple of 4. If necessary,
+add blank pages to reach a multiple of 4.</p>
+<p>The pages are grouped into pairs per sheet side:</p>
+<ul>
+<li><strong>Sheet 1 Front:</strong> Last Page &amp; Page 1
+(<code>input.pdf[7,0]</code>)</li>
+<li><strong>Sheet 1 Back:</strong> Page 2 &amp; Second-to-Last Page
+(<code>input.pdf[1,6]</code>)</li>
+<li><strong>Sheet 2 Front:</strong> Third-to-Last Page &amp; Page 3
+(<code>input.pdf[5,2]</code>)</li>
+<li><strong>Sheet 2 Back:</strong> Page 4 &amp; Fourth-to-Last Page
+(<code>input.pdf[3,4]</code>)</li>
+</ul>
+<h2 id="combining-individual-image-files">Combining Individual Image
+Files</h2>
+<p>If your pages are separate image files rather than a single document,
+specify the files in the imposition order directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage page_08.png page_01.png page_02.png page_07.png page_06.png page_03.png page_04.png page_05.png <span class="at">-tile</span> 2x1 <span class="at">-geometry</span> +0+0 booklet_sheet_%d.png</span></code></pre></div>
+<h2 id="parameter-breakdown">Parameter Breakdown</h2>
+<ul>
+<li><code>-tile 2x1</code>: Places two consecutive pages horizontally on
+each output sheet.</li>
+<li><code>-geometry +0+0</code>: Preserves original image dimensions and
+eliminates spacing or borders between paired images.</li>
+<li><code>-density 300</code>: Sets the rasterization resolution to 300
+DPI, which is standard for high-quality printing.</li>
+<li><code>%d</code>: A naming format specifier that outputs each spread
+as a sequentially numbered file (e.g., <code>booklet_sheet_0.pdf</code>,
+<code>booklet_sheet_1.pdf</code>).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

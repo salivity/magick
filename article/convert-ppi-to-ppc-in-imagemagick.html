@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert PPI to PPC in ImageMagick - magick</title>
+    <meta name="description" content="Spatial density defines the resolution of an image for printing and physical display, measured typically in Pixels Per Inch (PPI) or Pixels Per Centimeter (PPC). In ImageMagick, you can easily switch or define these units using the -units and -density op">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-ppi-to-ppc-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert PPI to PPC in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-ppi-to-ppc-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Spatial density defines the resolution of an image for printing and physical display, measured typically in Pixels Per Inch (PPI) or Pixels Per Centimeter (PPC). In ImageMagick, you can easily switch or define these units using the -units and -density op" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-ppi-to-ppc-in-imagemagick">Convert PPI to PPC in
+ImageMagick</h1>
+<p>Spatial density defines the resolution of an image for printing and
+physical display, measured typically in Pixels Per Inch (PPI) or Pixels
+Per Centimeter (PPC). In ImageMagick, you can easily switch or define
+these units using the <code>-units</code> and <code>-density</code>
+operators. This guide demonstrates how to check current image density,
+convert between PPI and PPC, and apply new density settings directly
+from the command line.</p>
+<h3 id="checking-current-density-and-units">Checking Current Density and
+Units</h3>
+<p>Before modifying an image, you can check its existing spatial
+resolution and measurement units using the <code>identify</code>
+command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%x x %y %U\n&quot;</span> input.jpg</span></code></pre></div>
+<ul>
+<li><code>%x</code> outputs the horizontal resolution.</li>
+<li><code>%y</code> outputs the vertical resolution.</li>
+<li><code>%U</code> outputs the current units
+(<code>PixelsPerInch</code>, <code>PixelsPerCentimeter</code>, or
+<code>Undefined</code>).</li>
+</ul>
+<h3 id="changing-units-from-ppi-to-ppc">Changing Units from PPI to
+PPC</h3>
+<p>To change the density units from Pixels Per Inch to Pixels Per
+Centimeter while recalculating or assigning the resolution value, use
+the <code>-units</code> flag set to
+<code>PixelsPerCentimeter</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-units</span> PixelsPerCentimeter <span class="at">-density</span> 118.11 output.jpg</span></code></pre></div>
+<p><em>(Note: 300 PPI is approximately equal to 118.11 PPC, calculated
+by dividing 300 by 2.54).</em></p>
+<p>If you simply want ImageMagick to automatically convert the existing
+PPI numerical value to its equivalent PPC value, declare the target unit
+and re-apply the density attribute:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-units</span> PixelsPerCentimeter output.jpg</span></code></pre></div>
+<h3 id="changing-units-from-ppc-to-ppi">Changing Units from PPC to
+PPI</h3>
+<p>To convert an image configured in Pixels Per Centimeter back to
+Pixels Per Inch, set the <code>-units</code> option to
+<code>PixelsPerInch</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 300 output.jpg</span></code></pre></div>
+<h3 id="key-differences-between-legacy-and-modern-syntax">Key
+Differences Between Legacy and Modern Syntax</h3>
+<ul>
+<li><strong>ImageMagick v7+:</strong> Use the <code>magick</code>
+command:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 72 output.png</span></code></pre></div></li>
+<li><strong>ImageMagick v6:</strong> Use the <code>convert</code>
+command:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 72 output.png</span></code></pre></div></li>
+</ul>
+<p>Setting the spatial density does not resample or alter the pixel
+dimensions of the image; it only updates the metadata used by rendering
+software and printers to determine the output size.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

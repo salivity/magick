@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Rich Black Background in ImageMagick - magick</title>
+    <meta name="description" content="Creating a Rich Black background for print publications requires configuring specific Cyan, Magenta, Yellow, and Black (CMYK) ink values rather than relying on pure 100% Black (K), which often prints as a dull dark gray. This article covers the recommend">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/generate-rich-black-background-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Generate Rich Black Background in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/generate-rich-black-background-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a Rich Black background for print publications requires configuring specific Cyan, Magenta, Yellow, and Black (CMYK) ink values rather than relying on pure 100% Black (K), which often prints as a dull dark gray. This article covers the recommend" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="generate-rich-black-background-in-imagemagick">Generate Rich
+Black Background in ImageMagick</h1>
+<p>Creating a Rich Black background for print publications requires
+configuring specific Cyan, Magenta, Yellow, and Black (CMYK) ink values
+rather than relying on pure 100% Black (K), which often prints as a dull
+dark gray. This article covers the recommended CMYK ink formulas for
+print, the ImageMagick commands needed to generate high-resolution Rich
+Black canvases, and the best practices for setting color profiles and
+print density.</p>
+<h2 id="understanding-rich-black-formulations">Understanding Rich Black
+Formulations</h2>
+<p>Standard black ink (<span class="math inline">\(0\% \text{ C}, 0\%
+\text{ M}, 0\% \text{ Y}, 100\% \text{ K}\)</span>) lacks depth across
+large solid areas in commercial offset and digital printing. To achieve
+a deep, saturated black, commercial printers use a "Rich Black" formula
+that mixes supporting inks under the black plate.</p>
+<p>Common Rich Black formulas include:</p>
+<ul>
+<li><strong>Standard Rich Black:</strong> <span
+class="math inline">\(60\% \text{ Cyan}, 40\% \text{ Magenta}, 40\%
+\text{ Yellow}, 100\% \text{ Key/Black}\)</span> (Total Ink Coverage:
+<span class="math inline">\(240\%\)</span>)</li>
+<li><strong>Cool Rich Black:</strong> <span class="math inline">\(60\%
+\text{ Cyan}, 0\% \text{ Magenta}, 0\% \text{ Yellow}, 100\% \text{
+Key/Black}\)</span> (Total Ink Coverage: <span
+class="math inline">\(160\%\)</span>)</li>
+<li><strong>Warm Rich Black:</strong> <span class="math inline">\(30\%
+\text{ Cyan}, 60\% \text{ Magenta}, 30\% \text{ Yellow}, 100\% \text{
+Key/Black}\)</span> (Total Ink Coverage: <span
+class="math inline">\(220\%\)</span>)</li>
+</ul>
+<p>Always ensure your total ink density stays below your printer's Total
+Area Coverage (TAC) limit, typically between <span
+class="math inline">\(240\%\)</span> and <span
+class="math inline">\(300\%\)</span>.</p>
+<h2 id="generating-a-print-ready-rich-black-canvas">Generating a
+Print-Ready Rich Black Canvas</h2>
+<p>In ImageMagick version 7, use the <code>magick</code> tool (or
+<code>convert</code> in ImageMagick version 6) to define the canvas
+dimensions, resolution, color space, and CMYK color definition.</p>
+<h3 id="basic-rich-black-background">Basic Rich Black Background</h3>
+<p>To create a canvas with dimensions specified in pixels:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 2400x3000 <span class="at">-colorspace</span> CMYK xc:<span class="st">&quot;cmyk(60%,40%,40%,100%)&quot;</span> rich_black.tif</span></code></pre></div>
+<ul>
+<li><code>-size 2400x3000</code>: Sets the pixel width and height.</li>
+<li><code>-colorspace CMYK</code>: Instructs ImageMagick to handle color
+operations in the CMYK color space.</li>
+<li><code>xc:"cmyk(60%,40%,40%,100%)"</code>: Sets the canvas background
+color using standard CMYK percentage values.</li>
+<li><code>rich_black.tif</code>: Saves the output as a TIFF, a standard
+uncompressed format for commercial print.</li>
+</ul>
+<h3 id="high-resolution-print-setup-300-dpi">High-Resolution Print Setup
+(300 DPI)</h3>
+<p>Print publications generally require a resolution of 300 Dots Per
+Inch (DPI). You can define physical dimensions (such as an 8.5 x 11-inch
+page) and include density metadata directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 300 <span class="at">-size</span> 2550x3300 <span class="at">-colorspace</span> CMYK xc:<span class="st">&quot;cmyk(60%,40%,40%,100%)&quot;</span> rich_black_page.tif</span></code></pre></div>
+<h2 id="embedding-icc-color-profiles">Embedding ICC Color Profiles</h2>
+<p>For accurate color reproduction across commercial presses, embed a
+standard CMYK ICC profile (such as US Web Coated SWOP or ISO Coated)
+into the generated file:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 300 <span class="at">-size</span> 2550x3300 <span class="at">-colorspace</span> CMYK xc:<span class="st">&quot;cmyk(60%,40%,40%,100%)&quot;</span> <span class="at">-profile</span> USWebCoatedSWOP.icc rich_black_cmyk_profile.tif</span></code></pre></div>
+<p>Embedding the profile guarantees that the RIP (Raster Image
+Processor) at the print shop interprets the CMYK values accurately
+without unexpected color shifts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

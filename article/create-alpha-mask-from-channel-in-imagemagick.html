@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Alpha Mask from Channel in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to extract a specific color channel (such as Red, Green, or Blue) from an image and convert it into an alpha mask using ImageMagick. By isolating the desired channel into a grayscale representation and mapping its luminance values">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-alpha-mask-from-channel-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Alpha Mask from Channel in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-alpha-mask-from-channel-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to extract a specific color channel (such as Red, Green, or Blue) from an image and convert it into an alpha mask using ImageMagick. By isolating the desired channel into a grayscale representation and mapping its luminance values" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-alpha-mask-from-channel-in-imagemagick">Create Alpha Mask
+from Channel in ImageMagick</h1>
+<p>This guide explains how to extract a specific color channel (such as
+Red, Green, or Blue) from an image and convert it into an alpha mask
+using ImageMagick. By isolating the desired channel into a grayscale
+representation and mapping its luminance values to the image's opacity
+layer, you can create custom transparency effects, isolate complex
+subjects, or prepare assets for digital compositing in a single terminal
+command.</p>
+<h2 id="the-basic-command">The Basic Command</h2>
+<p>To extract a channel and apply it directly as an alpha mask within a
+single operation, use the following syntax (ImageMagick v7):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\(</span> +clone <span class="at">-channel</span> Red <span class="at">-separate</span> <span class="dt">\)</span> <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="how-the-command-works">How the Command Works</h2>
+<p>The command processes the image in a multi-step sequence within
+memory:</p>
+<ol type="1">
+<li><strong><code>input.png</code></strong>: Loads the source
+image.</li>
+<li><strong><code>\( +clone -channel Red -separate \)</code></strong>:
+Creates an in-memory copy of the source image, isolates the specified
+channel (<code>Red</code>, <code>Green</code>, or <code>Blue</code>),
+and separates it into a standalone grayscale image.</li>
+<li><strong><code>-alpha off</code></strong>: Temporarily disables any
+existing alpha channel on the original image to prevent blending
+conflicts.</li>
+<li><strong><code>-compose CopyOpacity -composite</code></strong>: Takes
+the grayscale channel image and applies its brightness values directly
+to the alpha channel of the original image. White pixels become
+completely opaque, black pixels become fully transparent, and gray
+values become semi-transparent.</li>
+<li><strong><code>output.png</code></strong>: Saves the result to a
+format that supports transparency, such as PNG, TIFF, or WEBP.</li>
+</ol>
+<h2 id="target-different-channels">Target Different Channels</h2>
+<p>To base the transparency on a different color spectrum, replace the
+channel name:</p>
+<ul>
+<li><strong>Green Channel:</strong>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\(</span> +clone <span class="at">-channel</span> Green <span class="at">-separate</span> <span class="dt">\)</span> <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div></li>
+<li><strong>Blue Channel:</strong>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\(</span> +clone <span class="at">-channel</span> Blue <span class="at">-separate</span> <span class="dt">\)</span> <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div></li>
+</ul>
+<h2 id="inverting-the-transparency-mask">Inverting the Transparency
+Mask</h2>
+<p>By default, white areas in the separated channel remain visible,
+while black areas become transparent. If your desired subject
+corresponds to the darker values of the channel, invert the mask using
+<code>-negate</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\(</span> +clone <span class="at">-channel</span> Red <span class="at">-separate</span> <span class="at">-negate</span> <span class="dt">\)</span> <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div>
+<h2 id="extracting-the-mask-to-a-standalone-file">Extracting the Mask to
+a Standalone File</h2>
+<p>If you only need the grayscale mask file itself for external use
+rather than embedding it directly into the image:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> Red <span class="at">-separate</span> mask.png</span></code></pre></div>
+<p>You can later apply this standalone mask file to any image of the
+same dimensions using:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png mask.png <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

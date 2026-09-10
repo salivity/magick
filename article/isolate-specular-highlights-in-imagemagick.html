@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isolate Specular Highlights in ImageMagick - magick</title>
+    <meta name="description" content="Isolating specular highlights into a separate mask using ImageMagick involves extracting luminance information from an image, applying high-pass thresholding to isolate near-white reflective spots, and refining the edges using morphology or blur operatio">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/isolate-specular-highlights-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Isolate Specular Highlights in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/isolate-specular-highlights-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Isolating specular highlights into a separate mask using ImageMagick involves extracting luminance information from an image, applying high-pass thresholding to isolate near-white reflective spots, and refining the edges using morphology or blur operatio" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="isolate-specular-highlights-in-imagemagick">Isolate Specular
+Highlights in ImageMagick</h1>
+<p>Isolating specular highlights into a separate mask using ImageMagick
+involves extracting luminance information from an image, applying
+high-pass thresholding to isolate near-white reflective spots, and
+refining the edges using morphology or blur operations. This guide
+covers the direct commands needed to separate bright, non-diffuse
+reflections into a clean, reusable grayscale mask.</p>
+<h3 id="method-1-luminance-thresholding">Method 1: Luminance
+Thresholding</h3>
+<p>Specular highlights are typically the brightest pixels in an image.
+The quickest way to isolate them is by converting the image to grayscale
+and applying a high percentage threshold.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 90% highlight_mask.png</span></code></pre></div>
+<ul>
+<li><code>-colorspace Gray</code>: Converts the RGB channels into a
+single luminance channel.</li>
+<li><code>-threshold 90%</code>: Turns all pixels with a brightness
+value above 90% pure white (<code>#FFFFFF</code>) and all other pixels
+pure black (<code>#000000</code>). Adjust this percentage based on the
+intensity of your highlights.</li>
+</ul>
+<hr />
+<h3 id="method-2-isolating-via-the-hsl-lightness-channel">Method 2:
+Isolating via the HSL Lightness Channel</h3>
+<p>If the image contains saturated bright colors (like vibrant yellows
+or cyans) that you do not want included in your specular mask, isolate
+the Lightness channel from the HSL colorspace instead of standard
+grayscale conversion.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> HSL <span class="at">-channel</span> 2 <span class="at">-separate</span> <span class="at">-threshold</span> 92% highlight_mask.png</span></code></pre></div>
+<ul>
+<li><code>-colorspace HSL</code>: Switches the image data to Hue,
+Saturation, and Lightness.</li>
+<li><code>-channel 2 -separate</code>: Extracts only the Lightness (L)
+channel (index 2 in ImageMagick).</li>
+<li><code>-threshold 92%</code>: Isolates only the highest peaks of
+luminosity.</li>
+</ul>
+<hr />
+<h3 id="method-3-advanced-isolation-with-mask-cleanup">Method 3:
+Advanced Isolation with Mask Cleanup</h3>
+<p>Specular highlights often create tiny, noisy pinpricks across
+textured surfaces. To generate a cleaner, production-ready mask, you can
+combine thresholding with morphological operations to remove noise and
+soften edges.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 88% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Open Disk:1 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-blur</span> 0x1 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  highlight_mask.png</span></code></pre></div>
+<ul>
+<li><code>-morphology Open Disk:1</code>: Removes isolated single-pixel
+noise while preserving the shape of larger highlight areas.</li>
+<li><code>-blur 0x1</code>: Adds a slight gradient to the mask edges,
+making it blend naturally when used as an alpha mask or compositing
+layer.</li>
+</ul>
+<hr />
+<h3 id="applying-the-mask-back-to-the-image">Applying the Mask Back to
+the Image</h3>
+<p>To verify the isolation or extract the isolated specular highlights
+onto a transparent background, use the generated mask as an alpha
+channel:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg highlight_mask.png <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> highlights_only.png</span></code></pre></div>
+<p>This applies the mask directly over the source image, leaving only
+the isolated specular reflections visible on a transparent canvas.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Sequence Multiply Explained - magick</title>
+    <meta name="description" content="This article provides an overview of the evaluate-sequence Multiply operator in ImageMagick, explaining its core function, mathematical behavior, and practical applications. Readers will learn how this operator processes multiple images simultaneously to">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-multiply-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Sequence Multiply Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-multiply-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the evaluate-sequence Multiply operator in ImageMagick, explaining its core function, mathematical behavior, and practical applications. Readers will learn how this operator processes multiple images simultaneously to" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-sequence-multiply-explained">ImageMagick
+Evaluate Sequence Multiply Explained</h1>
+<p>This article provides an overview of the
+<code>evaluate-sequence Multiply</code> operator in ImageMagick,
+explaining its core function, mathematical behavior, and practical
+applications. Readers will learn how this operator processes multiple
+images simultaneously to perform tasks such as sequence blending,
+masking, and technical image attenuation.</p>
+<p>The <code>evaluate-sequence Multiply</code> operator collapses a list
+of two or more images into a single output image by multiplying the
+corresponding color channel values of each pixel across the entire
+sequence. Instead of processing images in separate pairwise steps,
+ImageMagick evaluates the entire stack sequentially at each coordinate
+position.</p>
+<h3 id="mathematical-behavior">Mathematical Behavior</h3>
+<p>ImageMagick treats pixel values on a normalized scale from
+<code>0.0</code> (completely black/no intensity) to <code>1.0</code>
+(maximum intensity/white), scaled according to the installation's
+Quantum depth. When using <code>Multiply</code>:</p>
+<ul>
+<li>Any pixel multiplied by <code>0.0</code> (black) results in
+<code>0.0</code> (black).</li>
+<li>Any pixel multiplied by <code>1.0</code> (white) remains
+unchanged.</li>
+<li>Values between <code>0.0</code> and <code>1.0</code> result in a
+smaller product, creating a darker output.</li>
+</ul>
+<p>Because normalized fractions multiplied together always yield a
+smaller or equal fraction, applying
+<code>evaluate-sequence Multiply</code> will consistently darken
+overlapping areas unless one of the pixels is at maximum intensity.</p>
+<h3 id="primary-use-cases">Primary Use Cases</h3>
+<ol type="1">
+<li><strong>Stack-Wide Multiply Blending</strong>: In graphic design,
+the "Multiply" blend mode is commonly used to combine layers while
+preserving dark tones. The <code>evaluate-sequence Multiply</code>
+command replicates this blend mode across three or more images in a
+single command without the need to chain multiple
+<code>-composite</code> operations.</li>
+<li><strong>Sequential Masking</strong>: Multiplying an image stack
+against a grayscale or binary matte allows users to cut out backgrounds
+or restrict multiple layers to specific geometric areas. Black regions
+in the mask zero out underlying pixels entirely.</li>
+<li><strong>Scientific and Technical Imaging</strong>: The operator is
+widely used in scientific imaging to compute light transmission through
+multiple sequential filters, model optical attenuation, or apply
+flat-field correction frames where values must scale proportionally
+across an image series.</li>
+</ol>
+<h3 id="basic-syntax-example">Basic Syntax Example</h3>
+<p>To run the operator across a series of images, load all source files
+in the command line and call <code>-evaluate-sequence Multiply</code>
+before specifying the final output file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame1.png frame2.png frame3.png <span class="at">-evaluate-sequence</span> Multiply output.png</span></code></pre></div>
+<p>ImageMagick reads all specified inputs into memory, calculates the
+product of each pixel's color channels across the stack, and outputs the
+collapsed result to <code>output.png</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

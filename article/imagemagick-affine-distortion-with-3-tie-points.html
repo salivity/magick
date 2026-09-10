@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Affine Distortion with 3 Tie Points - magick</title>
+    <meta name="description" content="This article explains how ImageMagick’s -distort Affine operator converts three pairs of source and destination coordinates (tie points) into a geometric transformation. By mapping three points from an input image to three points on an output canvas, I">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-affine-distortion-with-3-tie-points">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Affine Distortion with 3 Tie Points - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-affine-distortion-with-3-tie-points" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick’s -distort Affine operator converts three pairs of source and destination coordinates (tie points) into a geometric transformation. By mapping three points from an input image to three points on an output canvas, I" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-affine-distortion-with-3-tie-points">ImageMagick
+Affine Distortion with 3 Tie Points</h1>
+<p>This article explains how ImageMagick’s <code>-distort Affine</code>
+operator converts three pairs of source and destination coordinates (tie
+points) into a geometric transformation. By mapping three points from an
+input image to three points on an output canvas, ImageMagick constructs
+a system of linear equations to solve a 2D affine transformation matrix.
+This matrix encapsulates translation, rotation, scaling, and shearing
+without requiring separate mathematical operations for each
+property.</p>
+<h3 id="the-2d-affine-transformation-model">The 2D Affine Transformation
+Model</h3>
+<p>An affine transformation maps parallel lines to parallel lines and
+preserves ratios of distances along lines. Mathematically, the mapping
+of an input coordinate <span class="math inline">\((u, v)\)</span> to an
+output coordinate <span class="math inline">\((x, y)\)</span> is
+represented by a set of linear equations:</p>
+<p><span class="math display">\[x = c_{00}u + c_{01}v + c_{02}\]</span>
+<span class="math display">\[y = c_{10}u + c_{11}v + c_{12}\]</span></p>
+<p>In matrix notation, this is expressed using homogeneous
+coordinates:</p>
+<p><span class="math display">\[\begin{bmatrix} x \\ y \\ 1
+\end{bmatrix} = \begin{bmatrix} c_{00} &amp; c_{01} &amp; c_{02} \\
+c_{10} &amp; c_{11} &amp; c_{12} \\ 0 &amp; 0 &amp; 1 \end{bmatrix}
+\begin{bmatrix} u \\ v \\ 1 \end{bmatrix}\]</span></p>
+<p>The coefficients <span class="math inline">\(c_{02}\)</span> and
+<span class="math inline">\(c_{12}\)</span> govern translation (<span
+class="math inline">\(t_x, t_y\)</span>), while the <span
+class="math inline">\(2 \times 2\)</span> submatrix composed of <span
+class="math inline">\(c_{00}, c_{01}, c_{10},\)</span> and <span
+class="math inline">\(c_{11}\)</span> encodes scaling, rotation, and
+shear.</p>
+<h3 id="solving-the-system-with-three-tie-points">Solving the System
+with Three Tie Points</h3>
+<p>A single tie point provides one source coordinate <span
+class="math inline">\((u_i, v_i)\)</span> and one target coordinate
+<span class="math inline">\((x_i, y_i)\)</span>, yielding two linear
+equations. Three non-collinear tie points provide six independent
+equations:</p>
+<ol type="1">
+<li><span class="math inline">\(x_0 = c_{00}u_0 + c_{01}v_0 +
+c_{02}\)</span></li>
+<li><span class="math inline">\(y_0 = c_{10}u_0 + c_{11}v_0 +
+c_{12}\)</span></li>
+<li><span class="math inline">\(x_1 = c_{00}u_1 + c_{01}v_1 +
+c_{02}\)</span></li>
+<li><span class="math inline">\(y_1 = c_{10}u_1 + c_{11}v_1 +
+c_{12}\)</span></li>
+<li><span class="math inline">\(x_2 = c_{00}u_2 + c_{01}v_2 +
+c_{02}\)</span></li>
+<li><span class="math inline">\(y_2 = c_{10}u_2 + c_{11}v_2 +
+c_{12}\)</span></li>
+</ol>
+<p>Because there are six equations and exactly six unknown coefficients
+(<span class="math inline">\(c_{00}\)</span> through <span
+class="math inline">\(c_{12}\)</span>), ImageMagick solves this system
+directly using standard matrix inversion or Gaussian elimination.
+Provided that the three source points do not form a straight line (which
+would cause a singular matrix with a determinant of zero), the solution
+yields a unique affine matrix.</p>
+<h3 id="extracting-scaling-rotation-and-shear">Extracting Scaling,
+Rotation, and Shear</h3>
+<p>ImageMagick does not need to decompose the matrix to distort the
+image; the matrix itself defines the complete transform. However, the
+geometric components are mathematically embedded in the <span
+class="math inline">\(2 \times 2\)</span> submatrix:</p>
+<p><span class="math display">\[M = \begin{bmatrix} c_{00} &amp; c_{01}
+\\ c_{10} &amp; c_{11} \end{bmatrix}\]</span></p>
+<p>This matrix can be decomposed into elementary transformations:</p>
+<p><span class="math display">\[M = R(\theta) \cdot S(s_x, s_y) \cdot
+H(\gamma)\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(R(\theta)\)</span> is a rotation
+matrix.</li>
+<li><span class="math inline">\(S(s_x, s_y)\)</span> is a non-uniform
+scaling matrix.</li>
+<li><span class="math inline">\(H(\gamma)\)</span> is a shear
+matrix.</li>
+</ul>
+<h4 id="1-calculating-scale-factors-s_x-s_y">1. Calculating Scale
+Factors (<span class="math inline">\(s_x, s_y\)</span>)</h4>
+<p>The scale factors represent how basis unit vectors are stretched:</p>
+<ul>
+<li>The x-axis scale factor is the Euclidean norm of the first
+column:<br />
+<span class="math inline">\(s_x = \sqrt{c_{00}^2 +
+c_{10}^2}\)</span></li>
+<li>The y-axis scale factor is calculated after removing the projection
+along the transformed x-axis, or directly via the matrix
+determinant:<br />
+<span class="math inline">\(s_y = \frac{\lvert c_{00}c_{11} -
+c_{01}c_{10} \rvert}{s_x}\)</span></li>
+</ul>
+<h4 id="2-calculating-rotation-theta">2. Calculating Rotation (<span
+class="math inline">\(\theta\)</span>)</h4>
+<p>The rotation angle is determined by the direction of the transformed
+x-axis: <span class="math display">\[\theta =
+\operatorname{atan2}(c_{10}, c_{00})\]</span></p>
+<h4 id="3-calculating-shear-gamma">3. Calculating Shear (<span
+class="math inline">\(\gamma\)</span>)</h4>
+<p>Shearing occurs when the angle between the transformed basis vectors
+deviates from 90 degrees. It can be derived from the dot product of the
+column vectors normalized by scale: <span class="math display">\[\gamma
+= \operatorname{atan2}(c_{00}c_{01} + c_{10}c_{11}, s_x^2)\]</span></p>
+<h3 id="backward-mapping-and-image-resampling">Backward Mapping and
+Image Resampling</h3>
+<p>Once the matrix coefficients are computed, ImageMagick inverts the
+matrix:</p>
+<p><span class="math display">\[\begin{bmatrix} u \\ v \\ 1
+\end{bmatrix} = \begin{bmatrix} c_{00} &amp; c_{01} &amp; c_{02} \\
+c_{10} &amp; c_{11} &amp; c_{12} \\ 0 &amp; 0 &amp; 1 \end{bmatrix}^{-1}
+\begin{bmatrix} x \\ y \\ 1 \end{bmatrix}\]</span></p>
+<p>ImageMagick uses this inverse matrix to map each destination pixel
+<span class="math inline">\((x, y)\)</span> back to its corresponding
+source coordinate <span class="math inline">\((u, v)\)</span>. It then
+applies Elliptical Weighted Average (EWA) resampling to reconstruct the
+final pixel color, ensuring that scaling, rotation, and shear are
+rendered without aliasing artifacts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

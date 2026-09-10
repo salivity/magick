@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Emboss and Directional Lighting Kernels - magick</title>
+    <meta name="description" content="The ImageMagick -emboss operator creates a three-dimensional relief effect by converting standard two-dimensional image gradients into simulated highlights and shadows. This process works by treating pixel brightness as a physical height map and convolvi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-emboss-and-directional-lighting-kernels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Emboss and Directional Lighting Kernels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-emboss-and-directional-lighting-kernels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -emboss operator creates a three-dimensional relief effect by converting standard two-dimensional image gradients into simulated highlights and shadows. This process works by treating pixel brightness as a physical height map and convolvi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-emboss-and-directional-lighting-kernels">ImageMagick
+Emboss and Directional Lighting Kernels</h1>
+<p>The ImageMagick <code>-emboss</code> operator creates a
+three-dimensional relief effect by converting standard two-dimensional
+image gradients into simulated highlights and shadows. This process
+works by treating pixel brightness as a physical height map and
+convolving the image with a directional derivative kernel. By
+calculating contrast shifts along a specific angle and adding a neutral
+gray baseline, the operator simulates the way directional light casts
+highlights on raised edges and shadows in recesses.</p>
+<h3 id="treating-luminance-as-elevation">Treating Luminance as
+Elevation</h3>
+<p>To simulate a physical surface, the <code>-emboss</code> operator
+conceptualizes an image as a topographical relief map. In this model,
+high-luminance pixels represent elevated peaks, while low-luminance
+pixels represent depressions or valleys. Sharp transitions between light
+and dark represent steep slopes or physical edges. By evaluating the
+rate of change across these elevations, the algorithm determines how
+light would bounce off varying surface angles.</p>
+<h3 id="directional-convolution-kernels">Directional Convolution
+Kernels</h3>
+<p>The core of the emboss operation is a directional convolution matrix,
+typically derived from the first derivative of a Gaussian filter. Unlike
+isotropic edge-detection filters (such as a standard Laplacian) that
+detect edges uniformly in all directions, an embossing kernel is
+anisotropic and oriented along an axis—traditionally an illumination
+angle of 45 or 135 degrees (simulating light from the upper-left).</p>
+<p>The kernel consists of paired positive and negative coefficients
+aligned along the axis of simulated illumination:</p>
+<ul>
+<li><strong>Positive weights</strong> sit on the side facing the
+imaginary light source.</li>
+<li><strong>Negative weights</strong> sit on the opposite side.</li>
+<li><strong>Zero or near-zero weights</strong> form an orthogonal
+dividing line across the kernel center.</li>
+</ul>
+<p>When the kernel traverses the image, it calculates a weighted sum of
+neighboring pixels. Because the weights are signed, flat areas of
+uniform color or smooth gradients cause the positive and negative
+weights to cancel each other out, yielding a net result of zero.
+However, when the kernel passes over an edge aligned against the
+lighting vector, a high positive or negative differential is generated
+depending on whether the edge rises toward or falls away from the
+light.</p>
+<h3 id="edge-response-and-the-gray-baseline">Edge Response and the Gray
+Baseline</h3>
+<p>Convolution with an alternating positive-negative kernel generates
+both positive values (where elevation increases toward the light) and
+negative values (where elevation drops away from the light). Because
+digital image color channels cannot natively store negative values
+without clipping, ImageMagick applies a midpoint bias.</p>
+<ol type="1">
+<li><strong>Uniform Areas (Zero Response):</strong> Shifted to 50%
+neutral gray (RGB 128, 128, 128 in an 8-bit space).</li>
+<li><strong>Rising Slopes (Positive Response):</strong> Added to the
+baseline, yielding values brighter than 50% gray to represent specular
+highlights.</li>
+<li><strong>Falling Slopes (Negative Response):</strong> Subtracted from
+the baseline, yielding values darker than 50% gray to represent cast
+shadows.</li>
+</ol>
+<p>This offset produces the distinctive stone-like or stamped-metal
+appearance associated with the effect, where surface orientation
+relative to the light source dictates brightness rather than the
+original pixel color.</p>
+<h3 id="the-role-of-radius-and-sigma">The Role of Radius and Sigma</h3>
+<p>The <code>-emboss</code> operator accepts geometry parameters in the
+format <code>radiusxsigma</code>. These parameters define the properties
+of the underlying Gaussian derivative:</p>
+<ul>
+<li><strong>Sigma (<span
+class="math inline">\(\sigma\)</span>):</strong> Controls the standard
+deviation of the Gaussian envelope, dictating the physical spread of the
+kernel. A small sigma produces tight, sharp bevels, while a larger sigma
+spreads the gradient calculation over a broader area, creating softer,
+wider, and more rounded relief edges.</li>
+<li><strong>Radius:</strong> Specifies the pixel dimensions of the
+convolution matrix grid. If omitted or set to zero, ImageMagick
+automatically calculates an appropriate radius based on the chosen sigma
+to prevent kernel truncation artifacts.</li>
+</ul>
+<p>Through this combination of Gaussian-based directional
+differentiation and neutral gray biasing, ImageMagick efficiently
+converts surface contrast into an illusion of tactile, illuminated
+depth.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Grayscale a WebP Image in ImageMagick? - magick</title>
+    <meta name="description" content="Converting a WebP image to grayscale using ImageMagick can be accomplished in a single command-line step using the -colorspace Gray or -type Grayscale operators. This guide covers the essential commands required to strip color channels from modern WebP g">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-grayscale-a-webp-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Grayscale a WebP Image in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-grayscale-a-webp-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting a WebP image to grayscale using ImageMagick can be accomplished in a single command-line step using the -colorspace Gray or -type Grayscale operators. This guide covers the essential commands required to strip color channels from modern WebP g" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-grayscale-a-webp-image-in-imagemagick">How to Grayscale a
+WebP Image in ImageMagick?</h1>
+<p>Converting a WebP image to grayscale using ImageMagick can be
+accomplished in a single command-line step using the
+<code>-colorspace Gray</code> or <code>-type Grayscale</code> operators.
+This guide covers the essential commands required to strip color
+channels from modern WebP graphics, explains how to control output
+quality and compression, and details how to batch-process entire
+directories of images efficiently.</p>
+<h2 id="basic-grayscale-conversion">Basic Grayscale Conversion</h2>
+<p>ImageMagick provides built-in color transformation operators that
+accurately map RGB chromatic values into luminance levels. For modern
+installations running ImageMagick 7, the recommended command is
+<code>magick</code>.</p>
+<p>To convert a single WebP image to grayscale:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> Gray output.webp</span></code></pre></div>
+<p>If you are using legacy ImageMagick 6, the <code>convert</code>
+binary performs the identical operation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.webp <span class="at">-colorspace</span> Gray output.webp</span></code></pre></div>
+<p>The <code>-colorspace Gray</code> operator converts the image data by
+calculating perceptual luminance according to standard color weights
+(<span class="math inline">\(0.2126R + 0.7152G + 0.0722B\)</span> under
+Rec. 709). This ensures that colors with different inherent brightness,
+such as yellow and blue, do not collapse into identical shades of
+gray.</p>
+<h2 id="preserving-or-adjusting-webp-compression">Preserving or
+Adjusting WebP Compression</h2>
+<p>WebP supports both lossy and lossless compression modes. When writing
+back to the WebP format, ImageMagick applies default compression
+settings unless explicitly told otherwise.</p>
+<p>To enforce specific quality targets or lossless encoding during
+conversion, append the <code>-quality</code> and <code>-define</code>
+parameters:</p>
+<h3 id="lossless-grayscale-webp">Lossless Grayscale WebP</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> Gray <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h3 id="high-quality-lossy-webp">High-Quality Lossy WebP</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> Gray <span class="at">-quality</span> 85 output.webp</span></code></pre></div>
+<p>Setting <code>-quality</code> between 75 and 90 generally yields an
+optimal balance between visual clarity and file size reduction. Because
+grayscale images discard the <span class="math inline">\(U\)</span> and
+<span class="math inline">\(V\)</span> chrominance planes entirely, the
+resulting WebP file will typically be significantly smaller than the
+color original.</p>
+<h2 id="alternative-desaturation-methods">Alternative Desaturation
+Methods</h2>
+<p>Depending on the intended visual output, alternative operators offer
+subtle variations in how pixel intensities are computed:</p>
+<ul>
+<li><strong>Linear Gray:</strong> Use
+<code>-colorspace LinearGray</code> if you are preparing textures or
+heightmaps where linear radiometric values are required rather than
+gamma-corrected perceptual brightness.</li>
+<li><strong>Desaturate via HSL:</strong> Setting the saturation channel
+to zero simulates removing pigment without recalculating luminance
+curves:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 100,0 output.webp</span></code></pre></div>
+<ul>
+<li><strong>Enforce Output Type:</strong> Adding
+<code>-type Grayscale</code> forces ImageMagick to write the output
+image header as a single grayscale channel:</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-type</span> Grayscale output.webp</span></code></pre></div>
+<h2 id="batch-processing-multiple-webp-files">Batch Processing Multiple
+WebP Files</h2>
+<p>To convert an entire directory of WebP images without scripting
+complex loops, use ImageMagick's <code>mogrify</code> tool. Note that
+<code>mogrify</code> modifies files in place unless an output directory
+is specified.</p>
+<p>To process and overwrite all WebP files in the current folder:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-colorspace</span> Gray <span class="pp">*</span>.webp</span></code></pre></div>
+<p>To output the converted files into a separate folder while preserving
+the originals:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ./grayscale</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./grayscale <span class="at">-colorspace</span> Gray <span class="pp">*</span>.webp</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compile ImageMagick from Source with OpenMP - magick</title>
+    <meta name="description" content="Compiling ImageMagick from source with OpenMP allows the software to distribute image processing tasks across multiple CPU cores, significantly speeding up operations on multi-core systems. This guide provides step-by-step instructions to install the req">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compile-imagemagick-from-source-with-openmp">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compile ImageMagick from Source with OpenMP - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compile-imagemagick-from-source-with-openmp" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Compiling ImageMagick from source with OpenMP allows the software to distribute image processing tasks across multiple CPU cores, significantly speeding up operations on multi-core systems. This guide provides step-by-step instructions to install the req" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compile-imagemagick-from-source-with-openmp">Compile ImageMagick
+from Source with OpenMP</h1>
+<p>Compiling ImageMagick from source with OpenMP allows the software to
+distribute image processing tasks across multiple CPU cores,
+significantly speeding up operations on multi-core systems. This guide
+provides step-by-step instructions to install the required build
+dependencies, configure the source tree with explicit OpenMP support,
+build the binaries, and verify that multi-threading is active on your
+system.</p>
+<h3 id="1-install-build-tools-and-dependencies">1. Install Build Tools
+and Dependencies</h3>
+<p>Before compiling, install a C compiler with OpenMP support (such as
+GCC), essential build tools, and the libraries for the image formats you
+intend to process.</p>
+<p>On Debian/Ubuntu-based distributions:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install <span class="at">-y</span> build-essential gcc g++ make <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    libgomp1 libpng-dev libjpeg-dev libtiff-dev <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    libwebp-dev libfreetype-dev libxml2-dev</span></code></pre></div>
+<p>On RHEL/CentOS/Fedora systems:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf groupinstall <span class="at">-y</span> <span class="st">&quot;Development Tools&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> libgomp-devel libpng-devel libjpeg-turbo-devel <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    libtiff-devel libwebp-devel freetype-devel libxml2-devel</span></code></pre></div>
+<h3 id="2-download-the-imagemagick-source-code">2. Download the
+ImageMagick Source Code</h3>
+<p>Clone the official Git repository or download and extract the latest
+source tarball.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/ImageMagick/ImageMagick.git</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ImageMagick</span></code></pre></div>
+<p>Alternatively, download a tarball release:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://imagemagick.org/archive/ImageMagick.tar.gz</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xzvf</span> ImageMagick.tar.gz</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ImageMagick-<span class="pp">*</span></span></code></pre></div>
+<h3 id="3-configure-the-build-with-openmp">3. Configure the Build with
+OpenMP</h3>
+<p>Run the <code>configure</code> script to prepare the build
+environment. Explicitly pass the <code>--enable-openmp</code> flag to
+ensure multi-threading support is linked against
+<code>libgomp</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="at">--enable-openmp</span> <span class="at">--with-modules</span></span></code></pre></div>
+<p>Inspect the output at the end of the configuration run. Under the
+features summary, confirm that OpenMP is recognized:</p>
+<pre class="text"><code>OpenMP          --enable-openmp: yes</code></pre>
+<p>If it reads <code>no</code>, verify that GCC and <code>libgomp</code>
+are installed properly.</p>
+<h3 id="4-compile-and-install">4. Compile and Install</h3>
+<p>Compile the source tree using all available processor cores, then
+install the compiled files to the system:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ldconfig /usr/local/lib</span></code></pre></div>
+<p>The <code>ldconfig</code> command ensures the dynamic linker detects
+the newly installed shared libraries.</p>
+<h3 id="5-verify-the-installation">5. Verify the Installation</h3>
+<p>Check the installed ImageMagick version to confirm that OpenMP is
+listed under the compiled features:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>OpenMP</code> in the <code>Features</code> line of the
+output:</p>
+<pre class="text"><code>Version: ImageMagick 7.x.x-xx ...
+Features: Cipher DPC HDRI Modules OpenMP </code></pre>
+<h3 id="6-managing-openmp-threads">6. Managing OpenMP Threads</h3>
+<p>ImageMagick automatically attempts to utilize all available CPU
+threads. You can control the thread count per command or system-wide
+using environment variables:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Limit ImageMagick to 4 threads for a specific run</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="va">MAGICK_THREAD_LIMIT</span><span class="op">=</span>4 <span class="ex">magick</span> input.jpg <span class="at">-resize</span> 50% output.jpg</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Or set standard OpenMP thread concurrency</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>4</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

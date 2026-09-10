@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Increase Image Exposure with ImageMagick Evaluate Add - magick</title>
+    <meta name="description" content="Adjusting image exposure is a common post-processing task, and ImageMagick provides a direct way to brighten images through the -evaluate Add operator. This guide explains how to use the command, how it alters pixel data across color channels, and the ex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/increase-image-exposure-with-imagemagick-evaluate-add">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Increase Image Exposure with ImageMagick Evaluate Add - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/increase-image-exposure-with-imagemagick-evaluate-add" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting image exposure is a common post-processing task, and ImageMagick provides a direct way to brighten images through the -evaluate Add operator. This guide explains how to use the command, how it alters pixel data across color channels, and the ex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="increase-image-exposure-with-imagemagick-evaluate-add">Increase
+Image Exposure with ImageMagick Evaluate Add</h1>
+<p>Adjusting image exposure is a common post-processing task, and
+ImageMagick provides a direct way to brighten images through the
+<code>-evaluate Add</code> operator. This guide explains how to use the
+command, how it alters pixel data across color channels, and the exact
+syntax required to achieve predictable exposure increases without
+unnecessary complexity.</p>
+<h3 id="understanding-the-evaluate-add-operator">Understanding the
+Evaluate Add Operator</h3>
+<p>The <code>-evaluate</code> operator in ImageMagick applies an
+arithmetic, relational, or logical expression to every pixel in an
+image. When paired with the <code>Add</code> method, it performs a
+linear offset by adding a specified numerical value directly to each
+color channel's intensity.</p>
+<p>Adding a fixed value shifts the entire image histogram to the right.
+This brightens shadows, midtones, and highlights uniformly. Any pixel
+value that exceeds the maximum limit (such as pure white) automatically
+clips at the maximum quantum range.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>To raise overall exposure across all color channels, use the
+following syntax with ImageMagick version 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-evaluate</span> Add 10% output.jpg</span></code></pre></div>
+<p>For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-evaluate</span> Add 10% output.jpg</span></code></pre></div>
+<h3 id="specifying-values-percentages-vs-raw-quantum-values">Specifying
+Values: Percentages vs. Raw Quantum Values</h3>
+<p>You can specify the value to add in two ways:</p>
+<ol type="1">
+<li><strong>Percentage (Recommended):</strong> Using a percent sign
+(e.g., <code>10%</code> or <code>15%</code>) makes your command
+independent of the ImageMagick build's quantum depth (Q8, Q16, or Q32).
+A value of <code>10%</code> adds 10% of the maximum luminance to every
+pixel.</li>
+<li><strong>Absolute Integer Values:</strong> If omitted, ImageMagick
+assumes raw quantum integers. For example, in a standard Q16 build where
+pixel values range from 0 to 65535, adding <code>6553</code> is roughly
+equivalent to a 10% brightness increase. Using percentages avoids having
+to calculate values based on the active quantum depth.</li>
+</ol>
+<h3 id="restricting-exposure-to-specific-channels">Restricting Exposure
+to Specific Channels</h3>
+<p>By default, modern ImageMagick versions apply the evaluation to all
+color channels while preserving transparency. If you need to explicitly
+restrict the operation to the red, green, and blue channels without
+affecting an alpha channel, define the active channel target:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> RGB <span class="at">-evaluate</span> Add 15% +channel output.png</span></code></pre></div>
+<p>The <code>+channel</code> switch resets the channel mask to default
+values for any subsequent operations in the pipeline.</p>
+<h3 id="considerations-when-using-add-vs-multiply">Considerations When
+Using Add vs. Multiply</h3>
+<p>While <code>-evaluate Add</code> raises overall brightness, it works
+as a linear pedestal shift. This means black pixels (<code>0</code>)
+will become lightened (e.g., to <code>10%</code> gray), potentially
+reducing contrast in deep shadows.</p>
+<p>If you want an exposure adjustment that mimics a camera's exposure
+value (EV) stops—where absolute black remains black and
+midtones/highlights scale proportionally—consider whether
+<code>-evaluate Multiply</code> or <code>-modulate</code> better fits
+your needs. Use <code>-evaluate Add</code> primarily when shadows need a
+direct lift or when lifting an underexposed flat scene.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

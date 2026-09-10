@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mean vs Median Brightness in ImageMagick Identify - magick</title>
+    <meta name="description" content="When analyzing an image using ImageMagick's identify -verbose command, the output provides detailed channel statistics, including mean and median brightness values. While both metrics measure the central tendency of pixel intensities, they do so differen">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/mean-vs-median-brightness-in-imagemagick-identify">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mean vs Median Brightness in ImageMagick Identify - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/mean-vs-median-brightness-in-imagemagick-identify" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When analyzing an image using ImageMagick's identify -verbose command, the output provides detailed channel statistics, including mean and median brightness values. While both metrics measure the central tendency of pixel intensities, they do so differen" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="mean-vs-median-brightness-in-imagemagick-identify">Mean vs
+Median Brightness in ImageMagick Identify</h1>
+<p>When analyzing an image using ImageMagick's
+<code>identify -verbose</code> command, the output provides detailed
+channel statistics, including mean and median brightness values. While
+both metrics measure the central tendency of pixel intensities, they do
+so differently: the <strong>mean</strong> represents the mathematical
+average of all pixel values and is heavily influenced by extreme
+highlights or shadows, whereas the <strong>median</strong> represents
+the exact middle value of all sorted pixels, making it resistant to
+outliers and high-contrast anomalies.</p>
+<h2 id="understanding-mean-pixel-brightness">Understanding Mean Pixel
+Brightness</h2>
+<p>The mean brightness is calculated by summing the intensity values of
+every pixel in a specific channel (or across all channels) and dividing
+that total by the total number of pixels.</p>
+<p><span class="math display">\[\text{Mean} = \frac{\sum \text{Pixel
+Values}}{\text{Total Pixels}}\]</span></p>
+<h3 id="characteristics-of-mean-value">Characteristics of Mean
+Value:</h3>
+<ul>
+<li><strong>Sensitivity to Outliers:</strong> If an image is mostly dark
+but contains a few extremely bright highlights (such as streetlights in
+a night photo), the mean value will be pulled significantly higher.</li>
+<li><strong>Overall Energy:</strong> The mean accurately reflects the
+total luminous energy of an image, which is useful for exposure
+correction, calculating average brightness across video frames, or tone
+mapping.</li>
+<li><strong>Format:</strong> In ImageMagick, mean values are reported
+either in raw quantum range (0–65535 for Q16 builds, 0–255 for Q8
+builds) or normalized (0.0 to 1.0) depending on how you query the format
+string (e.g., <code>%[mean]</code> vs. <code>%[fx:mean]</code>).</li>
+</ul>
+<h2 id="understanding-median-pixel-brightness">Understanding Median
+Pixel Brightness</h2>
+<p>The median brightness is calculated by sorting all pixel intensity
+values in ascending order and selecting the value located at the exact
+50th percentile.</p>
+<h3 id="characteristics-of-median-value">Characteristics of Median
+Value:</h3>
+<ul>
+<li><strong>Resistance to Outliers:</strong> Extreme values do not
+distort the median. A small patch of blown-out white pixels will not
+shift the median if the rest of the image is dark.</li>
+<li><strong>Representative Midtone:</strong> The median reflects the
+typical brightness of the majority of the image, making it ideal for
+background separation, noise filtering, and thresholding.</li>
+<li><strong>Format:</strong> Similar to the mean, ImageMagick provides
+median values across the channel's quantum depth or via formatted
+strings like <code>%[median]</code>.</li>
+</ul>
+<h2 id="key-differences-summary">Key Differences Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Mean Brightness</th>
+<th style="text-align: left;">Median Brightness</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Calculation</strong></td>
+<td style="text-align: left;">Arithmetic sum divided by pixel count</td>
+<td style="text-align: left;">Middle value of sorted pixel list</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Outlier Sensitivity</strong></td>
+<td style="text-align: left;">High (skewed by hot pixels, glare, deep
+shadows)</td>
+<td style="text-align: left;">Low (ignores localized extreme
+values)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Best Used For</strong></td>
+<td style="text-align: left;">Overall exposure measurement, total
+luminosity</td>
+<td style="text-align: left;">Typical scene brightness, thresholding,
+noise-robust analysis</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ImageMagick String</strong></td>
+<td style="text-align: left;"><code>%[mean]</code> or
+<code>%[standard:mean]</code></td>
+<td style="text-align: left;"><code>%[median]</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="example-high-contrast-comparison">Example: High-Contrast
+Comparison</h2>
+<p>Consider a 10-pixel grayscale image with pixel intensities ranging
+from 0 (black) to 100 (white):</p>
+<p><code>[10, 12, 12, 14, 15, 15, 16, 18, 95, 98]</code></p>
+<ul>
+<li><strong>Mean:</strong> <span class="math inline">\((10 + 12 + 12 +
+14 + 15 + 15 + 16 + 18 + 95 + 98) / 10 = \mathbf{30.5}\)</span></li>
+<li><strong>Median:</strong> Middle values are 15 and 15 <span
+class="math inline">\(\rightarrow \mathbf{15}\)</span></li>
+</ul>
+<p>In this scenario, the median accurately indicates that the majority
+of pixels are dark (around 15), while the mean suggests a moderately
+bright image (30.5) due to the two extreme highlights.</p>
+<h2 id="extracting-values-using-imagemagick">Extracting Values Using
+ImageMagick</h2>
+<p>To view both values in standard verbose output:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> input.jpg</span></code></pre></div>
+<p>To extract only the numerical mean and median values directly using
+format specifiers:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Mean: %[mean]\nMedian: %[median]\n&quot;</span> input.jpg</span></code></pre></div>
+<p>For normalized values between 0.0 and 1.0:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Mean (0-1): %[fx:mean]\nMedian (0-1): %[fx:median]\n&quot;</span> input.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Raw Pixel Arrays to Floats in ImageMagick - magick</title>
+    <meta name="description" content="Exporting raw pixel data as plain-text floating-point values is an essential task for scientific visualization, machine learning data pipelines, and custom rendering algorithms. This guide explains how to use ImageMagick from the command line to convert">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/export-raw-pixel-arrays-to-floats-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Export Raw Pixel Arrays to Floats in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/export-raw-pixel-arrays-to-floats-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Exporting raw pixel data as plain-text floating-point values is an essential task for scientific visualization, machine learning data pipelines, and custom rendering algorithms. This guide explains how to use ImageMagick from the command line to convert" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="export-raw-pixel-arrays-to-floats-in-imagemagick">Export Raw
+Pixel Arrays to Floats in ImageMagick</h1>
+<p>Exporting raw pixel data as plain-text floating-point values is an
+essential task for scientific visualization, machine learning data
+pipelines, and custom rendering algorithms. This guide explains how to
+use ImageMagick from the command line to convert standard image formats
+into clean, human-readable floating-point text arrays, both with and
+without spatial coordinate metadata.</p>
+<h2 id="method-1-using-the-built-in-text-enumeration-format-txt">Method
+1: Using the Built-In Text Enumeration Format (<code>txt:</code>)</h2>
+<p>ImageMagick includes a built-in format called <strong>ImageMagick
+Pixel Enumeration</strong> (<code>txt:</code>). This format outputs
+coordinates, raw quantum values, and color channel values as
+floating-point numbers or percentages.</p>
+<p>To export an image to a <code>.txt</code> file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png output.txt</span></code></pre></div>
+<p>If you are using ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png output.txt</span></code></pre></div>
+<h3 id="output-structure">Output Structure</h3>
+<p>The resulting text file will contain a header describing the image
+dimensions, depth, and colorspace, followed by lines formatted as:</p>
+<pre class="text"><code># ImageMagick pixel enumeration: 2,2,0,65535,srgb
+0,0: (65535,0,0)  #FF0000  red
+1,0: (0,65535,0)  #00FF00  lime
+0,1: (0,0,65535)  #0000FF  blue
+1,1: (65535,65535,65535)  #FFFFFF  white</code></pre>
+<p>To enforce high-precision floating-point output in standard
+enumeration:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> quantum:format=floating-point <span class="at">-depth</span> 32 output.txt</span></code></pre></div>
+<hr />
+<h2
+id="method-2-exporting-pure-raw-floating-point-arrays-no-metadata">Method
+2: Exporting Pure Raw Floating-Point Arrays (No Metadata)</h2>
+<p>When feeding pixel data directly into numerical software (such as
+NumPy, MATLAB, or C/C++ buffers), coordinate labels and color names are
+often unwanted. You can use ImageMagick's <code>-format</code> operator
+combined with the <code>fx</code> engine to output clean numeric text
+directly to standard output or a file.</p>
+<h3 id="1-grayscale-floating-point-array-00-to-10">1. Grayscale
+Floating-Point Array (0.0 to 1.0)</h3>
+<p>To export a single grayscale float per pixel, separated by
+newlines:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-format</span> <span class="st">&quot;%[fx:u]\n&quot;</span> info:pixels.txt</span></code></pre></div>
+<ul>
+<li><code>%[fx:u]</code> calculates the normalized intensity of the
+current pixel from <code>0.0</code> (black) to <code>1.0</code>
+(white).</li>
+<li><code>info:pixels.txt</code> writes the formatted string to
+<code>pixels.txt</code>.</li>
+</ul>
+<h3 id="2-multi-channel-rgb-floating-point-array">2. Multi-Channel RGB
+Floating-Point Array</h3>
+<p>To export RGB values as space-separated floats per pixel:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-format</span> <span class="st">&quot;%[fx:u.r] %[fx:u.g] %[fx:u.b]\n&quot;</span> info:pixels_rgb.txt</span></code></pre></div>
+<ul>
+<li><code>%[fx:u.r]</code>: Red channel normalized between
+<code>0.0</code> and <code>1.0</code>.</li>
+<li><code>%[fx:u.g]</code>: Green channel normalized between
+<code>0.0</code> and <code>1.0</code>.</li>
+<li><code>%[fx:u.b]</code>: Blue channel normalized between
+<code>0.0</code> and <code>1.0</code>.</li>
+</ul>
+<h3 id="3-rgba-floating-point-array-with-alpha">3. RGBA Floating-Point
+Array (With Alpha)</h3>
+<p>To include the alpha (transparency) channel:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-format</span> <span class="st">&quot;%[fx:u.r] %[fx:u.g] %[fx:u.b] %[fx:u.a]\n&quot;</span> info:pixels_rgba.txt</span></code></pre></div>
+<hr />
+<h2 id="method-3-custom-scaling-and-precision">Method 3: Custom Scaling
+and Precision</h2>
+<p>By default, <code>%[fx:...]</code> normalizes values to the range
+<code>[0.0, 1.0]</code>. You can modify the expression directly in the
+command to scale values or alter the output range.</p>
+<h3 id="export-to-a-00-to-2550-range">Export to a 0.0 to 255.0
+Range</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-format</span> <span class="st">&quot;%[fx:u.r*255] %[fx:u.g*255] %[fx:u.b*255]\n&quot;</span> info:pixels_255.txt</span></code></pre></div>
+<h3 id="comma-separated-values-csv-format">Comma-Separated Values (CSV
+Format)</h3>
+<p>To output the data in CSV format for direct spreadsheet or database
+import:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-format</span> <span class="st">&quot;%[fx:u.r],%[fx:u.g],%[fx:u.b]\n&quot;</span> info:pixels.csv</span></code></pre></div>
+<h3 id="custom-delimiters-single-flattened-line">Custom Delimiters
+(Single Flattened Line)</h3>
+<p>To output the entire image array as a single space-separated sequence
+of floating-point values:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-format</span> <span class="st">&quot;%[fx:u] &quot;</span> info:flat_array.txt</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Threshold a PNG Image in ImageMagick? - magick</title>
+    <meta name="description" content="Thresholding a PNG image using ImageMagick converts grayscale or color pixels into pure black and white based on defined intensity values, making it an essential technique for document scanning, OCR preprocessing, and graphic simplification. This guide e">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-threshold-a-png-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Threshold a PNG Image in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-threshold-a-png-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Thresholding a PNG image using ImageMagick converts grayscale or color pixels into pure black and white based on defined intensity values, making it an essential technique for document scanning, OCR preprocessing, and graphic simplification. This guide e" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-threshold-a-png-image-in-imagemagick">How to Threshold a
+PNG Image in ImageMagick?</h1>
+<p>Thresholding a PNG image using ImageMagick converts grayscale or
+color pixels into pure black and white based on defined intensity
+values, making it an essential technique for document scanning, OCR
+preprocessing, and graphic simplification. This guide explains how to
+apply basic global thresholds, percentage-based cutoffs, and adaptive
+local thresholding commands directly from your terminal using
+ImageMagick's <code>magick</code> (ImageMagick 7) and
+<code>convert</code> (ImageMagick 6) utilities.</p>
+<h2 id="understanding-imagemagick-thresholding">Understanding
+ImageMagick Thresholding</h2>
+<p>Thresholding evaluates each pixel's brightness against a target
+value. Pixels above the threshold value turn white, while pixels at or
+below it turn black. Because PNG images frequently contain color
+channels and alpha transparency, converting the image to grayscale and
+handling alpha layers ensures clean binary output.</p>
+<h2 id="basic-global-thresholding">Basic Global Thresholding</h2>
+<p>The simplest way to threshold an image is using a fixed percentage
+value with the <code>-threshold</code> operator.</p>
+<p>For ImageMagick 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> gray <span class="at">-threshold</span> 50% output.png</span></code></pre></div>
+<p>For ImageMagick 6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-colorspace</span> gray <span class="at">-threshold</span> 50% output.png</span></code></pre></div>
+<p>The <code>-colorspace gray</code> parameter strips out color data
+first so the threshold operator works strictly on luminance. The
+<code>50%</code> argument sets the midpoint: pixels lighter than 50%
+gray turn pure white, while darker pixels become pure black.</p>
+<h2 id="adjusting-the-threshold-value">Adjusting the Threshold
+Value</h2>
+<p>You can fine-tune the sensitivity by adjusting the percentage:</p>
+<ul>
+<li><strong>Higher percentage (e.g.,
+<code>-threshold 70%</code>):</strong> More pixels fall below the
+cutoff, producing a darker output image with thicker dark lines.</li>
+<li><strong>Lower percentage (e.g.,
+<code>-threshold 30%</code>):</strong> Fewer pixels fall below the
+cutoff, producing a brighter image with thinner lines.</li>
+</ul>
+<p>You can also provide absolute raw integer values corresponding to
+your installation's Quantum Depth (such as 0 to 65535 for Q16), but
+using percentages is universally portable across all builds.</p>
+<h2 id="preserving-or-stripping-transparency">Preserving or Stripping
+Transparency</h2>
+<p>PNG files often contain an alpha channel that can interfere with
+binarization:</p>
+<ul>
+<li><strong>Flatten against white:</strong> If your input PNG has
+transparent areas you want treated as white background:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-background</span> white <span class="at">-flatten</span> <span class="at">-colorspace</span> gray <span class="at">-threshold</span> 50% output.png</span></code></pre></div>
+<ul>
+<li><strong>Remove alpha entirely:</strong></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-alpha</span> off <span class="at">-threshold</span> 50% output.png</span></code></pre></div>
+<h2 id="adaptive-thresholding-for-uneven-lighting">Adaptive Thresholding
+for Uneven Lighting</h2>
+<p>Standard global thresholding often fails when an image has shadows or
+uneven illumination, such as a photograph of a document. In these cases,
+adaptive thresholding calculates a dynamic threshold for each pixel
+based on the surrounding neighborhood.</p>
+<p>Use the <code>-lat</code> (local adaptive threshold) operator:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-negate</span> <span class="at">-lat</span> 25x25+10% <span class="at">-negate</span> output.png</span></code></pre></div>
+<p>The <code>25x25</code> parameter defines the pixel window size around
+each target pixel, and <code>+10%</code> defines the offset from the
+local average. The <code>-negate</code> commands are often paired with
+<code>-lat</code> because the operation by default detects dark features
+on light backgrounds in inverse polarities.</p>
+<h2 id="common-command-recipes">Common Command Recipes</h2>
+<ul>
+<li><strong>High-contrast document cleanup:</strong></li>
+</ul>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> gray <span class="at">-contrast-stretch</span> 1%x1% <span class="at">-threshold</span> 60% output.png</span></code></pre></div>
+<ul>
+<li><strong>Two-color monochrome palette output:</strong></li>
+</ul>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> gray <span class="at">-threshold</span> 50% <span class="at">-type</span> bilevel output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pyramidal TIFF Downsampling in ImageMagick - magick</title>
+    <meta name="description" content="Pyramidal TIFFs store a sequence of progressively downsampled versions of an image within a single file to support high-performance panning and multi-level zooming. In ImageMagick, pyramidal sub-resolution downsampling is driven by the PTIF: coder, while">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/pyramidal-tiff-downsampling-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pyramidal TIFF Downsampling in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/pyramidal-tiff-downsampling-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Pyramidal TIFFs store a sequence of progressively downsampled versions of an image within a single file to support high-performance panning and multi-level zooming. In ImageMagick, pyramidal sub-resolution downsampling is driven by the PTIF: coder, while" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="pyramidal-tiff-downsampling-in-imagemagick">Pyramidal TIFF
+Downsampling in ImageMagick</h1>
+<p>Pyramidal TIFFs store a sequence of progressively downsampled
+versions of an image within a single file to support high-performance
+panning and multi-level zooming. In ImageMagick, pyramidal
+sub-resolution downsampling is driven by the <code>PTIF:</code> coder,
+while the algorithm used to downsample each successive sub-resolution
+layer is controlled by the resampling filter subsystem—specifically the
+<code>-filter</code> setting alongside <code>-define filter:*</code>
+configuration flags—in conjunction with structural defines such as
+<code>-define tiff:tile-geometry</code> and
+<code>-define tiff:subfiletype</code>.</p>
+<h2 id="how-imagemagick-handles-pyramidal-tiff-generation">How
+ImageMagick Handles Pyramidal TIFF Generation</h2>
+<p>ImageMagick generates multi-resolution pyramidal TIFF files using the
+Pyramidal TIFF coder (<code>PTIF:</code>). When saving to this format,
+ImageMagick takes the base image and iteratively generates
+half-resolution layers (each dimension divided by two) until the image
+dimensions fall below the tile boundary size.</p>
+<p>Each reduced-resolution layer is created internally by calling
+ImageMagick's core resizing routine. Because of this architecture,
+ImageMagick does not rely on a standalone
+<code>tiff:pyramid-filter</code> flag. Instead, the downsampling method
+is inherited directly from the standard image filter configuration.</p>
+<h2 id="filter-defines-controlling-downsampling-quality">Filter Defines
+Controlling Downsampling Quality</h2>
+<p>To control the algorithm used when generating each sub-resolution
+level, configure the downsampling filter before invoking the output:</p>
+<ul>
+<li><strong><code>-filter &lt;type&gt;</code></strong>: Selects the
+interpolation and downsampling filter. Common options include:
+<ul>
+<li><code>Box</code>: Standard averaging, fast and sharp for downscaling
+(similar to nearest-neighbor/area averaging).</li>
+<li><code>Triangle</code> (Bilinear): Fast linear interpolation,
+producing smooth transitions.</li>
+<li><code>Lanczos</code>: Sinc-based windowed filter, providing high
+sharpness and detail retention.</li>
+<li><code>Gaussian</code>: Soft downsampling, useful for reducing
+high-frequency aliasing artifacts.</li>
+</ul></li>
+<li><strong><code>-define filter:filter=&lt;type&gt;</code></strong>:
+Sets the filter kernel explicitly via define flags.</li>
+<li><strong><code>-define filter:support=&lt;value&gt;</code></strong>:
+Adjusts the scale/support radius of the chosen filter kernel to control
+sharpness or blur during reduction.</li>
+<li><strong><code>-define filter:blur=&lt;factor&gt;</code></strong>:
+Adjusts the filter's blur factor (values greater than 1.0 blur the
+output; values less than 1.0 sharpen it).</li>
+</ul>
+<h2 id="structural-tiff-defines-for-sub-resolutions">Structural TIFF
+Defines for Sub-Resolutions</h2>
+<p>While filter defines govern the pixel interpolation method, several
+TIFF-specific defines directly configure how the sub-resolution layers
+are packaged:</p>
+<ul>
+<li><strong><code>-define tiff:tile-geometry=&lt;width&gt;x&lt;height&gt;</code></strong>:
+Pyramidal TIFFs must be tiled for rapid regional access. This define
+sets the tile dimensions (commonly <code>256x256</code> or
+<code>512x512</code>) across all pyramid layers.</li>
+<li><strong><code>-define tiff:subfiletype=1</code></strong> (or
+<code>reducedimage</code>): Marks individual directories within the TIFF
+as reduced-resolution overview images using the TIFF
+<code>NewSubfileType</code> (tag 254) specification.</li>
+<li><strong><code>-define tiff:subsampling-horizontal=&lt;int&gt;</code>
+and <code>-define tiff:subsampling-vertical=&lt;int&gt;</code></strong>:
+Controls chroma subsampling factors (e.g., <code>2x2</code> for standard
+4:2:0 subsampling) when writing pyramidal TIFFs using YCbCr/JPEG
+compression.</li>
+</ul>
+<h2 id="practical-usage-example">Practical Usage Example</h2>
+<p>The following command generates a tiled, pyramidal TIFF using a
+Lanczos downsampling filter with custom 256x256 tiles:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Lanczos <span class="at">-define</span> tiff:tile-geometry=256x256 ptif:output.tif</span></code></pre></div>
+<p>If smaller file size and faster processing are prioritized over edge
+sharpness, switch to a bilinear or box filter:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Triangle <span class="at">-define</span> tiff:tile-geometry=256x256 ptif:output.tif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

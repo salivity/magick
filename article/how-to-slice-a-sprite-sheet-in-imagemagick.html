@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Slice a Sprite Sheet in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to quickly slice a uniform sprite sheet into individual animation frames using ImageMagick. By applying the -crop geometry option alongside the +repage operator, you can automatically divide an evenly spaced grid of sprites in">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-slice-a-sprite-sheet-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Slice a Sprite Sheet in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-slice-a-sprite-sheet-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to quickly slice a uniform sprite sheet into individual animation frames using ImageMagick. By applying the -crop geometry option alongside the +repage operator, you can automatically divide an evenly spaced grid of sprites in" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-slice-a-sprite-sheet-in-imagemagick">How to Slice a
+Sprite Sheet in ImageMagick</h1>
+<p>This guide demonstrates how to quickly slice a uniform sprite sheet
+into individual animation frames using ImageMagick. By applying the
+<code>-crop</code> geometry option alongside the <code>+repage</code>
+operator, you can automatically divide an evenly spaced grid of sprites
+into sequentially numbered image files directly from the command
+line.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>To slice an image into uniform tiles, specify the width and height of
+a single frame using the <code>-crop</code> operator without providing
+offset coordinates:</p>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_sheet.png <span class="at">-crop</span> WIDTHxHEIGHT +repage frame_%02d.png</span></code></pre></div>
+<p><strong>ImageMagick v6 (Legacy):</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_sheet.png <span class="at">-crop</span> WIDTHxHEIGHT +repage frame_%02d.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>input_sheet.png</code></strong>: The source sprite
+sheet image containing the animation frames.</li>
+<li><strong><code>-crop WIDTHxHEIGHT</code></strong>: The exact pixel
+dimensions of a single frame (for example, <code>64x64</code> or
+<code>32x48</code>). ImageMagick automatically traverses the image from
+left to right, top to bottom, cutting tiles of this size across the
+entire sheet.</li>
+<li><strong><code>+repage</code></strong>: Crucial for resetting the
+virtual canvas offsets. Without this, individual frame files may retain
+positional metadata from the original sheet, causing alignment issues in
+game engines or editors.</li>
+<li><strong><code>frame_%02d.png</code></strong>: The output naming
+format using C-style printf notation. <code>%02d</code> creates
+zero-padded two-digit integers (<code>frame_00.png</code>,
+<code>frame_01.png</code>), while <code>%03d</code> creates three-digit
+integers (<code>frame_000.png</code>).</li>
+</ul>
+<h3 id="example">Example</h3>
+<p>To slice a <code>256x64</code> pixel sprite sheet containing four
+<code>64x64</code> frames into separate PNG files:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> character_run.png <span class="at">-crop</span> 64x64 +repage run_frame_%02d.png</span></code></pre></div>
+<p>This generates <code>run_frame_00.png</code>,
+<code>run_frame_01.png</code>, <code>run_frame_02.png</code>, and
+<code>run_frame_03.png</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

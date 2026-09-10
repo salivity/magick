@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normalize Document Backgrounds in ImageMagick - magick</title>
+    <meta name="description" content="Scanned documents often suffer from uneven lighting, yellowed paper, shadows, and scan artifacts that reduce legibility and waste printer ink. ImageMagick provides robust command-line tools to remove these imperfections by flattening the background to pu">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/normalize-document-backgrounds-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Normalize Document Backgrounds in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/normalize-document-backgrounds-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Scanned documents often suffer from uneven lighting, yellowed paper, shadows, and scan artifacts that reduce legibility and waste printer ink. ImageMagick provides robust command-line tools to remove these imperfections by flattening the background to pu" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="normalize-document-backgrounds-in-imagemagick">Normalize
+Document Backgrounds in ImageMagick</h1>
+<p>Scanned documents often suffer from uneven lighting, yellowed paper,
+shadows, and scan artifacts that reduce legibility and waste printer
+ink. ImageMagick provides robust command-line tools to remove these
+imperfections by flattening the background to pure white while
+preserving the sharpness of dark text. This guide covers the most
+effective ImageMagick techniques to clean document scans, ranging from
+simple color leveling to adaptive background division.</p>
+<h2
+id="method-1-background-division-best-for-uneven-lighting-and-shadows">Method
+1: Background Division (Best for Uneven Lighting and Shadows)</h2>
+<p>When a document has non-uniform lighting, such as a gradient shadow
+near the spine of a book, simple thresholding will cut off text. The
+division method isolates the background lighting into a blurred mask and
+divides the original image by this mask, effectively flattening the
+lighting across the entire page.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-blur</span> 0x25 <span class="kw">)</span> <span class="ex">-compose</span> Divide <span class="at">-composite</span> output.png</span></code></pre></div>
+<h3 id="how-it-works">How it works:</h3>
+<ol type="1">
+<li><code>+clone</code> creates a duplicate of the scan in memory.</li>
+<li><code>-blur 0x25</code> blurs the clone heavily so that text
+vanishes and only the background illumination and paper color
+remain.</li>
+<li><code>-compose Divide -composite</code> divides the original image
+pixel values by the blurred background, turning the paper white and
+normalizing all lighting variations.</li>
+</ol>
+<p>To enhance contrast after division, chain a <code>-level</code>
+adjustment:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-blur</span> 0x25 <span class="kw">)</span> <span class="ex">-compose</span> Divide <span class="at">-composite</span> <span class="at">-level</span> 5%,95% output.png</span></code></pre></div>
+<hr />
+<h2
+id="method-2-white-balance-with-threshold-and-level-adjustments">Method
+2: White Balance with Threshold and Level Adjustments</h2>
+<p>If the lighting across the page is uniform but the paper is gray or
+discolored, adjusting the white and black points using
+<code>-level</code> is the fastest method.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-level</span> 15%,85% output.png</span></code></pre></div>
+<ul>
+<li><code>-colorspace Gray</code>: Removes color tinting (e.g., yellow
+aged paper).</li>
+<li><code>-level 15%,85%</code>: Forces all pixels with brightness above
+85% to become pure white (#FFFFFF) and all pixels below 15% to become
+pure black (#000000), expanding the midtones.</li>
+</ul>
+<p>To dynamically stretch the contrast based on image content without
+guessing percentages:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-contrast-stretch</span> 1%x99% output.png</span></code></pre></div>
+<hr />
+<h2
+id="method-3-local-adaptive-thresholding-best-for-low-quality-scans">Method
+3: Local Adaptive Thresholding (Best for Low-Quality Scans)</h2>
+<p>For low-contrast documents or scans where fine text is fading into a
+dark background, Local Adaptive Thresholding (<code>-lat</code>)
+analyzes pixel neighborhoods to distinguish text from the surrounding
+paper.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-lat</span> 25x25+10% <span class="at">-negate</span> output.png</span></code></pre></div>
+<ul>
+<li><code>-negate</code>: Inverts colors because the <code>-lat</code>
+operator expects light text on a dark background.</li>
+<li><code>-lat 25x25+10%</code>: Evaluates a 25x25 pixel window and sets
+pixels to white if they are 10% brighter than the local average.</li>
+<li>Second <code>-negate</code>: Inverts the image back to dark text on
+a white background.</li>
+</ul>
+<hr />
+<h2 id="complete-production-recipe">Complete Production Recipe</h2>
+<p>To process a batch of scanned documents, convert them to crisp
+grayscale, remove dark borders, and achieve a uniform white background
+in one operation:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-blur</span> 0x30 <span class="kw">)</span> <span class="ex">-compose</span> Divide <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-linear-stretch</span> 1%x1% <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-deskew</span> 40% <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<ul>
+<li><code>-deskew 40%</code>: Automatically straightens pages tilted up
+to 40 degrees.</li>
+<li><code>-linear-stretch 1%x1%</code>: Ensures maximum contrast between
+text and background after illumination flattening.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

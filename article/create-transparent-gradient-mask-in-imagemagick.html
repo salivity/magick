@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Transparent Gradient Mask in ImageMagick - magick</title>
+    <meta name="description" content="Creating a transparent-to-color gradient mask in ImageMagick allows you to smoothly blend images into transparency or create fading color overlays. This guide demonstrates how to generate a linear or radial gradient transitioning from a fully transparent">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-transparent-gradient-mask-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Transparent Gradient Mask in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-transparent-gradient-mask-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a transparent-to-color gradient mask in ImageMagick allows you to smoothly blend images into transparency or create fading color overlays. This guide demonstrates how to generate a linear or radial gradient transitioning from a fully transparent" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-transparent-gradient-mask-in-imagemagick">Create
+Transparent Gradient Mask in ImageMagick</h1>
+<p>Creating a transparent-to-color gradient mask in ImageMagick allows
+you to smoothly blend images into transparency or create fading color
+overlays. This guide demonstrates how to generate a linear or radial
+gradient transitioning from a fully transparent state to a solid color
+using simple command-line syntax in both ImageMagick v7 and v6.</p>
+<h2 id="generating-a-basic-transparent-to-color-gradient">Generating a
+Basic Transparent-to-Color Gradient</h2>
+<p>The simplest way to create a transparent-to-color gradient is to
+define the canvas size and specify the gradient colors using
+<code>none</code> (or <code>transparent</code>) for the fully
+transparent end, followed by your target color.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 gradient:none-black transparent_to_black.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-size</span> 600x400 gradient:none-black transparent_to_black.png</span></code></pre></div>
+<p>To use a specific hex code or RGBA color:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 gradient:<span class="st">&quot;rgba(255,0,0,0)-#ff0000&quot;</span> transparent_to_red.png</span></code></pre></div>
+<hr />
+<h2 id="changing-gradient-direction">Changing Gradient Direction</h2>
+<p>By default, ImageMagick generates vertical gradients (top to bottom).
+You can alter the direction by rotating the generated canvas or using
+built-in rotation options.</p>
+<h3 id="horizontal-gradient-left-to-right">Horizontal Gradient (Left to
+Right)</h3>
+<p>Generate the gradient with swapped dimensions and rotate it 90
+degrees:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x600 gradient:none-blue <span class="at">-rotate</span> 90 horizontal_gradient.png</span></code></pre></div>
+<h3 id="bottom-to-top-gradient">Bottom to Top Gradient</h3>
+<p>Invert the color order in the definition:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 gradient:blue-none bottom_to_top.png</span></code></pre></div>
+<hr />
+<h2 id="creating-a-radial-transparent-to-color-gradient">Creating a
+Radial Transparent-to-Color Gradient</h2>
+<p>To create a circular vignette effect where the center is transparent
+and the outer edges fade into a solid color, use
+<code>radial-gradient:</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 radial-gradient:none-black radial_mask.png</span></code></pre></div>
+<p>If you want the center to be solid and the edges to fade out into
+transparency, reverse the color order:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 radial-gradient:black-none radial_fade_out.png</span></code></pre></div>
+<hr />
+<h2
+id="applying-a-transparent-gradient-mask-to-an-existing-image">Applying
+a Transparent Gradient Mask to an Existing Image</h2>
+<p>To fade an existing image into transparency using a gradient mask,
+create a grayscale gradient representing the alpha values (white is
+opaque, black is transparent) and composite it with the
+<code>CopyOpacity</code> operator.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> <span class="at">-size</span> 600x400 gradient:white-black <span class="dt">\)</span> <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> output_faded.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>gradient:white-black</code> defines the opacity levels across
+the canvas.</li>
+<li><code>-alpha off</code> ensures the mask only reads grayscale
+luminosity.</li>
+<li><code>-compose CopyOpacity -composite</code> transfers the grayscale
+map directly into the image's alpha channel.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

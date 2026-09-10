@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Deskew Handles Inverted Text - magick</title>
+    <meta name="description" content="The ImageMagick -deskew operator is designed to straighten scanned text documents by analyzing contrast transitions across the image, but it struggles when processing inverted text featuring light letters on a dark background. Because the underlying algo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-deskew-handles-inverted-text">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Deskew Handles Inverted Text - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-deskew-handles-inverted-text" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -deskew operator is designed to straighten scanned text documents by analyzing contrast transitions across the image, but it struggles when processing inverted text featuring light letters on a dark background. Because the underlying algo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-deskew-handles-inverted-text">How ImageMagick
+Deskew Handles Inverted Text</h1>
+<p>The ImageMagick <code>-deskew</code> operator is designed to
+straighten scanned text documents by analyzing contrast transitions
+across the image, but it struggles when processing inverted text
+featuring light letters on a dark background. Because the underlying
+algorithm expects dark foreground elements on a bright background,
+running <code>-deskew</code> directly on inverted text frequently yields
+inaccurate tilt detection or fails to rotate the image at all. To
+achieve accurate deskewing on inverted documents, users must temporarily
+invert the colors using the <code>-negate</code> operator before
+calculating the deskew angle.</p>
+<h2 id="the-underlying-deskew-algorithm">The Underlying Deskew
+Algorithm</h2>
+<p>ImageMagick implements a Radon transform approach for deskew
+detection. This algorithm projects pixel intensities along various
+angles to identify the orientation that produces the sharpest peaks and
+valleys. In a standard document, these peaks correspond to horizontal
+rows of dark text separated by white space.</p>
+<p>The algorithm is inherently biased toward standard document
+layouts:</p>
+<ul>
+<li>It treats high pixel values (white or light tones) as the canvas
+background.</li>
+<li>It treats low pixel values (black or dark tones) as the foreground
+text data.</li>
+</ul>
+<h2 id="why-inverted-text-causes-issues">Why Inverted Text Causes
+Issues</h2>
+<p>When the <code>-deskew</code> operator processes white text on a
+black background, the intensity expectations are reversed. Instead of
+identifying thin lines of dark text separated by large white gaps, the
+algorithm sees massive blocks of dark space punctuated by thin lines of
+light pixels.</p>
+<p>This inversion creates two primary points of failure:</p>
+<ol type="1">
+<li><strong>Misidentified Baselines:</strong> The algorithm often
+attempts to align the large dark regions rather than the individual
+lines of text.</li>
+<li><strong>Failed Thresholding:</strong> The internal thresholding
+step, controlled by the deskew threshold parameter (e.g.,
+<code>-deskew 40%</code>), fails to isolate text strokes, leading the
+tool to conclude that no tilt exists (reporting an angle of 0.0
+degrees).</li>
+</ol>
+<h2 id="the-recommended-solution">The Recommended Solution</h2>
+<p>To reliably straighten an inverted document, the color spectrum must
+be normalized before the deskew calculation takes place. This is handled
+using the <code>-negate</code> command.</p>
+<h3 id="one-way-inversion-converting-to-standard-text">One-Way Inversion
+(Converting to Standard Text)</h3>
+<p>If the final output can remain standard black-on-white text, invert
+the image once before deskewing:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_inverted.png <span class="at">-negate</span> <span class="at">-deskew</span> 40% output_straight.png</span></code></pre></div>
+<h3 id="preserving-the-original-inverted-appearance">Preserving the
+Original Inverted Appearance</h3>
+<p>If the original white-on-black aesthetic must be preserved, use a
+sequence that negates the colors, applies the deskew, and then negates
+the image back to its original state:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_inverted.png <span class="at">-negate</span> <span class="at">-deskew</span> 40% <span class="at">-negate</span> output_inverted_straight.png</span></code></pre></div>
+<p>By inverting the image first, ImageMagick correctly identifies the
+text baselines, calculates the precise skew angle, and applies the
+rotational transformation accurately.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Difference of Gaussians Filter in ImageMagick - magick</title>
+    <meta name="description" content="The Difference of Gaussians (DoG) bandpass filter is an edge-detection and feature-enhancement algorithm that works by subtracting one blurred version of an image from another with a different blur radius. In ImageMagick, this filter isolates spatial fre">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-difference-of-gaussians-filter-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Difference of Gaussians Filter in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-difference-of-gaussians-filter-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Difference of Gaussians (DoG) bandpass filter is an edge-detection and feature-enhancement algorithm that works by subtracting one blurred version of an image from another with a different blur radius. In ImageMagick, this filter isolates spatial fre" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-difference-of-gaussians-filter-in-imagemagick">Apply
+Difference of Gaussians Filter in ImageMagick</h1>
+<p>The Difference of Gaussians (DoG) bandpass filter is an
+edge-detection and feature-enhancement algorithm that works by
+subtracting one blurred version of an image from another with a
+different blur radius. In ImageMagick, this filter isolates spatial
+frequencies within a specific band, effectively suppressing
+high-frequency noise and low-frequency uniform areas. This guide
+explains how to apply a DoG bandpass filter directly using ImageMagick's
+built-in morphology kernels and manual Gaussian subtraction
+commands.</p>
+<h3 id="method-1-using-the-built-in-morphology-dog-kernel">Method 1:
+Using the Built-in Morphology DoG Kernel</h3>
+<p>The fastest and most accurate way to apply a DoG bandpass filter is
+with the <code>-morphology Convolve</code> operator using the
+<code>DoG</code> kernel syntax.</p>
+<p><strong>Syntax:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:radius,sigma1,sigma2&quot;</span> output.png</span></code></pre></div>
+<ul>
+<li><strong><code>radius</code></strong>: The size of the convolution
+matrix. Setting this to <code>0</code> allows ImageMagick to calculate
+the optimal matrix size automatically.</li>
+<li><strong><code>sigma1</code></strong>: The standard deviation of the
+narrower Gaussian (smaller blur).</li>
+<li><strong><code>sigma2</code></strong>: The standard deviation of the
+wider Gaussian (larger blur).</li>
+</ul>
+<p><strong>Example Command:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,3.0&quot;</span> output.png</span></code></pre></div>
+<h3 id="normalizing-the-output">Normalizing the Output</h3>
+<p>Because a DoG filter generates negative values (where the wider blur
+is brighter than the narrower blur) and positive values, standard 8-bit
+image formats can clip the results to black. To visualize the full
+bandpass frequency response, bias the output so that zero is represented
+as 50% gray:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> morphology:compose=Lighten <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,3.0&quot;</span> <span class="at">-bias</span> 50% output.png</span></code></pre></div>
+<p>Alternatively, you can normalize the dynamic range to stretch the
+contrast across the full black-to-white spectrum:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,3.0&quot;</span> <span class="at">-auto-level</span> output.png</span></code></pre></div>
+<h3 id="method-2-manual-subtraction-multi-step-pipeline">Method 2:
+Manual Subtraction (Multi-Step Pipeline)</h3>
+<p>If you need explicit control over how the two blurred images are
+blended, you can create two separate blurred versions and subtract them
+manually:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-gaussian-blur</span> 0x1.0 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-gaussian-blur</span> 0x3.0 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  +swap <span class="at">-compose</span> Mathematics <span class="at">-set</span> option:compose:args <span class="st">&quot;0,1,-1,0.5&quot;</span> <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<ul>
+<li><code>-gaussian-blur 0x1.0</code>: Generates the fine-detail
+blur.</li>
+<li><code>-gaussian-blur 0x3.0</code>: Generates the coarse-detail
+blur.</li>
+<li><code>-compose Mathematics -set option:compose:args "0,1,-1,0.5"</code>:
+Subtracts the second blur from the first (<code>Image1 - Image2</code>)
+and adds a <code>0.5</code> (50% gray) offset to preserve negative
+differences without clipping.</li>
+</ul>
+<h3 id="choosing-the-right-parameters">Choosing the Right
+Parameters</h3>
+<ul>
+<li><strong>Fine Detail / High-Pass Focus:</strong> Use smaller, closely
+spaced sigma values (e.g., <code>DoG:0,0.5,1.0</code>) to isolate thin
+edges and fine textures.</li>
+<li><strong>Broad Bandpass / Shape Isolation:</strong> Use a wider gap
+between sigma values (e.g., <code>DoG:0,1.5,5.0</code>) to capture
+larger structural contours while ignoring fine noise.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

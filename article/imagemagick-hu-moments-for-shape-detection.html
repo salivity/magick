@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Hu Moments for Shape Detection - magick</title>
+    <meta name="description" content="Hu invariant image moments are a set of mathematical descriptors used in computer vision and image processing to characterize the shape of an object independently of its scale, position, and orientation. In ImageMagick, these moments provide a compact, n">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hu-moments-for-shape-detection">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Hu Moments for Shape Detection - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hu-moments-for-shape-detection" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Hu invariant image moments are a set of mathematical descriptors used in computer vision and image processing to characterize the shape of an object independently of its scale, position, and orientation. In ImageMagick, these moments provide a compact, n" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hu-moments-for-shape-detection">ImageMagick Hu
+Moments for Shape Detection</h1>
+<p>Hu invariant image moments are a set of mathematical descriptors used
+in computer vision and image processing to characterize the shape of an
+object independently of its scale, position, and orientation. In
+ImageMagick, these moments provide a compact, numerical "fingerprint" of
+an image's pixel distribution across color channels. By extracting and
+comparing these invariant values, developers can perform robust shape
+detection, image matching, and object recognition without requiring
+computationally heavy machine learning models.</p>
+<h2 id="understanding-hu-invariant-moments">Understanding Hu Invariant
+Moments</h2>
+<p>Image moments are weighted averages of image pixel intensities that
+capture geometric properties like area, center of mass, and orientation.
+While raw moments change when an object moves or resizes, Hu invariant
+moments solve this problem through a multi-step mathematical
+normalization:</p>
+<ol type="1">
+<li><strong>Spatial Moments:</strong> Calculate basic properties, such
+as total intensity (area) and centroid (center of mass).</li>
+<li><strong>Central Moments:</strong> Shift coordinates relative to the
+centroid, making the values invariant to translation (position).</li>
+<li><strong>Normalized Central Moments:</strong> Divide central moments
+by the total area, making them invariant to scale (size).</li>
+<li><strong>Hu's Seven Invariants:</strong> Derived by Ming-Kuei Hu in
+1962, these seven non-linear combinations of normalized central moments
+remain invariant under translation, scaling, and 2D rotation. The
+seventh moment also differentiates between mirrored (reflected)
+shapes.</li>
+</ol>
+<h2 id="extracting-hu-moments-in-imagemagick">Extracting Hu Moments in
+ImageMagick</h2>
+<p>ImageMagick provides built-in tools to calculate Hu moments directly
+from the command line or via API bindings.</p>
+<p>To output the spatial and Hu moments for an image, use the
+<code>identify</code> command with the <code>-moments</code> flag:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-moments</span> input_shape.png</span></code></pre></div>
+<p>The output returns the centroid, ellipse axis, angle, and the seven
+Hu invariant moments for each color channel (as well as overall
+luminance):</p>
+<pre class="text"><code>Image: input_shape.png
+  Channel moments:
+    I1: 0.165432
+    I2: 0.001245
+    I3: 0.000034
+    I4: 0.000001
+    I5: -0.000000
+    I6: 0.000000
+    I7: 0.000000</code></pre>
+<p>Because higher-order moments yield extremely small floating-point
+values, algorithms typically apply a logarithmic transformation (e.g.,
+<span class="math inline">\(-\text{sign}(I_n) \cdot
+\log_{10}(|I_n|)\)</span>) to normalize their scale for practical
+comparisons.</p>
+<h2 id="how-hu-moments-are-used-for-shape-detection">How Hu Moments Are
+Used for Shape Detection</h2>
+<p>Using ImageMagick Hu moments for shape detection follows a systematic
+pipeline:</p>
+<h3 id="1-preprocessing-and-binarization">1. Preprocessing and
+Binarization</h3>
+<p>Before computing moments, the target image is isolated from
+background noise. This typically involves converting the image to
+grayscale, applying thresholding, and morphological operations to create
+a clean binary silhouette of the shape.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-morphology</span> Open Disk:1 binary_shape.png</span></code></pre></div>
+<h3 id="2-feature-extraction">2. Feature Extraction</h3>
+<p>Extract the seven Hu moments <span class="math inline">\((I_1, I_2,
+..., I_7)\)</span> from the preprocessed image using ImageMagick to
+create a 7-dimensional feature vector.</p>
+<h3 id="3-template-comparison">3. Template Comparison</h3>
+<p>To detect or classify a shape, compare the target shape's vector
+against reference vectors of known shapes (e.g., circles, triangles,
+specific logos). The similarity between two shapes <span
+class="math inline">\(A\)</span> and <span
+class="math inline">\(B\)</span> is measured using distance metrics such
+as:</p>
+<ul>
+<li><strong>Euclidean Distance:</strong> Measuring the straight-line
+distance across all seven log-transformed values.</li>
+<li><strong>Relative Difference:</strong> Summing the absolute
+differences relative to reference magnitudes.</li>
+</ul>
+<p>A distance score below a predefined threshold indicates a positive
+match.</p>
+<h2 id="practical-advantages-and-limitations">Practical Advantages and
+Limitations</h2>
+<h3 id="advantages">Advantages</h3>
+<ul>
+<li><strong>Geometric Invariance:</strong> Detects shapes accurately
+even if the object is rotated, enlarged, shrunk, or shifted in the
+frame.</li>
+<li><strong>Low Computational Overhead:</strong> Fast computation makes
+it suitable for real-time processing and embedded systems.</li>
+<li><strong>Compact Representation:</strong> Entire silhouettes are
+reduced to just seven numerical values per channel.</li>
+</ul>
+<h3 id="limitations">Limitations</h3>
+<ul>
+<li><strong>Sensitivity to Occlusion:</strong> If part of the shape is
+blocked or cropped, the calculated center of mass and moments change
+significantly.</li>
+<li><strong>Noise Vulnerability:</strong> Noisy borders or extraneous
+artifacts can alter higher-order moments.</li>
+<li><strong>Rigid Shapes Only:</strong> Hu moments are not designed for
+flexible or non-rigid objects (such as a person walking) whose
+fundamental geometry deforms.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

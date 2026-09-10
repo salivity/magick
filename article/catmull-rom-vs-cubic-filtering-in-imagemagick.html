@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catmull-Rom vs Cubic Filtering in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick provides several cubic resampling filters for resizing images, with the Catmull-Rom filter standing out for producing significantly sharper results than standard cubic alternatives. This article explains how the mathematical configuration of">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/catmull-rom-vs-cubic-filtering-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Catmull-Rom vs Cubic Filtering in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/catmull-rom-vs-cubic-filtering-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides several cubic resampling filters for resizing images, with the Catmull-Rom filter standing out for producing significantly sharper results than standard cubic alternatives. This article explains how the mathematical configuration of" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="catmull-rom-vs-cubic-filtering-in-imagemagick">Catmull-Rom vs
+Cubic Filtering in ImageMagick</h1>
+<p>ImageMagick provides several cubic resampling filters for resizing
+images, with the Catmull-Rom filter standing out for producing
+significantly sharper results than standard cubic alternatives. This
+article explains how the mathematical configuration of the Catmull-Rom
+filter eliminates the soft blur characteristic of standard cubic
+reconstructions, focusing on its interpolation properties, parameter
+settings, and edge-preserving negative lobes.</p>
+<h3 id="the-mitchell-netravali-framework">The Mitchell-Netravali
+Framework</h3>
+<p>To understand how Catmull-Rom prevents blur, it is necessary to
+examine the family of cubic splines parameterized by Don Mitchell and
+Arun Netravali. In ImageMagick, many cubic filters are defined using two
+parameters: <span class="math inline">\(B\)</span> (blur) and <span
+class="math inline">\(C\)</span> (ringing/sharpening). The formula
+allows software to trade off between three primary artifacts: blurring,
+aliasing, and ringing.</p>
+<p>Standard cubic filters often use balanced or smoothing
+coordinates:</p>
+<ul>
+<li><strong>B-Spline Filter:</strong> <span class="math inline">\(B=1,
+C=0\)</span> (heavily blurred, zero ringing)</li>
+<li><strong>Mitchell-Netravali Filter:</strong> <span
+class="math inline">\(B=1/3, C=1/3\)</span> (a balanced default designed
+to minimize visual artifacts)</li>
+<li><strong>Catmull-Rom Filter:</strong> <span
+class="math inline">\(B=0, C=1/2\)</span></li>
+</ul>
+<h3 id="elimination-of-the-blurring-component-b0">Elimination of the
+Blurring Component (<span class="math inline">\(B=0\)</span>)</h3>
+<p>In the Mitchell-Netravali classification, the <span
+class="math inline">\(B\)</span> parameter directly controls smoothing.
+When <span class="math inline">\(B &gt; 0\)</span>, the filter functions
+as an approximating spline rather than an interpolating spline.
+Approximating splines smooth across data points, meaning that original
+pixel values are averaged out and diluted, causing perceptible softness
+across edges and fine textures.</p>
+<p>By setting <span class="math inline">\(B=0\)</span>, Catmull-Rom
+becomes an exact interpolator. It passes directly through original pixel
+values rather than smoothing across them. This eliminates the
+foundational source of blur found in filters where <span
+class="math inline">\(B\)</span> is positive, ensuring that existing
+high-contrast values do not get dampened during the sampling pass.</p>
+<h3 id="negative-lobes-and-edge-preservation">Negative Lobes and Edge
+Preservation</h3>
+<p>Standard smoothing cubic filters keep their curve weights largely
+positive across the sampling window. Positive-only weighting functions
+act as low-pass filters, discarding high-frequency information and
+causing blur.</p>
+<p>Catmull-Rom's parameter selection (<span
+class="math inline">\(C=0.5\)</span>) generates pronounced negative side
+lobes in its kernel curve:</p>
+<ol type="1">
+<li><strong>Unsharp Masking Effect:</strong> When the filter samples
+neighboring pixels, the negative weights counteract the positive core,
+functionally behaving like an unsharp mask filter built into the
+reconstruction process.</li>
+<li><strong>Gradient Preservation:</strong> Instead of flattening color
+transitions between adjacent pixels, these negative lobes steepen the
+reconstructed luminance slope across edges.</li>
+<li><strong>Acutance:</strong> The transitions maintain localized
+contrast, preserving fine details like hair, text, and hard edges that
+conventional cubic filters round off.</li>
+</ol>
+<h3 id="practical-trade-offs">Practical Trade-Offs</h3>
+<p>While the Catmull-Rom filter prevents blur, it does so by accepting a
+controlled amount of ringing (visible halos along high-contrast
+boundaries). Standard cubic filters like the Mitchell-Netravali default
+suppress these halos by introducing slight blur. Consequently,
+ImageMagick users choose Catmull-Rom over standard cubic options when
+retaining edge sharpness and crisp high-frequency detail is more
+critical than avoiding halo artifacts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

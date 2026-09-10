@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Interline Spacing: Adjust Text Leading - magick</title>
+    <meta name="description" content="The -interline-spacing option in ImageMagick directly controls the vertical distance, commonly referred to as leading, between consecutive lines of text. By specifying a positive or negative pixel value, you can either expand the gap between lines for im">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-interline-spacing-adjust-text-leading">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Interline Spacing: Adjust Text Leading - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-interline-spacing-adjust-text-leading" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -interline-spacing option in ImageMagick directly controls the vertical distance, commonly referred to as leading, between consecutive lines of text. By specifying a positive or negative pixel value, you can either expand the gap between lines for im" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-interline-spacing-adjust-text-leading">ImageMagick
+Interline Spacing: Adjust Text Leading</h1>
+<p>The <code>-interline-spacing</code> option in ImageMagick directly
+controls the vertical distance, commonly referred to as leading, between
+consecutive lines of text. By specifying a positive or negative pixel
+value, you can either expand the gap between lines for improved
+readability or tighten it to fit text within restricted dimensions. This
+article explains how the option functions, how it modifies the default
+font metrics, and how to apply it using the command-line interface.</p>
+<h2 id="understanding-leading-and-default-font-metrics">Understanding
+Leading and Default Font Metrics</h2>
+<p>When ImageMagick renders multi-line text using operators such as
+<code>caption:</code> or <code>label:</code>, it automatically
+calculates line height based on the selected font's embedded metrics.
+The baseline-to-baseline distance typically accounts for font ascenders,
+descenders, and built-in leading.</p>
+<p>The <code>-interline-spacing</code> setting works as an offset
+applied to this default metric. Rather than replacing the font's native
+line height with an absolute measurement, it adds or subtracts a
+specific number of pixels between each line of rendered text.</p>
+<h2 id="increasing-line-spacing-positive-values">Increasing Line Spacing
+(Positive Values)</h2>
+<p>To increase the leading between lines, assign a positive integer to
+<code>-interline-spacing</code>. This pushes subsequent lines downward
+by adding extra vertical pixels between them.</p>
+<p>For example, to add 15 pixels of space between lines of wrapped
+text:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x300 <span class="at">-background</span> white <span class="at">-fill</span> black <span class="at">-font</span> Arial <span class="at">-pointsize</span> 24 <span class="at">-interline-spacing</span> 15 caption:<span class="st">&quot;This is the first line.\nThis is the second line with increased leading.&quot;</span> output_expanded.png</span></code></pre></div>
+<p>In this command, each line after the first is shifted down by an
+additional 15 pixels relative to where the font metrics would normally
+place it. This is particularly useful for improving readability in
+blocks of body copy or matching specific design specifications.</p>
+<h2 id="decreasing-line-spacing-negative-values">Decreasing Line Spacing
+(Negative Values)</h2>
+<p>To decrease leading, assign a negative integer to
+<code>-interline-spacing</code>. This reduces the default vertical
+separation, moving consecutive lines closer together.</p>
+<p>For example, to tighten line spacing by 8 pixels:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x300 <span class="at">-background</span> white <span class="at">-fill</span> black <span class="at">-font</span> Arial <span class="at">-pointsize</span> 24 <span class="at">-interline-spacing</span> <span class="at">-8</span> caption:<span class="st">&quot;This is the first line.\nThis is the second line with decreased leading.&quot;</span> output_compact.png</span></code></pre></div>
+<p>Applying a negative value removes vertical padding. If the negative
+value exceeds the font’s built-in spacing, glyphs from adjacent lines
+will overlap, causing descenders (such as the tails on "g" or "y") to
+collide with ascenders (such as "h" or "l") on the line below.</p>
+<h2 id="key-usage-considerations">Key Usage Considerations</h2>
+<ul>
+<li><strong>Placement Order:</strong> In ImageMagick commands,
+<code>-interline-spacing</code> is a setting that must appear
+<strong>before</strong> the text generation operator
+(<code>caption:</code>, <code>label:</code>, or
+<code>@textfile.txt</code>). If placed after, the setting will not apply
+to the rendered text.</li>
+<li><strong>Unit of Measure:</strong> The value provided to
+<code>-interline-spacing</code> is interpreted in pixels. It does not
+accept percentage or point units directly.</li>
+<li><strong>Multi-line Operators:</strong> While both
+<code>label:</code> and <code>caption:</code> support
+<code>-interline-spacing</code>, <code>caption:</code> automatically
+wraps text into multiple lines based on image width, making
+<code>-interline-spacing</code> essential for formatting multi-line
+paragraphs dynamically.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

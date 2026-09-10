@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Minimum-Fit Geometry Flag Explained - magick</title>
+    <meta name="description" content="The minimum-fit geometry flag in ImageMagick, represented by the caret symbol (^), forces an image to scale so that it completely covers a target dimension while preserving its original aspect ratio. When generating thumbnails, the default resizing behav">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-minimum-fit-geometry-flag-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Minimum-Fit Geometry Flag Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-minimum-fit-geometry-flag-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The minimum-fit geometry flag in ImageMagick, represented by the caret symbol (^), forces an image to scale so that it completely covers a target dimension while preserving its original aspect ratio. When generating thumbnails, the default resizing behav" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-minimum-fit-geometry-flag-explained">ImageMagick
+Minimum-Fit Geometry Flag Explained</h1>
+<p>The minimum-fit geometry flag in ImageMagick, represented by the
+caret symbol (<code>^</code>), forces an image to scale so that it
+completely covers a target dimension while preserving its original
+aspect ratio. When generating thumbnails, the default resizing behavior
+scales an image to fit entirely <em>inside</em> a defined boundary box,
+often resulting in dimensions smaller than the target. By appending the
+<code>^</code> flag to a geometry specification (such as
+<code>300x300^</code>), ImageMagick ensures that the smaller dimension
+matches the target size, while the larger dimension extends beyond it.
+This makes the minimum-fit flag essential for generating uniform,
+fixed-size thumbnails without distorting the image or introducing empty
+borders.</p>
+<p>By default, executing an ImageMagick command like
+<code>-resize 200x200</code> operates as a "maximum-fit" operation
+(similar to CSS <code>object-fit: contain</code>). If the source image
+is 400x200 (a 2:1 aspect ratio), the standard resize produces a 200x100
+image. While the aspect ratio is maintained, the resulting height fails
+to meet the 200-pixel target.</p>
+<p>Using the minimum-fit flag alters this logic:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 200x200^ output.jpg</span></code></pre></div>
+<p>With the <code>^</code> modifier applied to the same 400x200 source,
+ImageMagick resizes the image to 400x200 rather than shrinking it
+further. The height meets the minimum 200-pixel requirement, and the
+width scales proportionally to 400 pixels. The resulting image is
+guaranteed to be at least as wide and at least as tall as the specified
+parameters.</p>
+<p>The primary purpose of this flag in thumbnailing workflows is to
+prepare images for cropping into uniform squares or standardized
+rectangles (replicating CSS <code>object-fit: cover</code>). Because the
+resized image completely covers the target area, developers can
+center-crop the excess dimensions without leaving any transparent or
+blank margins:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 200x200^ <span class="at">-gravity</span> center <span class="at">-extent</span> 200x200 thumbnail.jpg</span></code></pre></div>
+<p>In this pipeline, the minimum-fit flag scales the image until both
+dimensions are equal to or greater than 200 pixels. Next,
+<code>-gravity center</code> establishes the focal point in the middle
+of the frame. Finally, <code>-extent 200x200</code> trims away the
+excess pixels on the oversized axis, producing a consistent 200x200
+thumbnail with no distortion.</p>
+<p>When executing these commands in command-line environments, the caret
+symbol frequently acts as a special character. In Unix-like shells (such
+as Bash or Zsh), it may require quotation or escaping
+(<code>-resize "200x200^"</code> or <code>-resize 200x200\^</code>). In
+Windows Command Prompt, the caret serves as an escape character and must
+be doubled (<code>-resize 200x200^^</code>).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

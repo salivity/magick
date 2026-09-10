@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Shift Right on 16-Bit Images with ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to perform a bitwise right shift operation on 16-bit image pixels using ImageMagick's command-line tools. You will learn the specific operators required for bit shifting, how to verify that your ImageMagick build supports 16-bit o">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/bit-shift-right-on-16-bit-images-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Bit Shift Right on 16-Bit Images with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/bit-shift-right-on-16-bit-images-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to perform a bitwise right shift operation on 16-bit image pixels using ImageMagick's command-line tools. You will learn the specific operators required for bit shifting, how to verify that your ImageMagick build supports 16-bit o" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="bit-shift-right-on-16-bit-images-with-imagemagick">Bit Shift
+Right on 16-Bit Images with ImageMagick</h1>
+<p>This guide explains how to perform a bitwise right shift operation on
+16-bit image pixels using ImageMagick's command-line tools. You will
+learn the specific operators required for bit shifting, how to verify
+that your ImageMagick build supports 16-bit operations, and alternative
+methods to achieve equivalent pixel value scaling.</p>
+<h3 id="verify-16-bit-support-q16">Verify 16-Bit Support (Q16)</h3>
+<p>Before performing bitwise operations on 16-bit images, ensure your
+ImageMagick installation is built with Quantum Depth 16 (Q16). Run the
+following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>Q16</code> or <code>Q16-HDRI</code> in the output
+features. A Q8 version will restrict internal processing to 8-bit values
+(0–255), which will truncate 16-bit image data.</p>
+<h3 id="using-the-rightshift-operator">Using the <code>RightShift</code>
+Operator</h3>
+<p>ImageMagick provides a direct bitwise operator via the
+<code>-evaluate</code> command. A right shift moves all binary bits of
+the pixel value to the right by a specified number of positions,
+effectively dividing the pixel value by <span
+class="math inline">\(2^n\)</span> (where <span
+class="math inline">\(n\)</span> is the shift amount) and discarding any
+fractional remainder.</p>
+<p>To shift all channels right by 2 bits on a 16-bit TIFF image:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-depth</span> 16 <span class="at">-evaluate</span> RightShift 2 output.tif</span></code></pre></div>
+<p>If you are using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.tif <span class="at">-depth</span> 16 <span class="at">-evaluate</span> RightShift 2 output.tif</span></code></pre></div>
+<h3 id="applying-the-shift-to-specific-channels">Applying the Shift to
+Specific Channels</h3>
+<p>By default, <code>-evaluate</code> operates on all channels except
+the alpha channel in modern ImageMagick versions. To explicitly control
+which channels receive the bit shift, use the <code>-channel</code>
+flag:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-depth</span> 16 <span class="at">-channel</span> RGB <span class="at">-evaluate</span> RightShift 4 +channel output.tif</span></code></pre></div>
+<p>The <code>+channel</code> switch resets the channel mask back to
+default after the operation.</p>
+<h3 id="mathematical-alternative-division">Mathematical Alternative:
+Division</h3>
+<p>In digital imaging, a bit shift right by <span
+class="math inline">\(n\)</span> bits is functionally identical to
+integer division by <span class="math inline">\(2^n\)</span>:</p>
+<ul>
+<li>Shifting right by 1 bit = divide by 2</li>
+<li>Shifting right by 2 bits = divide by 4</li>
+<li>Shifting right by 4 bits = divide by 16</li>
+<li>Shifting right by 8 bits = divide by 256</li>
+</ul>
+<p>If you are running an environment where <code>RightShift</code>
+behaves unexpectedly due to High Dynamic Range Imaging (HDRI)
+floating-point conversions, use the <code>Divide</code> operator
+instead:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-depth</span> 16 <span class="at">-evaluate</span> Divide 4 output.tif</span></code></pre></div>
+<p>This ensures the 16-bit pixel values (ranging from 0 to 65,535) are
+reduced predictably across non-integer pixel pipelines.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

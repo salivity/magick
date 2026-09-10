@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Black Hat Transform Syntax Guide - magick</title>
+    <meta name="description" content="This guide provides the exact command-line syntax for applying a Black-Hat morphological transform in ImageMagick. The Black-Hat operation—referred to as BottomHat in ImageMagick—isolates dark details, narrow gaps, and valleys that are smaller than t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-black-hat-transform-syntax-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Black Hat Transform Syntax Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-black-hat-transform-syntax-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides the exact command-line syntax for applying a Black-Hat morphological transform in ImageMagick. The Black-Hat operation—referred to as BottomHat in ImageMagick—isolates dark details, narrow gaps, and valleys that are smaller than t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-black-hat-transform-syntax-guide">ImageMagick Black
+Hat Transform Syntax Guide</h1>
+<p>This guide provides the exact command-line syntax for applying a
+Black-Hat morphological transform in ImageMagick. The Black-Hat
+operation—referred to as <code>BottomHat</code> in ImageMagick—isolates
+dark details, narrow gaps, and valleys that are smaller than the
+specified structuring element on a brighter background. Below, you will
+find the fundamental syntax, standard kernel choices, and clear examples
+for both ImageMagick v7 and v6.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick, the Black-Hat transform is executed using the
+<code>-morphology</code> operator with the <code>BottomHat</code>
+method:</p>
+<h3 id="imagemagick-v7">ImageMagick v7</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> BottomHat <span class="op">&lt;</span>Kernel<span class="op">&gt;</span> output.png</span></code></pre></div>
+<h3 id="imagemagick-v6">ImageMagick v6</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-morphology</span> BottomHat <span class="op">&lt;</span>Kernel<span class="op">&gt;</span> output.png</span></code></pre></div>
+<h2 id="how-the-transform-works">How the Transform Works</h2>
+<p>The Black-Hat transform is mathematically defined as the
+morphological closing of an image minus the original image:</p>
+<p><span class="math display">\[\text{Black Hat} = \text{Closing}(I) - I
+= (I \bullet K) - I\]</span></p>
+<p>Because closing fills in dark structures that are smaller than the
+kernel, subtracting the original image reveals only those dark regions,
+displaying them as bright artifacts on a black background.</p>
+<h2 id="common-kernel-options">Common Kernel Options</h2>
+<p>The <code>&lt;Kernel&gt;</code> argument defines the shape and size
+of the structuring element used to detect features. The syntax is
+formatted as <code>KernelName:Radius</code> or
+<code>KernelName:WidthxHeight</code>.</p>
+<ul>
+<li><strong>Disk:</strong> Useful for rounded, uniform, or organic
+structures.
+<ul>
+<li>Example: <code>Disk:3</code> or <code>Disk:5.5</code></li>
+</ul></li>
+<li><strong>Diamond:</strong> Common for pixel-art or diamond-shaped
+filtering.
+<ul>
+<li>Example: <code>Diamond:2</code></li>
+</ul></li>
+<li><strong>Square / Rectangle:</strong> Best for rectilinear
+structures, text extraction, or grid lines.
+<ul>
+<li>Example: <code>Square:3</code> or <code>Rectangle:5x1</code>
+(horizontal features)</li>
+</ul></li>
+</ul>
+<h2 id="concrete-examples">Concrete Examples</h2>
+<h3 id="1-standard-circular-kernel">1. Standard Circular Kernel</h3>
+<p>To detect dark spots or thin dark text with a circular footprint of
+radius 3:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> BottomHat Disk:3 output.png</span></code></pre></div>
+<h3 id="2-directional-kernel-for-line-detection">2. Directional Kernel
+for Line Detection</h3>
+<p>To detect vertical dark lines smaller than 7 pixels in height:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> BottomHat Rectangle:1x7 output.png</span></code></pre></div>
+<h3 id="3-converting-to-grayscale-before-processing">3. Converting to
+Grayscale Before Processing</h3>
+<p>Because morphological operations analyze channel intensity, it is
+common practice to convert color images to grayscale first:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> BottomHat Octagon:4 output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

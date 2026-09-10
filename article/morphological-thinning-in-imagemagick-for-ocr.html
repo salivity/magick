@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphological Thinning in ImageMagick for OCR - magick</title>
+    <meta name="description" content="Morphological thinning in ImageMagick serves as a critical preprocessing step for optical character recognition (OCR) on handwritten manuscripts by reducing varied stroke widths down to single-pixel-wide centerlines, or skeletons. This process standardiz">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/morphological-thinning-in-imagemagick-for-ocr">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Morphological Thinning in ImageMagick for OCR - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/morphological-thinning-in-imagemagick-for-ocr" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Morphological thinning in ImageMagick serves as a critical preprocessing step for optical character recognition (OCR) on handwritten manuscripts by reducing varied stroke widths down to single-pixel-wide centerlines, or skeletons. This process standardiz" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="morphological-thinning-in-imagemagick-for-ocr">Morphological
+Thinning in ImageMagick for OCR</h1>
+<p>Morphological thinning in ImageMagick serves as a critical
+preprocessing step for optical character recognition (OCR) on
+handwritten manuscripts by reducing varied stroke widths down to
+single-pixel-wide centerlines, or skeletons. This process standardizes
+stroke thickness, eliminates distortions caused by ink bleed and
+pressure variations, and preserves essential topological structures such
+as loops, intersections, and endpoints. By normalizing irregular
+handwriting into a clean structural graph, morphological thinning
+significantly improves character segmentation and classification
+accuracy for OCR engines.</p>
+<h3 id="the-challenge-of-handwritten-manuscripts">The Challenge of
+Handwritten Manuscripts</h3>
+<p>Historical and modern handwritten documents present significant
+hurdles for standard OCR pipelines. Unlike uniform typeset text,
+handwriting features non-uniform stroke widths, uneven ink distribution,
+ink bleed-through, and calligraphic flourishes. Thick or overlapping
+strokes frequently merge adjacent characters or fill in vital internal
+spaces—such as the counters in letters like "e", "a", or "o"—causing OCR
+engines to misinterpret or drop characters entirely.</p>
+<h3 id="what-morphological-thinning-does">What Morphological Thinning
+Does</h3>
+<p>Morphological thinning is an iterative, neighborhood-based
+mathematical morphology operation. In digital image processing, it
+systematically erodes foreground pixels along the outer boundaries of
+binary strokes while adhering to strict topological constraints. It will
+not remove pixels if doing so would:</p>
+<ul>
+<li>Disconnect a continuous stroke.</li>
+<li>Erase the endpoint of a line segment.</li>
+<li>Change the Euler number (the relationship between connected
+components and internal holes).</li>
+</ul>
+<p>The result is a minimal geometric skeleton that retains the
+connectivity, branches, and loops of the original handwritten characters
+while stripping away superficial stroke volume.</p>
+<h3 id="implementation-in-imagemagick">Implementation in
+ImageMagick</h3>
+<p>ImageMagick provides built-in morphological methods via the
+<code>-morphology</code> operator. To perform thinning, the input image
+must first be binarized (converted to pure black and white), as
+morphological thinning relies on distinct foreground and background
+pixel sets.</p>
+<p>A standard implementation utilizes the <code>Thinning</code> method
+alongside predefined structuring kernels, such as
+<code>Skeleton</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_manuscript.tif <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Thinning Skeleton <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  output_thinned.tif</span></code></pre></div>
+<p>ImageMagick iteratively applies directional hit-and-miss transforms
+using the <code>Skeleton</code> kernel until the image reaches a state
+of convergence—meaning no further pixels can be removed without
+violating the topology. Users can also specify the maximum number of
+iterations to apply partial thinning, preserving some original line
+weight if full single-pixel skeletons degrade recognizability for a
+particular engine.</p>
+<h3 id="impact-on-ocr-performance">Impact on OCR Performance</h3>
+<p>Thinning directly aids OCR processing across several critical
+stages:</p>
+<ol type="1">
+<li><strong>Topology-Based Feature Extraction:</strong> Modern OCR and
+handwriting recognition architectures (such as Recurrent Neural Networks
+and Vision Transformers) frequently evaluate stroke trajectories,
+directional vectors, and node intersections. Thinning transforms complex
+2D pixel blobs into 1D paths, accelerating feature extraction and
+decreasing computational overhead.</li>
+<li><strong>Elimination of Ink Variations:</strong> Variations caused by
+quill pressure, degraded paper fibers, or ink bleed are eliminated.
+Characters written with heavy ink and those written with faint, light
+strokes are normalized to the exact same stroke width.</li>
+<li><strong>Improved Segmentation:</strong> When characters slightly
+touch due to expanding ink, thinning frequently separates the
+intersecting boundaries by reducing each stroke to its core axis,
+preventing false ligatures.</li>
+<li><strong>Counter Preservation:</strong> Partial or full thinning
+re-opens closed character loops that were filled with ink, restoring the
+distinct shape of loops essential for distinguishing between similar
+characters (such as "cl" versus "d", or "c" versus "o").</li>
+</ol>
+<p>Morphological thinning in ImageMagick acts as a structural equalizer,
+stripping away physical ink anomalies and delivering a standardized
+geometric representation optimized for text recognition algorithms.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

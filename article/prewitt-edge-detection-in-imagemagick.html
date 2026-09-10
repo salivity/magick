@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prewitt Edge Detection in ImageMagick - magick</title>
+    <meta name="description" content="The Prewitt convolution kernel detects directional edges in ImageMagick by applying discrete spatial differentiation to calculate the intensity gradient of an image across specific orientations. Through a 3x3 sliding matrix, it calculates the difference">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/prewitt-edge-detection-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Prewitt Edge Detection in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/prewitt-edge-detection-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Prewitt convolution kernel detects directional edges in ImageMagick by applying discrete spatial differentiation to calculate the intensity gradient of an image across specific orientations. Through a 3x3 sliding matrix, it calculates the difference" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="prewitt-edge-detection-in-imagemagick">Prewitt Edge Detection in
+ImageMagick</h1>
+<p>The Prewitt convolution kernel detects directional edges in
+ImageMagick by applying discrete spatial differentiation to calculate
+the intensity gradient of an image across specific orientations. Through
+a 3x3 sliding matrix, it calculates the difference in brightness between
+adjacent pixels in one direction while applying a smoothing average in
+the orthogonal direction to suppress noise. This article explains the
+structure of the Prewitt operator, how ImageMagick computes directional
+gradients, and how directional outputs are combined to map structural
+boundaries.</p>
+<h3 id="the-structure-of-the-prewitt-kernel">The Structure of the
+Prewitt Kernel</h3>
+<p>The Prewitt operator uses a pair of 3x3 convolution matrices to
+approximate first-order derivatives. One kernel measures the horizontal
+gradient (<span class="math inline">\(G_x\)</span>), while the other
+measures the vertical gradient (<span
+class="math inline">\(G_y\)</span>):</p>
+<ul>
+<li><p><strong>Horizontal Kernel (<span
+class="math inline">\(G_x\)</span>):</strong></p>
+<pre class="text"><code>-1  0  1
+-1  0  1
+-1  0  1</code></pre></li>
+<li><p><strong>Vertical Kernel (<span
+class="math inline">\(G_y\)</span>):</strong></p>
+<pre class="text"><code>-1 -1 -1
+ 0  0  0
+ 1  1  1</code></pre></li>
+</ul>
+<p>Each kernel combines two operations: numerical differentiation across
+one axis and a uniform local average across the perpendicular axis. For
+example, the horizontal kernel subtracts the pixel values on the left
+column from those on the right column (differentiation), while summing
+the three rows equally (smoothing). This reduces high-frequency noise
+that could otherwise trigger false edge detections.</p>
+<h3 id="directional-convolution-mechanics">Directional Convolution
+Mechanics</h3>
+<p>When ImageMagick processes an image with a Prewitt kernel, it slides
+the matrix across the pixel grid pixel by pixel. For every target
+pixel:</p>
+<ol type="1">
+<li>The target pixel and its eight neighboring values are multiplied by
+the corresponding weights of the 3x3 matrix.</li>
+<li>The resulting nine products are summed together.</li>
+<li>If adjacent pixels share identical or similar brightness values, the
+positive and negative weights cancel out, resulting in a value close to
+zero (flat region).</li>
+<li>If a steep brightness transition occurs along the target direction,
+a large positive or negative value is produced, highlighting the
+edge.</li>
+</ol>
+<p>Because ImageMagick maintains color channels within normalized ranges
+(such as 0.0 to 1.0 or 0 to 65535, depending on the Q-depth build),
+negative gradient values are often mapped by setting a 50% gray baseline
+(bias) or by working in an absolute magnitude representation.</p>
+<h3 id="directional-selection-in-imagemagick">Directional Selection in
+ImageMagick</h3>
+<p>ImageMagick provides native access to Prewitt kernels via the
+<code>-morphology Convolve</code> command. By specifying rotation angles
+or directional compass headings, you can isolate edges running in
+distinct directions.</p>
+<p>For instance:</p>
+<ul>
+<li><code>Prewitt:0</code> evaluates gradients along the horizontal
+axis, revealing vertical lines.</li>
+<li><code>Prewitt:90</code> evaluates gradients along the vertical axis,
+revealing horizontal lines.</li>
+<li>Angles such as <code>Prewitt:45</code> or compass headings like
+<code>Prewitt:NorthEast</code> identify diagonal edges by rotating the
+underlying weights.</li>
+</ul>
+<p>A typical command to detect horizontal gradients looks like this:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> morphology:compose=Lighten <span class="at">-morphology</span> Convolve Prewitt:0 output_gx.png</span></code></pre></div>
+<h3 id="calculating-omnidirectional-edge-magnitude">Calculating
+Omnidirectional Edge Magnitude</h3>
+<p>A single directional kernel only captures boundaries perpendicular to
+its gradient axis. To construct a complete, non-directional edge map,
+ImageMagick combines both horizontal and vertical components.</p>
+<p>The overall edge strength (gradient magnitude <span
+class="math inline">\(G\)</span>) at each pixel is calculated
+mathematically as:</p>
+<p><span class="math display">\[G = \sqrt{G_x^2 + G_y^2}\]</span></p>
+<p>Alternatively, for computational efficiency, the absolute sum
+approximation is often used:</p>
+<p><span class="math display">\[G = |G_x| + |G_y|\]</span></p>
+<p>In ImageMagick, this is achieved by convolving the image with both
+axes separately and using image composition methods (such as
+<code>-compose Mathematics</code> or <code>-compose Lighten</code>) to
+merge the directional maps into a unified contour of all detectable
+edges.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

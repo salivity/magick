@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Unpremultiplied Transparent PNG in ImageMagick - magick</title>
+    <meta name="description" content="Exporting transparent PNGs with clean, un-premultiplied (straight) RGB values is essential for 3D textures, game engines, and compositing pipelines where transparent pixels must retain their underlying color data without dark halos. By default, many imag">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/export-unpremultiplied-transparent-png-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Export Unpremultiplied Transparent PNG in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/export-unpremultiplied-transparent-png-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Exporting transparent PNGs with clean, un-premultiplied (straight) RGB values is essential for 3D textures, game engines, and compositing pipelines where transparent pixels must retain their underlying color data without dark halos. By default, many imag" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="export-unpremultiplied-transparent-png-in-imagemagick">Export
+Unpremultiplied Transparent PNG in ImageMagick</h1>
+<p>Exporting transparent PNGs with clean, un-premultiplied (straight)
+RGB values is essential for 3D textures, game engines, and compositing
+pipelines where transparent pixels must retain their underlying color
+data without dark halos. By default, many image processing workflows
+either pre-multiply color channels with the alpha channel or clear fully
+transparent pixels to black to optimize file size. This guide
+demonstrates how to configure ImageMagick to preserve intact RGB
+channels alongside an un-premultiplied alpha mask.</p>
+<h2 id="understanding-straight-vs-premultiplied-alpha">Understanding
+Straight vs. Premultiplied Alpha</h2>
+<p>The PNG specification requires alpha to be un-premultiplied (straight
+alpha). In a straight alpha image, a fully transparent red pixel holds
+the value <code>RGBA(255, 0, 0, 0)</code>.</p>
+<p>If an image is premultiplied, the RGB values are multiplied by the
+alpha value (<code>RGB * Alpha</code>). When scaled or rendered,
+premultiplied images can cause dark fringes around transparent edges if
+the target renderer interprets them as straight alpha. Furthermore,
+encoders often zero out color values under zero alpha
+(<code>RGBA(0, 0, 0, 0)</code>) for compression, ruining texture padding
+or edge bleeding needed in game development.</p>
+<h2 id="removing-dark-fringes-from-premultiplied-inputs">Removing Dark
+Fringes from Premultiplied Inputs</h2>
+<p>If your input image has already been premultiplied (often indicated
+by dark borders around semi-transparent edges), use ImageMagick’s
+<code>-alpha unpremultiply</code> operator before saving:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_premultiplied.png <span class="at">-alpha</span> unpremultiply png32:output_clean.png</span></code></pre></div>
+<p>For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_premultiplied.png <span class="at">-alpha</span> unpremultiply png32:output_clean.png</span></code></pre></div>
+<p>Specifying the <code>png32:</code> format prefix forces ImageMagick
+to write a 32-bit RGBA image, preventing it from optimizing the output
+down to an indexed palette or removing alpha channels.</p>
+<h2 id="preserving-rgb-data-in-fully-transparent-areas">Preserving RGB
+Data in Fully Transparent Areas</h2>
+<p>When you need to preserve custom RGB colors in pixels where the alpha
+channel is completely transparent (such as UV texture islands with edge
+padding):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> rgb_color.png alpha_mask.png <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> png32:output_straight.png</span></code></pre></div>
+<h3 id="explanation-of-flags">Explanation of flags:</h3>
+<ul>
+<li><code>rgb_color.png</code>: Contains the exact RGB texture,
+including color padding in transparent regions.</li>
+<li><code>alpha_mask.png</code>: A grayscale image representing the
+opacity.</li>
+<li><code>-alpha off</code>: Disables alpha evaluation while reading the
+inputs so that underlying color information is not modified or zeroed
+out.</li>
+<li><code>-compose CopyOpacity -composite</code>: Replaces or inserts
+the alpha channel directly from the second image without mathematically
+modifying the RGB values of the first.</li>
+<li><code>png32:output_straight.png</code>: Ensures the file is saved as
+full 8-bit-per-channel RGBA without palette reduction or color-key
+optimization.</li>
+</ul>
+<h2 id="scaling-without-corrupting-rgb-values">Scaling Without
+Corrupting RGB Values</h2>
+<p>Resizing an image can inadvertently cause color bleed from empty
+background pixels into visible edges if the transparency is not
+isolated. To resize while keeping the RGB channels independent from the
+alpha channel:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-alpha</span> extract <span class="at">-resize</span> 50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-alpha</span> off <span class="at">-resize</span> 50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0 <span class="at">-swap</span> 0,1 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-alpha</span> off <span class="at">-compose</span> CopyOpacity <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  png32:resized_straight.png</span></code></pre></div>
+<h3 id="how-this-works">How this works:</h3>
+<ol type="1">
+<li><code>+clone -alpha extract -resize 50%</code>: Extracts the
+transparency channel as a separate grayscale mask and resizes it
+independently.</li>
+<li><code>-clone 0 -alpha off -resize 50%</code>: Resizes the RGB data
+as an opaque image so transparent pixel colors blend cleanly with
+adjacent colors rather than black.</li>
+<li><code>-compose CopyOpacity -composite</code>: Recombines the resized
+alpha mask with the resized RGB layer.</li>
+<li><code>png32:</code>: Exports clean, straight RGBA data without color
+suppression.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

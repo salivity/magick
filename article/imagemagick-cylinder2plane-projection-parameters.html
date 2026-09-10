@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Cylinder2Plane Projection Parameters - magick</title>
+    <meta name="description" content="This article provides a direct overview of the parameters that define the Cylinder2Plane distortion method in ImageMagick. The Cylinder2Plane projection is used to unroll or map cylindrical panoramic imagery back onto a flat, perspective planar surface.">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-cylinder2plane-projection-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Cylinder2Plane Projection Parameters - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-cylinder2plane-projection-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct overview of the parameters that define the Cylinder2Plane distortion method in ImageMagick. The Cylinder2Plane projection is used to unroll or map cylindrical panoramic imagery back onto a flat, perspective planar surface." />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-cylinder2plane-projection-parameters">ImageMagick
+Cylinder2Plane Projection Parameters</h1>
+<p>This article provides a direct overview of the parameters that define
+the <code>Cylinder2Plane</code> distortion method in ImageMagick. The
+<code>Cylinder2Plane</code> projection is used to unroll or map
+cylindrical panoramic imagery back onto a flat, perspective planar
+surface. Understanding its arguments allows you to accurately align
+perspectives, correct panoramic distortion, and control the focal scale
+of the resulting image.</p>
+<h2 id="overview-of-the-cylinder2plane-distortion">Overview of the
+Cylinder2Plane Distortion</h2>
+<p>In ImageMagick, the <code>Cylinder2Plane</code> operation is invoked
+using the <code>-distort</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> Cylinder2Plane <span class="st">&quot;parameters&quot;</span> output.png</span></code></pre></div>
+<p>The transformation takes up to three arguments, formatted as a
+space-separated or comma-separated list of floating-point values:</p>
+<pre class="text"><code>&quot;FOV [center_x center_y]&quot;</code></pre>
+<h2 id="the-defining-parameters">The Defining Parameters</h2>
+<h3 id="1-fov-field-of-view">1. FOV (Field of View)</h3>
+<ul>
+<li><strong>Status:</strong> Required</li>
+<li><strong>Unit:</strong> Degrees (floating-point)</li>
+<li><strong>Description:</strong> Specifies the horizontal Field of View
+(FOV) of the input cylindrical image.</li>
+<li><strong>Details:</strong> This is the primary parameter governing
+the projection. It defines the angular span represented across the full
+width of the cylindrical source. A standard value corresponds to the
+camera's horizontal viewing angle when capturing the panorama. If the
+specified FOV matches the true capture angle, the straight lines in the
+physical world will render as straight lines on the planar output.
+Supplying a value that is too large will over-stretch the edges, while a
+value that is too small will cause under-correction.</li>
+</ul>
+<h3 id="2-center-x-center_x">2. Center X (<code>center_x</code>)</h3>
+<ul>
+<li><strong>Status:</strong> Optional</li>
+<li><strong>Unit:</strong> Pixels</li>
+<li><strong>Default:</strong> Center of the input image
+(<code>(width - 1) / 2</code>)</li>
+<li><strong>Description:</strong> Defines the horizontal coordinate of
+the projection center (optical center).</li>
+<li><strong>Details:</strong> Changing this parameter shifts the center
+of perspective horizontally across the cylinder, allowing you to
+re-center the planar perspective on a specific subject rather than the
+geometric midpoint of the image.</li>
+</ul>
+<h3 id="3-center-y-center_y">3. Center Y (<code>center_y</code>)</h3>
+<ul>
+<li><strong>Status:</strong> Optional</li>
+<li><strong>Unit:</strong> Pixels</li>
+<li><strong>Default:</strong> Center of the input image
+(<code>(height - 1) / 2</code>)</li>
+<li><strong>Description:</strong> Defines the vertical coordinate of the
+projection center (optical center).</li>
+<li><strong>Details:</strong> Adjusting this parameter shifts the
+vertical vanishing point. It is particularly useful if the camera was
+tilted up or down during capture or if the input image has been cropped
+asymmetrically along the vertical axis.</li>
+</ul>
+<h2 id="usage-syntax-examples">Usage Syntax Examples</h2>
+<ul>
+<li><p><strong>FOV Only:</strong> Uses the default image center for both
+horizontal and vertical coordinates.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> panorama.jpg <span class="at">-distort</span> Cylinder2Plane <span class="st">&quot;90&quot;</span> output.jpg</span></code></pre></div></li>
+<li><p><strong>FOV with Custom Center Coordinates:</strong> Applies a
+100-degree horizontal field of view centered at coordinates (1200,
+600).</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> panorama.jpg <span class="at">-distort</span> Cylinder2Plane <span class="st">&quot;100 1200 600&quot;</span> output.jpg</span></code></pre></div></li>
+</ul>
+<h2 id="practical-considerations">Practical Considerations</h2>
+<ul>
+<li><strong>Inverse Mapping:</strong> <code>Cylinder2Plane</code> is the
+mathematical inverse of the <code>Plane2Cylinder</code> distortion. The
+same parameter values will reverse a transformation between the two
+projections.</li>
+<li><strong>Canvas Sizing:</strong> Planar projections expand
+significantly toward the edges as the FOV approaches or exceeds 120
+degrees. Using the <code>+distort</code> variant instead of
+<code>-distort</code> ensures that the output image canvas dynamically
+expands to contain the entire transformed output rather than clipping at
+original image boundaries.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

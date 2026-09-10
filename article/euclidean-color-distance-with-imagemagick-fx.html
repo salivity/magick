@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euclidean Color Distance with ImageMagick FX - magick</title>
+    <meta name="description" content="This article explains how to calculate the Euclidean color distance between images or against a target color using ImageMagick's -fx operator. You will learn the exact mathematical syntax required for the -fx expression, how to compare two separate image">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/euclidean-color-distance-with-imagemagick-fx">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Euclidean Color Distance with ImageMagick FX - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/euclidean-color-distance-with-imagemagick-fx" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to calculate the Euclidean color distance between images or against a target color using ImageMagick's -fx operator. You will learn the exact mathematical syntax required for the -fx expression, how to compare two separate image" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="euclidean-color-distance-with-imagemagick-fx">Euclidean Color
+Distance with ImageMagick FX</h1>
+<p>This article explains how to calculate the Euclidean color distance
+between images or against a target color using ImageMagick's
+<code>-fx</code> operator. You will learn the exact mathematical syntax
+required for the <code>-fx</code> expression, how to compare two
+separate images, how to evaluate an image against a constant color, and
+how to properly normalize the resulting output into a standard grayscale
+map.</p>
+<h2 id="the-euclidean-color-distance-formula">The Euclidean Color
+Distance Formula</h2>
+<p>Euclidean color distance treats the Red, Green, and Blue channels of
+an image as coordinates in a three-dimensional space (<span
+class="math inline">\(R, G, B\)</span>). The distance (<span
+class="math inline">\(d\)</span>) between two colors <span
+class="math inline">\((R_1, G_1, B_1)\)</span> and <span
+class="math inline">\((R_2, G_2, B_2)\)</span> is defined as:</p>
+<p><span class="math display">\[d = \sqrt{(R_1 - R_2)^2 + (G_1 - G_2)^2
++ (B_1 - B_2)^2}\]</span></p>
+<p>Because ImageMagick processes channel values in the range of
+<code>0.0</code> to <code>1.0</code>, the maximum possible distance
+between two points (such as black <code>[0, 0, 0]</code> and white
+<code>[1, 1, 1]</code>) is <span class="math inline">\(\sqrt{1^2 + 1^2 +
+1^2} = \sqrt{3} \approx 1.73205\)</span>. To prevent clipping and
+produce a standard normalized grayscale output where <code>0.0</code>
+represents identical colors and <code>1.0</code> represents maximum
+divergence, the result must be divided by <span
+class="math inline">\(\sqrt{3}\)</span>.</p>
+<h2 id="syntax-for-comparing-two-images">Syntax for Comparing Two
+Images</h2>
+<p>To calculate the Euclidean color distance between two different
+images pixel-by-pixel, load both images and use <code>u</code> to
+represent the first image and <code>v</code> to represent the second
+image:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png image2.png <span class="at">-fx</span> <span class="st">&quot;sqrt((u.r - v.r)^2 + (u.g - v.g)^2 + (u.b - v.b)^2) / sqrt(3)&quot;</span> distance.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.png image2.png <span class="at">-fx</span> <span class="st">&quot;sqrt((u.r - v.r)^2 + (u.g - v.g)^2 + (u.b - v.b)^2) / sqrt(3)&quot;</span> distance.png</span></code></pre></div>
+<h3 id="expression-breakdown">Expression Breakdown:</h3>
+<ul>
+<li><code>u.r</code>, <code>u.g</code>, <code>u.b</code>: The Red,
+Green, and Blue channel values of the first image
+(<code>image1.png</code>).</li>
+<li><code>v.r</code>, <code>v.g</code>, <code>v.b</code>: The Red,
+Green, and Blue channel values of the second image
+(<code>image2.png</code>).</li>
+<li><code>^2</code>: Squares the difference between each corresponding
+channel.</li>
+<li><code>sqrt(...)</code>: Computes the square root of the summed
+squared differences.</li>
+<li><code>/ sqrt(3)</code>: Normalizes the final distance to fall
+strictly within the <code>[0.0, 1.0]</code> range.</li>
+</ul>
+<h2 id="syntax-for-comparing-an-image-to-a-fixed-color">Syntax for
+Comparing an Image to a Fixed Color</h2>
+<p>To measure the distance of every pixel in a single image relative to
+a fixed RGB reference color, substitute the <code>v</code> terms with
+static normalized float values between <code>0.0</code> and
+<code>1.0</code>.</p>
+<p>For example, to calculate the Euclidean distance of every pixel in
+<code>input.png</code> from pure red
+(<code>RGB: 1.0, 0.0, 0.0</code>):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fx</span> <span class="st">&quot;sqrt((u.r - 1.0)^2 + (u.g - 0.0)^2 + (u.b - 0.0)^2) / sqrt(3)&quot;</span> distance_from_red.png</span></code></pre></div>
+<p>If comparing against an 8-bit color such as
+<code>rgb(128, 64, 255)</code>, divide each component by 255 before
+inserting it into the formula:</p>
+<ul>
+<li><span class="math inline">\(R = 128 / 255 \approx
+0.5020\)</span></li>
+<li><span class="math inline">\(G = 64 / 255 \approx
+0.2510\)</span></li>
+<li><span class="math inline">\(B = 255 / 255 = 1.0\)</span></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fx</span> <span class="st">&quot;sqrt((u.r - 0.502)^2 + (u.g - 0.251)^2 + (u.b - 1.0)^2) / sqrt(3)&quot;</span> distance.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

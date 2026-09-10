@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Private Metadata From TIFF With ImageMagick - magick</title>
+    <meta name="description" content="This article provides the exact ImageMagick commands needed to strip private metadata tags, embedded profiles, and sensitive information from TIFF files. You will learn how to process single images, handle batch conversions, and target specific metadata">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/remove-private-metadata-from-tiff-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remove Private Metadata From TIFF With ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/remove-private-metadata-from-tiff-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the exact ImageMagick commands needed to strip private metadata tags, embedded profiles, and sensitive information from TIFF files. You will learn how to process single images, handle batch conversions, and target specific metadata" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="remove-private-metadata-from-tiff-with-imagemagick">Remove
+Private Metadata From TIFF With ImageMagick</h1>
+<p>This article provides the exact ImageMagick commands needed to strip
+private metadata tags, embedded profiles, and sensitive information from
+TIFF files. You will learn how to process single images, handle batch
+conversions, and target specific metadata types to ensure your TIFF
+files are clean and optimized.</p>
+<h3 id="the-standard-command-to-strip-all-metadata">The Standard Command
+to Strip All Metadata</h3>
+<p>The most effective and direct way to remove all private metadata
+tags, EXIF data, XMP blocks, IPTC profiles, and comments from a TIFF
+image is using the <code>-strip</code> operator.</p>
+<p>For ImageMagick v7+:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-strip</span> output.tif</span></code></pre></div>
+<p>For ImageMagick v6 (legacy):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.tif <span class="at">-strip</span> output.tif</span></code></pre></div>
+<p>The <code>-strip</code> command deletes all standard and private
+profiles, EXIF tags, and proprietary camera/software metadata while
+preserving the essential image data and compression format.</p>
+<hr />
+<h3 id="in-place-batch-removal-for-multiple-tiff-files">In-Place Batch
+Removal for Multiple TIFF Files</h3>
+<p>To remove metadata from multiple TIFF files in a folder without
+creating new files, use the <code>mogrify</code> tool:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-strip</span> <span class="pp">*</span>.tif</span></code></pre></div>
+<p><em>(For ImageMagick v6, run
+<code>mogrify -strip *.tif</code>)</em></p>
+<hr />
+<h3 id="removing-specific-profiles-selectively">Removing Specific
+Profiles Selectively</h3>
+<p>If you need to remove private metadata profiles (such as EXIF, IPTC,
+or XMP) while preserving specific properties like the embedded ICC color
+profile, use the <code>+profile</code> option instead of
+<code>-strip</code>:</p>
+<p>To remove all profiles:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif +profile <span class="st">&quot;*&quot;</span> output.tif</span></code></pre></div>
+<p>To remove only private EXIF and XMP tags:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif +profile <span class="st">&quot;exif&quot;</span> +profile <span class="st">&quot;xmp&quot;</span> output.tif</span></code></pre></div>
+<hr />
+<h3 id="verifying-metadata-removal">Verifying Metadata Removal</h3>
+<p>To confirm that the private tags have been completely removed from
+your TIFF file, run the <code>identify</code> command:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.tif</span></code></pre></div>
+<p>Look for the <code>Properties:</code> and <code>Profiles:</code>
+sections in the terminal output. A successfully stripped TIFF will only
+contain baseline geometry, resolution, and color depth information.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

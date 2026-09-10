@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set JPEG 2000 Quality in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure compression quality rates for JPEG 2000 (JP2) images using ImageMagick. It covers setting lossy versus lossless modes, applying quality percentages, and using delegate-specific definitions to control exact compression">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-set-jpeg-2000-quality-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set JPEG 2000 Quality in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-set-jpeg-2000-quality-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure compression quality rates for JPEG 2000 (JP2) images using ImageMagick. It covers setting lossy versus lossless modes, applying quality percentages, and using delegate-specific definitions to control exact compression" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-jpeg-2000-quality-in-imagemagick">How to Set JPEG
+2000 Quality in ImageMagick</h1>
+<p>This guide explains how to configure compression quality rates for
+JPEG 2000 (JP2) images using ImageMagick. It covers setting lossy versus
+lossless modes, applying quality percentages, and using
+delegate-specific definitions to control exact compression ratios and
+bitrates across your image workflows.</p>
+<hr />
+<h3 id="prerequisites-and-delegates">Prerequisites and Delegates</h3>
+<p>ImageMagick relies on external delegates to handle JPEG 2000 files,
+most commonly <strong>OpenJPEG</strong> (<code>libopenjp2</code>) or
+<strong>JasPer</strong>. Modern builds of ImageMagick (version 7 and
+recent version 6 releases) use OpenJPEG. Ensure your ImageMagick build
+has JP2 support by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> JP2</span></code></pre></div>
+<hr />
+<h3 id="basic-quality-configuration">Basic Quality Configuration</h3>
+<p>The primary mechanism for adjusting quality in ImageMagick is the
+<code>-quality</code> flag. For JPEG 2000, the behavior of the
+<code>-quality</code> flag differs slightly from standard JPEG.</p>
+<h4 id="1-lossless-compression">1. Lossless Compression</h4>
+<p>A quality setting of <code>100</code> instructs the encoder to use
+reversible (lossless) wavelet transformations:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 output.jp2</span></code></pre></div>
+<p>In lossless mode, no image data is discarded, ensuring an exact
+pixel-by-pixel reproduction at the cost of a larger file size.</p>
+<h4 id="2-lossy-compression">2. Lossy Compression</h4>
+<p>Any value below <code>100</code> enables lossy compression using
+irreversible wavelet filters. Lower values increase the compression
+ratio, resulting in smaller files with reduced visual fidelity:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 75 output.jp2</span></code></pre></div>
+<p>In OpenJPEG, a quality value between <code>1</code> and
+<code>99</code> maps directly to target Peak Signal-to-Noise Ratio
+(PSNR) values or internal rate-distortion targets depending on the
+underlying delegate version.</p>
+<hr />
+<h3 id="advanced-rate-control-using-definitions">Advanced Rate Control
+Using Definitions</h3>
+<p>For precise control over file sizes and compression ratios, use
+coder-specific <code>-define</code> arguments rather than arbitrary
+quality percentages.</p>
+<h4 id="setting-exact-compression-ratios">Setting Exact Compression
+Ratios</h4>
+<p>You can define explicit compression ratios using the
+<code>jp2:rate</code> option. The value represents the compression
+factor relative to uncompressed raw data:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compresses the image to roughly 20:1 ratio</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-define</span> jp2:rate=20 output.jp2</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compresses the image to roughly 50:1 ratio (higher compression)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-define</span> jp2:rate=50 output.jp2</span></code></pre></div>
+<h4 id="setting-multiple-quality-layers">Setting Multiple Quality
+Layers</h4>
+<p>JPEG 2000 supports progressive decoding via multiple quality layers.
+You can define multiple target rates or PSNR values separated by
+commas:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Encodes three progressive quality layers</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-define</span> jp2:quality=30,40,50 output.jp2</span></code></pre></div>
+<p>This allows applications reading the file to decode a coarse version
+quickly before rendering the higher-quality layers.</p>
+<hr />
+<h3 id="verifying-output-quality-and-compression">Verifying Output
+Quality and Compression</h3>
+<p>To verify the achieved compression ratio and ensure that the output
+matches your constraints, inspect the output image metadata:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.jp2</span></code></pre></div>
+<p>Check the <code>Filesize</code> and <code>Compression</code>
+properties to confirm the file has achieved your desired target
+footprint.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

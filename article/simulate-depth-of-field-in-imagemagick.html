@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Depth of Field in ImageMagick - magick</title>
+    <meta name="description" content="Simulating depth of field (DoF) allows you to create realistic camera focus effects by selectively blurring an image based on distance. This article demonstrates how to combine an RGB source image with a grayscale depth map using ImageMagick's composite">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/simulate-depth-of-field-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Simulate Depth of Field in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/simulate-depth-of-field-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Simulating depth of field (DoF) allows you to create realistic camera focus effects by selectively blurring an image based on distance. This article demonstrates how to combine an RGB source image with a grayscale depth map using ImageMagick's composite" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="simulate-depth-of-field-in-imagemagick">Simulate Depth of Field
+in ImageMagick</h1>
+<p>Simulating depth of field (DoF) allows you to create realistic camera
+focus effects by selectively blurring an image based on distance. This
+article demonstrates how to combine an RGB source image with a grayscale
+depth map using ImageMagick's composite blur operators. By adjusting the
+depth map to isolate a specific focal plane and applying variable
+blurring, you can quickly produce professional, optical-quality depth
+effects directly from the command line.</p>
+<h3 id="1-understanding-the-depth-map-requirement">1. Understanding the
+Depth Map Requirement</h3>
+<p>ImageMagick’s <code>-compose Blur</code> operation uses a secondary
+image (the depth map) as an intensity mask to determine blur radius. In
+standard blur composition:</p>
+<ul>
+<li><strong>Black (<code>#000000</code>)</strong> receives zero blur
+(sharp focus).</li>
+<li><strong>White (<code>#FFFFFF</code>)</strong> receives the maximum
+specified blur radius.</li>
+<li><strong>Grayscale tones</strong> receive proportional intermediate
+blur amounts.</li>
+</ul>
+<p>A raw depth map typically assigns black to the nearest point and
+white to the furthest point (or vice versa). To set a specific focal
+subject in focus, the depth map must be remapped so that the desired
+focal depth becomes pure black, while both closer and farther distances
+scale toward white.</p>
+<h3 id="2-adjusting-the-depth-map-for-a-focal-point">2. Adjusting the
+Depth Map for a Focal Point</h3>
+<p>If your subject sits at mid-depth (represented as gray in a raw depth
+map), you must create a "V-curve" so that values below and above the
+focal point both transition to white.</p>
+<p>You can remap the depth map using ImageMagick’s
+<code>-solarize</code> or mathematical operators:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> depth.png <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% depth_mask.png</span></code></pre></div>
+<p>Alternatively, to focus on the foreground (where pure black is
+already in focus) or the background (invert with <code>-negate</code>),
+you can use the depth map directly without remapping the midtones.</p>
+<h3 id="3-applying-the-blur-composite">3. Applying the Blur
+Composite</h3>
+<p>Once the depth map has pure black at the focal plane, combine the
+original image and the depth mask using the <code>Blur</code>
+composition method.</p>
+<p>In ImageMagick 7, use the following syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg depth_mask.png <span class="at">-compose</span> Blur <span class="at">-set</span> option:compose:args 20x0 <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h3 id="4-configuring-the-blur-arguments">4. Configuring the Blur
+Arguments</h3>
+<p>The <code>-set option:compose:args</code> parameter controls the
+magnitude and orientation of the blur:</p>
+<ul>
+<li><strong>Isotropic Blur (Spherical/Standard):</strong> Define only
+the X-radius or equal X and Y values (e.g., <code>15x0</code> or
+<code>15x15</code>).</li>
+<li><strong>Anamorphic / Directional Blur:</strong> Set unequal values
+or supply an angle (e.g., <code>20x5+45</code> applies an elliptical
+blur oriented at 45 degrees).</li>
+</ul>
+<h3 id="5-complete-single-line-execution">5. Complete Single-Line
+Execution</h3>
+<p>To process the image in a single pipeline without writing
+intermediate mask files, use inline parenthesis operations:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> depth.png <span class="at">-solarize</span> 50% <span class="at">-level</span> 0,50% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Blur <span class="at">-set</span> option:compose:args 25x0 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  dof_result.jpg</span></code></pre></div>
+<p>This command loads the source, adjusts the depth map in memory to
+create the focal plane, and composites the variable blur in a single
+step.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

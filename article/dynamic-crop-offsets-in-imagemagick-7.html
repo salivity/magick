@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Crop Offsets in ImageMagick 7 - magick</title>
+    <meta name="description" content="This guide explains how to dynamically compute crop offsets and dimensions in ImageMagick 7 using inline mathematical expressions. By leveraging the built-in FX expression engine directly inside command-line arguments, you can calculate bounding boxes, c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/dynamic-crop-offsets-in-imagemagick-7">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dynamic Crop Offsets in ImageMagick 7 - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/dynamic-crop-offsets-in-imagemagick-7" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to dynamically compute crop offsets and dimensions in ImageMagick 7 using inline mathematical expressions. By leveraging the built-in FX expression engine directly inside command-line arguments, you can calculate bounding boxes, c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="dynamic-crop-offsets-in-imagemagick-7">Dynamic Crop Offsets in
+ImageMagick 7</h1>
+<p>This guide explains how to dynamically compute crop offsets and
+dimensions in ImageMagick 7 using inline mathematical expressions. By
+leveraging the built-in FX expression engine directly inside
+command-line arguments, you can calculate bounding boxes, center crops,
+and aspect ratios on the fly based on an image's intrinsic dimensions
+without relying on external shell scripts or secondary commands.</p>
+<h2 id="understanding-inline-expressions-in-imagemagick-7">Understanding
+Inline Expressions in ImageMagick 7</h2>
+<p>ImageMagick 7 introduced a unified CLI parser through the
+<code>magick</code> command that supports inline calculations via the
+<code>%[fx:...]</code> format. When passed inside geometry arguments,
+these expressions are evaluated at runtime against the current image
+properties, such as width (<code>w</code>) and height
+(<code>h</code>).</p>
+<p>The standard crop geometry format is <code>WIDTHxHEIGHT+X+Y</code>.
+By replacing any or all of these values with <code>%[fx:...]</code>
+expressions, ImageMagick computes the integer pixel values
+dynamically.</p>
+<h2 id="syntax-and-core-variables">Syntax and Core Variables</h2>
+<p>The basic structure for dynamic cropping is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-crop</span> <span class="st">&quot;%[fx:expression_w]x%[fx:expression_h]+%[fx:expression_x]+%[fx:expression_y]&quot;</span> +repage output.png</span></code></pre></div>
+<p>Common variables available in the FX parser include:</p>
+<ul>
+<li><code>w</code>: Current image width in pixels.</li>
+<li><code>h</code>: Current image height in pixels.</li>
+<li><code>min(a,b)</code> and <code>max(a,b)</code>: Minimum and maximum
+functions.</li>
+<li>Operators: <code>+</code>, <code>-</code>, <code>*</code>,
+<code>/</code>.</li>
+</ul>
+<p>Always append <code>+repage</code> after a <code>-crop</code>
+operation to reset the image's virtual canvas offset metadata.</p>
+<h2 id="practical-crop-examples">Practical Crop Examples</h2>
+<h3 id="1-dynamic-center-square-crop">1. Dynamic Center Square Crop</h3>
+<p>To crop a centered square from an image regardless of whether it is
+portrait or landscape, determine the shorter side using
+<code>min(w,h)</code> and calculate the offset to center it:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> <span class="st">&quot;%[fx:min(w,h)]x%[fx:min(w,h)]+%[fx:(w-min(w,h))/2]+%[fx:(h-min(w,h))/2]&quot;</span> +repage square_crop.jpg</span></code></pre></div>
+<ul>
+<li><strong>Width and Height:</strong> Set to
+<code>min(w,h)</code>.</li>
+<li><strong>X-Offset:</strong> <code>(w - min(w,h)) / 2</code> centers
+horizontally if landscape; evaluates to <code>0</code> if portrait.</li>
+<li><strong>Y-Offset:</strong> <code>(h - min(w,h)) / 2</code> centers
+vertically if portrait; evaluates to <code>0</code> if landscape.</li>
+</ul>
+<h3 id="2-relative-percentage-cropping-with-custom-offsets">2. Relative
+Percentage Cropping with Custom Offsets</h3>
+<p>To crop a region defined by percentages of the original image—for
+example, taking a region that is 50% of the width and 50% of the height,
+offset by 25% from both edges:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> <span class="st">&quot;%[fx:w*0.5]x%[fx:h*0.5]+%[fx:w*0.25]+%[fx:h*0.25]&quot;</span> +repage center_half.jpg</span></code></pre></div>
+<h3 id="3-enforcing-a-dynamic-169-aspect-ratio-crop">3. Enforcing a
+Dynamic 16:9 Aspect Ratio Crop</h3>
+<p>To trim an arbitrary image to a centered 16:9 aspect ratio
+dynamically:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> <span class="st">&quot;%[fx:(w/h &gt; 16/9) ? (h*16/9) : w]x%[fx:(w/h &gt; 16/9) ? h : (w*9/16)]+%[fx:(w/h &gt; 16/9) ? ((w-(h*16/9))/2) : 0]+%[fx:(w/h &gt; 16/9) ? 0 : ((h-(w*9/16))/2)]&quot;</span> +repage cropped_16_9.jpg</span></code></pre></div>
+<p>This ternary expression checks if the current aspect ratio
+(<code>w/h</code>) is wider than <code>16/9</code>. If true, it
+restricts the width and offsets horizontally; if false, it restricts the
+height and offsets vertically.</p>
+<h2 id="assigning-offsets-to-custom-variables">Assigning Offsets to
+Custom Variables</h2>
+<p>For complex pipelines, you can precalculate crop offsets and store
+them as custom attributes using <code>-set</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> option:crop_w <span class="st">&quot;%[fx:w*0.8]&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> option:crop_h <span class="st">&quot;%[fx:h*0.8]&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> option:crop_x <span class="st">&quot;%[fx:w*0.1]&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> option:crop_y <span class="st">&quot;%[fx:h*0.1]&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-crop</span> <span class="st">&quot;%[crop_w]x%[crop_h]+%[crop_x]+%[crop_y]&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  +repage output.jpg</span></code></pre></div>
+<p>This improves readability when dealing with lengthy conditional
+evaluations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

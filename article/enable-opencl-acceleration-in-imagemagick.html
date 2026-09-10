@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enable OpenCL Acceleration in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to enable and verify OpenCL GPU hardware acceleration in ImageMagick to significantly speed up resource-intensive image processing tasks like resizing, blurring, and color adjustments. Before making changes, check if your current">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/enable-opencl-acceleration-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Enable OpenCL Acceleration in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/enable-opencl-acceleration-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to enable and verify OpenCL GPU hardware acceleration in ImageMagick to significantly speed up resource-intensive image processing tasks like resizing, blurring, and color adjustments. Before making changes, check if your current" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="enable-opencl-acceleration-in-imagemagick">Enable OpenCL
+Acceleration in ImageMagick</h1>
+<p>This guide explains how to enable and verify OpenCL GPU hardware
+acceleration in ImageMagick to significantly speed up resource-intensive
+image processing tasks like resizing, blurring, and color
+adjustments.</p>
+<h2 id="1-verify-existing-opencl-support">1. Verify Existing OpenCL
+Support</h2>
+<p>Before making changes, check if your current ImageMagick installation
+already has OpenCL support built in.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p><em>(On older versions, use <code>convert -version</code>)</em></p>
+<p>Look at the <strong>Features</strong> line in the output. If
+<strong>OpenCL</strong> is listed, support is compiled into your
+binary:</p>
+<pre class="text"><code>Features: Cipher DPC HDRI Modules OpenMP OpenCL </code></pre>
+<h2 id="2-install-gpu-drivers-and-opencl-runtimes">2. Install GPU
+Drivers and OpenCL Runtimes</h2>
+<p>ImageMagick requires the appropriate OpenCL driver for your specific
+graphics hardware to utilize GPU acceleration:</p>
+<ul>
+<li><strong>NVIDIA:</strong> Install the proprietary NVIDIA GPU driver
+and the CUDA/OpenCL toolkit.</li>
+<li><strong>AMD:</strong> Install the AMD ROCm platform or proprietary
+AMDGPU-PRO drivers with OpenCL components.</li>
+<li><strong>Intel:</strong> Install the <code>intel-opencl-icd</code> or
+Intel Compute Runtime package.</li>
+</ul>
+<p>To verify your system recognizes your OpenCL platform, run:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">clinfo</span></span></code></pre></div>
+<h2 id="3-compile-imagemagick-with-opencl-if-not-enabled">3. Compile
+ImageMagick with OpenCL (If Not Enabled)</h2>
+<p>If your pre-built package lacks OpenCL support, you must compile
+ImageMagick from source with OpenCL enabled.</p>
+<ol type="1">
+<li>Install OpenCL development headers (e.g.,
+<code>opencl-headers</code> and <code>ocl-icd-opencl-dev</code> on
+Debian/Ubuntu).</li>
+<li>Configure the ImageMagick build with the
+<code>--enable-opencl</code> flag:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="at">--enable-opencl</span></span></code></pre></div>
+<ol start="3" type="1">
+<li>Verify that the configuration summary shows
+<code>OpenCL: yes</code>.</li>
+<li>Compile and install:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ldconfig</span></code></pre></div>
+<h2 id="4-manage-opencl-via-environment-variables">4. Manage OpenCL via
+Environment Variables</h2>
+<p>When compiled with OpenCL support, ImageMagick will automatically
+attempt to use your GPU for compatible operations (such as
+<code>-blur</code>, <code>-convolve</code>, and <code>-resize</code>).
+You can control its behavior using environment variables.</p>
+<ul>
+<li><p><strong>Disable OpenCL temporarily:</strong></p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_OCL_DEVICE</span><span class="op">=</span>OFF</span></code></pre></div></li>
+<li><p><strong>Force OpenCL to use a specific device:</strong> Set the
+device index if you have multiple GPUs:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_OCL_DEVICE</span><span class="op">=</span>0</span></code></pre></div></li>
+</ul>
+<h2 id="5-test-and-benchmark-performance">5. Test and Benchmark
+Performance</h2>
+<p>To verify that OpenCL is actively accelerating operations, run a
+computationally heavy filter and measure the execution time:</p>
+<p><strong>With OpenCL (Default):</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">time</span> magick input.jpg <span class="at">-blur</span> 0x15 output_gpu.jpg</span></code></pre></div>
+<p><strong>Without OpenCL (CPU Only):</strong></p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">time</span> MAGICK_OCL_DEVICE=OFF magick input.jpg <span class="at">-blur</span> 0x15 output_cpu.jpg</span></code></pre></div>
+<p>Comparing the execution times will confirm that your GPU is properly
+processing the workload.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

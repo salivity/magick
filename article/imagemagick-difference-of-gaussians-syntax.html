@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Difference of Gaussians Syntax - magick</title>
+    <meta name="description" content="This guide provides the exact command-line syntax for applying a Difference of Gaussians (DoG) bandpass filter in ImageMagick. You will learn the required operators, how to configure the kernel parameters, and how to handle output normalization for tasks">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-difference-of-gaussians-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Difference of Gaussians Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-difference-of-gaussians-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides the exact command-line syntax for applying a Difference of Gaussians (DoG) bandpass filter in ImageMagick. You will learn the required operators, how to configure the kernel parameters, and how to handle output normalization for tasks" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-difference-of-gaussians-syntax">ImageMagick
+Difference of Gaussians Syntax</h1>
+<p>This guide provides the exact command-line syntax for applying a
+Difference of Gaussians (DoG) bandpass filter in ImageMagick. You will
+learn the required operators, how to configure the kernel parameters,
+and how to handle output normalization for tasks like edge detection and
+frequency-based image enhancement.</p>
+<h2 id="the-basic-dog-syntax">The Basic DoG Syntax</h2>
+<p>In ImageMagick, the Difference of Gaussians filter is built into the
+<code>-morphology</code> operator using the <code>Convolve</code>
+method.</p>
+<p>For ImageMagick version 7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:radius,sigma1,sigma2&quot;</span> output.jpg</span></code></pre></div>
+<p>For ImageMagick version 6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:radius,sigma1,sigma2&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="parameter-definitions">Parameter Definitions</h2>
+<p>The <code>DoG</code> kernel takes up to three comma-separated
+arguments:</p>
+<ul>
+<li><strong><code>radius</code></strong>: The size of the convolution
+matrix. Setting this to <code>0</code> allows ImageMagick to
+automatically calculate the optimal matrix size based on the largest
+sigma value.</li>
+<li><strong><code>sigma1</code></strong>: The standard deviation of the
+smaller (inner) Gaussian blur. This controls the high-frequency
+cutoff.</li>
+<li><strong><code>sigma2</code></strong>: The standard deviation of the
+larger (outer) Gaussian blur. This controls the low-frequency
+cutoff.</li>
+</ul>
+<p>To act as a standard edge-detecting bandpass filter,
+<code>sigma1</code> must be smaller than <code>sigma2</code>.</p>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="1-standard-bandpass-filtering-edge-detection">1. Standard
+Bandpass Filtering (Edge Detection)</h3>
+<p>To isolate medium-frequency details while filtering out both
+high-frequency noise and low-frequency gradients:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,2.0&quot;</span> output.jpg</span></code></pre></div>
+<h3 id="2-preserving-negative-values-with-a-50-bias">2. Preserving
+Negative Values with a 50% Bias</h3>
+<p>Because the Difference of Gaussians subtraction results in both
+positive and negative pixel values, raw output may clip negative values
+to black. Adding a 50% bias centers zero at mid-gray:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> morphology:compose=Lighten <span class="at">-bias</span> 50% <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,0.5,2.0&quot;</span> output.jpg</span></code></pre></div>
+<h3 id="3-highlighting-and-normalizing-edges">3. Highlighting and
+Normalizing Edges</h3>
+<p>To maximize the contrast of the extracted frequency band, follow the
+convolution with <code>-auto-level</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,3.0&quot;</span> <span class="at">-auto-level</span> output.jpg</span></code></pre></div>
+<h2
+id="alternative-method-explicit-blurring-and-subtraction">Alternative
+Method: Explicit Blurring and Subtraction</h2>
+<p>If you prefer to perform the operations explicitly rather than using
+the morphology kernel, you can generate two blurred versions and
+subtract them:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone <span class="at">-gaussian-blur</span> 0x1.0 <span class="dt">\)</span> <span class="dt">\(</span> +clone <span class="at">-gaussian-blur</span> 0x3.0 <span class="dt">\)</span> <span class="at">-delete</span> 0 <span class="at">-compose</span> Mathematics <span class="at">-set</span> option:compose:args <span class="st">&quot;0,1,-1,0.5&quot;</span> <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>In this alternative syntax, <code>0x1.0</code> and <code>0x3.0</code>
+represent <code>radius x sigma</code>, and the <code>Mathematics</code>
+composition subtracts the second blurred layer from the first while
+adding a <code>0.5</code> (50%) offset to retain negative values.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Morphology Edge Extracts Boundaries - magick</title>
+    <meta name="description" content="In ImageMagick, the morphology Edge operator extracts object boundaries by calculating the morphological gradient of an image. Instead of relying on conventional calculus-based differential filters like Sobel or Prewitt, this method applies non-linear ne">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-morphology-edge-extracts-boundaries">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Morphology Edge Extracts Boundaries - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-morphology-edge-extracts-boundaries" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the morphology Edge operator extracts object boundaries by calculating the morphological gradient of an image. Instead of relying on conventional calculus-based differential filters like Sobel or Prewitt, this method applies non-linear ne" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-morphology-edge-extracts-boundaries">How
+ImageMagick Morphology Edge Extracts Boundaries</h1>
+<p>In ImageMagick, the morphology <code>Edge</code> operator extracts
+object boundaries by calculating the morphological gradient of an image.
+Instead of relying on conventional calculus-based differential filters
+like Sobel or Prewitt, this method applies non-linear neighborhood
+operations—specifically dilation and erosion—using a structuring element
+to isolate structural transitions. This article explains how ImageMagick
+pairs dilation and erosion to produce morphological gradients, how
+structuring elements determine the edge profile, and the distinctions
+between the primary edge variants available in the tool.</p>
+<h3 id="the-foundation-dilation-and-erosion">The Foundation: Dilation
+and Erosion</h3>
+<p>To understand how the <code>Edge</code> operator generates
+boundaries, one must first look at the two primitive operations of
+mathematical morphology:</p>
+<ul>
+<li><strong>Dilation:</strong> Expands the boundaries of foreground
+objects (bright areas) by replacing each pixel with the maximum value
+found within the neighborhood defined by a structuring element
+(kernel).</li>
+<li><strong>Erosion:</strong> Shrinks the boundaries of foreground
+objects by replacing each pixel with the minimum value found within the
+neighborhood defined by the structuring element.</li>
+</ul>
+<p>Both operations modify the spatial footprint of an object based
+entirely on the shape and size of the chosen kernel.</p>
+<h3 id="calculating-the-morphological-gradient">Calculating the
+Morphological Gradient</h3>
+<p>The standard morphological gradient—represented in ImageMagick by the
+<code>Edge</code> method—determines edge boundaries by subtracting the
+eroded version of an image from the dilated version:</p>
+<p><span class="math display">\[\text{Edge} = \text{Dilate}(I) -
+\text{Erode}(I)\]</span></p>
+<p>When an image is processed using
+<code>magick input.png -morphology Edge Diamond output.png</code>:</p>
+<ol type="1">
+<li><strong>Simultaneous Processing:</strong> ImageMagick creates two
+internal passes of the source image using the designated kernel: one
+dilated and one eroded.</li>
+<li><strong>Homogeneous Regions:</strong> In areas where pixel
+intensities are uniform (flat backgrounds or solid object interiors),
+dilation and erosion yield identical intensity values. Subtracting the
+two results in zero (black).</li>
+<li><strong>Boundary Regions:</strong> At the borders between
+contrasting regions, dilation expands the higher intensity values
+outward, while erosion pulls lower intensity values inward. When the
+eroded image is subtracted from the dilated image, the difference
+creates a bright ridge outlining the transition zone.</li>
+</ol>
+<p>Because this gradient computes the difference between the outer
+expansion and inner reduction, it produces a centered boundary that
+spans both sides of the original object contour.</p>
+<h3 id="directional-variants-edgein-and-edgeout">Directional Variants:
+EdgeIn and EdgeOut</h3>
+<p>ImageMagick provides specialized variations of the morphological
+gradient to control the exact placement of the detected boundary
+relative to the original shape:</p>
+<ul>
+<li><strong>Edge (Centered Gradient):</strong> Computed as
+<code>Dilate - Erode</code>. The resulting boundary straddles the true
+boundary line, half inside and half outside the object. Its width is
+roughly twice the radius of the kernel.</li>
+<li><strong>EdgeIn (Internal Gradient):</strong> Computed as
+<code>Original - Erode</code>. The resulting outline lies entirely
+within the perimeter of the original shape.</li>
+<li><strong>EdgeOut (External Gradient):</strong> Computed as
+<code>Dilate - Original</code>. The resulting outline lies entirely
+outside the perimeter, forming a halo directly around the shape.</li>
+</ul>
+<h3 id="the-role-of-the-structuring-element-kernel">The Role of the
+Structuring Element (Kernel)</h3>
+<p>The thickness, connectivity, and shape of the extracted boundary are
+dictated by the structuring element passed to the
+<code>-morphology</code> option:</p>
+<ul>
+<li><strong>Diamond (Manhattan metric):</strong> Detects edges with
+4-neighbor connectivity, favoring orthogonal boundaries.</li>
+<li><strong>Square (Chebyshev metric):</strong> Evaluates an 8-neighbor
+grid, including diagonals, creating thicker boundary corners.</li>
+<li><strong>Disk or Octagon:</strong> Approximates Euclidean distance,
+generating uniform, isotropic edge thickness in all directions.</li>
+<li><strong>Kernel Radius:</strong> Specifying a larger radius (for
+example, <code>Disk:2.5</code>) broadens the distance between the
+dilation and erosion passes, creating thicker, more pronounced edge
+lines suitable for segmenting noisy or low-contrast targets.</li>
+</ul>
+<h3 id="application-on-grayscale-and-binary-imagery">Application on
+Grayscale and Binary Imagery</h3>
+<p>While commonly used on binary silhouettes, the morphological
+<code>Edge</code> operator applies equally to grayscale images. On
+continuous-tone imagery, it acts as an intensity-contrast detector:
+gentle gradients produce faint gray contours, while sharp step edges
+produce high-intensity white lines. Because it relies on rank-order
+statistics (minimum and maximum filters) rather than arithmetic
+averages, morphological edge detection prevents intensity blurring and
+preserves the geometric structure of detected boundaries.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

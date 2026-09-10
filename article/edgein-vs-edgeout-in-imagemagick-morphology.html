@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeIn vs EdgeOut in ImageMagick Morphology - magick</title>
+    <meta name="description" content="In ImageMagick, the -morphology operator provides specialized edge-detection methods designed to extract the outlines of shapes and objects within an image. While both EdgeIn and EdgeOut generate clean, precise boundary lines, they differ fundamentally i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/edgein-vs-edgeout-in-imagemagick-morphology">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="EdgeIn vs EdgeOut in ImageMagick Morphology - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/edgein-vs-edgeout-in-imagemagick-morphology" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the -morphology operator provides specialized edge-detection methods designed to extract the outlines of shapes and objects within an image. While both EdgeIn and EdgeOut generate clean, precise boundary lines, they differ fundamentally i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="edgein-vs-edgeout-in-imagemagick-morphology">EdgeIn vs EdgeOut
+in ImageMagick Morphology</h1>
+<p>In ImageMagick, the <code>-morphology</code> operator provides
+specialized edge-detection methods designed to extract the outlines of
+shapes and objects within an image. While both <code>EdgeIn</code> and
+<code>EdgeOut</code> generate clean, precise boundary lines, they differ
+fundamentally in where the generated outline is placed relative to the
+original object's perimeter: <code>EdgeIn</code> draws the outline
+strictly within the interior of the shape, whereas <code>EdgeOut</code>
+generates the outline entirely on the outside in the adjacent
+background. This guide details the mathematical mechanics, visual
+differences, and practical use cases for both operators.</p>
+<h2 id="how-morphological-edge-detection-works">How Morphological Edge
+Detection Works</h2>
+<p>Morphological edge operators in ImageMagick rely on basic
+morphological operations—specifically <strong>Dilation</strong>
+(expanding white/foreground regions) and <strong>Erosion</strong>
+(shrinking white/foreground regions)—using a specified structuring
+element (kernel), such as <code>Disk</code>, <code>Diamond</code>, or
+<code>Square</code>.</p>
+<p>When extracting edges, ImageMagick compares the modified image
+against the original image using subtraction.</p>
+<h2 id="what-is-edgein">What is EdgeIn?</h2>
+<p><code>EdgeIn</code> (Internal Edge) generates a stroke along the
+perimeter of an object, drawn entirely <strong>inside</strong> the
+original boundaries of the shape.</p>
+<ul>
+<li><strong>Mathematical Formula:</strong>
+<code>Original Image - Erode(Image)</code></li>
+<li><strong>Behavior:</strong> The operator first erodes (shrinks) the
+foreground shapes by the radius of the specified kernel. It then
+subtracts this shrunken version from the original image.</li>
+<li><strong>Output Characteristics:</strong> The outer edge of the
+resulting outline aligns exactly with the outer boundary of the original
+object. The thickness of the line grows inward toward the center of the
+shape.</li>
+</ul>
+<h3 id="cli-example">CLI Example</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> EdgeIn Disk:1 edge_in.png</span></code></pre></div>
+<h2 id="what-is-edgeout">What is EdgeOut?</h2>
+<p><code>EdgeOut</code> (External Edge) generates an outline strictly
+<strong>outside</strong> the original boundaries of the shape.</p>
+<ul>
+<li><strong>Mathematical Formula:</strong>
+<code>Dilate(Image) - Original Image</code></li>
+<li><strong>Behavior:</strong> The operator dilates (expands) the
+foreground shapes into the background by the radius of the specified
+kernel. It then subtracts the original shape from this expanded
+version.</li>
+<li><strong>Output Characteristics:</strong> The inner edge of the
+resulting outline touches the outer boundary of the original shape, but
+the stroke itself extends into the surrounding background. The original
+footprint of the object remains empty.</li>
+</ul>
+<h3 id="cli-example-1">CLI Example</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> EdgeOut Disk:1 edge_out.png</span></code></pre></div>
+<h2 id="key-differences">Key Differences</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">EdgeIn</th>
+<th style="text-align: left;">EdgeOut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Placement</strong></td>
+<td style="text-align: left;">Inside the object's boundary</td>
+<td style="text-align: left;">Outside the object's boundary</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Operation</strong></td>
+<td style="text-align: left;"><code>Original - Eroded</code></td>
+<td style="text-align: left;"><code>Dilated - Original</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Total Dimensions</strong></td>
+<td style="text-align: left;">Matches original object bounds</td>
+<td style="text-align: left;">Slightly larger than original bounds</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Interior Cavity</strong></td>
+<td style="text-align: left;">Preserved, stroke expands inward</td>
+<td style="text-align: left;">Preserved, untouched</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Neighboring Pixels</strong></td>
+<td style="text-align: left;">Does not bleed into adjacent objects</td>
+<td style="text-align: left;">Can bleed or merge into nearby
+objects</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-choose-edgein-vs-edgeout">When to Choose EdgeIn vs.
+EdgeOut</h2>
+<ul>
+<li><strong>Choose <code>EdgeIn</code></strong> when you need an outline
+that does not exceed the original dimensions of the graphic or mask.
+This is useful in constrained layouts, UI icons, or segmentation masks
+where expanding outward would overlap adjacent elements.</li>
+<li><strong>Choose <code>EdgeOut</code></strong> when you need to create
+halos, glows, borders, or selection highlights that frame an object
+without obscuring any of the object's internal features or text.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

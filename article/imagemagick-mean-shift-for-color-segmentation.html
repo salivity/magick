@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Mean-Shift for Color Segmentation - magick</title>
+    <meta name="description" content="This article explains the function and utility of the mean-shift operator in ImageMagick, specifically focusing on its role in color clustering and image segmentation. You will learn how the mean-shift algorithm processes pixel data across spatial and co">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-mean-shift-for-color-segmentation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Mean-Shift for Color Segmentation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-mean-shift-for-color-segmentation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the function and utility of the mean-shift operator in ImageMagick, specifically focusing on its role in color clustering and image segmentation. You will learn how the mean-shift algorithm processes pixel data across spatial and co" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-mean-shift-for-color-segmentation">ImageMagick
+Mean-Shift for Color Segmentation</h1>
+<p>This article explains the function and utility of the mean-shift
+operator in ImageMagick, specifically focusing on its role in color
+clustering and image segmentation. You will learn how the mean-shift
+algorithm processes pixel data across spatial and color domains, how it
+preserves edges while simplifying color regions, and how to configure
+its parameters in the ImageMagick command-line interface to achieve
+clean image segmentation.</p>
+<h3 id="what-is-the-mean-shift-operator">What Is the Mean-Shift
+Operator?</h3>
+<p>The mean-shift operator is a non-parametric, iterative clustering
+technique used for edge-preserving smoothing and image segmentation. In
+ImageMagick, the operator evaluates both the spatial coordinates of
+pixels (their physical location) and their color values to find areas of
+high data density in a joint feature space. Rather than relying on a
+predetermined number of clusters, mean-shift iteratively moves each
+pixel toward the mode—the local maximum density—of its surrounding
+neighborhood until convergence.</p>
+<h3 id="how-mean-shift-performs-color-clustering">How Mean-Shift
+Performs Color Clustering</h3>
+<p>Color clustering with mean-shift groups pixels with similar color
+values that are also physically close to one another:</p>
+<ol type="1">
+<li><strong>Window Definition:</strong> The operator centers a
+multi-dimensional window (kernel) on each pixel, defining a search area
+based on spatial distance (spatial radius) and color similarity (color
+distance).</li>
+<li><strong>Mean Calculation:</strong> It calculates the mean spatial
+position and mean color value for all pixels residing within that
+window.</li>
+<li><strong>Kernel Shift:</strong> The center of the window shifts to
+this newly calculated mean.</li>
+<li><strong>Convergence:</strong> The shift repeats iteratively until
+the displacement falls below a defined threshold. All pixels that
+converge to the same point (mode) are grouped into a single cluster and
+assigned that mode's color value.</li>
+</ol>
+<p>Unlike global clustering algorithms such as K-means, mean-shift does
+not require you to specify the target number of colors beforehand. It
+naturally discovers the number of clusters based on the bandwidth
+parameters provided.</p>
+<h3 id="role-in-image-segmentation">Role in Image Segmentation</h3>
+<p>Image segmentation partitions an image into distinct, meaningful
+regions. In ImageMagick, mean-shift achieves this by acting as an
+edge-preserving filter:</p>
+<ul>
+<li><strong>Flat Regions:</strong> Subtle color gradients, photographic
+noise, and fine textures are smoothed out because neighboring pixels
+within the color threshold converge to a shared, uniform color.</li>
+<li><strong>Preserved Boundaries:</strong> High-contrast edges and
+significant color transitions remain sharp because the difference
+between adjacent colors exceeds the color bandwidth, preventing the
+window from pulling across the boundary.</li>
+</ul>
+<p>The resulting output resembles a posterized or simplified version of
+the original image, making it significantly easier to extract individual
+objects, generate vector graphics, or prepare the image for downstream
+computer vision tasks.</p>
+<h3 id="using-mean-shift-in-imagemagick">Using Mean-Shift in
+ImageMagick</h3>
+<p>The mean-shift operator is executed using the
+<code>-mean-shift</code> option. It requires a geometry argument
+formatted as:</p>
+<pre class="text"><code>magick input.jpg -mean-shift &lt;spatial_window&gt;x&lt;spatial_window&gt;+&lt;color_distance&gt;[%] output.png</code></pre>
+<ul>
+<li><strong>Spatial Window (<code>WxH</code>):</strong> Defines the
+neighborhood size in pixels. A larger spatial radius allows pixels
+farther apart to influence each other, producing larger uniform
+regions.</li>
+<li><strong>Color Distance (<code>+distance</code>):</strong> Defines
+the maximum color difference allowed for pixels to be clustered
+together. This can be expressed as an absolute value or a percentage. A
+higher color distance merges a wider spectrum of colors into single
+clusters.</li>
+</ul>
+<p>By adjusting these two parameters, you can control the granularity of
+the color clustering, ranging from subtle noise reduction to aggressive,
+abstract image segmentation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

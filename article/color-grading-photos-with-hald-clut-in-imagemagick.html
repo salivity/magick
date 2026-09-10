@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Grading Photos with Hald CLUT in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to color-grade images efficiently using ImageMagick and a modified Hald CLUT (Color Look-Up Table). You will learn how to generate an identity Hald image, apply your custom color adjustments using any photo editing software, and t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/color-grading-photos-with-hald-clut-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Color Grading Photos with Hald CLUT in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/color-grading-photos-with-hald-clut-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to color-grade images efficiently using ImageMagick and a modified Hald CLUT (Color Look-Up Table). You will learn how to generate an identity Hald image, apply your custom color adjustments using any photo editing software, and t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="color-grading-photos-with-hald-clut-in-imagemagick">Color
+Grading Photos with Hald CLUT in ImageMagick</h1>
+<p>This guide explains how to color-grade images efficiently using
+ImageMagick and a modified Hald CLUT (Color Look-Up Table). You will
+learn how to generate an identity Hald image, apply your custom color
+adjustments using any photo editing software, and then apply that
+modified color profile to single or batch images via the command
+line.</p>
+<h2 id="what-is-a-hald-clut">What is a Hald CLUT?</h2>
+<p>A Hald CLUT is a 2D image representation of a 3D color lookup table.
+Unlike typical 1D LUTs, a 3D color matrix can accurately map complex
+adjustments, including hue shifts, saturation changes, contrast, and
+color curves. ImageMagick uses Hald CLUTs to replicate the exact color
+grading applied to the reference matrix onto any target photograph.</p>
+<h2 id="step-1-generate-an-identity-hald-clut">Step 1: Generate an
+Identity Hald CLUT</h2>
+<p>To begin, you must generate a neutral "identity" Hald image. This
+file contains an unedited baseline spectrum of colors.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> hald:8 identity.png</span></code></pre></div>
+<p><em>Note: The number <code>8</code> represents the color level,
+producing a 512x512 pixel image (which corresponds to <span
+class="math inline">\(8^3 \times 8^3 = 64^3\)</span> color points).
+Level 8 offers an ideal balance of color precision and small file
+size.</em></p>
+<h2 id="step-2-modify-the-hald-clut-in-your-photo-editor">Step 2: Modify
+the Hald CLUT in Your Photo Editor</h2>
+<p>Open the generated <code>identity.png</code> in any image editing
+software of your choice (such as Adobe Photoshop, Lightroom, GIMP, or
+Darktable).</p>
+<p>Apply your desired color transformations:</p>
+<ul>
+<li>Adjust color temperature, tint, curves, and levels.</li>
+<li>Apply split-toning, cross-processing, or saturation
+adjustments.</li>
+<li>Use existing presets or LUTs within your software.</li>
+</ul>
+<p><strong>Critical Rules for Editing the Hald Image:</strong></p>
+<ul>
+<li>Do not resize, crop, rotate, or transform the image dimensions.</li>
+<li>Do not apply spatial filters such as blur, sharpen, noise, or
+vignette.</li>
+<li>Export or save the result as a lossless format (PNG or TIFF) named
+<code>modified_hald.png</code> in the same bit depth (usually 8-bit or
+16-bit).</li>
+</ul>
+<h2 id="step-3-apply-the-modified-hald-clut-to-an-image">Step 3: Apply
+the Modified Hald CLUT to an Image</h2>
+<p>Once your custom <code>modified_hald.png</code> is saved, use
+ImageMagick's <code>-hald-clut</code> operator to apply the grade to a
+photo:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg modified_hald.png <span class="at">-hald-clut</span> output.jpg</span></code></pre></div>
+<p>ImageMagick will map the pixel values of <code>input.jpg</code>
+against the color transformations stored in
+<code>modified_hald.png</code> and produce the graded
+<code>output.jpg</code>.</p>
+<h2 id="step-4-batch-processing-multiple-photos">Step 4: Batch
+Processing Multiple Photos</h2>
+<p>The primary advantage of using command-line Hald CLUT grading is
+speed when handling large batches of images.</p>
+<h3 id="on-linux--macos-bash">On Linux / macOS (Bash):</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> modified_hald.png <span class="at">-hald-clut</span> <span class="st">&quot;graded_</span><span class="va">${img}</span><span class="st">&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<h3 id="on-windows-command-prompt">On Windows (Command Prompt):</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="er">%i</span> <span class="er">in</span> <span class="er">(*.jpg)</span> <span class="er">do</span> <span class="er">magick</span> <span class="er">&quot;%i&quot;</span> <span class="er">modified_hald.png</span> <span class="er">-hald-clut</span> <span class="er">&quot;graded_%i&quot;</span></span></code></pre></div>
+<h3 id="on-windows-powershell">On Windows (PowerShell):</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">*.</span><span class="fu">jpg</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    magick <span class="va">$_</span><span class="op">.</span><span class="fu">Name</span> modified_hald<span class="op">.</span><span class="fu">png</span> <span class="op">-</span>hald-clut <span class="st">&quot;graded_</span><span class="op">$(</span><span class="va">$_</span><span class="op">.</span><span class="fu">Name</span><span class="op">)</span><span class="st">&quot;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This workflow enables you to design your color grading visually in
+your favorite software and deploy it instantly across hundreds of photos
+using ImageMagick.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

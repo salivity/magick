@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -list format Read and Write Capabilities - magick</title>
+    <meta name="description" content="Running the magick -list format (or identify -list format) command in ImageMagick outputs a comprehensive catalog of supported file types alongside their respective coder capabilities. This article details the specific information provided by this comman">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-list-format-read-and-write-capabilities">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -list format Read and Write Capabilities - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-list-format-read-and-write-capabilities" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Running the magick -list format (or identify -list format) command in ImageMagick outputs a comprehensive catalog of supported file types alongside their respective coder capabilities. This article details the specific information provided by this comman" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick--list-format-read-and-write-capabilities">ImageMagick
+-list format Read and Write Capabilities</h1>
+<p>Running the <code>magick -list format</code> (or
+<code>identify -list format</code>) command in ImageMagick outputs a
+comprehensive catalog of supported file types alongside their respective
+coder capabilities. This article details the specific information
+provided by this command, focusing on how it communicates read, write,
+and multi-frame processing permissions through its structured column
+output.</p>
+<h3 id="output-structure-of-the-command">Output Structure of the
+Command</h3>
+<p>When executed, the <code>-list format</code> command returns a tabbed
+table containing four primary columns for every registered format:</p>
+<ol type="1">
+<li><strong>Format:</strong> The internal file format tag or file
+extension (such as <code>PNG</code>, <code>JPEG</code>,
+<code>TIFF</code>, or <code>PDF</code>).</li>
+<li><strong>Module:</strong> The underlying coder or delegate library
+responsible for handling the format (e.g., <code>PNG</code>,
+<code>JPEG</code>, <code>PDF</code>).</li>
+<li><strong>Mode:</strong> A set of character flags representing the
+read, write, and multi-frame capabilities of the coder.</li>
+<li><strong>Description:</strong> The human-readable name of the format,
+often including version or specification details.</li>
+</ol>
+<h3 id="the-mode-column-decoding-read-and-write-flags">The Mode Column:
+Decoding Read and Write Flags</h3>
+<p>The coder's read and write capabilities are specifically conveyed
+within the <strong>Mode</strong> column. This column contains a
+three-character string where each position defines a specific operation
+permission:</p>
+<ul>
+<li><strong>Read Support (<code>r</code>):</strong> If an <code>r</code>
+is present in the first position, ImageMagick possesses the coder or
+external delegate necessary to decode and read the file format into
+memory. If read capability is absent, a hyphen (<code>-</code>)
+appears.</li>
+<li><strong>Write Support (<code>w</code>):</strong> If a <code>w</code>
+is present in the second position, ImageMagick can encode and save
+images in that format. If writing is not supported, a hyphen
+(<code>-</code>) appears.</li>
+<li><strong>Multi-Image Support (<code>+</code>):</strong> The third
+position denotes whether the coder supports multiple frames, layers, or
+pages within a single file (such as animated GIFs, multi-page PDFs, or
+layered TIFFs). A plus sign (<code>+</code>) indicates multi-image read
+and write capability, while a hyphen (<code>-</code>) indicates
+single-image-only support.</li>
+</ul>
+<h3 id="common-mode-output-examples">Common Mode Output Examples</h3>
+<ul>
+<li><strong><code>rw+</code> (Full Support):</strong> The format can be
+read, written, and supports multiple frames or pages (e.g.,
+<code>GIF</code>, <code>TIFF</code>, <code>MNG</code>).</li>
+<li><strong><code>rw-</code> (Single-Image Read/Write):</strong> The
+format can be decoded and encoded, but each file holds only a single
+image frame (e.g., <code>JPEG</code>, <code>PNG</code>,
+<code>BMP</code>).</li>
+<li><strong><code>r--</code> (Read-Only):</strong> ImageMagick can read
+and extract data from the format, but it cannot generate or save new
+files using that format coder (common with proprietary camera RAW
+formats such as <code>CR2</code> or <code>NEF</code>).</li>
+<li><strong><code>-w-</code> (Write-Only):</strong> ImageMagick can
+export data to this format, but cannot read it back.</li>
+<li><strong><code>---</code> (Unsupported / Inactive):</strong> The
+format tag is recognized by ImageMagick's registry, but neither reading
+nor writing is available, usually because the required third-party
+delegate library (such as <code>libpng</code>, <code>libjpeg</code>, or
+<code>Ghostscript</code>) is missing from the system.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

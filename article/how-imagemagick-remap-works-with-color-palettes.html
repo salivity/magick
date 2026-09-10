@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick -remap Works with Color Palettes - magick</title>
+    <meta name="description" content="The ImageMagick -remap operator transforms the colors of an input image by replacing them with the closest matching colors found in an external reference image or palette. This article explains how the -remap operator functions, how it handles color dist">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-remap-works-with-color-palettes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick -remap Works with Color Palettes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-remap-works-with-color-palettes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -remap operator transforms the colors of an input image by replacing them with the closest matching colors found in an external reference image or palette. This article explains how the -remap operator functions, how it handles color dist" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick--remap-works-with-color-palettes">How
+ImageMagick -remap Works with Color Palettes</h1>
+<p>The ImageMagick <code>-remap</code> operator transforms the colors of
+an input image by replacing them with the closest matching colors found
+in an external reference image or palette. This article explains how the
+<code>-remap</code> operator functions, how it handles color distance
+and dithering, how to construct the command, and the most common
+practical use cases for palette remapping.</p>
+<h3 id="core-functionality">Core Functionality</h3>
+<p>When you pass an external image file to the <code>-remap</code>
+operator, ImageMagick performs the following steps:</p>
+<ol type="1">
+<li><strong>Extracts the Palette:</strong> It reads the reference image
+and extracts all unique colors to build a defined color lookup table.
+The reference image can be a custom palette graphic, a grid of color
+swatches, or an existing photo whose color scheme you want to
+replicate.</li>
+<li><strong>Measures Color Distance:</strong> It evaluates every pixel
+in the source image and calculates the mathematical distance between
+that pixel's color and each color in the extracted palette (typically
+using Euclidean distance in RGB or the current colorspace).</li>
+<li><strong>Replaces Pixels:</strong> It assigns each pixel to the
+nearest matching color from the external palette, ensuring that the
+output image contains only colors present in the reference file.</li>
+</ol>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>In ImageMagick version 7, the standard syntax for remapping is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-remap</span> palette.png output.png</span></code></pre></div>
+<p>For ImageMagick version 6, the legacy command is:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-remap</span> palette.png output.png</span></code></pre></div>
+<h3 id="controlling-dithering">Controlling Dithering</h3>
+<p>By default, the <code>-remap</code> operator applies Floyd-Steinberg
+dithering. Dithering mixes adjacent pixels of available palette colors
+to simulate intermediate shades and gradients, reducing harsh color
+banding.</p>
+<ul>
+<li><strong>With Dithering (Default):</strong> Produces smoother
+transitions at the expense of a patterned or noisy texture.</li>
+<li><strong>Without Dithering (<code>+dither</code>):</strong> To map
+each pixel strictly to its single closest color without diffusion
+patterns, place the <code>+dither</code> flag immediately before the
+<code>-remap</code> operator:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +dither <span class="at">-remap</span> palette.png output.png</span></code></pre></div>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><strong>Retro and Pixel Art Styling:</strong> Applying limited color
+palettes (such as Game Boy, CGA, or Commodore 64 palettes) to modern
+graphics or photos.</li>
+<li><strong>Consistent Branding:</strong> Standardizing user-uploaded
+assets or batch images so they strictly adhere to an organization's
+predefined corporate color palette.</li>
+<li><strong>GIF Optimization:</strong> Enforcing a single global color
+table across all frames of an animated GIF to reduce file size and
+eliminate frame-to-frame color flickering.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

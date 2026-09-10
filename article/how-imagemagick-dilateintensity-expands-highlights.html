@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick DilateIntensity Expands Highlights - magick</title>
+    <meta name="description" content="The ImageMagick DilateIntensity morphology operator expands highlight regions across continuous-tone images by evaluating neighborhood luminance rather than processing color channels in isolation. Unlike standard grayscale dilation—which calculates the">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-dilateintensity-expands-highlights">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick DilateIntensity Expands Highlights - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-dilateintensity-expands-highlights" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick DilateIntensity morphology operator expands highlight regions across continuous-tone images by evaluating neighborhood luminance rather than processing color channels in isolation. Unlike standard grayscale dilation—which calculates the" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-dilateintensity-expands-highlights">How
+ImageMagick DilateIntensity Expands Highlights</h1>
+<p>The ImageMagick <code>DilateIntensity</code> morphology operator
+expands highlight regions across continuous-tone images by evaluating
+neighborhood luminance rather than processing color channels in
+isolation. Unlike standard grayscale dilation—which calculates the
+maximum value for each color channel independently and often produces
+unnatural color shifts—<code>DilateIntensity</code> identifies the
+brightest composite pixel within a structuring element's footprint and
+propagates its full color values outward. This allows continuous
+gradients and specular highlights to grow seamlessly into surrounding
+darker regions while preserving the original chromatic integrity of the
+image.</p>
+<h3 id="the-mechanism-of-morphological-dilation">The Mechanism of
+Morphological Dilation</h3>
+<p>In mathematical morphology, dilation replaces a target pixel with the
+local maximum within a defined neighborhood, known as the structuring
+element or kernel. In binary imaging, this simply turns any black pixel
+touching a white pixel into white.</p>
+<p>When applied to continuous tones, standard dilation calculates
+independent maximums across the Red, Green, and Blue channels. If an
+adjacent pixel has a high red value and another has a high blue value, a
+channel-by-channel dilation combines them into magenta, creating
+unwanted chromatic aberration along tonal edges.</p>
+<h3 id="how-dilateintensity-preserves-continuous-tones">How
+DilateIntensity Preserves Continuous Tones</h3>
+<p><code>DilateIntensity</code> resolves color fringing by decoupling
+the selection metric from the channel values:</p>
+<ol type="1">
+<li><strong>Intensity Calculation:</strong> For every pixel covered by
+the kernel footprint, the operator calculates an overall intensity
+(luminance or brightness) based on current colorspace weighting.</li>
+<li><strong>Maximum Selection:</strong> It determines which single
+neighbor exhibits the highest absolute intensity within that kernel
+area.</li>
+<li><strong>Whole-Pixel Replacement:</strong> Instead of taking
+independent channel maximums, the operator replaces the center pixel
+with the entire color vector (R, G, B) of that single highest-intensity
+neighbor.</li>
+</ol>
+<p>Because complete pixel values are copied rather than mathematically
+blended or channel-split, the color fidelity of the original highlights
+remains intact.</p>
+<h3 id="expansion-across-gradients">Expansion Across Gradients</h3>
+<p>In continuous-tone imagery—such as photographs or smooth digital
+paintings—highlights do not exist with hard borders; they taper off
+through subtle gradients. When <code>DilateIntensity</code> scans these
+regions:</p>
+<ul>
+<li><strong>Gradient Shifting:</strong> The peak luminance values step
+outward into lower-luminance areas by a distance governed by the
+kernel's radius.</li>
+<li><strong>Preserved Edge Contours:</strong> Darker continuous-tone
+areas adjacent to bright light sources take on the exact color and
+brightness of the approaching highlight front.</li>
+<li><strong>Highlight Growth:</strong> Specular reflections, light
+glints, and bright light sources enlarge uniformly across the
+surrounding midtones without introducing unnatural color shifts at the
+boundary transitions.</li>
+</ul>
+<h3 id="kernel-shape-and-radius-control">Kernel Shape and Radius
+Control</h3>
+<p>The extent and geometry of the highlight expansion depend directly on
+the chosen morphology kernel:</p>
+<ul>
+<li><strong>Disk:</strong> Provides natural, isotropic expansion, making
+highlights grow outward smoothly and evenly in all directions, ideal for
+photographic lens glow or bokeh simulation.</li>
+<li><strong>Diamond or Octagon:</strong> Offers computationally lighter,
+near-circular growth suitable for subtle gradient spreads.</li>
+<li><strong>Rectangle or Square:</strong> Expands highlights along
+cardinal axes, which can produce blockier transitions across soft
+tones.</li>
+</ul>
+<p>By adjusting the radius of the kernel, you control precisely how many
+pixels deep the highlight spreads into the continuous gradients,
+allowing for controlled light bleeding, glare effects, or shadow
+reduction.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

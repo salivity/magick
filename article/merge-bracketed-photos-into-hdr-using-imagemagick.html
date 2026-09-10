@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Bracketed Photos into HDR Using ImageMagick - magick</title>
+    <meta name="description" content="Merging exposure bracketed photographs into a High Dynamic Range (HDR) image preserves details across extreme shadows and bright highlights. ImageMagick provides flexible command-line tools to combine multiple photos captured at varying exposure levels i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/merge-bracketed-photos-into-hdr-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Merge Bracketed Photos into HDR Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/merge-bracketed-photos-into-hdr-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Merging exposure bracketed photographs into a High Dynamic Range (HDR) image preserves details across extreme shadows and bright highlights. ImageMagick provides flexible command-line tools to combine multiple photos captured at varying exposure levels i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="merge-bracketed-photos-into-hdr-using-imagemagick">Merge
+Bracketed Photos into HDR Using ImageMagick</h1>
+<p>Merging exposure bracketed photographs into a High Dynamic Range
+(HDR) image preserves details across extreme shadows and bright
+highlights. ImageMagick provides flexible command-line tools to combine
+multiple photos captured at varying exposure levels into high-bit-depth
+formats such as <code>.hdr</code> or <code>.exr</code>. This guide walks
+through the required commands to merge bracketed exposures and prepare
+your final composite directly from the terminal.</p>
+<h3 id="1-verify-hdri-support">1. Verify HDRI Support</h3>
+<p>ImageMagick must be compiled with High Dynamic Range Imaging (HDRI)
+enabled so it can handle 32-bit floating-point color values without
+clipping.</p>
+<p>Run the following command to check your version:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>HDRI</code> in the <code>Features</code> line of the
+output. ImageMagick version 7 includes HDRI enabled by default.</p>
+<h3 id="2-prepare-and-align-your-source-images">2. Prepare and Align
+Your Source Images</h3>
+<p>For the best dynamic range output, use uncompressed 16-bit TIFF or
+linear formats rather than 8-bit JPEGs.</p>
+<p>Ensure your images are perfectly aligned. If the bracketed shots were
+taken handheld, align them before merging using a dedicated tool such as
+<code>align_image_stack</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">align_image_stack</span> <span class="at">-a</span> aligned_ input1.tif input2.tif input3.tif</span></code></pre></div>
+<h3 id="3-merge-the-exposures-into-an-hdr-file">3. Merge the Exposures
+into an HDR File</h3>
+<p>To merge your aligned exposures, use the
+<code>-evaluate-sequence</code> operator. This calculates the
+pixel-by-pixel mathematical average across the exposure bracket and
+stores the dynamic range within a high-depth file format like Radiance
+RGBE (<code>.hdr</code>) or OpenEXR (<code>.exr</code>).</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> aligned_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> mean output.hdr</span></code></pre></div>
+<p>Alternatively, if saving to OpenEXR:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> aligned_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> mean output.exr</span></code></pre></div>
+<h3 id="4-advanced-exposure-blending">4. Advanced Exposure Blending</h3>
+<p>If you want to blend images based on contrast and luminance without
+saving directly to a floating-point HDR file, you can blend two
+exposures using layer masking:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> underexposed.tif overexposed.tif <span class="er">(</span> <span class="ex">underexposed.tif</span> <span class="at">-colorspace</span> Gray <span class="kw">)</span> <span class="ex">-composite</span> blended.tif</span></code></pre></div>
+<p>This creates a grayscale mask from the darker image to selectively
+merge the bright highlights of the underexposed frame into the
+overexposed frame.</p>
+<h3 id="5-tone-mapping-the-hdr-output-for-display">5. Tone Mapping the
+HDR Output for Display</h3>
+<p>HDR formats (<code>.hdr</code> and <code>.exr</code>) cannot be
+displayed directly on standard 8-bit monitors. To convert the final HDR
+file into a standard JPEG or PNG, apply gamma adjustments and contrast
+stretching:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> output.hdr <span class="at">-gamma</span> 2.2 <span class="at">-contrast-stretch</span> 0.5%x0.5% final_display.jpg</span></code></pre></div>
+<p>This compresses the high dynamic range into an 8-bit color space
+suitable for web display and printing.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

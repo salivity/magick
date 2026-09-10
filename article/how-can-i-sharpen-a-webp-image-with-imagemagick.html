@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Can I Sharpen a WebP Image with ImageMagick? - magick</title>
+    <meta name="description" content="Sharpening a WebP image using ImageMagick can be achieved directly from the command line using either the -sharpen or -unsharp operators. This guide covers the essential commands required to enhance detail in WebP files, explains the key parameters contr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-can-i-sharpen-a-webp-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Can I Sharpen a WebP Image with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-can-i-sharpen-a-webp-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Sharpening a WebP image using ImageMagick can be achieved directly from the command line using either the -sharpen or -unsharp operators. This guide covers the essential commands required to enhance detail in WebP files, explains the key parameters contr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-can-i-sharpen-a-webp-image-with-imagemagick">How Can I
+Sharpen a WebP Image with ImageMagick?</h1>
+<p>Sharpening a WebP image using ImageMagick can be achieved directly
+from the command line using either the <code>-sharpen</code> or
+<code>-unsharp</code> operators. This guide covers the essential
+commands required to enhance detail in WebP files, explains the key
+parameters controlling the sharpening process, and provides examples for
+balancing edge clarity without introducing unsightly digital noise or
+halos.</p>
+<h2 id="understanding-imagemagick-sharpening-operators">Understanding
+ImageMagick Sharpening Operators</h2>
+<p>ImageMagick provides two primary methods to enhance edge
+contrast:</p>
+<ol type="1">
+<li><strong>The Basic Sharpen Filter (<code>-sharpen</code>)</strong>:
+Applies a standard Gaussian convolution matrix to detect and enhance
+edges. It uses the format <code>radius{xsigma}</code>.</li>
+<li><strong>The Unsharp Mask (<code>-unsharp</code>)</strong>: A more
+refined technique adapted from traditional photography. It blurs an
+inverted copy of the image to create a mask, providing finer control
+over edge contrast, thresholding, and noise suppression. It uses the
+format <code>radius{xsigma}{+gain}{+threshold}</code>.</li>
+</ol>
+<p>For everyday tasks, <code>-unsharp</code> yields significantly
+cleaner results than <code>-sharpen</code> because it prevents
+sharpening uniform areas such as clear skies or smooth textures.</p>
+<h2 id="core-commands">Core Commands</h2>
+<p>Depending on whether you are running ImageMagick 6 or ImageMagick 7,
+the command prefix differs (<code>convert</code> for version 6,
+<code>magick</code> for version 7). The examples below use the modern
+<code>magick</code> syntax.</p>
+<h3 id="1-standard-unsharp-mask-recommended">1. Standard Unsharp Mask
+(Recommended)</h3>
+<p>To sharpen a WebP image cleanly while avoiding unwanted noise, apply
+a moderate unsharp mask:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-unsharp</span> 0x1.0+1.0+0.05 output.webp</span></code></pre></div>
+<p>Breaking down the parameters:</p>
+<ul>
+<li><strong><code>0</code> (Radius)</strong>: Setting the radius to 0
+instructs ImageMagick to automatically calculate a sensible mathematical
+radius based on the sigma value.</li>
+<li><strong><code>1.0</code> (Sigma)</strong>: Defines the standard
+deviation of the Gaussian operator. A value between 0.5 and 1.5 works
+best for WebP web images.</li>
+<li><strong><code>+1.0</code> (Gain/Amount)</strong>: The fraction of
+difference added back to the original image. Values between 0.8 and 1.5
+generally deliver noticeable sharpening without blowing out
+highlights.</li>
+<li><strong><code>+0.05</code> (Threshold)</strong>: The minimum
+brightness difference required before a pixel is sharpened. Keeping this
+small (0.02 to 0.08) prevents image grain from being exaggerated.</li>
+</ul>
+<h3 id="2-simple-gaussian-sharpen">2. Simple Gaussian Sharpen</h3>
+<p>If you prefer a direct, basic sharpen operation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-sharpen</span> 0x1.0 output.webp</span></code></pre></div>
+<p>In this mode, only radius and sigma are used. Higher sigma values
+dramatically increase the sharpening strength, but values above 2.0 can
+quickly cause ringing artifacts around edges.</p>
+<h2 id="preserving-webp-compression-quality">Preserving WebP Compression
+Quality</h2>
+<p>WebP encoding allows fine-tuning file size and fidelity alongside
+image processing. When sharpening, you should explicitly define the WebP
+output quality using the <code>-quality</code> flag to ensure
+recompression does not degrade the enhanced details:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-unsharp</span> 0x0.8+1.2+0.04 <span class="at">-quality</span> 85 output.webp</span></code></pre></div>
+<ul>
+<li>Use a <code>-quality</code> setting between 80 and 90 for lossy WebP
+to keep details crisp without significant compression degradation.</li>
+<li>For lossless WebP images, include
+<code>-define webp:lossless=true</code> to retain absolute pixel
+perfection:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-unsharp</span> 0x0.8+1.0+0.03 <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h2 id="batch-sharpening-multiple-webp-files">Batch Sharpening Multiple
+WebP Files</h2>
+<p>To process an entire directory of WebP files using ImageMagick 7,
+leverage the <code>mogrify</code> tool. This overwrites or modifies
+files in bulk:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./sharpened <span class="at">-unsharp</span> 0x1.0+1.0+0.05 <span class="at">-quality</span> 85 <span class="pp">*</span>.webp</span></code></pre></div>
+<p>This command processes all <code>.webp</code> files in the current
+folder, applies the sharpening settings, and places the resulting files
+into the <code>./sharpened</code> directory without overwriting original
+assets.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

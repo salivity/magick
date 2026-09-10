@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super-Sampling Vector Graphics in ImageMagick - magick</title>
+    <meta name="description" content="Super-sampling vector graphics in ImageMagick involves rendering vector formats—such as SVG, EPS, or PDF—at a significantly higher resolution than needed and then scaling the resulting raster image down to the target dimensions. This process smooths">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/super-sampling-vector-graphics-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Super-Sampling Vector Graphics in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/super-sampling-vector-graphics-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Super-sampling vector graphics in ImageMagick involves rendering vector formats—such as SVG, EPS, or PDF—at a significantly higher resolution than needed and then scaling the resulting raster image down to the target dimensions. This process smooths" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="super-sampling-vector-graphics-in-imagemagick">Super-Sampling
+Vector Graphics in ImageMagick</h1>
+<p>Super-sampling vector graphics in ImageMagick involves rendering
+vector formats—such as SVG, EPS, or PDF—at a significantly higher
+resolution than needed and then scaling the resulting raster image down
+to the target dimensions. This process smooths out jagged edges and
+significantly reduces aliasing artifacts by blending sub-pixel details.
+This guide explains how to configure ImageMagick commands to achieve
+high-quality anti-aliased vector rendering using super-sampling.</p>
+<h2 id="why-super-sampling-is-necessary">Why Super-Sampling Is
+Necessary</h2>
+<p>Vector files are resolution-independent instructions, but they must
+be rasterized into pixel grids for display on screens or in bitmap
+formats like PNG or JPEG. By default, ImageMagick renders vector files
+at a standard density (typically 72 or 96 DPI). When rendered directly
+at low target resolutions, fine lines, curves, and sharp angles can
+appear jagged or blurry.</p>
+<p>Super-sampling solves this by instructing the underlying vector
+delegate (such as <code>librsvg</code> or <code>Ghostscript</code>) to
+rasterize the image at high density, creating an over-sampled bitmap
+that ImageMagick then downsamples using high-quality interpolation
+filters.</p>
+<h2 id="the-basic-super-sampling-command">The Basic Super-Sampling
+Command</h2>
+<p>To super-sample, you set the <code>-density</code> parameter
+<strong>before</strong> specifying the input file, then use
+<code>-resize</code> to scale the image down to your desired output
+dimensions.</p>
+<p>For ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 288 input.svg <span class="at">-resize</span> 25% output.png</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-density</span> 288 input.svg <span class="at">-resize</span> 25% output.png</span></code></pre></div>
+<h3 id="how-the-math-works">How the Math Works</h3>
+<ul>
+<li>The default rendering density is usually 72 DPI.</li>
+<li>Setting <code>-density 288</code> multiplies the resolution by a
+factor of 4 (<span class="math inline">\(72 \times 4 =
+288\)</span>).</li>
+<li>Scaling down by <code>-resize 25%</code> returns the image to its
+original 1x dimensions while retaining smooth edge transitions produced
+by 4x super-sampling.</li>
+</ul>
+<h2 id="targeting-specific-output-dimensions">Targeting Specific Output
+Dimensions</h2>
+<p>If you need an exact pixel width and height rather than a percentage
+scale, specify a high density on input and set absolute target
+dimensions with <code>-resize</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input.svg <span class="at">-resize</span> 800x600 output.png</span></code></pre></div>
+<p><em>Note: Ensure the density is high enough so that the initial
+rasterized size is larger than the final target dimension
+(<code>800x600</code>). If the initial render is smaller than the target
+size, ImageMagick will upscale the image, causing blurriness.</em></p>
+<h2 id="fine-tuning-super-sampling-quality">Fine-Tuning Super-Sampling
+Quality</h2>
+<p>You can combine super-sampling with specific resampling filters and
+background handling to achieve optimal results:</p>
+<h3 id="1-setting-the-resampling-filter">1. Setting the Resampling
+Filter</h3>
+<p>ImageMagick defaults to high-quality filters (such as Mitchell or
+Lanczos) during downsampling. You can explicitly set a filter to adjust
+edge sharpness:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input.svg <span class="at">-filter</span> Mitchell <span class="at">-resize</span> 500x500 output.png</span></code></pre></div>
+<ul>
+<li><strong>Mitchell</strong>: Provides smooth gradients with minimal
+ringing artifacts; ideal for illustrations and text.</li>
+<li><strong>Lanczos</strong>: Retains maximum sharpness along
+high-contrast boundaries.</li>
+</ul>
+<h3 id="2-preserving-transparent-backgrounds">2. Preserving Transparent
+Backgrounds</h3>
+<p>When converting SVGs to PNG, ensure that the background color is
+preserved as transparent by setting the background before reading the
+file:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> none <span class="at">-density</span> 300 input.svg <span class="at">-resize</span> 500x500 output.png</span></code></pre></div>
+<h2 id="summary-of-rules-for-super-sampling">Summary of Rules for
+Super-Sampling</h2>
+<ol type="1">
+<li><strong>Place <code>-density</code> before the input file:</strong>
+Placing <code>-density</code> after the input file will only adjust
+image metadata instead of changing the rasterization resolution.</li>
+<li><strong>Always downscale, never upscale:</strong> The initial
+rasterized pixel count must exceed the target pixel count for
+super-sampling to take effect.</li>
+<li><strong>Use 4x (288–300 DPI) as a baseline:</strong> A 4x scale
+factor provides a strong balance between processing speed and edge
+smoothness.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

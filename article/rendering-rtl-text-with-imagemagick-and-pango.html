@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendering RTL Text with ImageMagick and Pango - magick</title>
+    <meta name="description" content="Rendering right-to-left (RTL) scripts like Arabic and Hebrew in standard ImageMagick pipelines often results in disconnected glyphs, broken ligatures, and reversed character ordering. Standard ImageMagick text primitives lack native complex text shaping">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/rendering-rtl-text-with-imagemagick-and-pango">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Rendering RTL Text with ImageMagick and Pango - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/rendering-rtl-text-with-imagemagick-and-pango" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rendering right-to-left (RTL) scripts like Arabic and Hebrew in standard ImageMagick pipelines often results in disconnected glyphs, broken ligatures, and reversed character ordering. Standard ImageMagick text primitives lack native complex text shaping" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="rendering-rtl-text-with-imagemagick-and-pango">Rendering RTL
+Text with ImageMagick and Pango</h1>
+<p>Rendering right-to-left (RTL) scripts like Arabic and Hebrew in
+standard ImageMagick pipelines often results in disconnected glyphs,
+broken ligatures, and reversed character ordering. Standard ImageMagick
+text primitives lack native complex text shaping and bidirectional
+(BiDi) layout algorithms. By delegating text processing to Pango—a
+dedicated library for layout and rendering of international
+text—ImageMagick can accurately shape, connect, and position RTL
+characters.</p>
+<h2 id="why-pango-is-required">Why Pango Is Required</h2>
+<p>Standard text options in ImageMagick (such as <code>label:</code> or
+<code>annotate:</code>) draw characters sequentially using simple
+FreeType lookups. This approach fails for:</p>
+<ul>
+<li><strong>Arabic:</strong> Requires contextual glyph shaping
+(isolated, initial, medial, and final forms) and cursive ligature
+connections.</li>
+<li><strong>Hebrew and BiDi:</strong> Requires the Unicode Bidirectional
+Algorithm to properly handle mixed RTL and left-to-right (LTR) content,
+punctuation, and numbers.</li>
+</ul>
+<p>Pango handles font shaping, HarfBuzz integration, and FriBidi layout
+internally before passing the rasterized output to ImageMagick.</p>
+<h2 id="verifying-pango-support">Verifying Pango Support</h2>
+<p>Before rendering, confirm that your ImageMagick build has the Pango
+delegate enabled:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>pango</code> in the <code>Delegates (built-in)</code>
+list. Alternatively, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> PANGO</span></code></pre></div>
+<p>If Pango is missing, install the <code>libpango1.0-dev</code> package
+(on Debian/Ubuntu) or <code>pango</code> (via Homebrew/macOS) and
+recompile or reinstall ImageMagick.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>To use Pango in ImageMagick, use the <code>pango:</code> protocol
+prefix instead of <code>label:</code> or <code>text:</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="at">-fill</span> black pango:<span class="st">&quot;Your text here&quot;</span> output.png</span></code></pre></div>
+<h2 id="rendering-arabic-text">Rendering Arabic Text</h2>
+<p>Arabic requires an appropriate font that includes full Arabic shaping
+tables (e.g., Amiri, Cairo, or Noto Sans Arabic).</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> <span class="st">&quot;#f5f5f5&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-fill</span> <span class="st">&quot;#111111&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-size</span> 600x <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>       pango:<span class="st">&quot;&lt;span font=&#39;Amiri 28&#39;&gt;مرحباً بكم في عالم البرمجة&lt;/span&gt;&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>       arabic_output.png</span></code></pre></div>
+<p>Pango automatically identifies the Arabic script, runs HarfBuzz for
+correct contextual shaping, and aligns the text appropriately.</p>
+<h2 id="rendering-hebrew-text">Rendering Hebrew Text</h2>
+<p>Hebrew scripts render correctly with fonts like Arial, DejaVu Sans,
+or Noto Sans Hebrew.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-fill</span> <span class="st">&quot;#003366&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-size</span> 500x <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>       pango:<span class="st">&quot;&lt;span font=&#39;DejaVu Sans 24&#39;&gt;שלום עולם! ברוכים הבאים.&lt;/span&gt;&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>       hebrew_output.png</span></code></pre></div>
+<h2 id="handling-mixed-bidi-text-and-alignment">Handling Mixed BiDi Text
+and Alignment</h2>
+<p>When mixing RTL text with English words, numbers, or punctuation, use
+Pango's XML-like markup to explicitly define text direction and
+alignment:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-size</span> 600x200 <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>       pango:<span class="st">&quot;&lt;span font=&#39;Amiri 22&#39; dir=&#39;rtl&#39;&gt;النسخة رقم 2.0 من الإصدار التجريبي (Beta).&lt;/span&gt;&quot;</span> <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>       bidi_output.png</span></code></pre></div>
+<h3 id="key-pango-markup-attributes">Key Pango Markup Attributes</h3>
+<ul>
+<li><code>dir="rtl"</code> or <code>dir="ltr"</code>: Forces the
+directional context of a block.</li>
+<li><code>font_family="Font Name"</code>: Sets the specific
+typeface.</li>
+<li><code>size="xx-large"</code> or <code>font="32"</code>: Sets the
+font size.</li>
+<li><code>foreground="#hex"</code>: Changes inline text color without
+multiple ImageMagick commands.</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<ul>
+<li><strong>Always Specify an RTL Font:</strong> If glyphs appear as
+empty boxes (tofu), ensure the specified font family exists on your
+system and covers the relevant Unicode blocks.</li>
+<li><strong>Define Dimensions Explicitly:</strong> Using
+<code>-size WIDTHx</code> allows Pango to handle automatic word wrapping
+while dynamically calculating the necessary image height.</li>
+<li><strong>Escape Special Characters:</strong> When generating commands
+dynamically in shell scripts, escape markup characters
+(<code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code>) to prevent
+Pango parsing errors.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimize ImageMagick Compilation with GCC CFLAGS - magick</title>
+    <meta name="description" content="This guide demonstrates how to compile ImageMagick from source using optimized GCC compiler flags (CFLAGS) like -O3 and -march=native. By overriding the default build flags, you can instruct GCC to generate machine code tailored specifically to your host">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/optimize-imagemagick-compilation-with-gcc-cflags">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Optimize ImageMagick Compilation with GCC CFLAGS - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/optimize-imagemagick-compilation-with-gcc-cflags" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to compile ImageMagick from source using optimized GCC compiler flags (CFLAGS) like -O3 and -march=native. By overriding the default build flags, you can instruct GCC to generate machine code tailored specifically to your host" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="optimize-imagemagick-compilation-with-gcc-cflags">Optimize
+ImageMagick Compilation with GCC CFLAGS</h1>
+<p>This guide demonstrates how to compile ImageMagick from source using
+optimized GCC compiler flags (CFLAGS) like <code>-O3</code> and
+<code>-march=native</code>. By overriding the default build flags, you
+can instruct GCC to generate machine code tailored specifically to your
+host CPU's instruction set, unlocking performance gains for
+CPU-intensive image processing tasks such as resizing, filtering, and
+format conversion.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Before building ImageMagick, install the essential build tools and
+development libraries for your target formats (such as JPEG, PNG, WebP,
+and TIFF). On Debian/Ubuntu-based systems, run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install build-essential git libpng-dev libjpeg-dev libtiff-dev libwebp-dev libfreetype6-dev</span></code></pre></div>
+<p>On Fedora/RHEL-based systems, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf groupinstall <span class="st">&quot;Development Tools&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install libpng-devel libjpeg-turbo-devel libtiff-devel libwebp-devel freetype-devel</span></code></pre></div>
+<h3 id="understanding-the-optimization-flags">Understanding the
+Optimization Flags</h3>
+<ul>
+<li><code>-O3</code>: Enables aggressive optimizations beyond
+<code>-O2</code>, including loop vectorization, function inlining, and
+predictive commoning.</li>
+<li><code>-march=native</code>: Directs the compiler to enable all
+instruction subsets supported by the local machine (such as AVX2,
+AVX-512, or NEON). Note that binaries compiled with this flag will not
+run on older CPUs lacking these instructions.</li>
+<li><code>-pipe</code>: Speeds up compilation by using pipes instead of
+temporary files.</li>
+<li><code>-fomit-frame-pointer</code>: Frees up an extra register for
+general-purpose use on architectures where this yields performance
+improvements.</li>
+</ul>
+<h3 id="step-by-step-compilation">Step-by-Step Compilation</h3>
+<h4 id="1-download-the-source-code">1. Download the Source Code</h4>
+<p>Clone the official ImageMagick repository:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/ImageMagick/ImageMagick.git</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ImageMagick</span></code></pre></div>
+<h4 id="2-export-compiler-flags">2. Export Compiler Flags</h4>
+<p>Export the desired optimization flags to the environment so the build
+configuration detects them for both C and C++ components:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CFLAGS</span><span class="op">=</span><span class="st">&quot;-O3 -march=native -pipe -fomit-frame-pointer&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">CXXFLAGS</span><span class="op">=</span><span class="st">&quot;-O3 -march=native -pipe -fomit-frame-pointer&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">LDFLAGS</span><span class="op">=</span><span class="st">&quot;-Wl,-O1 -Wl,--as-needed&quot;</span></span></code></pre></div>
+<h4 id="3-configure-the-build">3. Configure the Build</h4>
+<p>Run <code>./configure</code> to generate the Makefiles. You can pass
+additional flags to disable features you do not need, further
+streamlining the build:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--prefix</span><span class="op">=</span>/usr/local <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-shared</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--disable-static</span> <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--enable-openmp</span> <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">--with-modules</span> <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-x</span> <span class="dt">\</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">--without-perl</span></span></code></pre></div>
+<p>Review the configuration summary printed at the end to confirm that
+OpenMP and your required image delegates (JPEG, PNG, etc.) are
+enabled.</p>
+<h4 id="4-compile-and-install">4. Compile and Install</h4>
+<p>Compile using all available CPU cores, then install the binaries:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ldconfig /usr/local/lib</span></code></pre></div>
+<h3 id="verifying-the-optimized-build">Verifying the Optimized
+Build</h3>
+<p>Verify the installation and confirm that OpenMP and CPU features are
+recognized:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>The output will display the features, delegates, and compiler
+configuration used during the build. You can benchmark the processing
+speed of your optimized binary against a standard package repository
+installation using the built-in benchmark tool:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-bench</span> 100 logo: <span class="at">-resize</span> 2000x2000 <span class="at">-blur</span> 0x5 null:</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

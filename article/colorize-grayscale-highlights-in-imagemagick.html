@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colorize Grayscale Highlights in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide on how to selectively colorize the highlights of a grayscale image while leaving the dark shadow values intact using ImageMagick. By utilizing ImageMagick's tonal mapping operators, you can create split-toning effects">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/colorize-grayscale-highlights-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Colorize Grayscale Highlights in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/colorize-grayscale-highlights-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide on how to selectively colorize the highlights of a grayscale image while leaving the dark shadow values intact using ImageMagick. By utilizing ImageMagick's tonal mapping operators, you can create split-toning effects" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="colorize-grayscale-highlights-in-imagemagick">Colorize Grayscale
+Highlights in ImageMagick</h1>
+<p>This article provides a direct guide on how to selectively colorize
+the highlights of a grayscale image while leaving the dark shadow values
+intact using ImageMagick. By utilizing ImageMagick's tonal mapping
+operators, you can create split-toning effects, warm sepia finishes, or
+custom photographic tints quickly from the command line.</p>
+<h3 id="the-most-efficient-method-level-colors">The Most Efficient
+Method: <code>+level-colors</code></h3>
+<p>The simplest and most effective way to map specific colors to the
+shadows and highlights of a grayscale image is the
+<code>+level-colors</code> operator. This operator remaps the black
+point (shadows) to one color and the white point (highlights) to another
+color, smoothly interpolating the midtones between them.</p>
+<p>To preserve shadows, set the dark point to <code>black</code> (or
+<code>#000000</code>) and set the light point to your target highlight
+color.</p>
+<h4 id="command-syntax-imagemagick-v7">Command Syntax (ImageMagick
+v7):</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +level-colors <span class="st">&quot;black,gold&quot;</span> output.jpg</span></code></pre></div>
+<p><em>(Note: If you are using ImageMagick v6, use <code>convert</code>
+instead of <code>magick</code>.)</em></p>
+<h3 id="how-it-works">How It Works</h3>
+<ul>
+<li><strong><code>input.jpg</code></strong>: The source image (grayscale
+or desaturated).</li>
+<li><strong><code>+level-colors</code></strong>: Tells ImageMagick to
+remap the low and high luminance levels to specific colors.</li>
+<li><strong><code>"black,gold"</code></strong>: Defines the mapping
+range. The first argument (<code>black</code>) ensures that pure black
+pixels remain <code>#000000</code> and dark tones remain dark. The
+second argument (<code>gold</code> or any hex code like
+<code>#ffcc66</code>) replaces pure white with that color. Grayscale
+values between 0% and 100% receive a proportional blend of the two
+colors.</li>
+<li><strong><code>output.jpg</code></strong>: The resulting tinted
+image.</li>
+</ul>
+<h3 id="examples-with-hex-values">Examples with Hex Values</h3>
+<p>You can use standard CSS color names or exact Hex codes for precise
+color matching:</p>
+<h4 id="warm-golden-highlights">Warm Golden Highlights</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +level-colors <span class="st">&quot;#000000,#ffb347&quot;</span> warm_highlights.png</span></code></pre></div>
+<h4 id="cool-cyan-highlights">Cool Cyan Highlights</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +level-colors <span class="st">&quot;#000000,#00e5ff&quot;</span> cool_highlights.png</span></code></pre></div>
+<h3 id="advanced-control-using-a-color-lookup-table-clut">Advanced
+Control: Using a Color Lookup Table (CLUT)</h3>
+<p>If you need non-linear control over how midtones transition into
+highlights, generate a 1-pixel high gradient and apply it using
+<code>-clut</code>.</p>
+<ol type="1">
+<li>Generate a gradient from black to your desired highlight color:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1x256 gradient:<span class="st">&quot;black-#ff9900&quot;</span> clut_map.png</span></code></pre></div>
+<ol start="2" type="1">
+<li>Apply the gradient mapping to your grayscale image:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png clut_map.png <span class="at">-clut</span> output.png</span></code></pre></div>
+<p>This method allows you to introduce intermediate color stops (e.g.,
+<code>gradient:"black-darkred-yellow"</code>) if you decide to stylize
+the midtones separately while still keeping shadows completely
+black.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Exp Operator for Optical Density Falloff - magick</title>
+    <meta name="description" content="This article explains the purpose and practical application of the ImageMagick -evaluate Exp operator when simulating optical density falloff. Readers will learn how this mathematical operator functions within image processing workflows, the physical and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-exp-operator-for-optical-density-falloff">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Exp Operator for Optical Density Falloff - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-exp-operator-for-optical-density-falloff" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the purpose and practical application of the ImageMagick -evaluate Exp operator when simulating optical density falloff. Readers will learn how this mathematical operator functions within image processing workflows, the physical and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-exp-operator-for-optical-density-falloff">ImageMagick
+Exp Operator for Optical Density Falloff</h1>
+<p>This article explains the purpose and practical application of the
+ImageMagick <code>-evaluate Exp</code> operator when simulating optical
+density falloff. Readers will learn how this mathematical operator
+functions within image processing workflows, the physical and optical
+principles behind exponential light decay, and why using exponential
+transformations creates physically accurate optical density and
+vignetting effects compared to linear gradients.</p>
+<h2 id="what-is-the-imagemagick--evaluate-exp-operator">What Is the
+ImageMagick <code>-evaluate Exp</code> Operator?</h2>
+<p>The <code>-evaluate</code> command in ImageMagick applies a specified
+mathematical function to every pixel channel in an image. When paired
+with the <code>Exp</code> operator and a numerical argument (<span
+class="math inline">\(k\)</span>), ImageMagick transforms the normalized
+pixel intensity (<span class="math inline">\(u\)</span>, ranging from
+0.0 to 1.0) according to an exponential function:</p>
+<p><span class="math display">\[\text{output} = e^{k \times
+u}\]</span></p>
+<p>Because pixel values are processed on a normalized scale, passing a
+negative value for <span class="math inline">\(k\)</span> models
+exponential decay, reducing high values rapidly while tapering off
+smoothly toward zero.</p>
+<h2 id="the-physics-of-optical-density-falloff">The Physics of Optical
+Density Falloff</h2>
+<p>In physical optics, light traveling through an absorbing medium does
+not lose intensity linearly. According to the Beer-Lambert Law, the
+transmittance of light (<span class="math inline">\(T\)</span>) through
+a material decreases exponentially with the optical path length or the
+concentration of absorbing species:</p>
+<p><span class="math display">\[T = T_0 e^{-\alpha x}\]</span></p>
+<p>Where <span class="math inline">\(\alpha\)</span> represents the
+absorption coefficient and <span class="math inline">\(x\)</span> is the
+thickness or path length.</p>
+<p>Similarly, optical falloff—whether caused by lens vignetting, thick
+glass absorption, or atmospheric haze—exhibits a non-linear gradient.
+Linear gradients produce sharp, unnatural visual boundaries. Simulating
+realistic optical density requires mathematical functions that match the
+logarithmic sensitivity of human vision and the exponential transmission
+properties of physical optics.</p>
+<h2 id="purpose-of-using--evaluate-exp-in-falloff-modeling">Purpose of
+Using <code>-evaluate Exp</code> in Falloff Modeling</h2>
+<p>Using the <code>-evaluate Exp</code> operator serves several critical
+functions when constructing realistic optical models:</p>
+<h3 id="1-translating-linear-distances-into-transmission-values">1.
+Translating Linear Distances into Transmission Values</h3>
+<p>When generating a vignette or radial falloff mask, the base image is
+typically a linear distance map (such as one created using
+<code>-sparse-color radial</code>). Applying <code>-evaluate Exp</code>
+converts these linear geometric distances into physical transmission
+coefficients, mimicking how light attenuates across lens elements.</p>
+<h3 id="2-eliminating-visual-banding-and-harsh-transitions">2.
+Eliminating Visual Banding and Harsh Transitions</h3>
+<p>Linear transitions appear flat in mid-tones and harsh at their edges.
+An exponential curve concentrates the steepest rate of change near the
+source or edge depending on the sign of the exponent, creating organic,
+soft transitions that natural optical systems produce.</p>
+<h3 id="3-simulating-absorbing-media">3. Simulating Absorbing Media</h3>
+<p>When modeling tinted optical filters, varying glass thickness, or
+liquids, optical density is additive while light transmission is
+multiplicative. By adjusting the exponent factor in
+<code>-evaluate Exp -k</code>, you control the density coefficient
+directly, effectively simulating materials of varying optical
+depths.</p>
+<h2 id="practical-implementation">Practical Implementation</h2>
+<p>In an ImageMagick command pipeline, the operator is typically applied
+to a grayscale gradient to form a density mask:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 800x600 radial-gradient:black-white <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-evaluate</span> Exp <span class="at">-3.0</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>       vignette_mask.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li>A normalized radial distance map is created from center to
+edge.</li>
+<li><code>-evaluate Exp -3.0</code> scales each value by <span
+class="math inline">\(-3.0\)</span> and calculates <span
+class="math inline">\(e^{-3.0 \times u}\)</span>.</li>
+<li>The result is a smooth, exponentially decaying curve that accurately
+represents lens illumination falloff from the optical center.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

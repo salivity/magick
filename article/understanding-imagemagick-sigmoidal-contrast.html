@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick Sigmoidal Contrast - magick</title>
+    <meta name="description" content="ImageMagick’s -sigmoidal-contrast operator enhances visual detail by adjusting tonal values along an S-shaped (sigmoid) transfer curve centered around a designated pivot point. By mathematically steepening the curve at this pivot—typically the midton">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-sigmoidal-contrast">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick Sigmoidal Contrast - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-sigmoidal-contrast" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s -sigmoidal-contrast operator enhances visual detail by adjusting tonal values along an S-shaped (sigmoid) transfer curve centered around a designated pivot point. By mathematically steepening the curve at this pivot—typically the midton" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="understanding-imagemagick-sigmoidal-contrast">Understanding
+ImageMagick Sigmoidal Contrast</h1>
+<p>ImageMagick’s <code>-sigmoidal-contrast</code> operator enhances
+visual detail by adjusting tonal values along an S-shaped (sigmoid)
+transfer curve centered around a designated pivot point. By
+mathematically steepening the curve at this pivot—typically the
+midtones—the operator expands the local dynamic range and perceptual
+separation of similar tones, all while smoothly compressing shadows and
+highlights to prevent harsh clipping.</p>
+<h3 id="the-sigmoidal-function-and-parameters">The Sigmoidal Function
+and Parameters</h3>
+<p>The operator takes two primary arguments: <code>contrast</code> and
+<code>mid-point</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-sigmoidal-contrast</span> <span class="pp">[</span><span class="ss">contrast</span><span class="pp">]</span>x<span class="pp">[</span><span class="ss">mid</span><span class="pp">-</span><span class="ss">point</span><span class="pp">]</span>% output.png</span></code></pre></div>
+<ul>
+<li><strong><code>contrast</code></strong>: A positive number
+representing the steepness of the curve. A value of <code>0</code>
+leaves the image unchanged, while higher values create a sharper
+transition between light and dark.</li>
+<li><strong><code>mid-point</code></strong>: A percentage (typically
+<code>50%</code>) specifying the exact tonal value where the inflection
+point of the curve sits.</li>
+</ul>
+<p>Mathematically, the operator applies a scaled and normalized logistic
+function to normalized pixel values <span class="math inline">\(x \in
+[0, 1]\)</span>:</p>
+<p><span class="math display">\[f(x) = \frac{\frac{1}{1 + e^{-\alpha (x
+- x_0)}} - \frac{1}{1 + e^{\alpha x_0}}}{\frac{1}{1 + e^{-\alpha (1 -
+x_0)}} - \frac{1}{1 + e^{\alpha x_0}}}\]</span></p>
+<p>Here, <span class="math inline">\(\alpha\)</span> represents the
+<code>contrast</code> parameter, and <span
+class="math inline">\(x_0\)</span> represents the <code>mid-point</code>
+fraction.</p>
+<h3 id="how-dynamic-range-expands-around-the-pivot">How Dynamic Range
+Expands Around the Pivot</h3>
+<p>Dynamic range expansion in a digital image refers to allocating a
+larger portion of the available output code values (e.g., <span
+class="math inline">\(0\)</span> to <span
+class="math inline">\(255\)</span> in 8-bit channels) to a narrow range
+of input values.</p>
+<p>The rate of change of the output values relative to the input values
+is determined by the derivative of the transfer function, <span
+class="math inline">\(f&#39;(x)\)</span>. For a sigmoidal curve:</p>
+<ol type="1">
+<li><strong>Peak Slope at the Midpoint:</strong> The derivative <span
+class="math inline">\(f&#39;(x)\)</span> reaches its maximum precisely
+at <span class="math inline">\(x = x_0\)</span> (the pivot). At this
+point, the slope is greater than 1 (<span
+class="math inline">\(f&#39;(x_0) &gt; 1\)</span>).</li>
+<li><strong>Tonal Stretching:</strong> Because the slope is greater than
+1, a small interval of input brightness levels centered at <span
+class="math inline">\(x_0\)</span> (for example, input values between
+45% and 55%) is mapped to a significantly wider interval in the output
+(such as 35% to 65%). This expansion separates subtle differences in
+intermediate tones, dramatically boosting perceived contrast and detail
+around the pivot.</li>
+</ol>
+<h3 id="non-linear-roll-off-and-highlightshadow-preservation">Non-Linear
+Roll-Off and Highlight/Shadow Preservation</h3>
+<p>Linear contrast adjustments multiply pixel values by a constant gain
+factor (<span class="math inline">\(f(x) = m \cdot x + b\)</span>),
+which causes values near 0% and 100% to exceed the allowable range and
+clip abruptly into pure black or blown-out white.</p>
+<p>In contrast, the sigmoidal function features asymptotic behavior at
+the extremes:</p>
+<ul>
+<li>As <span class="math inline">\(x\)</span> approaches <span
+class="math inline">\(0\)</span> or <span
+class="math inline">\(1\)</span>, the derivative <span
+class="math inline">\(f&#39;(x)\)</span> drops below 1, approaching
+zero.</li>
+<li>Instead of clipping, the extreme shadows and highlights are softly
+compressed into the remaining output range.</li>
+<li>The normalized formula guarantees that an input of <span
+class="math inline">\(0\)</span> remains exactly <span
+class="math inline">\(0\)</span>, and an input of <span
+class="math inline">\(1\)</span> remains exactly <span
+class="math inline">\(1\)</span>.</li>
+</ul>
+<h3 id="inverting-the-operation">Inverting the Operation</h3>
+<p>Using <code>+sigmoidal-contrast</code> applies the mathematical
+inverse of the S-curve. This configuration compresses the tonal range
+around the pivot point while expanding the dynamic range of the deep
+shadows and extreme highlights, which is often used in
+high-dynamic-range (HDR) tone-mapping pipelines to recover detail from
+overexposed or underexposed areas without washing out the midtones.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

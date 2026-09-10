@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick: Center Image on a Square Canvas - magick</title>
+    <meta name="description" content="Centering an image on an exact square canvas is a common requirement for creating standardized product photos, thumbnails, and profile pictures. This guide demonstrates how to use ImageMagick’s -gravity and -extent operators to position any image direc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-center-image-on-a-square-canvas">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick: Center Image on a Square Canvas - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-center-image-on-a-square-canvas" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Centering an image on an exact square canvas is a common requirement for creating standardized product photos, thumbnails, and profile pictures. This guide demonstrates how to use ImageMagick’s -gravity and -extent operators to position any image direc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-center-image-on-a-square-canvas">ImageMagick: Center
+Image on a Square Canvas</h1>
+<p>Centering an image on an exact square canvas is a common requirement
+for creating standardized product photos, thumbnails, and profile
+pictures. This guide demonstrates how to use ImageMagick’s
+<code>-gravity</code> and <code>-extent</code> operators to position any
+image directly into the center of a square canvas without cropping the
+contents or distorting the original aspect ratio.</p>
+<h3 id="the-basic-command">The Basic Command</h3>
+<p>To place an image onto a fixed-size square canvas (for example,
+1000x1000 pixels), use the following syntax:</p>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> white <span class="at">-gravity</span> center <span class="at">-extent</span> 1000x1000 output.jpg</span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-background</span> white <span class="at">-gravity</span> center <span class="at">-extent</span> 1000x1000 output.jpg</span></code></pre></div>
+<h3 id="how-the-parameters-work">How the Parameters Work</h3>
+<p>The order of the arguments is critical to achieve the correct
+result:</p>
+<ol type="1">
+<li><strong><code>-background &lt;color&gt;</code></strong>: Specifies
+the color used to fill the empty space added around the original image.
+You can specify named colors like <code>white</code> or
+<code>black</code>, hex codes like <code>"#ffffff"</code>, or
+<code>none</code>/<code>transparent</code> if working with formats that
+support transparency (such as PNG).</li>
+<li><strong><code>-gravity center</code></strong>: Defines the anchor
+point for positioning the source image. Setting this to
+<code>center</code> ensures that equal padding is distributed to the top
+and bottom or left and right sides.</li>
+<li><strong><code>-extent &lt;width&gt;x&lt;height&gt;</code></strong>:
+Changes the canvas size to the specified dimensions without scaling or
+distorting the original pixels. Because <code>-gravity center</code>
+precedes this flag, the image remains centered within the new
+bounds.</li>
+</ol>
+<h3
+id="creating-an-automatic-square-based-on-the-largest-dimension">Creating
+an Automatic Square Based on the Largest Dimension</h3>
+<p>If you want to create a square canvas without hardcoding specific
+pixel values, you can use ImageMagick 7’s built-in FX expressions to
+calculate the largest side automatically:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> white <span class="at">-gravity</span> center <span class="at">-extent</span> <span class="st">&quot;%[fx:max(w,h)]x%[fx:max(w,h)]&quot;</span> output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>w</code> represents the input image's original width.</li>
+<li><code>h</code> represents the input image's original height.</li>
+<li><code>max(w,h)</code> identifies whichever side is longer and sets
+both the canvas width and height to that value, resulting in a perfect
+square matched to the source image's largest dimension.</li>
+</ul>
+<h3 id="scaling-down-to-fit-before-centering">Scaling Down to Fit Before
+Centering</h3>
+<p>If the input image is larger than the target square dimensions, scale
+it down first using <code>-resize</code> while preserving its aspect
+ratio, then apply the canvas extent:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 1000x1000 <span class="at">-background</span> white <span class="at">-gravity</span> center <span class="at">-extent</span> 1000x1000 output.jpg</span></code></pre></div>
+<p>The <code>-resize 1000x1000</code> argument shrinks the image so its
+longest edge fits within 1000 pixels, and <code>-extent 1000x1000</code>
+pads the shorter edge to complete the square.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure JPEG XL Speed and Quality in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure JPEG XL (JXL) compression speed and quality settings in ImageMagick. By utilizing standard quality flags alongside specialized -define parameters, you can fine-tune the balance between visual fidelity, file size, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-jpeg-xl-speed-and-quality-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure JPEG XL Speed and Quality in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-jpeg-xl-speed-and-quality-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure JPEG XL (JXL) compression speed and quality settings in ImageMagick. By utilizing standard quality flags alongside specialized -define parameters, you can fine-tune the balance between visual fidelity, file size, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-jpeg-xl-speed-and-quality-in-imagemagick">Configure
+JPEG XL Speed and Quality in ImageMagick</h1>
+<p>This guide explains how to configure JPEG XL (JXL) compression speed
+and quality settings in ImageMagick. By utilizing standard quality flags
+alongside specialized <code>-define</code> parameters, you can fine-tune
+the balance between visual fidelity, file size, and processing time for
+both lossy and lossless encoding.</p>
+<h2 id="adjusting-jpeg-xl-quality">Adjusting JPEG XL Quality</h2>
+<p>In ImageMagick, JPEG XL image quality is primarily controlled using
+the standard <code>-quality</code> parameter.</p>
+<h3 id="lossy-compression">Lossy Compression</h3>
+<p>For lossy compression, set the <code>-quality</code> parameter
+between <code>1</code> and <code>99</code>. A higher number results in
+higher visual fidelity and larger file sizes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 85 output.jxl</span></code></pre></div>
+<p>A value between <code>75</code> and <code>90</code> is generally
+recommended for high-quality web images.</p>
+<h3 id="lossless-compression">Lossless Compression</h3>
+<p>To encode an image losslessly, set <code>-quality 100</code> or
+explicitly enable the lossless define:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 output.jxl</span></code></pre></div>
+<p>Alternatively:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jxl:lossless=true output.jxl</span></code></pre></div>
+<hr />
+<h2 id="configuring-compression-speed-effort">Configuring Compression
+Speed (Effort)</h2>
+<p>JPEG XL compression speed is governed by the "effort" level, which
+controls how much CPU time the encoder spends searching for compression
+optimizations. In ImageMagick, this is set using the
+<code>-define jxl:effort</code> option with a value ranging from
+<code>1</code> (fastest encoding, larger file size) to <code>9</code>
+(slowest encoding, best compression).</p>
+<ul>
+<li><strong>Effort 1–3 (Fast):</strong> Best for real-time applications
+or quick batch conversions.</li>
+<li><strong>Effort 7 (Default):</strong> Offers a balanced trade-off
+between encoding time and compression ratio.</li>
+<li><strong>Effort 8–9 (Slow / Best):</strong> Ideal for archival
+storage or final web assets where minimum file size is prioritized over
+CPU time.</li>
+</ul>
+<h3 id="example-high-effort-better-compression">Example: High Effort
+(Better Compression)</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 85 <span class="at">-define</span> jxl:effort=8 output.jxl</span></code></pre></div>
+<h3 id="example-low-effort-fast-processing">Example: Low Effort (Fast
+Processing)</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 85 <span class="at">-define</span> jxl:effort=3 output.jxl</span></code></pre></div>
+<hr />
+<h2 id="practical-command-examples">Practical Command Examples</h2>
+<h3 id="1-maximum-lossless-compression-for-archiving">1. Maximum
+Lossless Compression for Archiving</h3>
+<p>To achieve the smallest possible file size while preserving
+pixel-perfect data:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 <span class="at">-define</span> jxl:effort=9 output.jxl</span></code></pre></div>
+<h3 id="2-high-quality-web-production-asset">2. High-Quality Web
+Production Asset</h3>
+<p>For high visual fidelity with balanced compression speed suitable for
+deployment:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 80 <span class="at">-define</span> jxl:effort=7 output.jxl</span></code></pre></div>
+<h3 id="3-rapid-batch-processing">3. Rapid Batch Processing</h3>
+<p>To convert a large directory of images quickly without overburdening
+the CPU:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-format</span> jxl <span class="at">-quality</span> 75 <span class="at">-define</span> jxl:effort=2 <span class="pp">*</span>.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

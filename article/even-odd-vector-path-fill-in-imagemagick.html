@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Even-Odd Vector Path Fill in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to render complex, self-intersecting, or overlapping vector paths using the even-odd fill rule in ImageMagick. By setting the drawing fill rule to evenodd, ImageMagick alternates filling and creating cutouts for overlapping path s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/even-odd-vector-path-fill-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Even-Odd Vector Path Fill in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/even-odd-vector-path-fill-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to render complex, self-intersecting, or overlapping vector paths using the even-odd fill rule in ImageMagick. By setting the drawing fill rule to evenodd, ImageMagick alternates filling and creating cutouts for overlapping path s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="even-odd-vector-path-fill-in-imagemagick">Even-Odd Vector Path
+Fill in ImageMagick</h1>
+<p>This guide explains how to render complex, self-intersecting, or
+overlapping vector paths using the even-odd fill rule in ImageMagick. By
+setting the drawing fill rule to <code>evenodd</code>, ImageMagick
+alternates filling and creating cutouts for overlapping path segments,
+ensuring complex geometry renders with proper transparency in nested
+sections.</p>
+<h3 id="understanding-the-even-odd-rule">Understanding the Even-Odd
+Rule</h3>
+<p>When filling shapes with overlapping boundaries (such as a
+multi-pointed star, concentric loops, or donut shapes), rendering
+engines determine which areas are "inside" or "outside" using a fill
+rule.</p>
+<ul>
+<li><strong>Non-Zero (Default):</strong> Determines whether a point is
+inside the shape by drawing a ray to infinity and checking the direction
+of intersecting lines. Fully overlapping areas usually remain filled
+solid.</li>
+<li><strong>Even-Odd:</strong> Determines whether a point is inside by
+drawing a ray to infinity and counting the number of path segments it
+crosses. If the count is odd, the area is filled; if even, the area
+remains unfilled (transparent or background color).</li>
+</ul>
+<h3 id="imagemagick-cli-syntax">ImageMagick CLI Syntax</h3>
+<p>To apply the even-odd rule, use the <code>-draw</code> operator and
+specify <code>fill-rule evenodd</code> before defining your vector path
+(<code>path</code> command) or polygon points.</p>
+<h4 id="basic-command-example">Basic Command Example</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 xc:white <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> red <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;fill-rule evenodd path &#39;M 250,50 L 375,400 L 50,160 L 450,160 L 125,400 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  star_evenodd.png</span></code></pre></div>
+<p>In this five-pointed star example:</p>
+<ul>
+<li>The lines intersect at multiple points.</li>
+<li>The <code>fill-rule evenodd</code> instruction leaves the central
+pentagon open (unfilled/white) because any ray from the center crosses
+an even number of boundary lines (two lines).</li>
+<li>If <code>fill-rule nonzero</code> were used instead, the entire
+star, including the center, would be filled solid red.</li>
+</ul>
+<h3 id="creating-holes-and-cutouts">Creating Holes and Cutouts</h3>
+<p>The even-odd rule is commonly used to create compound shapes with
+holes (such as a letter "O" or a donut) within a single path
+definition.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:lightgray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> dodgerblue <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;fill-rule evenodd path &#39;M 50,50 H 350 V 350 H 50 Z M 120,120 H 280 V 280 H 120 Z&#39;&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  hollow_square.png</span></code></pre></div>
+<ul>
+<li>The first subpath (<code>M 50,50 ... Z</code>) defines a 300x300
+outer square.</li>
+<li>The second subpath (<code>M 120,120 ... Z</code>) defines a 160x160
+inner square.</li>
+<li>The even-odd rule treats the inner square as an "even" intersection
+zone, leaving the interior hollow.</li>
+</ul>
+<h3 id="using-magick-vector-graphics-mvg-files">Using Magick Vector
+Graphics (MVG) Files</h3>
+<p>For highly complex paths, you can write the drawing commands to an
+MVG file and render it directly:</p>
+<ol type="1">
+<li>Create a file named <code>shape.mvg</code>:</li>
+</ol>
+<pre class="text"><code>viewbox 0 0 400 400
+fill-rule evenodd
+fill green
+stroke black
+path &#39;M 100,100 L 300,100 L 300,300 L 100,300 Z M 150,150 L 250,150 L 250,250 L 150,250 Z&#39;</code></pre>
+<ol start="2" type="1">
+<li>Render the file with ImageMagick:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:white <span class="at">-draw</span> @shape.mvg output.png</span></code></pre></div>
+<h3 id="key-considerations">Key Considerations</h3>
+<ul>
+<li><strong>Scope of Rule:</strong> The <code>fill-rule evenodd</code>
+directive remains active for all subsequent paths within the same
+<code>-draw</code> string unless explicitly changed back to
+<code>fill-rule nonzero</code>.</li>
+<li><strong>ImageMagick Version:</strong> ImageMagick 7 uses the
+<code>magick</code> command. If you are using ImageMagick 6, replace
+<code>magick</code> with <code>convert</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

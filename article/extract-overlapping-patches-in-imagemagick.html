@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Overlapping Patches in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to extract overlapping sub-patches from high-resolution images using ImageMagick for deep learning preprocessing. You will learn the core -crop geometry syntax, how to control pixel offsets, and how to automate a sliding window">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-overlapping-patches-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Overlapping Patches in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-overlapping-patches-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to extract overlapping sub-patches from high-resolution images using ImageMagick for deep learning preprocessing. You will learn the core -crop geometry syntax, how to control pixel offsets, and how to automate a sliding window" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-overlapping-patches-in-imagemagick">Extract Overlapping
+Patches in ImageMagick</h1>
+<p>This article explains how to extract overlapping sub-patches from
+high-resolution images using ImageMagick for deep learning
+preprocessing. You will learn the core <code>-crop</code> geometry
+syntax, how to control pixel offsets, and how to automate a sliding
+window approach with a defined stride to generate overlapping dataset
+tiles.</p>
+<h3 id="core-crop-syntax">Core Crop Syntax</h3>
+<p>ImageMagick uses the <code>-crop</code> operator to extract specific
+rectangular regions. To extract a single sub-patch at a specific
+coordinate, use the following syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-crop</span> {width}x{height}+{x_offset}+{y_offset} +repage patch.png</span></code></pre></div>
+<ul>
+<li><strong><code>{width}x{height}</code></strong>: The dimensions of
+the target patch (e.g., <code>256x256</code>).</li>
+<li><strong><code>+{x_offset}+{y_offset}</code></strong>: The top-left
+starting coordinate for the patch.</li>
+<li><strong><code>+repage</code></strong>: Removes the canvas metadata
+offsets, ensuring the output image behaves as an independent patch
+rather than a cropped canvas view.</li>
+</ul>
+<h3 id="generating-overlapping-patches-with-a-sliding-window">Generating
+Overlapping Patches with a Sliding Window</h3>
+<p>Standard ImageMagick grid splitting (<code>-crop 256x256</code>) only
+creates non-overlapping adjacent tiles. To create overlapping patches,
+you must slide the window across the <span
+class="math inline">\(X\)</span> and <span
+class="math inline">\(Y\)</span> axes using a stride smaller than the
+patch dimensions.</p>
+<p>Here is a Bash script demonstrating automated overlapping patch
+generation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">IMAGE</span><span class="op">=</span><span class="st">&quot;input.png&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="va">PATCH_SIZE</span><span class="op">=</span>256</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="va">STRIDE</span><span class="op">=</span>128  <span class="co"># 50% overlap</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Read image dimensions</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="va">WIDTH</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%w&quot;</span> <span class="st">&quot;</span><span class="va">$IMAGE</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="va">HEIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%h&quot;</span> <span class="st">&quot;</span><span class="va">$IMAGE</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop over the image coordinates</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span> <span class="va">y</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">y</span><span class="op">&lt;=</span><span class="va">HEIGHT</span><span class="op">-</span><span class="va">PATCH_SIZE</span><span class="kw">;</span> <span class="va">y</span><span class="op">+=</span><span class="va">STRIDE</span> <span class="kw">));</span> <span class="cf">do</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="kw">((</span> <span class="va">x</span><span class="op">=</span><span class="dv">0</span><span class="kw">;</span> <span class="va">x</span><span class="op">&lt;=</span><span class="va">WIDTH</span><span class="op">-</span><span class="va">PATCH_SIZE</span><span class="kw">;</span> <span class="va">x</span><span class="op">+=</span><span class="va">STRIDE</span> <span class="kw">));</span> <span class="cf">do</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$IMAGE</span><span class="st">&quot;</span> <span class="at">-crop</span> <span class="st">&quot;</span><span class="va">${PATCH_SIZE}</span><span class="st">x</span><span class="va">${PATCH_SIZE}</span><span class="st">+</span><span class="va">${x}</span><span class="st">+</span><span class="va">${y}</span><span class="st">&quot;</span> +repage <span class="st">&quot;patch_</span><span class="va">${x}</span><span class="st">_</span><span class="va">${y}</span><span class="st">.png&quot;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">done</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<h3 id="key-parameters-for-deep-learning">Key Parameters for Deep
+Learning</h3>
+<ul>
+<li><strong>Stride Calculation</strong>: Setting <code>STRIDE</code>
+equal to half the <code>PATCH_SIZE</code> produces a 50% overlap.
+Decrease the stride for denser spatial sampling.</li>
+<li><strong>Boundary Handling</strong>: The loop condition
+<code>y&lt;=HEIGHT-PATCH_SIZE</code> ensures all extracted sub-patches
+strictly match the exact input dimensions required by deep neural
+network architectures without requiring padding.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

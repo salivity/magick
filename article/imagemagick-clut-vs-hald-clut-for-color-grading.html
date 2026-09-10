@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -clut vs -hald-clut for Color Grading - magick</title>
+    <meta name="description" content="Color grading in ImageMagick relies heavily on lookup tables, with -clut and -hald-clut serving as the two primary operators for applying color transformations. While both operators replace original colors with values defined in an external reference ima">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-clut-vs-hald-clut-for-color-grading">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -clut vs -hald-clut for Color Grading - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-clut-vs-hald-clut-for-color-grading" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Color grading in ImageMagick relies heavily on lookup tables, with -clut and -hald-clut serving as the two primary operators for applying color transformations. While both operators replace original colors with values defined in an external reference ima" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--clut-vs--hald-clut-for-color-grading">ImageMagick
+-clut vs -hald-clut for Color Grading</h1>
+<p>Color grading in ImageMagick relies heavily on lookup tables, with
+<code>-clut</code> and <code>-hald-clut</code> serving as the two
+primary operators for applying color transformations. While both
+operators replace original colors with values defined in an external
+reference image, they differ fundamentally in dimensionality, precision,
+and practical application. This article explains the technical
+differences between 1D and 3D color mapping in ImageMagick, details how
+each operator functions, and outlines when to use each for digital image
+processing.</p>
+<h3 id="understanding-the--clut-operator">Understanding the
+<code>-clut</code> Operator</h3>
+<p>The <code>-clut</code> (Color Look-Up Table) operator performs a
+one-dimensional color transformation. It typically maps an image's pixel
+values against a single-dimensional gradient strip.</p>
+<p>When you apply <code>-clut</code>, ImageMagick evaluates the
+intensity (luminance) or the individual color channel values of the
+target image and matches them to the corresponding position along the
+lookup table image.</p>
+<ul>
+<li><strong>Dimensionality:</strong> 1D mapping. Each channel or the
+overall luminance is mapped independently along a linear axis.</li>
+<li><strong>Input Lookup Format:</strong> Usually a thin image strip
+(such as 256x1 or 1x256 pixels) containing a color gradient.</li>
+<li><strong>Behavior:</strong> If applied across all channels
+simultaneously, it maps lightness directly to the gradient. If channels
+are separated, it maps individual red, green, and blue values along the
+gradient.</li>
+</ul>
+<p>Because <code>-clut</code> maps colors linearly or per-channel in
+isolation, it cannot account for complex inter-channel relationships,
+such as shifting a specific hue while leaving other colors at the same
+luminance untouched.</p>
+<h3 id="understanding-the--hald-clut-operator">Understanding the
+<code>-hald-clut</code> Operator</h3>
+<p>The <code>-hald-clut</code> operator performs a three-dimensional
+color transformation. It is ImageMagick’s implementation of a 3D LUT
+(Look-Up Table), encoded into a 2D matrix known as a Hald image.</p>
+<p>A Hald image represents an entire 3D color cube (RGB space) flattened
+into a 2D grid. When using <code>-hald-clut</code>, ImageMagick reads
+the red, green, and blue values of a source pixel simultaneously,
+locates the exact coordinate inside the 3D color cube, and replaces it
+with the corresponding graded output color.</p>
+<ul>
+<li><strong>Dimensionality:</strong> 3D mapping. Colors are evaluated as
+coordinates in a 3D volume rather than isolated channels.</li>
+<li><strong>Input Lookup Format:</strong> A square Hald pattern (e.g.,
+<code>hald:8</code> generates a 512x512 pixel image representing an
+8-bit color cube).</li>
+<li><strong>Behavior:</strong> Enables selective adjustments such as hue
+shifts, split toning, saturation changes based on luminance, and complex
+photographic film emulations.</li>
+</ul>
+<h3 id="key-differences">Key Differences</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>-clut</code></th>
+<th style="text-align: left;"><code>-hald-clut</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>LUT Type</strong></td>
+<td style="text-align: left;">1D LUT</td>
+<td style="text-align: left;">3D LUT</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Color Complexity</strong></td>
+<td style="text-align: left;">Simple linear mapping and tinting</td>
+<td style="text-align: left;">Non-linear, complex multi-channel
+grading</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Reference File</strong></td>
+<td style="text-align: left;">1D color gradient</td>
+<td style="text-align: left;">2D matrix representing a 3D cube
+(Hald)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Channel Independence</strong></td>
+<td style="text-align: left;">Channels are mapped independently or to
+luminance</td>
+<td style="text-align: left;">Channels are mapped as interconnected 3D
+coordinates</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Use Cases</strong></td>
+<td style="text-align: left;">Duotones, false color, heatmaps, gradient
+maps</td>
+<td style="text-align: left;">Film emulation, creative color grading,
+LUT conversion</td>
+</tr>
+</tbody>
+</table>
+<h3 id="workflow-differences-in-color-grading">Workflow Differences in
+Color Grading</h3>
+<p>The workflow for creating and applying each lookup table differs
+significantly based on the desired output.</p>
+<h4 id="workflow-with--clut">Workflow with <code>-clut</code></h4>
+<p>Using <code>-clut</code> is best suited for tonal mapping, such as
+creating thermal imagery, duotones, or mapping contrast curves.</p>
+<ol type="1">
+<li>Create a 1D gradient representing the color spectrum you want to
+apply.</li>
+<li>Run the command:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg gradient.png <span class="at">-clut</span> output.jpg</span></code></pre></div></li>
+</ol>
+<p>This maps the shadows, midtones, and highlights of
+<code>input.jpg</code> directly to the colors defined in
+<code>gradient.png</code>.</p>
+<h4 id="workflow-with--hald-clut">Workflow with
+<code>-hald-clut</code></h4>
+<p>Using <code>-hald-clut</code> is the industry standard approach for
+replicating complex visual grades generated in software like Adobe
+Photoshop, Lightroom, or DaVinci Resolve.</p>
+<ol type="1">
+<li>Generate a neutral Hald image using ImageMagick:
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> hald:8 neutral_hald.png</span></code></pre></div></li>
+<li>Open <code>neutral_hald.png</code> in your preferred image
+editor.</li>
+<li>Apply any combination of color adjustments (curves, selective color,
+saturation, LUTs) to the Hald image and export it as
+<code>graded_hald.png</code>.</li>
+<li>Apply the exact transformation to your target image:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg graded_hald.png <span class="at">-hald-clut</span> output.jpg</span></code></pre></div></li>
+</ol>
+<h3 id="when-to-use-which">When to Use Which</h3>
+<p>Use <code>-clut</code> when you need simple color replacement based
+purely on brightness, such as creating false-color scientific
+visualizations, gradient maps, or vintage monochrome duotones.</p>
+<p>Use <code>-hald-clut</code> for comprehensive, modern color grading.
+Because it captures complex color interactions across all three RGB
+dimensions, <code>-hald-clut</code> allows you to transfer professional
+photographic grades and film looks accurately without color
+distortion.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

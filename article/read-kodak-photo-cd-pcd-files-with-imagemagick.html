@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read Kodak Photo CD PCD Files with ImageMagick - magick</title>
+    <meta name="description" content="This article provides a guide on how to configure and use ImageMagick to read, decode, and extract specific resolutions from multi-resolution Kodak Photo CD (PCD) files. It covers the syntax required to select specific image dimensions, details the stand">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/read-kodak-photo-cd-pcd-files-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Read Kodak Photo CD PCD Files with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/read-kodak-photo-cd-pcd-files-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a guide on how to configure and use ImageMagick to read, decode, and extract specific resolutions from multi-resolution Kodak Photo CD (PCD) files. It covers the syntax required to select specific image dimensions, details the stand" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="read-kodak-photo-cd-pcd-files-with-imagemagick">Read Kodak Photo
+CD PCD Files with ImageMagick</h1>
+<p>This article provides a guide on how to configure and use ImageMagick
+to read, decode, and extract specific resolutions from multi-resolution
+Kodak Photo CD (PCD) files. It covers the syntax required to select
+specific image dimensions, details the standard resolution layers
+available in PCD archives, and explains essential color management
+options to ensure accurate image rendering.</p>
+<h2 id="pcd-resolution-selection-syntax">PCD Resolution Selection
+Syntax</h2>
+<p>Kodak Photo CD files store multiple resolutions of a single scan
+within a single file, arranged in a proprietary hierarchy based on a
+standard "Base" resolution (768 × 512 pixels).</p>
+<p>To select a specific resolution in ImageMagick, append the desired
+resolution index in square brackets directly after the input
+filename:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;input.pcd[index]&quot;</span> output.jpg</span></code></pre></div>
+<p><em>(Note: For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h2 id="pcd-resolution-index-reference">PCD Resolution Index
+Reference</h2>
+<p>The bracket index corresponds directly to the internal image
+component (overview to maximum resolution):</p>
+<ul>
+<li><strong><code>[0]</code> — Base/16:</strong> 192 × 128 pixels (used
+for thumbnails and contact sheets)</li>
+<li><strong><code>[1]</code> — Base/4:</strong> 384 × 256 pixels</li>
+<li><strong><code>[2]</code> — Base:</strong> 768 × 512 pixels (standard
+TV/monitor display resolution)</li>
+<li><strong><code>[3]</code> — 4Base:</strong> 1536 × 1024 pixels
+(standard quality print resolution)</li>
+<li><strong><code>[4]</code> — 16Base:</strong> 3072 × 2048 pixels
+(high-resolution archive/print)</li>
+<li><strong><code>[5]</code> — 64Base:</strong> 6144 × 4096 pixels
+(available only on Pro Photo CD formats)</li>
+</ul>
+<p>If no index is supplied, ImageMagick defaults to reading all
+resolutions or selects the Base resolution depending on the installed
+delegate configuration. Specifying index <code>[3]</code> or
+<code>[4]</code> is recommended for standard digital conversion.</p>
+<h2 id="example-commands">Example Commands</h2>
+<h3 id="extracting-a-specific-resolution">Extracting a Specific
+Resolution</h3>
+<p>To extract the standard high-resolution 16Base image (3072 ×
+2048):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;scan01.pcd[4]&quot;</span> output.tiff</span></code></pre></div>
+<h3 id="handling-photoycc-color-space">Handling PhotoYCC Color
+Space</h3>
+<p>Kodak PCD files store color data in the proprietary PhotoYCC color
+space rather than standard RGB. While ImageMagick automatically attempts
+to convert PhotoYCC to RGB, specifying the colorspace explicitly
+prevents color shifts or dark conversions:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="st">&quot;scan01.pcd[3]&quot;</span> <span class="at">-colorspace</span> sRGB output.png</span></code></pre></div>
+<h3 id="batch-converting-highest-standard-resolution">Batch Converting
+Highest Standard Resolution</h3>
+<p>To convert an entire folder of PCD files to JPEG at 4Base (1536 ×
+1024) resolution:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-format</span> jpg <span class="at">-define</span> pcd:size=1536x1024 <span class="pp">*</span>.pcd</span></code></pre></div>
+<p>Alternatively, use the bracket index in a loop to guarantee exact
+resolution indexing:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.pcd<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">[3]&quot;</span> <span class="at">-colorspace</span> sRGB <span class="st">&quot;</span><span class="va">${file</span><span class="op">%</span>.pcd<span class="va">}</span><span class="st">.jpg&quot;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

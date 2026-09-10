@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Vignette an AVIF Image in ImageMagick? - magick</title>
+    <meta name="description" content="Applying a vignette to an AVIF image using ImageMagick allows you to soften or darken the edges of a picture to draw focus toward the center, all while retaining modern high-efficiency compression. By using ImageMagick’s dedicated -vignette operator or">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-vignette-an-avif-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Vignette an AVIF Image in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-vignette-an-avif-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a vignette to an AVIF image using ImageMagick allows you to soften or darken the edges of a picture to draw focus toward the center, all while retaining modern high-efficiency compression. By using ImageMagick’s dedicated -vignette operator or" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-vignette-an-avif-image-in-imagemagick">How to Vignette an
+AVIF Image in ImageMagick?</h1>
+<p>Applying a vignette to an AVIF image using ImageMagick allows you to
+soften or darken the edges of a picture to draw focus toward the center,
+all while retaining modern high-efficiency compression. By using
+ImageMagick’s dedicated <code>-vignette</code> operator or combining a
+custom radial gradient mask with composition flags, you can quickly
+achieve subtle photographic fading or dramatic edge shadow effects
+directly from the command line.</p>
+<h2 id="prerequisites-and-avif-support">Prerequisites and AVIF
+Support</h2>
+<p>ImageMagick requires support for the AVIF format through an
+underlying delegate library, typically <code>libheif</code>. Before
+running vignette operations, verify that your ImageMagick installation
+can read and write AVIF files by checking your delegates:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> in the
+<code>Delegates (built-in)</code> line. If AVIF support is present,
+ImageMagick will seamlessly read <code>.avif</code> input files and
+write them back to disk without requiring format conversion steps.</p>
+<h2 id="the-basic-vignette-command">The Basic Vignette Command</h2>
+<p>ImageMagick 7 provides a built-in <code>-vignette</code> geometry
+operator. The syntax accepts values for <code>radius</code>,
+<code>sigma</code> (blur intensity), and optional coordinate
+offsets:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-vignette</span> 0x20 output.avif</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.avif</code> is the original image.</li>
+<li><code>-vignette 0x20</code> applies an elliptical fade. A radius of
+<code>0</code> instructs ImageMagick to automatically calculate a
+suitable radius, while <code>20</code> sets the standard deviation
+(sigma) of the Gaussian blur along the outer edge.</li>
+<li><code>output.avif</code> saves the processed result as an AVIF
+file.</li>
+</ul>
+<p>To create a heavier, more dramatic fade inward, increase the sigma
+value:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-vignette</span> 0x50 output.avif</span></code></pre></div>
+<h2 id="adjusting-vignette-offsets">Adjusting Vignette Offsets</h2>
+<p>The <code>-vignette</code> operator also accepts horizontal and
+vertical offsets using the syntax <code>radiusxsigma+x+y</code>. Adding
+offset values shifts the start of the vignette inwards:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-vignette</span> 0x30+10+10 output.avif</span></code></pre></div>
+<p>The <code>+10+10</code> parameter pulls the fade boundary 10 pixels
+inward from both the horizontal and vertical margins, creating a tighter
+frame around the central subject.</p>
+<h2 id="custom-dark-vignettes-using-radial-gradients">Custom Dark
+Vignettes Using Radial Gradients</h2>
+<p>The default <code>-vignette</code> operator fades the image towards
+the active background color (defaulting to white or transparent
+depending on your alpha settings). If you want a traditional dark
+photographic vignette, use a black background or composite a radial
+gradient over the image.</p>
+<p>To apply a dark vignette using <code>-background</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-background</span> black <span class="at">-vignette</span> 0x40 output.avif</span></code></pre></div>
+<p>For precise artistic control over falloff, you can generate a radial
+gradient and composite it onto the image using the <code>Multiply</code>
+blend mode:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="dt">\(</span> <span class="at">-size</span> 100%x100% radial-gradient:white-black <span class="dt">\)</span> <span class="at">-compose</span> Multiply <span class="at">-composite</span> output.avif</span></code></pre></div>
+<p>This technique ensures the center remains fully illuminated while the
+perimeter smoothly blends into deep shadow.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

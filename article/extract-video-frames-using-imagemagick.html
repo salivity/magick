@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Video Frames Using ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick enables users to read and extract image frames directly from video files by leveraging multimedia delegates such as FFmpeg. By using standard input syntax combined with frame-indexing brackets, you can extract a single frame, a specific range">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-video-frames-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Video Frames Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-video-frames-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick enables users to read and extract image frames directly from video files by leveraging multimedia delegates such as FFmpeg. By using standard input syntax combined with frame-indexing brackets, you can extract a single frame, a specific range" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-video-frames-using-imagemagick">Extract Video Frames
+Using ImageMagick</h1>
+<p>ImageMagick enables users to read and extract image frames directly
+from video files by leveraging multimedia delegates such as FFmpeg. By
+using standard input syntax combined with frame-indexing brackets, you
+can extract a single frame, a specific range of frames, or the entire
+frame sequence into standard image formats like JPEG or PNG.</p>
+<h2 id="core-command-syntax">Core Command Syntax</h2>
+<p>To read frames directly from a video file in ImageMagick v7, use the
+<code>magick</code> command followed by the video file name and the
+target image output:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4 output_%03d.png</span></code></pre></div>
+<p>This command processes the entire video file and writes every frame
+as a numbered PNG file (e.g., <code>output_000.png</code>,
+<code>output_001.png</code>).</p>
+<h2 id="selecting-specific-frames">Selecting Specific Frames</h2>
+<p>ImageMagick uses bracket notation appended to the filename to target
+specific frame indices. Frame numbering starts at <code>0</code>.</p>
+<h3 id="extract-a-single-frame">Extract a Single Frame</h3>
+<p>To extract only the first frame (index <code>0</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> first_frame.jpg</span></code></pre></div>
+<p>To extract a specific frame later in the video, replace the index
+with the desired frame number:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4<span class="pp">[</span><span class="ss">120</span><span class="pp">]</span> frame_120.jpg</span></code></pre></div>
+<h3 id="extract-a-range-of-frames">Extract a Range of Frames</h3>
+<p>To extract a sequence of specific frames, specify the start and end
+frame within the brackets separated by a hyphen:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.mp4<span class="pp">[</span><span class="ss">50</span><span class="pp">-</span><span class="ss">100</span><span class="pp">]</span> frame_%03d.png</span></code></pre></div>
+<h2 id="requirements-and-performance">Requirements and Performance</h2>
+<p>For ImageMagick to read video files directly, <strong>FFmpeg</strong>
+must be installed on your system and configured as a delegate in
+ImageMagick's <code>delegates.xml</code> file. When you provide a video
+file as an input, ImageMagick automatically calls FFmpeg in the
+background to decode the video stream into raw image data before
+applying any transformations or writing the output.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

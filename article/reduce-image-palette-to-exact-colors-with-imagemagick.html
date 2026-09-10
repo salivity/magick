@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reduce Image Palette to Exact Colors with ImageMagick - magick</title>
+    <meta name="description" content="This article provides a straightforward guide on how to reduce an image's color palette to a specific, exact number of colors using ImageMagick. You will learn the precise command-line parameters required to quantize colors, disable dithering to prevent">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/reduce-image-palette-to-exact-colors-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Reduce Image Palette to Exact Colors with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/reduce-image-palette-to-exact-colors-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a straightforward guide on how to reduce an image's color palette to a specific, exact number of colors using ImageMagick. You will learn the precise command-line parameters required to quantize colors, disable dithering to prevent" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="reduce-image-palette-to-exact-colors-with-imagemagick">Reduce
+Image Palette to Exact Colors with ImageMagick</h1>
+<p>This article provides a straightforward guide on how to reduce an
+image's color palette to a specific, exact number of colors using
+ImageMagick. You will learn the precise command-line parameters required
+to quantize colors, disable dithering to prevent unintended color
+blending, generate and remap exact palettes, and verify the final unique
+color count.</p>
+<h3 id="the-standard--colors-operator">The Standard <code>-colors</code>
+Operator</h3>
+<p>ImageMagick provides the <code>-colors</code> operator to reduce the
+number of colors in an image. By default, ImageMagick applies dithering
+to simulate missing colors, which can introduce additional unique pixels
+into the final output. To constrain the palette strictly, you should
+disable dithering using the <code>+dither</code> flag.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +dither <span class="at">-colors</span> 16 output.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png +dither <span class="at">-colors</span> 16 output.png</span></code></pre></div>
+<h3 id="forcing-an-exact-palette-via-remapping">Forcing an Exact Palette
+via Remapping</h3>
+<p>The <code>-colors</code> option defines the <em>maximum</em> number
+of colors to target, but the quantization algorithm may occasionally
+choose fewer colors if the image lacks sufficient tonal variation. To
+strictly limit and control the palette:</p>
+<ol type="1">
+<li><strong>Generate the unique color palette:</strong> Extract the
+exact number of dominant colors from the source image.</li>
+<li><strong>Remap the original image:</strong> Apply that exact palette
+back onto the image.</li>
+</ol>
+<p>Run the following unified command to generate a reduced palette and
+remap it in a single step:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="er">(</span> <span class="ex">+clone</span> +dither <span class="at">-colors</span> 16 <span class="at">-unique-colors</span> <span class="kw">)</span> <span class="ex">-remap</span> <span class="at">-</span> output.png</span></code></pre></div>
+<p><em>Note: On Windows Command Prompt, omit the backslashes escaping
+the parentheses:
+<code>magick input.png ( +clone +dither -colors 16 -unique-colors ) -remap - output.png</code>.</em></p>
+<h3 id="choosing-the-correct-output-format">Choosing the Correct Output
+Format</h3>
+<p>File formats directly affect the final color count:</p>
+<ul>
+<li><strong>Use PNG8 or GIF:</strong> Indexed formats (like
+<code>PNG8:output.png</code> or <code>output.gif</code>) preserve strict
+palette restrictions.</li>
+<li><strong>Avoid JPEG:</strong> Lossy compression formats like JPEG
+introduce compression artifacts that generate thousands of new,
+interpolated colors upon saving.</li>
+</ul>
+<p>To enforce an 8-bit indexed PNG output:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png +dither <span class="at">-colors</span> 16 PNG8:output.png</span></code></pre></div>
+<h3 id="verifying-the-unique-color-count">Verifying the Unique Color
+Count</h3>
+<p>To confirm that the output image contains the exact number of colors
+expected, query the <code>%k</code> format property:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> output.png <span class="at">-format</span> <span class="st">&quot;%k\n&quot;</span> info:</span></code></pre></div>
+<p>This command returns the precise count of unique colors currently
+present in the file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

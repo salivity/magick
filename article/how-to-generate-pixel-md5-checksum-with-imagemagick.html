@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Generate Pixel MD5 Checksum with ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to generate an MD5 digital checksum of raw pixel data using ImageMagick. Standard file-level checksums change whenever metadata, timestamps, or compression settings are altered, even if the image pixels remain identical. By extrac">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-generate-pixel-md5-checksum-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Generate Pixel MD5 Checksum with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-generate-pixel-md5-checksum-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to generate an MD5 digital checksum of raw pixel data using ImageMagick. Standard file-level checksums change whenever metadata, timestamps, or compression settings are altered, even if the image pixels remain identical. By extrac" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-generate-pixel-md5-checksum-with-imagemagick">How to
+Generate Pixel MD5 Checksum with ImageMagick</h1>
+<p>This guide explains how to generate an MD5 digital checksum of raw
+pixel data using ImageMagick. Standard file-level checksums change
+whenever metadata, timestamps, or compression settings are altered, even
+if the image pixels remain identical. By extracting only the
+uncompressed pixel array and computing its hash, you can verify visual
+content integrity independently of container formats or metadata
+changes.</p>
+<h2 id="why-hash-raw-pixels-instead-of-the-file">Why Hash Raw Pixels
+Instead of the File?</h2>
+<p>A standard file hash (such as running <code>md5sum image.jpg</code>)
+includes headers, EXIF metadata, and compression artifacts. If you
+re-save an image or edit its metadata without altering a single pixel,
+the file-level MD5 hash changes. Hashing raw pixel bytes guarantees that
+two visually identical images produce the same fingerprint regardless of
+format, compression level, or metadata.</p>
+<h2 id="method-1-exporting-raw-pixels-to-md5sum-recommended">Method 1:
+Exporting Raw Pixels to <code>md5sum</code> (Recommended)</h2>
+<p>The most direct way to get an MD5 hash of pixel data is to decode the
+image into a raw byte stream (such as RGB or RGBA) and pipe it directly
+into standard hashing utilities.</p>
+<h3 id="for-standard-rgb-images-no-transparency">For Standard RGB Images
+(No Transparency)</h3>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-depth</span> 8 rgb:- <span class="kw">|</span> <span class="fu">md5sum</span></span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-depth</span> 8 rgb:- <span class="kw">|</span> <span class="fu">md5sum</span></span></code></pre></div>
+<h3 id="for-images-with-transparency-rgba">For Images with Transparency
+(RGBA)</h3>
+<p>If the image contains an alpha channel, export the stream as
+<code>rgba</code> to include transparency values in the checksum:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-depth</span> 8 rgba:- <span class="kw">|</span> <span class="fu">md5sum</span></span></code></pre></div>
+<h3 id="explanation-of-arguments">Explanation of Arguments</h3>
+<ul>
+<li><code>input.png</code>: The source image in any supported format
+(JPEG, PNG, TIFF, WebP, etc.).</li>
+<li><code>-depth 8</code>: Normalizes the color depth to 8 bits per
+channel (preventing mismatch between 8-bit and 16-bit representations of
+the same image).</li>
+<li><code>rgb:-</code> / <code>rgba:-</code>: Instructs ImageMagick to
+output uncompressed, raw color bytes directly to standard output
+(<code>stdout</code>) without headers or metadata.</li>
+<li><code>| md5sum</code>: Pipes the raw byte stream to the system MD5
+hashing utility. On macOS, use <code>md5</code> instead of
+<code>md5sum</code>.</li>
+</ul>
+<hr />
+<h2 id="method-2-using-the-stream-utility-for-large-files">Method 2:
+Using the <code>stream</code> Utility for Large Files</h2>
+<p>ImageMagick includes a dedicated <code>stream</code> binary designed
+to read and pipe components of an image with minimal memory overhead.
+This is ideal for processing extremely high-resolution images.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">stream</span> <span class="at">-map</span> rgb <span class="at">-storage-type</span> char input.tif <span class="at">-</span> <span class="kw">|</span> <span class="fu">md5sum</span></span></code></pre></div>
+<ul>
+<li><code>-map rgb</code>: Extracts the Red, Green, and Blue
+channels.</li>
+<li><code>-storage-type char</code>: Sets pixel channel data to 8-bit
+unsigned characters.</li>
+</ul>
+<hr />
+<h2 id="alternative-built-in-imagemagick-signature-sha-256">Alternative:
+Built-in ImageMagick Signature (SHA-256)</h2>
+<p>If your workflow does not strictly require the MD5 algorithm,
+ImageMagick provides a built-in pixel digest feature called a
+<strong>signature</strong>. The signature is a SHA-256 hash computed
+exclusively over the pixel values (ignoring all metadata and container
+formats).</p>
+<p>To view the pixel signature directly:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%#\n&quot;</span> input.png</span></code></pre></div>
+<p>Or view detailed image properties:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> input.png <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;signature&quot;</span></span></code></pre></div>
+<p>This built-in method is platform-independent and avoids the need for
+external shell pipes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

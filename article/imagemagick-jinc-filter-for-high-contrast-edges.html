@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Jinc Filter for High-Contrast Edges - magick</title>
+    <meta name="description" content="This article provides a technical overview of how ImageMagick’s -filter Jinc operator handles image resampling, focusing on its radial sinc mathematical foundation and its behavior around high-contrast edges. Readers will learn how the radially symmetr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-jinc-filter-for-high-contrast-edges">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Jinc Filter for High-Contrast Edges - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-jinc-filter-for-high-contrast-edges" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a technical overview of how ImageMagick’s -filter Jinc operator handles image resampling, focusing on its radial sinc mathematical foundation and its behavior around high-contrast edges. Readers will learn how the radially symmetr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-jinc-filter-for-high-contrast-edges">ImageMagick
+Jinc Filter for High-Contrast Edges</h1>
+<p>This article provides a technical overview of how ImageMagick’s
+<code>-filter Jinc</code> operator handles image resampling, focusing on
+its radial sinc mathematical foundation and its behavior around
+high-contrast edges. Readers will learn how the radially symmetric Jinc
+function operates under Elliptical Weighted Average (EWA) resampling,
+why it avoids directional artifacts, and how it manages sharp
+transitions, ringing effects, and edge reconstruction.</p>
+<h3 id="the-mathematics-of-the-jinc-filter">The Mathematics of the Jinc
+Filter</h3>
+<p>The Jinc filter is the cylindrical, two-dimensional analog of the
+standard one-dimensional Sinc filter. While the normalized Sinc function
+is expressed as <span class="math inline">\(\text{sinc}(x) =
+\frac{\sin(\pi x)}{\pi x}\)</span>, the Jinc function relies on the
+first-order Bessel function of the first kind, denoted as <span
+class="math inline">\(J_1(x)\)</span>:</p>
+<p><span class="math display">\[\text{jinc}(r) = \frac{2 J_1(\pi r)}{\pi
+r}\]</span></p>
+<p>Where <span class="math inline">\(r = \sqrt{x^2 + y^2}\)</span>
+represents the radial distance from the sampling center.</p>
+<p>Unlike separable 2D filters that calculate horizontal and vertical
+passes independently (<span class="math inline">\(f(x, y) = f(x) \times
+f(y)\)</span>), the Jinc filter is intrinsically isotropic. In
+ImageMagick, this radial formulation is designed specifically for use
+with the Elliptical Weighted Average (EWA) resampling framework.</p>
+<h3 id="radial-resampling-with-ewa">Radial Resampling with EWA</h3>
+<p>When scaling, rotating, or applying non-affine distortions,
+ImageMagick applies the Jinc filter radially within an elliptical
+footprint mapped to the source image grid.</p>
+<ol type="1">
+<li><strong>Coordinate Mapping:</strong> For every destination pixel, an
+ellipse is projected onto the source coordinate plane.</li>
+<li><strong>Radial Distance Computation:</strong> The filter computes
+the normalized elliptical distance <span
+class="math inline">\(r\)</span> from the sample center to surrounding
+source pixels.</li>
+<li><strong>Weight Assignment:</strong> Source pixels are assigned
+weights according to <span
+class="math inline">\(\text{jinc}(r)\)</span>. Pixels at equivalent
+radial distances receive identical filter weights, regardless of their
+orientation.</li>
+</ol>
+<p>Because it calculates weights based purely on circular or elliptical
+radius rather than orthogonal axes, it treats diagonal edges with the
+exact same frequency response as horizontal and vertical edges.</p>
+<h3 id="performance-on-high-contrast-edges">Performance on High-Contrast
+Edges</h3>
+<p>High-contrast edges—such as white text on a black background or sharp
+vector silhouettes—contain infinite frequency harmonics. Applying the
+Jinc filter to these zones results in specific reconstruction
+behaviors:</p>
+<h4 id="elimination-of-directional-anisotropy">Elimination of
+Directional Anisotropy</h4>
+<p>Separable filters (such as standard 2D Sinc or Box filters) create
+preferential artifacts along the <span class="math inline">\(X\)</span>
+and <span class="math inline">\(Y\)</span> axes, often turning sharp
+diagonal boundaries into stair-stepped or cross-shaped artifacts. The
+Jinc filter disperses reconstruction energy evenly at all angles.
+High-contrast edges retain a uniform gradient across their boundary,
+eliminating angular distortion.</p>
+<h4 id="ringing-artifacts-the-gibbs-phenomenon">Ringing Artifacts (The
+Gibbs Phenomenon)</h4>
+<p>Because the Jinc function mirrors the sharp frequency cutoff of an
+ideal low-pass filter, its spatial domain representation has infinite,
+oscillating side lobes. On steep, high-contrast transitions, these
+alternating positive and negative lobes produce concentric "halos" or
+"ringing" parallel to the edge.</p>
+<p>In raw Jinc filtering, the negative lobes draw pixel intensities
+below their local minima (undershoot), and the secondary positive lobes
+push intensities above local maxima (overshoot). On extreme edges, this
+manifests as visible dark and bright fringe bands.</p>
+<h4 id="windowing-and-clamping">Windowing and Clamping</h4>
+<p>To balance edge sharpness against excessive ringing, ImageMagick
+rarely uses an unconstrained, infinite Jinc filter. Instead, Jinc
+typically serves as the base function or windowing function (commonly
+combined as Lanczos, which in ImageMagick EWA is a Jinc-windowed
+Jinc).</p>
+<p>By limiting the filter support radius—typically to three
+lobes—ImageMagick forces the oscillating tails to zero beyond a defined
+radius. This preserves the high-frequency slope necessary to keep
+high-contrast edges looking crisp while suppressing the extended radial
+ripples that degrade overall visual quality.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

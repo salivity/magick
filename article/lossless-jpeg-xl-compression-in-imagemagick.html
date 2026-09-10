@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lossless JPEG XL Compression in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure mathematically lossless JPEG XL (JXL) compression using ImageMagick command-line defines. By setting the appropriate quality flags and encoder defines, you can ensure bit-perfect image preservation while tuning compre">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/lossless-jpeg-xl-compression-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Lossless JPEG XL Compression in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/lossless-jpeg-xl-compression-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure mathematically lossless JPEG XL (JXL) compression using ImageMagick command-line defines. By setting the appropriate quality flags and encoder defines, you can ensure bit-perfect image preservation while tuning compre" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="lossless-jpeg-xl-compression-in-imagemagick">Lossless JPEG XL
+Compression in ImageMagick</h1>
+<p>This guide explains how to configure mathematically lossless JPEG XL
+(JXL) compression using ImageMagick command-line defines. By setting the
+appropriate quality flags and encoder defines, you can ensure
+bit-perfect image preservation while tuning compression effort and
+decoding speeds for optimal file size and performance.</p>
+<h3 id="basic-lossless-configuration">Basic Lossless Configuration</h3>
+<p>In ImageMagick, JPEG XL encoding is handled via <code>libjxl</code>.
+To ensure an image is compressed without any generation loss, you can
+either explicitly enable the lossless define or set the quality flag to
+100.</p>
+<p>The primary method to enforce lossless encoding is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jxl:lossless=true output.jxl</span></code></pre></div>
+<p>Alternatively, setting the quality to 100 achieves the same result by
+setting the internal Butteraugli visual distance to 0:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 output.jxl</span></code></pre></div>
+<p>For maximum clarity and to prevent ambiguity across different
+ImageMagick builds, combining both parameters is common practice:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 <span class="at">-define</span> jxl:lossless=true output.jxl</span></code></pre></div>
+<h3 id="controlling-compression-effort">Controlling Compression
+Effort</h3>
+<p>The compression effort dictates how hard the encoder works to find
+the smallest file size. It ranges from <code>1</code> (fastest encoding,
+larger file size) to <code>9</code> (slowest encoding, smallest file
+size). The default value is <code>7</code>.</p>
+<p>You configure this using the <code>jxl:effort</code> define:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jxl:lossless=true <span class="at">-define</span> jxl:effort=9 output.jxl</span></code></pre></div>
+<ul>
+<li><strong>Effort 1–3:</strong> Useful for real-time capture or rapid
+batch processing where CPU usage is a concern.</li>
+<li><strong>Effort 7:</strong> Balanced setting suitable for general
+storage.</li>
+<li><strong>Effort 9:</strong> Recommended for web delivery or long-term
+archiving where maximum bandwidth savings are desired.</li>
+</ul>
+<h3 id="optimizing-for-decoding-speed">Optimizing for Decoding
+Speed</h3>
+<p>JPEG XL allows you to trade a small amount of compression efficiency
+for faster decompression. This is controlled via the
+<code>jxl:decoding-speed</code> define, with values ranging from
+<code>0</code> (slowest decode, smallest file) to <code>4</code>
+(fastest decode, slightly larger file). The default is
+<code>0</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> jxl:lossless=true <span class="at">-define</span> jxl:decoding-speed=2 output.jxl</span></code></pre></div>
+<p>Setting <code>jxl:decoding-speed</code> to higher values (such as 1
+or 2) is helpful if the target devices have constrained CPU resources,
+such as mobile hardware.</p>
+<h3 id="complete-production-example">Complete Production Example</h3>
+<p>For an archival-grade, highly compressed lossless file, combine the
+lossless flag, maximum effort, and standard decoding speed into a single
+command:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tiff <span class="at">-quality</span> 100 <span class="at">-define</span> jxl:lossless=true <span class="at">-define</span> jxl:effort=9 <span class="at">-define</span> jxl:decoding-speed=0 output.jxl</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

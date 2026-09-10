@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set PNG Huffman Compression in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure ImageMagick to apply the Huffman coding compression strategy when encoding PNG images. By utilizing ImageMagick's internal PNG defines, you can bypass the default zlib compression strategy and force the encoder to use">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-png-huffman-compression-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set PNG Huffman Compression in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-png-huffman-compression-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure ImageMagick to apply the Huffman coding compression strategy when encoding PNG images. By utilizing ImageMagick's internal PNG defines, you can bypass the default zlib compression strategy and force the encoder to use" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-png-huffman-compression-in-imagemagick">Set PNG Huffman
+Compression in ImageMagick</h1>
+<p>This guide explains how to configure ImageMagick to apply the Huffman
+coding compression strategy when encoding PNG images. By utilizing
+ImageMagick's internal PNG defines, you can bypass the default zlib
+compression strategy and force the encoder to use Huffman-only encoding,
+which significantly speeds up compression times at the expense of
+compression ratio.</p>
+<p>To set the PNG compression strategy to Huffman coding in ImageMagick,
+use the <code>-define png:compression-strategy</code> option with a
+value of <code>2</code>.</p>
+<h3 id="command-syntax">Command Syntax</h3>
+<p>For ImageMagick version 7, use the following syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> png:compression-strategy=2 output.png</span></code></pre></div>
+<p>If you are using ImageMagick version 6, replace <code>magick</code>
+with <code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-define</span> png:compression-strategy=2 output.png</span></code></pre></div>
+<h3 id="understanding-compression-strategy-values">Understanding
+Compression Strategy Values</h3>
+<p>ImageMagick maps its strategy values directly to the underlying
+<code>zlib</code> compression library settings:</p>
+<ul>
+<li><strong>0:</strong> Default compression
+(<code>Z_DEFAULT_STRATEGY</code>)</li>
+<li><strong>1:</strong> Filtered (<code>Z_FILTERED</code>)</li>
+<li><strong>2:</strong> Huffman only (<code>Z_HUFFMAN_ONLY</code>)</li>
+<li><strong>3:</strong> Run-Length Encoding (<code>Z_RLE</code>)</li>
+<li><strong>4:</strong> Fixed Huffman codes (<code>Z_FIXED</code>)</li>
+</ul>
+<p>Setting the value to <code>2</code> forces the zlib compressor to
+skip string matching (LZ77) entirely and perform only Huffman entropy
+encoding.</p>
+<h3 id="combining-with-compression-levels">Combining with Compression
+Levels</h3>
+<p>You can pair the Huffman strategy with the <code>-quality</code> flag
+to control both the compression level and the PNG row filter. In
+ImageMagick, the tens digit represents the zlib compression level (0–9),
+and the units digit represents the filter type (0–5):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 90 <span class="at">-define</span> png:compression-strategy=2 output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>9</code> sets zlib compression level 9 (maximum effort).</li>
+<li><code>0</code> sets the PNG row filter to "None".</li>
+<li><code>-define png:compression-strategy=2</code> enforces Huffman
+coding on the resulting stream.</li>
+</ul>
+<h3 id="use-cases-for-huffman-only">Use Cases for Huffman Only</h3>
+<p>Using the Huffman-only strategy is ideal when encoding speed is a
+higher priority than file size, or when compressing pre-processed,
+high-entropy imagery where traditional LZ77 dictionary searches yield
+negligible size reductions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

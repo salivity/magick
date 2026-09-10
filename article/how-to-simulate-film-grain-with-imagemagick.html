@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Simulate Film Grain with ImageMagick - magick</title>
+    <meta name="description" content="Digital images often lack the organic texture found in traditional analog photography. Simulating authentic film grain using ImageMagick involves generating procedural noise, shaping that noise to mimic grain clumps, and blending it naturally over the so">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-simulate-film-grain-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Simulate Film Grain with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-simulate-film-grain-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Digital images often lack the organic texture found in traditional analog photography. Simulating authentic film grain using ImageMagick involves generating procedural noise, shaping that noise to mimic grain clumps, and blending it naturally over the so" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-simulate-film-grain-with-imagemagick">How to Simulate
+Film Grain with ImageMagick</h1>
+<p>Digital images often lack the organic texture found in traditional
+analog photography. Simulating authentic film grain using ImageMagick
+involves generating procedural noise, shaping that noise to mimic grain
+clumps, and blending it naturally over the source image using
+appropriate blend modes and luminance controls.</p>
+<h2 id="understanding-imagemagick-noise-types">Understanding ImageMagick
+Noise Types</h2>
+<p>ImageMagick provides several built-in noise generators via the
+<code>+noise</code> operator. The most useful for film emulation
+are:</p>
+<ul>
+<li><strong>Gaussian:</strong> Ideal for general 35mm and medium format
+film grain.</li>
+<li><strong>Poisson:</strong> Useful for low-light sensor noise or
+higher ISO film stocks.</li>
+<li><strong>Uniform:</strong> A flatter, digital-looking noise rarely
+used for analog simulation.</li>
+</ul>
+<h2 id="the-basic-noise-generation-command">The Basic Noise Generation
+Command</h2>
+<p>The simplest way to add noise directly to an image is the
+<code>+noise</code> parameter:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +noise Gaussian output.jpg</span></code></pre></div>
+<p>While functional, this applies uniform, sharp, color noise across the
+entire image, which often looks digital rather than organic.</p>
+<h2 id="creating-realistic-film-grain-recommended-approach">Creating
+Realistic Film Grain (Recommended Approach)</h2>
+<p>Real film grain is monochromatic, clumps slightly, and affects
+midtones more visibly than pure shadows or highlights.</p>
+<p>To achieve this, generate a dedicated noise layer, soften it, and
+blend it over the original using the <code>Overlay</code> or
+<code>SoftLight</code> composition modes.</p>
+<h3 id="1-the-complete-command">1. The Complete Command</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-fill</span> gray50 <span class="at">-colorize</span> 100% <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     +noise Gaussian <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-blur</span> 0x0.6 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Overlay <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h3 id="2-breakdown-of-the-pipeline">2. Breakdown of the Pipeline</h3>
+<ul>
+<li><strong><code>-clone 0</code></strong>: Creates a duplicate of the
+original image to match its exact dimensions.</li>
+<li><strong><code>-fill gray50 -colorize 100%</code></strong>: Fills the
+cloned layer with neutral 50% gray.</li>
+<li><strong><code>+noise Gaussian -colorspace Gray</code></strong>: Adds
+random Gaussian noise and forces it to be strictly monochromatic.</li>
+<li><strong><code>-blur 0x0.6</code></strong>: Slightly blurs the
+individual noise pixels. Real film grain is composed of irregularly
+shaped dye clouds rather than single-pixel dots.</li>
+<li><strong><code>-compose Overlay -composite</code></strong>: Merges
+the noise layer into the base image. Neutral gray becomes transparent,
+bright noise flecks lighten the image, and dark noise flecks darken
+it.</li>
+</ul>
+<h2 id="fine-tuning-the-grain-characteristics">Fine-Tuning the Grain
+Characteristics</h2>
+<h3 id="adjusting-grain-strength">Adjusting Grain Strength</h3>
+<p>To reduce or increase the intensity of the grain, adjust the opacity
+of the noise layer before compositing using the
+<code>-define compose:args</code> option or by reducing contrast:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-fill</span> gray50 <span class="at">-colorize</span> 100% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     +noise Gaussian <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-blur</span> 0x0.6 <span class="at">-level</span> 20%,80% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Overlay <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>Reducing the dynamic range of the noise layer with
+<code>-level</code> softens the overall impact.</p>
+<h3 id="adjusting-grain-size">Adjusting Grain Size</h3>
+<p>For larger, coarser film grain (such as ISO 1600 or 3200 film):</p>
+<ol type="1">
+<li>Generate noise at a lower resolution.</li>
+<li>Scale it up to create larger grain clumps.</li>
+<li>Blur slightly to remove pixelation.</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-fill</span> gray50 <span class="at">-colorize</span> 100% <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-sample</span> 50% +noise Gaussian <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-resize</span> 200% <span class="at">-blur</span> 0x0.8 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> SoftLight <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<h3 id="using-softlight-for-subtle-grain">Using SoftLight for Subtle
+Grain</h3>
+<p>Replacing <code>-compose Overlay</code> with
+<code>-compose SoftLight</code> produces a gentler, more subdued texture
+suitable for fine-grain stocks like Kodak Portra 160 or Fujifilm Pro
+400H.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

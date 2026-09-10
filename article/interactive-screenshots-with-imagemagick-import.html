@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Screenshots with ImageMagick Import - magick</title>
+    <meta name="description" content="This guide explains how to capture interactive screenshots on a Unix or Linux desktop using the import command from the ImageMagick suite. You will learn the basic command syntax to select windows or draw custom capture regions, capture window decoration">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/interactive-screenshots-with-imagemagick-import">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Interactive Screenshots with ImageMagick Import - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/interactive-screenshots-with-imagemagick-import" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to capture interactive screenshots on a Unix or Linux desktop using the import command from the ImageMagick suite. You will learn the basic command syntax to select windows or draw custom capture regions, capture window decoration" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="interactive-screenshots-with-imagemagick-import">Interactive
+Screenshots with ImageMagick Import</h1>
+<p>This guide explains how to capture interactive screenshots on a Unix
+or Linux desktop using the <code>import</code> command from the
+ImageMagick suite. You will learn the basic command syntax to select
+windows or draw custom capture regions, capture window decorations, add
+execution delays, and save outputs in various image formats directly
+from the command line.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Ensure ImageMagick is installed on your Unix/Linux system running the
+X11 display server. On Debian/Ubuntu-based systems, install it via:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install imagemagick</span></code></pre></div>
+<p>On Fedora or RHEL:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install ImageMagick</span></code></pre></div>
+<h3 id="basic-interactive-capture">Basic Interactive Capture</h3>
+<p>The <code>import</code> tool enters interactive mode by default when
+you specify an output filename without defining a root window or
+specific coordinates.</p>
+<p>Run the following command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">import</span> screenshot.png</span></code></pre></div>
+<p>Your cursor will transform into a crosshair. You have two interactive
+choices:</p>
+<ol type="1">
+<li><strong>Capture a Window:</strong> Left-click anywhere inside an
+application window to capture only that window.</li>
+<li><strong>Capture a Custom Region:</strong> Click and drag a rectangle
+over the desired area of the screen, then release the mouse button.</li>
+</ol>
+<h3 id="including-window-borders-and-title-bars">Including Window
+Borders and Title Bars</h3>
+<p>By default, clicking a window captures only the client area,
+excluding the window manager's title bar and borders. To include the
+window frame:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">import</span> <span class="at">-frame</span> window_with_border.png</span></code></pre></div>
+<p>Click the target window, and the output will contain the full window
+including title bars and borders.</p>
+<h3 id="adding-a-delay-for-menu-and-hover-captures">Adding a Delay for
+Menu and Hover Captures</h3>
+<p>To capture tooltips, context menus, or drop-down menus, add a time
+delay using the <code>sleep</code> command. This gives you time to open
+the menu before the interactive cursor appears:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sleep</span> 3 <span class="kw">&amp;&amp;</span> <span class="ex">import</span> menu_capture.png</span></code></pre></div>
+<p>Alternatively, use ImageMagick's built-in <code>-pause</code> flag
+(specified in seconds):</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">import</span> <span class="at">-pause</span> 3 tooltip.png</span></code></pre></div>
+<h3 id="output-formats-and-quality-adjustments">Output Formats and
+Quality Adjustments</h3>
+<p>The <code>import</code> command automatically determines the output
+format from the file extension. You can control compression and quality
+using the <code>-quality</code> flag:</p>
+<ul>
+<li><p><strong>PNG (Lossless compression level from 0 to
+9):</strong></p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">import</span> <span class="at">-quality</span> 9 capture.png</span></code></pre></div></li>
+<li><p><strong>JPEG (Quality scale from 1 to 100):</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">import</span> <span class="at">-quality</span> 85 capture.jpg</span></code></pre></div></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

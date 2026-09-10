@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Nonpeak Filter for Text Separation - magick</title>
+    <meta name="description" content="This article explains how the -statistic Nonpeak filter in ImageMagick separates background paper grain from printed text in document scans. It covers the mechanics of local statistical filtering, why paper texture poses a challenge for binarization, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-nonpeak-filter-for-text-separation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Nonpeak Filter for Text Separation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-nonpeak-filter-for-text-separation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the -statistic Nonpeak filter in ImageMagick separates background paper grain from printed text in document scans. It covers the mechanics of local statistical filtering, why paper texture poses a challenge for binarization, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-nonpeak-filter-for-text-separation">ImageMagick
+Nonpeak Filter for Text Separation</h1>
+<p>This article explains how the <code>-statistic Nonpeak</code> filter
+in ImageMagick separates background paper grain from printed text in
+document scans. It covers the mechanics of local statistical filtering,
+why paper texture poses a challenge for binarization, and how bypassing
+dominant local pixel frequencies suppresses grain while preserving
+high-contrast text edges.</p>
+<h2 id="the-problem-of-paper-grain-in-document-scans">The Problem of
+Paper Grain in Document Scans</h2>
+<p>Scanned physical documents rarely have a uniform white background.
+Paper fibers create subtle shifts in brightness and shadows, known as
+paper grain or texture. When performing optical character recognition
+(OCR) or document binarization, standard thresholding often
+misidentifies these micro-contrasts as ink, leaving behind a speckle
+pattern or "salt-and-pepper" noise around and between text
+characters.</p>
+<p>Standard blurring filters (like Gaussian blur) can smooth this grain,
+but they also soften the crisp edges of printed characters, causing thin
+strokes to break or adjacent letters to merge.</p>
+<h2 id="how-the-nonpeak-statistic-operates">How the Nonpeak Statistic
+Operates</h2>
+<p>The <code>-statistic</code> operator in ImageMagick computes pixel
+values based on the distribution of colors within a moving window or
+neighborhood (defined by a geometry such as <code>3x3</code> or
+<code>5x5</code>).</p>
+<p>Unlike <code>Mean</code> (which calculates an average) or
+<code>Median</code> (which takes the middle value), <code>Nonpeak</code>
+evaluates the histogram of the local neighborhood and avoids the
+"peak"—the most frequently occurring pixel value (the local mode).
+Specifically:</p>
+<ol type="1">
+<li>The filter builds a frequency histogram of all pixel intensities
+within the defined kernel.</li>
+<li>It identifies the dominant intensity value that represents the local
+peak.</li>
+<li>If the target pixel is part of this dominant peak, the filter
+selects an alternative value from the distribution that differs from
+that mode.</li>
+</ol>
+<h2 id="suppressing-grain-while-retaining-ink">Suppressing Grain While
+Retaining Ink</h2>
+<p>In a typical scan, paper grain consists of tiny, repetitive
+fluctuations clustered tightly around the dominant background
+brightness. Because these values form the local statistical peak in
+areas with no text, the <code>Nonpeak</code> filter systematically
+rejects this dominant background value.</p>
+<p>This behavior produces two distinct effects depending on the region
+of the image:</p>
+<ul>
+<li><strong>In Background Regions:</strong> The repetitive,
+high-frequency texture of the paper is stripped of its primary mode.
+When combined with subsequent normalization or thresholding, the
+flattened variation collapses into a uniform background field.</li>
+<li><strong>At Character Boundaries:</strong> Ink strokes consist of
+values that are sharply distinct from the background. Because text
+pixels do not share the dominant background frequency, their edge
+contrasts remain pronounced rather than blurred. The filter highlights
+the non-background components, maintaining the structural sharpness of
+the letterforms.</li>
+</ul>
+<h2 id="basic-implementation-in-imagemagick">Basic Implementation in
+ImageMagick</h2>
+<p>To apply the <code>Nonpeak</code> filter for paper grain reduction,
+pass the filter type and kernel size to the <code>-statistic</code>
+option:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.png <span class="at">-colorspace</span> Gray <span class="at">-statistic</span> Nonpeak 3x3 cleaned.png</span></code></pre></div>
+<p>A <code>3x3</code> kernel is generally sufficient for fine,
+high-resolution paper grain. For coarser textures or lower-resolution
+scans, expanding the kernel to <code>5x5</code> may be necessary. Once
+the grain is suppressed by the <code>Nonpeak</code> filter, applying a
+standard thresholding operation (such as <code>-threshold</code> or
+<code>-lat</code>) yields a clean, high-contrast black-and-white output
+with clean margins and intact text.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

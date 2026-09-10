@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuring GIF Frame Disposal in ImageMagick - magick</title>
+    <meta name="description" content="Managing frame disposal in ImageMagick is essential for eliminating visual artifacts, ghosting, and overlapping transparency errors in animated GIFs. This guide explains how to use ImageMagick's -dispose setting to control what happens to the canvas betw">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configuring-gif-frame-disposal-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configuring GIF Frame Disposal in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configuring-gif-frame-disposal-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Managing frame disposal in ImageMagick is essential for eliminating visual artifacts, ghosting, and overlapping transparency errors in animated GIFs. This guide explains how to use ImageMagick's -dispose setting to control what happens to the canvas betw" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configuring-gif-frame-disposal-in-imagemagick">Configuring GIF
+Frame Disposal in ImageMagick</h1>
+<p>Managing frame disposal in ImageMagick is essential for eliminating
+visual artifacts, ghosting, and overlapping transparency errors in
+animated GIFs. This guide explains how to use ImageMagick's
+<code>-dispose</code> setting to control what happens to the canvas
+between frames, focusing on configuring methods such as
+<code>Background</code>, <code>Previous</code>, and <code>None</code>
+for both new animations and existing GIF files.</p>
+<hr />
+<h3 id="understanding-the--dispose-methods">Understanding the
+<code>-dispose</code> Methods</h3>
+<p>When a GIF transitions from one frame to the next, the disposal
+method determines how the current frame is cleared before rendering the
+incoming frame:</p>
+<ul>
+<li><strong><code>Undefined</code> (0):</strong> No specific disposal
+behavior is defined. The viewer chooses how to handle the frame, often
+behaving like <code>None</code>.</li>
+<li><strong><code>None</code> (1):</strong> The current frame remains on
+the screen, and the next frame is rendered directly on top of it. This
+is ideal for animations with static backgrounds and small updating areas
+to minimize file size.</li>
+<li><strong><code>Background</code> (2):</strong> The area covered by
+the current frame is cleared to the canvas background (or made
+transparent) before the next frame is drawn. This prevents ghosting
+artifacts in animations with transparent backgrounds.</li>
+<li><strong><code>Previous</code> (3):</strong> The canvas is restored
+to the exact state it was in prior to the current frame being rendered.
+This is commonly used when temporary overlays or pop-up elements
+disappear in the following frame.</li>
+</ul>
+<hr />
+<h3 id="creating-a-new-gif-with-disposal-settings">Creating a New GIF
+with Disposal Settings</h3>
+<p>To set a global disposal method when assembling individual images
+into an animated GIF, place the <code>-dispose</code> flag before
+specifying your input frames or the output file.</p>
+<h4 id="example-setting-disposal-to-background">Example: Setting
+Disposal to <code>Background</code></h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-delay</span> 20 <span class="at">-dispose</span> Background frame<span class="pp">*</span>.png animation.gif</span></code></pre></div>
+<p>This clears each frame to the background before displaying the next
+one, ensuring that moving elements with transparent backgrounds do not
+leave trails.</p>
+<h4 id="example-setting-disposal-to-previous">Example: Setting Disposal
+to <code>Previous</code></h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-delay</span> 20 <span class="at">-dispose</span> Previous frame<span class="pp">*</span>.png animation.gif</span></code></pre></div>
+<p>This ensures that each frame rolls back to the previous canvas state,
+which is useful when animating objects that appear and disappear over a
+static base layer.</p>
+<hr />
+<h3 id="applying-different-disposal-methods-per-frame">Applying
+Different Disposal Methods Per Frame</h3>
+<p>You can assign specific disposal methods to individual frames within
+a single command sequence by inserting the <code>-dispose</code> option
+between the frame inputs.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame1.png <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-dispose</span> None frame2.png <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-dispose</span> Background frame3.png <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">-dispose</span> Previous frame4.png <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<p>In this setup, each frame utilizes the <code>-dispose</code> rule
+defined immediately prior to its insertion into the sequence.</p>
+<hr />
+<h3 id="modifying-disposal-on-an-existing-gif">Modifying Disposal on an
+Existing GIF</h3>
+<p>If you have an existing GIF that suffers from visual corruption or
+ghosting, you must first expand the compressed frames into complete
+canvas states using <code>-coalesce</code> before reassigning the
+disposal method.</p>
+<h4 id="fixing-ghosting-on-existing-gifs">Fixing Ghosting on Existing
+GIFs</h4>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-dispose</span> Background output.gif</span></code></pre></div>
+<h4 id="converting-an-existing-gif-to-previous-disposal">Converting an
+Existing GIF to <code>Previous</code> Disposal</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-dispose</span> Previous output.gif</span></code></pre></div>
+<hr />
+<h3 id="verifying-frame-disposal-configuration">Verifying Frame Disposal
+Configuration</h3>
+<p>To inspect the disposal method assigned to each frame in an existing
+GIF file, run the <code>identify</code> command with a format
+string:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Frame %[scene]: Dispose = %[dispose]\n&quot;</span> animation.gif</span></code></pre></div>
+<p>This prints the disposal mode of every individual frame to the
+terminal, allowing you to confirm that <code>Background</code>,
+<code>Previous</code>, or other target settings have been applied
+correctly.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

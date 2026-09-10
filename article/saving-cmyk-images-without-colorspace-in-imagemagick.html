@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving CMYK Images Without Colorspace in ImageMagick - magick</title>
+    <meta name="description" content="When an image containing an embedded CMYK color profile is saved in ImageMagick without explicitly declaring a target colorspace, the software attempts to preserve the original CMYK data and its embedded profile by default. However, the final visual and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/saving-cmyk-images-without-colorspace-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Saving CMYK Images Without Colorspace in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/saving-cmyk-images-without-colorspace-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When an image containing an embedded CMYK color profile is saved in ImageMagick without explicitly declaring a target colorspace, the software attempts to preserve the original CMYK data and its embedded profile by default. However, the final visual and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="saving-cmyk-images-without-colorspace-in-imagemagick">Saving
+CMYK Images Without Colorspace in ImageMagick</h1>
+<p>When an image containing an embedded CMYK color profile is saved in
+ImageMagick without explicitly declaring a target colorspace, the
+software attempts to preserve the original CMYK data and its embedded
+profile by default. However, the final visual and technical outcome
+depends almost entirely on the target file format, which can range from
+perfectly preserved print-ready output to severely corrupted or inverted
+visual artifacts.</p>
+<h2 id="default-pipeline-behavior">Default Pipeline Behavior</h2>
+<p>By design, ImageMagick does not automatically transform pixel
+colorspace channels during read and write operations unless instructed
+by operators such as <code>-colorspace</code> or <code>-profile</code>.
+When you load a CMYK file with an embedded International Color
+Consortium (ICC) profile, ImageMagick retains the four-channel CMYK
+structure in memory alongside the profile metadata.</p>
+<p>If you execute a basic command like:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_cmyk.jpg output.jpg</span></code></pre></div>
+<p>ImageMagick encodes the destination file using the existing internal
+CMYK pixel values and retains the embedded ICC profile.</p>
+<h2 id="saving-to-cmyk-compatible-formats">Saving to CMYK-Compatible
+Formats</h2>
+<p>If the output format natively supports CMYK channels—such as TIFF,
+PSD, PDF, or CMYK-enabled JPEG—the file will save successfully as a CMYK
+document.</p>
+<p>Key characteristics of this output include:</p>
+<ul>
+<li><strong>Preserved Metadata:</strong> The embedded CMYK ICC profile
+is written directly into the new file header.</li>
+<li><strong>Intact Channel Data:</strong> The Cyan, Magenta, Yellow, and
+Key (Black) values remain numerically unaltered.</li>
+<li><strong>Viewer Dependency:</strong> Desktop publishing applications
+(such as Adobe InDesign or Photoshop) will render the output accurately.
+However, standard web browsers and general image viewers often fail to
+read CMYK JPEGs correctly, frequently causing colors to appear washed
+out, overly dark, or distorted.</li>
+</ul>
+<h2 id="saving-to-rgb-only-formats">Saving to RGB-Only Formats</h2>
+<p>Complications arise when saving to formats that do not support CMYK
+channels, such as PNG, GIF, or WebP. Because these formats strictly
+require an RGB-based color model, ImageMagick is forced to reconcile the
+mismatch at the encoding stage.</p>
+<p>When this occurs without explicit instructions:</p>
+<ol type="1">
+<li><strong>Fallback Numerical Conversion:</strong> ImageMagick performs
+an automatic internal conversion to RGB so the encoder can write the
+file.</li>
+<li><strong>Ignored Color Profiles:</strong> Instead of using the
+embedded ICC profile to accurately map CMYK values to human-perceived
+color values, the engine applies a raw mathematical inversion formula
+(such as subtracting CMY values from 1.0 to obtain RGB).</li>
+<li><strong>Severe Visual Artifacts:</strong> The resulting image often
+displays inverted colors (resembling a photographic negative), extreme
+tint shifts, or crushed tonal ranges. The black generation and
+under-color removal calculated by the original CMYK profile are
+completely lost.</li>
+</ol>
+<h2 id="ensuring-proper-output">Ensuring Proper Output</h2>
+<p>To prevent unexpected rendering issues, CMYK images intended for
+general display or RGB formats must be converted rather than simply
+saved. Proper handling requires applying a designated destination
+profile:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_cmyk.jpg <span class="at">-profile</span> sRGB.icc output.png</span></code></pre></div>
+<p>This transforms the pixel values accurately through color management
+lookup tables rather than relying on automatic fallback behavior.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

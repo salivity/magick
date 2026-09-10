@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Text Tracking and Character Spacing - magick</title>
+    <meta name="description" content="In ImageMagick, text tracking and inter-character spacing are controlled using the -kerning parameter. This setting allows users to expand or condense the space between individual characters when rendering text using operations such as -annotate, label:,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-text-tracking-and-character-spacing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Text Tracking and Character Spacing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-text-tracking-and-character-spacing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, text tracking and inter-character spacing are controlled using the -kerning parameter. This setting allows users to expand or condense the space between individual characters when rendering text using operations such as -annotate, label:," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-text-tracking-and-character-spacing">ImageMagick
+Text Tracking and Character Spacing</h1>
+<p>In ImageMagick, text tracking and inter-character spacing are
+controlled using the <code>-kerning</code> parameter. This setting
+allows users to expand or condense the space between individual
+characters when rendering text using operations such as
+<code>-annotate</code>, <code>label:</code>, or <code>caption:</code>.
+By assigning positive or negative numerical values to this option, you
+can precisely fine-tune typography across command-line workflows.</p>
+<h3 id="the--kerning-setting">The <code>-kerning</code> Setting</h3>
+<p>The primary option for adjusting inter-character spacing is
+<code>-kerning &lt;value&gt;</code>.</p>
+<ul>
+<li><strong>Positive values</strong> add space between characters (loose
+tracking/expanded text).</li>
+<li><strong>Negative values</strong> reduce space between characters,
+pulling them closer together (tight tracking/condensed text).</li>
+<li><strong>A value of zero (<code>0</code>)</strong> leaves the default
+font metrics intact.</li>
+</ul>
+<p>Values can be specified as whole integers or floating-point numbers
+representing points (or pixels depending on resolution settings).</p>
+<h3 id="using--kerning-with--annotate">Using <code>-kerning</code> with
+<code>-annotate</code></h3>
+<p>When placing text over an existing image using the
+<code>-annotate</code> operator, apply <code>-kerning</code> prior to
+the annotation call.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-font</span> Arial <span class="at">-pointsize</span> 36 <span class="at">-fill</span> white <span class="at">-kerning</span> 4 <span class="at">-annotate</span> +50+100 <span class="st">&quot;Expanded Text&quot;</span> output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-kerning 4</code> increases the default spacing between each
+letter by 4 points.</li>
+<li><code>-annotate +50+100</code> applies the spaced text onto
+<code>input.jpg</code> at the specified coordinates.</li>
+</ul>
+<p>To tighten character spacing instead:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-font</span> Arial <span class="at">-pointsize</span> 36 <span class="at">-fill</span> white <span class="at">-kerning</span> <span class="at">-2</span> <span class="at">-annotate</span> +50+100 <span class="st">&quot;Condensed Text&quot;</span> output.jpg</span></code></pre></div>
+<h3 id="using--kerning-with-label-and-caption">Using
+<code>-kerning</code> with <code>label:</code> and
+<code>caption:</code></h3>
+<p>The setting applies equally to generated text canvases created with
+<code>label:</code> or <code>caption:</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> lightblue <span class="at">-fill</span> black <span class="at">-font</span> Helvetica <span class="at">-pointsize</span> 48 <span class="at">-kerning</span> 8 label:<span class="st">&quot;Wide Spacing&quot;</span> output.png</span></code></pre></div>
+<h3 id="behavior-notes">Behavior Notes</h3>
+<ul>
+<li><strong>Position in Command:</strong> In ImageMagick version 7
+(<code>magick</code>), <code>-kerning</code> is a setting that affects
+all subsequent text rendering operators. It should be declared before
+<code>-annotate</code>, <code>label:</code>, or
+<code>caption:</code>.</li>
+<li><strong>Font Support:</strong> The <code>-kerning</code> parameter
+functions by altering the horizontal advance between glyphs, so it
+functions consistently regardless of whether the underlying font file
+natively supports TrueType kerning tables.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

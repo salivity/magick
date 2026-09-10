@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Color LUT to ImageMagick Animation Frames - magick</title>
+    <meta name="description" content="Applying a color lookup table (LUT) uniformly to an animated image sequence or GIF in ImageMagick requires breaking the animation into full frames, applying the LUT across every frame in the stack, and then re-optimizing the sequence for output. This gui">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-color-lut-to-imagemagick-animation-frames">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Color LUT to ImageMagick Animation Frames - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-color-lut-to-imagemagick-animation-frames" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a color lookup table (LUT) uniformly to an animated image sequence or GIF in ImageMagick requires breaking the animation into full frames, applying the LUT across every frame in the stack, and then re-optimizing the sequence for output. This gui" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-color-lut-to-imagemagick-animation-frames">Apply Color LUT
+to ImageMagick Animation Frames</h1>
+<p>Applying a color lookup table (LUT) uniformly to an animated image
+sequence or GIF in ImageMagick requires breaking the animation into full
+frames, applying the LUT across every frame in the stack, and then
+re-optimizing the sequence for output. This guide explains how to
+properly handle frame disposal, apply 3D Hald CLUTs or 1D standard
+CLUTs, and export a consistent, color-graded animation without
+artifacts.</p>
+<h2 id="understanding-the-process">Understanding the Process</h2>
+<p>Animated formats like GIF often use partial frame updates (frame
+disposal) to reduce file size. Directly applying a LUT without preparing
+the sequence can corrupt the animation. The process requires three
+sequential steps:</p>
+<ol type="1">
+<li><strong>Coalescing:</strong> Rebuilding each frame into a complete,
+standalone image.</li>
+<li><strong>Applying the LUT:</strong> Mapping colors on every frame
+using either <code>-hald-clut</code> (for 3D color grading) or
+<code>-clut</code> (for 1D gradient mapping).</li>
+<li><strong>Re-optimizing:</strong> Compacting identical pixels and
+frame differences to reduce the final file size.</li>
+</ol>
+<hr />
+<h2 id="applying-a-3d-hald-clut">Applying a 3D Hald CLUT</h2>
+<p>A Hald CLUT is a 2D representation of a 3D color lookup table. It is
+the standard format for cinematic color grading in ImageMagick.</p>
+<h3 id="imagemagick-7-syntax">ImageMagick 7 Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> null: lut.png <span class="at">-compose</span> HaldCLUT <span class="at">-layers</span> composite <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<p>Alternatively, you can load the coalesced animation and the LUT image
+directly with the <code>-hald-clut</code> operator:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> lut.png <span class="at">-hald-clut</span> <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<ul>
+<li><strong><code>-coalesce</code></strong>: Expands every frame to its
+full canvas size, resolving any delta-encoded frames.</li>
+<li><strong><code>lut.png</code></strong>: The identity Hald image
+modified by your photo/video grading software.</li>
+<li><strong><code>-hald-clut</code></strong>: Applies the color
+transform uniformly across all preceding frames in the sequence.</li>
+<li><strong><code>-layers optimize</code></strong>: Re-applies GIF
+compression and frame difference optimization to keep file sizes
+minimal.</li>
+</ul>
+<h3 id="imagemagick-6-syntax">ImageMagick 6 Syntax</h3>
+<p>For older ImageMagick 6 installations, use the <code>convert</code>
+binary:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.gif <span class="at">-coalesce</span> lut.png <span class="at">-hald-clut</span> <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<hr />
+<h2 id="applying-a-1d-standard-lut">Applying a 1D Standard LUT</h2>
+<p>If you are using a standard 1D gradient strip (such as a 256x1
+gradient map) to remap grayscale or tone values, use the
+<code>-clut</code> operator instead of <code>-hald-clut</code>.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> gradient_lut.png <span class="at">-clut</span> <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<hr />
+<h2 id="converting-cube-luts-cube-to-hald-clut">Converting Cube LUTs
+(.cube) to Hald CLUT</h2>
+<p>ImageMagick does not read <code>.cube</code> files directly. To apply
+a <code>.cube</code> file to an animation, first generate a Hald CLUT
+PNG:</p>
+<ol type="1">
+<li>Generate an identity Hald CLUT image:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> hald:8 identity.png</span></code></pre></div></li>
+<li>Open <code>identity.png</code> in your LUT-editing software, apply
+your <code>.cube</code> file to it, and export the result as
+<code>lut.png</code>.</li>
+<li>Run the animation command with the exported
+<code>lut.png</code>.</li>
+</ol>
+<hr />
+<h2 id="key-best-practices">Key Best Practices</h2>
+<ul>
+<li><strong>Always use <code>-coalesce</code> first:</strong> Skipping
+<code>-coalesce</code> causes ghosting and visual artifacts because
+intermediate frames only contain pixel changes rather than full color
+data.</li>
+<li><strong>Preserve Frame Timing:</strong> Using <code>-coalesce</code>
+and <code>-layers optimize</code> automatically preserves frame delays
+and loop counts without manual reconfiguration.</li>
+<li><strong>Format Flexibility:</strong> This method works on all
+animated formats supported by ImageMagick, including animated GIFs,
+APNGs, and multi-frame TIFFs.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

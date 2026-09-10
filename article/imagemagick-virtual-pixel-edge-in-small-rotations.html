@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Virtual-Pixel Edge in Small Rotations - magick</title>
+    <meta name="description" content="Rotating an image by small angles in ImageMagick often introduces subtle distortions, blurring, or dark fringes along the image boundaries due to how interpolation filters sample surrounding pixels. This article explains the technical purpose of the -vir">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-edge-in-small-rotations">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Virtual-Pixel Edge in Small Rotations - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-edge-in-small-rotations" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rotating an image by small angles in ImageMagick often introduces subtle distortions, blurring, or dark fringes along the image boundaries due to how interpolation filters sample surrounding pixels. This article explains the technical purpose of the -vir" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-virtual-pixel-edge-in-small-rotations">ImageMagick
+Virtual-Pixel Edge in Small Rotations</h1>
+<p>Rotating an image by small angles in ImageMagick often introduces
+subtle distortions, blurring, or dark fringes along the image boundaries
+due to how interpolation filters sample surrounding pixels. This article
+explains the technical purpose of the <code>-virtual-pixel Edge</code>
+setting, how it prevents edge artifacts during slight rotational
+transforms like deskewing, and why it is superior to default
+virtual-pixel behaviors in preserving clean boundary lines.</p>
+<h3 id="the-mechanics-of-image-rotation-and-resampling">The Mechanics of
+Image Rotation and Resampling</h3>
+<p>When ImageMagick rotates an image, the source pixels no longer align
+perfectly with the target pixel grid. To reconstruct the rotated image,
+resampling filters (such as Bilinear, Bicubic, or Lanczos) sample a
+localized cluster of neighboring pixels to determine the color value of
+each destination pixel.</p>
+<p>This process becomes problematic at the very borders of the image.
+Resampling filters have a physical width (support radius). When
+processing pixels along the outermost edges of a rotated frame, the
+filter kernel inevitably overlaps areas that lie completely outside the
+original image coordinates.</p>
+<h3 id="what--virtual-pixel-controls">What <code>-virtual-pixel</code>
+Controls</h3>
+<p>The <code>-virtual-pixel</code> setting dictates what values
+ImageMagick should read when an operation queries coordinates that lie
+outside the image boundaries. Common settings include:</p>
+<ul>
+<li><strong><code>Background</code> (default in many
+workflows):</strong> Reads the current canvas background color
+(typically transparent, white, or black).</li>
+<li><strong><code>Transparent</code>:</strong> Treats out-of-bounds
+pixels as fully transparent.</li>
+<li><strong><code>Edge</code>:</strong> Replicates the color of the
+nearest boundary pixel outward indefinitely.</li>
+</ul>
+<h3 id="the-problem-with-small-rotations">The Problem with Small
+Rotations</h3>
+<p>Small rotations—such as adjusting an image by 0.5 to 2 degrees to
+correct a tilted horizon or deskew a document—usually keep almost all
+pixels within their original neighborhood. However, because the rotation
+is minimal:</p>
+<ol type="1">
+<li><strong>Fringe Artifacts:</strong> If <code>-virtual-pixel</code> is
+set to <code>background</code> or <code>transparent</code>, the
+resampling filter will blend the real image content near the borders
+with the background color. This results in an unintended dark, white, or
+semi-transparent halo bleeding a few pixels inward along the
+perimeter.</li>
+<li><strong>Post-Crop Cleanliness:</strong> Most workflows perform a
+slight crop after a small rotation to remove the angled corners. If the
+border pixels were blended with transparent or contrasting background
+pixels, the crop boundary must be pushed deeper into the image to
+eliminate the blurred transition zone.</li>
+</ol>
+<h3 id="why--virtual-pixel-edge-solves-this">Why
+<code>-virtual-pixel Edge</code> Solves This</h3>
+<p>Setting <code>-virtual-pixel Edge</code> instructs ImageMagick to
+extend the outermost row and column of pixels into the "virtual" space
+beyond the canvas boundaries.</p>
+<p>During a small-angle rotation:</p>
+<ul>
+<li>When a filter kernel samples outside the image perimeter, it gathers
+identical pixel values from the image's actual edge.</li>
+<li>The filter interpolates between the edge pixel and itself,
+preserving full color saturation and opacity.</li>
+<li>The edges of the image retain their sharpness and natural color
+profile right up to the border, eliminating halo effects, anti-aliased
+seams, and color bleed.</li>
+</ul>
+<h3 id="practical-implementation">Practical Implementation</h3>
+<p>To use this setting effectively, place
+<code>-virtual-pixel Edge</code> before the rotation and interpolation
+commands:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-virtual-pixel</span> Edge <span class="at">-interpolative-resize</span> 100% <span class="at">-distort</span> SRT 0.75 +repage output.jpg</span></code></pre></div>
+<p>By enforcing <code>Edge</code> sampling, the output maintains
+continuous pixel integrity along all boundaries, making subsequent
+trimming or automated content analysis far more reliable.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

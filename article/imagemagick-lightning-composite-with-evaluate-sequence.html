@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Lightning Composite With evaluate-sequence - magick</title>
+    <meta name="description" content="Creating a composite lightning photo combines multiple exposures into a single, dramatic image that captures every strike over a period of time. This guide explains the precise ImageMagick syntax needed to blend a series of lightning shots using the -eva">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-lightning-composite-with-evaluate-sequence">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Lightning Composite With evaluate-sequence - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-lightning-composite-with-evaluate-sequence" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a composite lightning photo combines multiple exposures into a single, dramatic image that captures every strike over a period of time. This guide explains the precise ImageMagick syntax needed to blend a series of lightning shots using the -eva" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-lightning-composite-with-evaluate-sequence">ImageMagick
+Lightning Composite With evaluate-sequence</h1>
+<p>Creating a composite lightning photo combines multiple exposures into
+a single, dramatic image that captures every strike over a period of
+time. This guide explains the precise ImageMagick syntax needed to blend
+a series of lightning shots using the <code>-evaluate-sequence</code>
+operator, describes how the command functions under the hood, and
+provides practical examples for processing your image stacks
+efficiently.</p>
+<h3 id="the-basic-command-syntax">The Basic Command Syntax</h3>
+<p>To blend multiple lightning photographs using ImageMagick 7, navigate
+to the folder containing your aligned images and run the following
+command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="pp">*</span>.jpg <span class="at">-evaluate-sequence</span> max lightning_composite.jpg</span></code></pre></div>
+<p>If you are using ImageMagick 6, the legacy syntax uses
+<code>convert</code> instead:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="pp">*</span>.jpg <span class="at">-evaluate-sequence</span> max lightning_composite.jpg</span></code></pre></div>
+<h3 id="how-the-command-works">How the Command Works</h3>
+<ul>
+<li><strong><code>magick *.jpg</code></strong>: Loads all JPEG files in
+the current working directory into memory as an image sequence. You can
+substitute <code>*.jpg</code> with specific file names (e.g.,
+<code>frame1.tif frame2.tif frame3.tif</code>) or another supported
+format like TIFF or PNG.</li>
+<li><strong><code>-evaluate-sequence max</code></strong>: Iterates
+through every pixel coordinate across all loaded images and selects the
+maximum pixel channel value (the brightest pixel) among them. Because
+lightning consists of extremely bright channels against a comparatively
+dark sky, the <code>max</code> method overlays every lightning bolt
+while preserving the base exposure of the landscape.</li>
+<li><strong><code>lightning_composite.jpg</code></strong>: Specifies the
+output filename and format for the final merged image.</li>
+</ul>
+<h3 id="recommended-workflow-for-high-resolution-stacks">Recommended
+Workflow for High-Resolution Stacks</h3>
+<p>When processing large sequences of high-resolution images, memory
+usage can become an issue. You can optimize the process and handle color
+management using the following best practices:</p>
+<h4 id="1-pre-align-the-frames">1. Pre-align the Frames</h4>
+<p>Ensure all source images were taken on a sturdy tripod. The
+<code>-evaluate-sequence</code> operator performs pixel-by-pixel
+evaluation without image alignment, so any camera shake will cause
+ghosting or blur in static foreground elements.</p>
+<h4 id="2-process-high-bit-depth-tiffs">2. Process High-Bit-Depth
+TIFFs</h4>
+<p>For maximum dynamic range and color fidelity, export your raw files
+as 16-bit TIFFs before combining them:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> max <span class="at">-depth</span> 16 final_composite.tif</span></code></pre></div>
+<h4 id="3-manage-memory-limits">3. Manage Memory Limits</h4>
+<p>If you are combining dozens of full-resolution camera files,
+ImageMagick might exhaust system RAM and fall back to disk caching. To
+ensure stable performance, limit memory or process images in smaller
+batches:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-limit</span> memory 8GiB <span class="at">-limit</span> map 16GiB <span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> max output.tif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

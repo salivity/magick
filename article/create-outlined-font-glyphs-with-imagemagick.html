@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Outlined Font Glyphs with ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide on using ImageMagick to create outlined font glyphs with the -stroke and -strokewidth settings. You will learn the exact command-line syntax required to define the outline color, control line thickness, and manipulate">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-outlined-font-glyphs-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Outlined Font Glyphs with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-outlined-font-glyphs-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide on using ImageMagick to create outlined font glyphs with the -stroke and -strokewidth settings. You will learn the exact command-line syntax required to define the outline color, control line thickness, and manipulate" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-outlined-font-glyphs-with-imagemagick">Create Outlined
+Font Glyphs with ImageMagick</h1>
+<p>This article provides a direct guide on using ImageMagick to create
+outlined font glyphs with the <code>-stroke</code> and
+<code>-strokewidth</code> settings. You will learn the exact
+command-line syntax required to define the outline color, control line
+thickness, and manipulate the interior fill to achieve either
+solid-filled text with an outline or completely hollow glyphs.</p>
+<h3 id="basic-syntax-for-outlined-text">Basic Syntax for Outlined
+Text</h3>
+<p>In ImageMagick, outlining text requires defining the outline color
+with <code>-stroke</code>, the border thickness with
+<code>-strokewidth</code>, and the interior color with
+<code>-fill</code>.</p>
+<p>The general syntax using modern ImageMagick (v7) is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> <span class="pp">[</span><span class="ss">width</span><span class="pp">]</span>x<span class="pp">[</span><span class="ss">height</span><span class="pp">]</span> xc:<span class="pp">[</span><span class="ss">background_color</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> <span class="pp">[</span><span class="ss">font_name_or_path</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-pointsize</span> <span class="pp">[</span><span class="ss">size</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="pp">[</span><span class="ss">fill_color</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> <span class="pp">[</span><span class="ss">stroke_color</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokewidth</span> <span class="pp">[</span><span class="ss">pixels</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-annotate</span> +<span class="pp">[</span><span class="ss">x</span><span class="pp">]</span>+<span class="pp">[</span><span class="ss">y</span><span class="pp">]</span> <span class="st">&quot;[Your Text]&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<p>If you are using ImageMagick v6, replace the initial
+<code>magick</code> with <code>convert</code>.</p>
+<h3 id="key-parameters-explained">Key Parameters Explained</h3>
+<ul>
+<li><strong><code>-stroke [color]</code></strong>: Sets the color of the
+glyph's outline. You can use standard color names (e.g.,
+<code>black</code>, <code>red</code>) or hex values (e.g.,
+<code>"#000000"</code>).</li>
+<li><strong><code>-strokewidth [integer/float]</code></strong>:
+Specifies the thickness of the outline in pixels. A value of
+<code>1</code> or <code>2</code> provides a subtle border, while larger
+values create bold, heavy outlines.</li>
+<li><strong><code>-fill [color]</code></strong>: Determines the color
+inside the glyph. Setting this to <code>none</code> leaves the inside of
+the font hollow, rendering only the outline.</li>
+</ul>
+<h3 id="example-1-text-with-a-fill-and-an-outline">Example 1: Text with
+a Fill and an Outline</h3>
+<p>To generate white text with a 2-pixel black outline on a gray
+background:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x200 xc:lightgray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> Arial <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-pointsize</span> 48 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> white <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> black <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-annotate</span> +0+0 <span class="st">&quot;Outlined Text&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  filled_outline.png</span></code></pre></div>
+<h3 id="example-2-hollow-outlined-font-no-fill">Example 2: Hollow
+Outlined Font (No Fill)</h3>
+<p>To create text that only renders the outline without any interior
+color, set <code>-fill</code> to <code>none</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x200 xc:white <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> Arial <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-pointsize</span> 48 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> none <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> navy <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokewidth</span> 3 <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-annotate</span> +0+0 <span class="st">&quot;Hollow Glyphs&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  hollow_outline.png</span></code></pre></div>
+<h3 id="example-3-using-the-label-operator">Example 3: Using the
+<code>label:</code> Operator</h3>
+<p>Alternatively, you can use the <code>label:</code> format to let
+ImageMagick automatically size the canvas around the text:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> lightblue <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-font</span> Arial <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-pointsize</span> 64 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> yellow <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke</span> red <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokewidth</span> 2 <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  label:<span class="st">&quot;Quick Label&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  label_outline.png</span></code></pre></div>
+<h3 id="important-usage-notes">Important Usage Notes</h3>
+<ol type="1">
+<li><strong>Stroke Alignment</strong>: ImageMagick draws strokes
+centered on the vector path of the font glyph. As
+<code>-strokewidth</code> increases, the stroke expands both outward and
+inward, which can cover up the interior <code>-fill</code> color if the
+stroke width is too large relative to the <code>-pointsize</code>.</li>
+<li><strong>Order of Operations</strong>: Place <code>-stroke</code>,
+<code>-strokewidth</code>, and <code>-fill</code> before the
+<code>-annotate</code> or <code>label:</code> directive so the rendering
+engine applies these properties correctly.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

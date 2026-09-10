@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Sub-Image Bracket Notation Guide - magick</title>
+    <meta name="description" content="ImageMagick uses bracket notation appended to filenames to target specific sub-images, frames, layers, or regions within multi-image files such as PDFs, GIFs, TIFFs, and PSDs. This syntax allows users to select, extract, and process specific elements of">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-sub-image-bracket-notation-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Sub-Image Bracket Notation Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-sub-image-bracket-notation-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick uses bracket notation appended to filenames to target specific sub-images, frames, layers, or regions within multi-image files such as PDFs, GIFs, TIFFs, and PSDs. This syntax allows users to select, extract, and process specific elements of" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-sub-image-bracket-notation-guide">ImageMagick
+Sub-Image Bracket Notation Guide</h1>
+<p>ImageMagick uses bracket notation appended to filenames to target
+specific sub-images, frames, layers, or regions within multi-image files
+such as PDFs, GIFs, TIFFs, and PSDs. This syntax allows users to select,
+extract, and process specific elements of a file directly from the
+command line without loading the entire file into memory. Understanding
+this feature enables precise image manipulation, faster processing
+times, and efficient memory usage across various workflows.</p>
+<h2 id="core-purpose">Core Purpose</h2>
+<p>The primary purpose of ImageMagick sub-image notation—formatted as
+<code>filename[specification]</code>—is selective processing. Many file
+formats can contain multiple distinct image records within a single
+file. Without bracket notation, ImageMagick attempts to load every
+frame, page, or layer, which can cause severe memory bloat or unexpected
+output.</p>
+<p>Bracket notation solves this by telling ImageMagick to only read and
+operate on the exact sub-images defined inside the brackets.</p>
+<h2 id="common-use-cases-and-syntax">Common Use Cases and Syntax</h2>
+<p>ImageMagick uses zero-based indexing for sub-images, meaning the
+first frame or page is always <code>0</code>.</p>
+<h3 id="1-selecting-specific-pages-from-documents">1. Selecting Specific
+Pages from Documents</h3>
+<p>When processing multi-page formats such as PDF or PostScript files,
+brackets allow you to extract single pages or specific sequences.</p>
+<ul>
+<li><strong>Single page:</strong> <code>document.pdf[0]</code> reads
+only the first page.</li>
+<li><strong>Page range:</strong> <code>document.pdf[0-4]</code> reads
+the first five pages (pages 1 through 5).</li>
+</ul>
+<h3 id="2-extracting-animation-frames">2. Extracting Animation
+Frames</h3>
+<p>Animated files like GIFs, APNGs, or WebP animations contain multiple
+sequential frames.</p>
+<ul>
+<li><strong>First frame:</strong> <code>animation.gif[0]</code> extracts
+the initial frame (ideal for generating static thumbnails).</li>
+<li><strong>Non-consecutive frames:</strong>
+<code>animation.gif[0,5,10]</code> loads only frames 1, 6, and 11.</li>
+</ul>
+<h3 id="3-targeting-layers-in-multi-layer-files">3. Targeting Layers in
+Multi-Layer Files</h3>
+<p>Formats like Adobe Photoshop (PSD) or GIMP (XCF) store layers as
+distinct sub-images.</p>
+<ul>
+<li><strong>Flattened composite vs. layer:</strong> In a PSD file, index
+<code>[0]</code> often represents the pre-rendered composite image,
+while <code>[1]</code>, <code>[2]</code>, etc., target individual
+layers.</li>
+</ul>
+<h3 id="4-reading-specific-tiles-or-regions-crop-on-read">4. Reading
+Specific Tiles or Regions (Crop on Read)</h3>
+<p>For certain formats like JPEG, TIFF, or raw formats that support
+spatial indexing, bracket notation can define a geometry specification
+to crop an image during the read operation rather than after
+loading.</p>
+<ul>
+<li><strong>Tile extraction:</strong>
+<code>large_image.jpg[100x100+50+50]</code> reads only a 100x100 pixel
+area offset by 50 pixels from the top-left corner.</li>
+</ul>
+<h2 id="key-benefits">Key Benefits</h2>
+<ul>
+<li><strong>Performance Optimization:</strong> Bypasses decoding steps
+for unwanted frames or pages, speeding up command execution.</li>
+<li><strong>Memory Reduction:</strong> Prevents large multi-page
+documents (like 500-page PDFs) from exhausting system RAM.</li>
+<li><strong>Simplified Workflows:</strong> Eliminates the need for
+intermediary file splitting commands by handling extraction and
+transformation in a single step.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

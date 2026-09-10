@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Scanned Book Spreads in ImageMagick - magick</title>
+    <meta name="description" content="Splitting dual-page scanned book spreads into individual, sequential pages is a common task when digitizing books and documents. Using ImageMagick, you can automatically divide two-page spreads into left and right halves while maintaining the correct rea">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/split-scanned-book-spreads-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Split Scanned Book Spreads in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/split-scanned-book-spreads-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Splitting dual-page scanned book spreads into individual, sequential pages is a common task when digitizing books and documents. Using ImageMagick, you can automatically divide two-page spreads into left and right halves while maintaining the correct rea" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="split-scanned-book-spreads-in-imagemagick">Split Scanned Book
+Spreads in ImageMagick</h1>
+<p>Splitting dual-page scanned book spreads into individual, sequential
+pages is a common task when digitizing books and documents. Using
+ImageMagick, you can automatically divide two-page spreads into left and
+right halves while maintaining the correct reading order. This guide
+explains the exact ImageMagick commands required to split single
+spreads, process entire directories, and convert multi-page PDF
+documents.</p>
+<h3 id="splitting-a-single-image-spread">Splitting a Single Image
+Spread</h3>
+<p>To divide a side-by-side scanned spread into two separate image files
+in standard left-to-right reading order, use the <code>-crop</code> and
+<code>+repage</code> operators.</p>
+<p>For ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> spread.jpg <span class="at">-crop</span> 50%x100% +repage page_%02d.jpg</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> spread.jpg <span class="at">-crop</span> 50%x100% +repage page_%02d.jpg</span></code></pre></div>
+<p><strong>How the command works:</strong></p>
+<ul>
+<li><code>-crop 50%x100%</code>: Divides the image horizontally into two
+equal halves (the left half first, then the right half).</li>
+<li><code>+repage</code>: Resets the virtual canvas geometry so the
+resulting images do not retain offset metadata.</li>
+<li><code>page_%02d.jpg</code>: Uses a standard format specifier to
+output sequentially numbered files (e.g., <code>page_00.jpg</code> for
+the left page, <code>page_01.jpg</code> for the right page).</li>
+</ul>
+<h3 id="batch-processing-multiple-image-spreads">Batch Processing
+Multiple Image Spreads</h3>
+<p>When you have a folder of scanned spreads (e.g.,
+<code>spread_01.jpg</code>, <code>spread_02.jpg</code>), running a
+simple batch command ensures that the final output maintains continuous
+page numbering across all files.</p>
+<p><strong>Using a Bash Loop (Linux / macOS):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">counter</span><span class="op">=</span>1</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="va">$(</span><span class="fu">ls</span> <span class="at">-v</span> spread_<span class="pp">*</span>.jpg<span class="va">)</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-crop</span> 50%x100% +repage <span class="st">&quot;temp_%d.jpg&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mv</span> <span class="st">&quot;temp_0.jpg&quot;</span> <span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;page_%04d.jpg&quot;</span> <span class="va">$counter)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">counter</span><span class="op">=</span><span class="va">$((counter</span> <span class="op">+</span> <span class="dv">1</span><span class="va">))</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mv</span> <span class="st">&quot;temp_1.jpg&quot;</span> <span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;page_%04d.jpg&quot;</span> <span class="va">$counter)</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="va">counter</span><span class="op">=</span><span class="va">$((counter</span> <span class="op">+</span> <span class="dv">1</span><span class="va">))</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p><strong>Single Command Batch Processing:</strong> If your operating
+system sorts filenames correctly in memory, you can process all files
+simultaneously:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> spread_<span class="pp">*</span>.jpg <span class="at">-crop</span> 50%x100% +repage page_%04d.jpg</span></code></pre></div>
+<h3 id="splitting-spreads-in-a-multi-page-pdf">Splitting Spreads in a
+Multi-Page PDF</h3>
+<p>If your scanned spreads are saved within a single multi-page PDF,
+ImageMagick can extract, split, and reassemble them into a new
+single-page sequential PDF.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 input_spreads.pdf <span class="at">-crop</span> 50%x100% +repage output_single_pages.pdf</span></code></pre></div>
+<ul>
+<li><code>-density 300</code>: Sets the rasterization resolution to 300
+DPI to preserve document clarity. Ensure this flag is placed before the
+input file name.</li>
+</ul>
+<h3 id="handling-right-to-left-rtl-formats">Handling Right-to-Left (RTL)
+Formats</h3>
+<p>For materials read right-to-left (such as manga or Arabic texts), the
+right side of the spread must be ordered before the left side. You can
+swap the order of the generated slices using <code>-reverse</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> spread.jpg <span class="at">-crop</span> 50%x100% +repage <span class="at">-reverse</span> rtl_page_%02d.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

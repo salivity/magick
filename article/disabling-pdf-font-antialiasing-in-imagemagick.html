@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disabling PDF Font Antialiasing in ImageMagick - magick</title>
+    <meta name="description" content="When rasterizing PDF documents with ImageMagick, users frequently seek a -define option to eliminate text smoothing and produce sharp, pixel-crisp typography. While ImageMagick uses -define keys for various format-specific configurations, font antialiasi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/disabling-pdf-font-antialiasing-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Disabling PDF Font Antialiasing in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/disabling-pdf-font-antialiasing-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When rasterizing PDF documents with ImageMagick, users frequently seek a -define option to eliminate text smoothing and produce sharp, pixel-crisp typography. While ImageMagick uses -define keys for various format-specific configurations, font antialiasi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="disabling-pdf-font-antialiasing-in-imagemagick">Disabling PDF
+Font Antialiasing in ImageMagick</h1>
+<p>When rasterizing PDF documents with ImageMagick, users frequently
+seek a <code>-define</code> option to eliminate text smoothing and
+produce sharp, pixel-crisp typography. While ImageMagick uses
+<code>-define</code> keys for various format-specific configurations,
+font antialiasing during PDF interpretation is governed by the global
+<code>+antialias</code> operator rather than a <code>-define</code> key.
+This guide explains how PDF rasterization handles antialiasing, how to
+apply the correct flags in your commands, and how to configure
+underlying Ghostscript parameters.</p>
+<h3 id="why-imagemagick-uses-antialias-instead-of--define">Why
+ImageMagick Uses <code>+antialias</code> Instead of
+<code>-define</code></h3>
+<p>ImageMagick delegates the rasterization of vector formats like PDF
+and PostScript to Ghostscript. During this process, font smoothing is
+controlled internally by passing rendering parameters directly to the
+Ghostscript engine.</p>
+<p>Instead of configuring this behavior through a <code>-define</code>
+key (such as <code>pdf:antialias=false</code>), ImageMagick uses the
+unary plus operator on the antialias flag:</p>
+<ul>
+<li><strong><code>-antialias</code></strong>: Enables antialiasing
+(enabled by default).</li>
+<li><strong><code>+antialias</code></strong>: Disables
+antialiasing.</li>
+</ul>
+<h3 id="the-correct-command-line-syntax">The Correct Command-Line
+Syntax</h3>
+<p>To disable font and graphic antialiasing during PDF conversion, place
+<code>+antialias</code> <strong>before</strong> the input file on the
+command line. Placing it after the input file will not affect
+rasterization because the delegate reads the flag prior to decoding the
+PDF stream.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> +antialias input.pdf output.png</span></code></pre></div>
+<p>For ImageMagick version 6 legacy syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> +antialias input.pdf output.png</span></code></pre></div>
+<h3 id="under-the-hood-ghostscript-alpha-bits">Under the Hood:
+Ghostscript Alpha Bits</h3>
+<p>When <code>+antialias</code> is passed before reading a PDF,
+ImageMagick alters the flags passed to the Ghostscript delegate:</p>
+<ul>
+<li><strong>Antialiasing enabled (<code>-antialias</code>)</strong>:
+Ghostscript receives
+<code>-dTextAlphaBits=4 -dGraphicsAlphaBits=4</code>, which blends edges
+for smooth text and vector rendering.</li>
+<li><strong>Antialiasing disabled (<code>+antialias</code>)</strong>:
+Ghostscript receives
+<code>-dTextAlphaBits=1 -dGraphicsAlphaBits=1</code>, which limits alpha
+blending to 1-bit, generating hard, aliased edges.</li>
+</ul>
+<h3 id="disabling-font-antialiasing-exclusively">Disabling Font
+Antialiasing Exclusively</h3>
+<p>The <code>+antialias</code> switch disables antialiasing for both
+text and vector graphics. If your workflow requires disabling font
+antialiasing while retaining smooth rendering for vector paths, you must
+modify the Ghostscript entry directly in ImageMagick's
+<code>delegates.xml</code> configuration file.</p>
+<ol type="1">
+<li>Locate your <code>delegates.xml</code> configuration file.</li>
+<li>Find the delegate entry for <code>decode="pdf"</code>.</li>
+<li>Locate the parameter <code>-dTextAlphaBits=%u</code>.</li>
+<li>Replace <code>%u</code> with <code>1</code> explicitly for text:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>-dTextAlphaBits=1 -dGraphicsAlphaBits=%u</span></code></pre></div></li>
+<li>Save the file.</li>
+</ol>
+<p>With this configuration, text will always render without smoothing,
+while graphics will continue to follow the standard
+<code>-antialias</code> behavior.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

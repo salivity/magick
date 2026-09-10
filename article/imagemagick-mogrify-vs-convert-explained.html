@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Mogrify vs Convert Explained - magick</title>
+    <meta name="description" content="ImageMagick provides two primary command-line utilities for processing images: convert and mogrify. While both tools share similar underlying transformation features and command-line options, they fundamentally differ in how they handle input files, outp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-mogrify-vs-convert-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Mogrify vs Convert Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-mogrify-vs-convert-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides two primary command-line utilities for processing images: convert and mogrify. While both tools share similar underlying transformation features and command-line options, they fundamentally differ in how they handle input files, outp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-mogrify-vs-convert-explained">ImageMagick Mogrify vs
+Convert Explained</h1>
+<p>ImageMagick provides two primary command-line utilities for
+processing images: <code>convert</code> and <code>mogrify</code>. While
+both tools share similar underlying transformation features and
+command-line options, they fundamentally differ in how they handle input
+files, output generation, and batch processing. This guide breaks down
+the key distinctions between these two commands to help you choose the
+right tool for your workflow.</p>
+<h3 id="file-overwriting-vs-new-file-creation">File Overwriting vs. New
+File Creation</h3>
+<p>The most significant difference between the two commands is how they
+treat the source image:</p>
+<ul>
+<li><strong><code>convert</code></strong> reads a source file, applies
+operations, and saves the output to a new, explicitly defined
+destination file. The original image remains unchanged.</li>
+<li><strong><code>mogrify</code></strong> is designed to overwrite the
+original image file by default. It processes the image and saves the
+results back onto the source file unless configured otherwise.</li>
+</ul>
+<h3 id="syntax-and-output-specifications">Syntax and Output
+Specifications</h3>
+<p>The structure of each command reflects how it handles file
+creation:</p>
+<ul>
+<li><strong><code>convert</code> Syntax:</strong> Requires both an input
+filename and an output filename.
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div></li>
+<li><strong><code>mogrify</code> Syntax:</strong> Takes operations
+first, followed by the target file(s). It does not take an explicit
+output filename parameter.
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-resize</span> 800x600 input.jpg</span></code></pre></div></li>
+</ul>
+<h3 id="batch-processing-capabilities">Batch Processing
+Capabilities</h3>
+<ul>
+<li><strong><code>convert</code></strong> is tailored for single-image
+workflows. To process multiple files using <code>convert</code>, you
+generally need to write a shell loop (such as a Bash <code>for</code>
+loop) to iterate through the directory.</li>
+<li><strong><code>mogrify</code></strong> natively supports wildcard
+operations for batch processing across entire directories without
+external scripts:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-resize</span> 50% <span class="pp">*</span>.png</span></code></pre></div></li>
+</ul>
+<h3 id="preventing-overwriting-in-mogrify">Preventing Overwriting in
+Mogrify</h3>
+<p>Although <code>mogrify</code> defaults to in-place modification, it
+includes flags to prevent overwriting originals during batch
+operations:</p>
+<ul>
+<li><strong><code>-path</code>:</strong> Directs output files to a
+specific target folder.
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-path</span> /path/to/output/ <span class="at">-resize</span> 800x600 <span class="pp">*</span>.jpg</span></code></pre></div></li>
+<li><strong><code>-format</code>:</strong> Converts images to a
+different extension while retaining the base filename.
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-format</span> png <span class="pp">*</span>.jpg</span></code></pre></div></li>
+</ul>
+<h3 id="modern-usage-imagemagick-v7">Modern Usage (ImageMagick v7)</h3>
+<p>In ImageMagick version 7, standard tool execution changed
+slightly:</p>
+<ul>
+<li><code>convert</code> is invoked using the base command:
+<code>magick</code></li>
+<li><code>mogrify</code> is invoked using:
+<code>magick mogrify</code></li>
+</ul>
+<p>Despite this update, the functional difference remains:
+<code>magick</code> creates new files, while <code>magick mogrify</code>
+handles batch and in-place transformations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

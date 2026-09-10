@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick Tint Operator for Highlights - magick</title>
+    <meta name="description" content="This article explains how the ImageMagick -tint operator works, focusing specifically on its behavior when applying color washes across image highlights. You will learn the underlying mechanics of the tinting algorithm, how it protects luminance in brigh">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-tint-operator-for-highlights">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick Tint Operator for Highlights - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-tint-operator-for-highlights" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the ImageMagick -tint operator works, focusing specifically on its behavior when applying color washes across image highlights. You will learn the underlying mechanics of the tinting algorithm, how it protects luminance in brigh" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="understanding-imagemagick-tint-operator-for-highlights">Understanding
+ImageMagick Tint Operator for Highlights</h1>
+<p>This article explains how the ImageMagick <code>-tint</code> operator
+works, focusing specifically on its behavior when applying color washes
+across image highlights. You will learn the underlying mechanics of the
+tinting algorithm, how it protects luminance in bright areas, and how to
+effectively implement it in your automated image processing
+workflows.</p>
+<h2 id="how-the--tint-operator-works">How the -tint Operator Works</h2>
+<p>The <code>-tint</code> operator applies a color wash to an image
+using the current <code>-fill</code> color. Unlike a flat color overlay
+or uniform blending, <code>-tint</code> uses a tone-dependent weighting
+function. It applies the strongest color shift to the midtones while
+gradually tapering the effect toward the extreme ends of the tonal
+range: pure shadows (black) and pure highlights (white).</p>
+<h2 id="behavior-on-highlights">Behavior on Highlights</h2>
+<p>When applying color washes to highlights, the <code>-tint</code>
+operator behaves as follows:</p>
+<ul>
+<li><strong>Preservation of Pure Whites:</strong> Pixels with 100%
+luminance (pure white) receive zero color wash. The mathematical
+weighting curve drops to zero at the extreme high end, preventing the
+tint color from dulling or muddying clean white areas.</li>
+<li><strong>Gradual Color Saturation in Near-Highlights:</strong>
+Lighter areas that are not fully white receive a gentle, proportional
+wash of the tint color. As the tone moves from the bright highlight
+range toward the midtones, the intensity of the color tint increases
+smoothly.</li>
+<li><strong>Retention of Highlight Detail:</strong> Because the operator
+modulates the tint intensity based on brightness, image texture and
+specular reflections in high-key regions remain visible and retain their
+dynamic contrast.</li>
+</ul>
+<h2 id="the--tint-syntax-and-parameters">The -tint Syntax and
+Parameters</h2>
+<p>To use the <code>-tint</code> operator, define a fill color before
+calling the operator with a percentage value. The percentage determines
+the overall strength of the wash across the entire weighting curve.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> <span class="st">&quot;#3498db&quot;</span> <span class="at">-tint</span> 50 output.png</span></code></pre></div>
+<ul>
+<li><code>-fill "#3498db"</code>: Sets the color used for the tint
+wash.</li>
+<li><code>-tint 50</code>: Applies the wash at 50% opacity at the peak
+of the curve (midtones).</li>
+</ul>
+<p>Higher percentage values push color further into the near-highlights,
+but pure white pixels remain unaffected regardless of the percentage
+used.</p>
+<h2 id="tint-vs-colorize-in-highlights">Tint vs. Colorize in
+Highlights</h2>
+<p>Choosing between <code>-tint</code> and <code>-colorize</code>
+depends on how you want highlights to be treated:</p>
+<ul>
+<li><strong><code>-colorize</code>:</strong> Blends the fill color
+uniformly across all luminance levels. Applying a 50% colorize wash
+tints pure white pixels directly into a 50% blend of white and the fill
+color, flattening the highlights.</li>
+<li><strong><code>-tint</code>:</strong> Maintains the photographic
+dynamic range by shielding the highlights, resulting in natural-looking
+color grading reminiscent of traditional darkroom photographic
+tinting.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

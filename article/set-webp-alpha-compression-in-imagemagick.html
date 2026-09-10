@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set WebP Alpha Compression in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure alpha channel compression when converting images to the WebP format using ImageMagick. Controlling alpha compression enables you to balance transparency fidelity and file size, allowing you to optimize WebP assets spe">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-webp-alpha-compression-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set WebP Alpha Compression in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-webp-alpha-compression-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure alpha channel compression when converting images to the WebP format using ImageMagick. Controlling alpha compression enables you to balance transparency fidelity and file size, allowing you to optimize WebP assets spe" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-webp-alpha-compression-in-imagemagick">Set WebP Alpha
+Compression in ImageMagick</h1>
+<p>This guide explains how to configure alpha channel compression when
+converting images to the WebP format using ImageMagick. Controlling
+alpha compression enables you to balance transparency fidelity and file
+size, allowing you to optimize WebP assets specifically for web
+performance or archival quality.</p>
+<h3 id="the-alpha-compression-define">The Alpha Compression Define</h3>
+<p>ImageMagick controls WebP encoder settings using the
+<code>-define</code> operator. To specify the alpha compression type,
+use the <code>webp:alpha-compression</code> key:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:alpha-compression=1 output.webp</span></code></pre></div>
+<p><em>(Note: Use <code>convert</code> instead of <code>magick</code> if
+you are using ImageMagick version 6).</em></p>
+<h3 id="supported-compression-values">Supported Compression Values</h3>
+<p>The <code>webp:alpha-compression</code> setting accepts two integer
+values:</p>
+<ul>
+<li><strong><code>0</code> (None):</strong> Disables compression for the
+alpha channel. This results in larger file sizes but avoids any
+processing overhead for the transparency layer.</li>
+<li><strong><code>1</code> (Lossless):</strong> Encodes the alpha
+channel using WebP's lossless compression algorithm. This is the default
+setting in <code>libwebp</code> and yields significantly smaller files
+while retaining 100% transparency accuracy.</li>
+</ul>
+<h3 id="related-webp-alpha-settings">Related WebP Alpha Settings</h3>
+<p>To fine-tune transparency further, ImageMagick provides additional
+WebP definitions that work alongside alpha compression:</p>
+<ul>
+<li><strong><code>webp:alpha-filtering</code>:</strong> Adjusts the
+predictive filtering mode used before compression.
+<ul>
+<li><code>0</code>: None</li>
+<li><code>1</code>: Fast</li>
+<li><code>2</code>: Best (higher compression ratio, slightly slower
+encoding)</li>
+</ul></li>
+<li><strong><code>webp:alpha-quality</code>:</strong> Defines the
+transparency layer compression quality on a scale from <code>0</code> to
+<code>100</code>. The default is <code>100</code>.</li>
+</ul>
+<h3 id="complete-example">Complete Example</h3>
+<p>The following command converts a transparent PNG to WebP using
+lossless alpha compression, maximum alpha filtering, and lossless
+quality:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> webp:alpha-compression=1 <span class="at">-define</span> webp:alpha-filtering=2 <span class="at">-define</span> webp:alpha-quality=100 <span class="at">-quality</span> 85 output.webp</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

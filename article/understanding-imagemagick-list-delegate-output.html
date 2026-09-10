@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick List Delegate Output - magick</title>
+    <meta name="description" content="This article provides an overview of the details revealed by executing the ImageMagick -list delegate command. Running this command provides visibility into how ImageMagick interfaces with third-party software and external libraries to process file forma">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-list-delegate-output">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick List Delegate Output - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-list-delegate-output" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the details revealed by executing the ImageMagick -list delegate command. Running this command provides visibility into how ImageMagick interfaces with third-party software and external libraries to process file forma" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="understanding-imagemagick-list-delegate-output">Understanding
+ImageMagick List Delegate Output</h1>
+<p>This article provides an overview of the details revealed by
+executing the ImageMagick <code>-list delegate</code> command. Running
+this command provides visibility into how ImageMagick interfaces with
+third-party software and external libraries to process file formats it
+cannot handle natively. By inspecting this list, administrators and
+developers can identify configured external decoders and encoders, view
+underlying command-line templates, and troubleshoot format-handling
+issues.</p>
+<h3 id="what-is-an-imagemagick-delegate">What Is an ImageMagick
+Delegate?</h3>
+<p>ImageMagick handles many common image formats internally, but relies
+on external programs and libraries—known as "delegates"—to decode,
+encode, or convert complex, proprietary, or vector formats (such as PDF,
+PostScript, SVG, and video formats). These configurations are defined in
+ImageMagick's <code>delegates.xml</code> file.</p>
+<h3 id="information-revealed-by-the--list-delegate-command">Information
+Revealed by the <code>-list delegate</code> Command</h3>
+<p>Running <code>magick -list delegate</code> (or
+<code>convert -list delegate</code> in ImageMagick 6) outputs the active
+delegate table. The details revealed include:</p>
+<h4 id="1-supported-format-mappings">1. Supported Format Mappings</h4>
+<p>The output displays the source format and the target format to which
+a delegate applies. Each entry specifies:</p>
+<ul>
+<li><strong>Source/Decode Tag:</strong> The format of the incoming file
+(e.g., <code>pdf</code>, <code>ps</code>, <code>dng</code>,
+<code>svg</code>).</li>
+<li><strong>Target/Encode Tag:</strong> The intermediate or final format
+produced by the delegate (e.g., <code>png</code>, <code>ppm</code>,
+<code>tiff</code>).</li>
+<li><strong>Directional Rules:</strong> Mappings that define conversions
+such as <code>ps =&gt; eps</code> or <code>pdf =&gt; png</code>.</li>
+</ul>
+<h4 id="2-external-tools-and-executable-paths">2. External Tools and
+Executable Paths</h4>
+<p>The command reveals which system binaries ImageMagick calls to
+perform conversions. Common external tools listed include:</p>
+<ul>
+<li><strong>Ghostscript (<code>gs</code>):</strong> Used for rendering
+PostScript (PS), EPS, and PDF files.</li>
+<li><strong>FFmpeg:</strong> Used for reading and writing video files
+and multi-frame media.</li>
+<li><strong>Inkscape or RSVG:</strong> Used for converting Scalable
+Vector Graphics (SVG).</li>
+<li><strong>dcraw:</strong> Used for parsing digital camera RAW
+formats.</li>
+<li><strong>AutoTrace / Potrace:</strong> Used for vectorization
+tasks.</li>
+</ul>
+<h4 id="3-command-line-invocation-templates">3. Command-Line Invocation
+Templates</h4>
+<p>For each delegate, the exact shell command that ImageMagick executes
+is displayed. These commands contain specific parameter substitution
+tokens, such as:</p>
+<ul>
+<li><code>%i</code>: The input filename.</li>
+<li><code>%o</code>: The output filename.</li>
+<li><code>%u</code> and <code>%v</code>: Temporary unique file
+handles.</li>
+<li><code>%q</code>: Quantum depth or rendering parameters.</li>
+<li><code>%s</code>: Page or frame numbers.</li>
+<li><code>%[delegate:bimodal]</code>: Conditional flags based on
+colorspace or resolution options.</li>
+</ul>
+<p>Reviewing these commands shows the exact flags, security sandboxing
+settings, and rendering parameters passed to the helper tool.</p>
+<h4 id="4-stealth-and-internal-delegate-rules">4. Stealth and Internal
+Delegate Rules</h4>
+<p>Some delegate configurations run internally via linked C/C++
+libraries rather than external shell invocations. The command identifies
+these configurations and shows whether an external sub-process or an API
+bridge handles the translation.</p>
+<h3 id="why-this-information-is-useful">Why This Information Is
+Useful</h3>
+<ul>
+<li><strong>Debugging Missing Formats:</strong> If ImageMagick reports
+<code>no decode delegate for this image format</code>, this command
+allows you to verify whether a delegate rule exists for that
+extension.</li>
+<li><strong>Security Auditing:</strong> It allows system administrators
+to inspect the command templates executed by ImageMagick, ensuring that
+invoked binaries are patched, secure, and restricted from running unsafe
+operations.</li>
+<li><strong>Performance Tuning:</strong> Developers can inspect how
+external tools like Ghostscript are invoked, enabling adjustments to
+resolution flags, antialiasing options, and memory allocations in
+<code>delegates.xml</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

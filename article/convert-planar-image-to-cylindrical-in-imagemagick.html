@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Planar Image to Cylindrical in ImageMagick - magick</title>
+    <meta name="description" content="Converting a flat, planar photograph into a cylindrical projection is a common requirement when preparing images for panoramic stitching or 360-degree environment mapping. This guide explains how to use the plane2cylinder script alongside ImageMagick to">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-planar-image-to-cylindrical-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Planar Image to Cylindrical in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-planar-image-to-cylindrical-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting a flat, planar photograph into a cylindrical projection is a common requirement when preparing images for panoramic stitching or 360-degree environment mapping. This guide explains how to use the plane2cylinder script alongside ImageMagick to" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-planar-image-to-cylindrical-in-imagemagick">Convert
+Planar Image to Cylindrical in ImageMagick</h1>
+<p>Converting a flat, planar photograph into a cylindrical projection is
+a common requirement when preparing images for panoramic stitching or
+360-degree environment mapping. This guide explains how to use the
+<code>plane2cylinder</code> script alongside ImageMagick to warp
+perspective images into cylindrical coordinates, covering installation
+requirements, core command-line options, field of view adjustments, and
+practical conversion examples.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>The <code>plane2cylinder</code> tool is a specialized
+ImageMagick-based shell script developed by Fred Weinhaus. To use it,
+ensure you have:</p>
+<ul>
+<li>ImageMagick installed on your system (Linux, macOS, or Windows via
+WSL/Cygwin).</li>
+<li>Standard Unix utilities (<code>bash</code>, <code>bc</code>,
+<code>sed</code>).</li>
+<li>The <code>plane2cylinder</code> script downloaded and made
+executable.</li>
+</ul>
+<p>Make the script executable after downloading:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x plane2cylinder</span></code></pre></div>
+<h3 id="basic-command-syntax">Basic Command Syntax</h3>
+<p>The general syntax requires specifying the horizontal field of view
+(FOV) of the original camera lens and providing the input and output
+filenames:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./plane2cylinder</span> <span class="at">-f</span> <span class="op">&lt;</span>fov<span class="op">&gt;</span> input.jpg output.jpg</span></code></pre></div>
+<h3 id="key-parameters">Key Parameters</h3>
+<p>To achieve accurate reprojection without unnatural stretching, you
+must configure the following flags according to your source image:</p>
+<ul>
+<li><strong><code>-f &lt;angle&gt;</code> (Field of View):</strong> The
+horizontal field of view of the input image in degrees. The default is
+typically <code>60</code>. Providing the exact FOV matching the focal
+length of the camera lens is essential for maintaining proper geometric
+proportions.</li>
+<li><strong><code>-c &lt;x,y&gt;</code> (Center Point):</strong>
+Specifies the image center (optical axis). By default, this is
+calculated as the center of the image canvas
+(<code>width/2, height/2</code>). If the image has been cropped
+off-center, define the original optical center here.</li>
+<li><strong><code>-v &lt;val&gt;</code> (Vertical FOV
+behavior):</strong> Controls whether the vertical dimensions scale
+proportionally to maintain aspect ratios.</li>
+<li><strong><code>-b &lt;color&gt;</code> (Background Color):</strong>
+Sets the background fill color for areas outside the reprojected image
+boundary (default is black or transparent if supported by the
+format).</li>
+</ul>
+<h3 id="step-by-step-conversion-examples">Step-by-Step Conversion
+Examples</h3>
+<h4 id="1-standard-conversion-using-known-fov">1. Standard Conversion
+Using Known FOV</h4>
+<p>If an image was taken with a lens providing an 84-degree horizontal
+field of view (equivalent to roughly a 24mm full-frame lens):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./plane2cylinder</span> <span class="at">-f</span> 84 input.jpg cylindrical_output.jpg</span></code></pre></div>
+<p>The script curves the horizontal edges outward while compressing the
+vertical edges toward the left and right borders, mapping the flat
+planar coordinates to the interior surface of a cylinder.</p>
+<h4 id="2-specifying-a-transparent-background">2. Specifying a
+Transparent Background</h4>
+<p>If the output will be layered over other assets, set the background
+fill to <code>none</code> using a PNG container:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./plane2cylinder</span> <span class="at">-f</span> 75 <span class="at">-b</span> none input.jpg cylindrical_output.png</span></code></pre></div>
+<h4 id="3-adjusting-for-off-center-cropping">3. Adjusting for Off-Center
+Cropping</h4>
+<p>If the original image has a resolution of 4000x3000, but 500 pixels
+were cropped from the left edge, the optical center shifts:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./plane2cylinder</span> <span class="at">-f</span> 70 <span class="at">-c</span> 1500,1500 cropped_input.jpg output.jpg</span></code></pre></div>
+<h3 id="native-imagemagick-alternative">Native ImageMagick
+Alternative</h3>
+<p>If you cannot run external Bash scripts, ImageMagick provides
+internal reprojection via the <code>-distort</code> operator using
+mathematical mappings. The internal equivalent to planar-to-cylindrical
+mapping uses forward polynomial or custom FX transforms:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-virtual-pixel</span> Black <span class="at">-distort</span> Cylinder2Plane <span class="st">&quot;60&quot;</span> output.jpg</span></code></pre></div>
+<p><em>Note: In ImageMagick's built-in terminology,
+<code>-distort Cylinder2Plane</code> acts inversely depending on mapping
+direction; when using direct transformation pipelines, Weinhaus's
+<code>plane2cylinder</code> script provides the most direct and
+mathematically consistent forward-warp implementation for panoramic
+generation.</em></p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Checkerboard Pattern Syntax - magick</title>
+    <meta name="description" content="This guide explains the command-line syntax required to generate a checkerboard background canvas using ImageMagick's built-in patterns. You will learn the primary commands for both ImageMagick 7 and ImageMagick 6, as well as how to specify canvas dimens">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-checkerboard-pattern-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Checkerboard Pattern Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-checkerboard-pattern-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains the command-line syntax required to generate a checkerboard background canvas using ImageMagick's built-in patterns. You will learn the primary commands for both ImageMagick 7 and ImageMagick 6, as well as how to specify canvas dimens" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-checkerboard-pattern-syntax">ImageMagick
+Checkerboard Pattern Syntax</h1>
+<p>This guide explains the command-line syntax required to generate a
+checkerboard background canvas using ImageMagick's built-in patterns.
+You will learn the primary commands for both ImageMagick 7 and
+ImageMagick 6, as well as how to specify canvas dimensions and customize
+the colors of the squares.</p>
+<h3 id="basic-syntax-for-imagemagick-7">Basic Syntax for ImageMagick
+7</h3>
+<p>In ImageMagick 7, the <code>magick</code> command uses the internal
+<code>pattern:checkerboard</code> delegate to generate the pattern. You
+must define the canvas size using the <code>-size</code> flag prior to
+calling the pattern.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 pattern:checkerboard output.png</span></code></pre></div>
+<h3 id="syntax-for-imagemagick-6">Syntax for ImageMagick 6</h3>
+<p>If you are using legacy ImageMagick 6, use the <code>convert</code>
+command instead of <code>magick</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-size</span> 300x300 pattern:checkerboard output.png</span></code></pre></div>
+<h3 id="customizing-checkerboard-colors">Customizing Checkerboard
+Colors</h3>
+<p>By default, <code>pattern:checkerboard</code> renders in black and
+white with 8x8 pixel tiles. To alter the default colors, map new values
+using the <code>+level-colors</code> operator directly after generating
+the pattern.</p>
+<p>The syntax assigns the first color to the dark squares and the second
+color to the light squares:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 pattern:checkerboard +level-colors <span class="st">&quot;#e0e0e0&quot;</span>,<span class="st">&quot;#ffffff&quot;</span> checkerboard.png</span></code></pre></div>
+<h3 id="using-the-checkerboard-as-a-background-for-other-images">Using
+the Checkerboard as a Background for Other Images</h3>
+<p>To overlay a transparent image onto a generated checkerboard canvas,
+create the checkerboard pattern first, load your foreground image, and
+composite them together:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x500 pattern:checkerboard +level-colors gray80,white transparent_image.png <span class="at">-composite</span> final_render.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

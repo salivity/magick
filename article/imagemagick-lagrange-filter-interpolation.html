@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Lagrange Filter Interpolation - magick</title>
+    <meta name="description" content="The ImageMagick Lagrange filter evaluates multi-point polynomial interpolation by constructing a continuous, piecewise polynomial weighting function based on classical Lagrange basis polynomials. This article explores how ImageMagick applies this mathema">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-lagrange-filter-interpolation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Lagrange Filter Interpolation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-lagrange-filter-interpolation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick Lagrange filter evaluates multi-point polynomial interpolation by constructing a continuous, piecewise polynomial weighting function based on classical Lagrange basis polynomials. This article explores how ImageMagick applies this mathema" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-lagrange-filter-interpolation">ImageMagick Lagrange
+Filter Interpolation</h1>
+<p>The ImageMagick Lagrange filter evaluates multi-point polynomial
+interpolation by constructing a continuous, piecewise polynomial
+weighting function based on classical Lagrange basis polynomials. This
+article explores how ImageMagick applies this mathematical formulation
+across discrete pixel grids, detailing its windowed support mechanism,
+separable 1D convolution processing, and the trade-offs between
+interpolation sharpness and polynomial ringing artifacts.</p>
+<h3 id="the-lagrange-polynomial-formulation">The Lagrange Polynomial
+Formulation</h3>
+<p>Lagrange interpolation constructs a unique polynomial of degree <span
+class="math inline">\(n-1\)</span> that passes precisely through <span
+class="math inline">\(n\)</span> distinct data points. For a given set
+of data coordinates <span class="math inline">\((x_0, y_0), (x_1, y_1),
+\dots, (x_{n-1}, y_{n-1})\)</span>, the interpolated value <span
+class="math inline">\(y(x)\)</span> is defined as:</p>
+<p><span class="math display">\[P(x) = \sum_{i=0}^{n-1} y_i
+\ell_i(x)\]</span></p>
+<p>where the basis polynomials <span
+class="math inline">\(\ell_i(x)\)</span> are given by:</p>
+<p><span class="math display">\[\ell_i(x) = \prod_{\substack{0 \le j
+&lt; n \\ j \ne i}} \frac{x - x_j}{x_i - x_j}\]</span></p>
+<p>ImageMagick translates this continuous formulation into a filter
+weighting function. When sampling an intermediate sub-pixel position,
+the distance between the target location and adjacent discrete pixel
+centers serves as the variable <span class="math inline">\(x\)</span>.
+The calculated basis weights are then applied to the corresponding pixel
+values to determine the reconstructed color value.</p>
+<h3 id="multi-point-support-and-kernel-sizing">Multi-Point Support and
+Kernel Sizing</h3>
+<p>In image processing, infinite-degree interpolation across the entire
+image is computationally infeasible and mathematically unstable.
+ImageMagick restricts the Lagrange interpolation to a localized
+neighborhood defined by the filter's support radius.</p>
+<p>By default, the Lagrange filter in ImageMagick operates with a
+support radius of 2.0. This yields a 4-point (cubic) polynomial
+interpolation centered around the target coordinate, evaluating two
+pixel samples to the left and two to the right in a 1D context. Users
+can modify this support radius via the
+<code>-define filter:support</code> setting:</p>
+<ul>
+<li>A support of 1.0 yields a 2-point linear interpolation.</li>
+<li>A support of 2.0 yields a 4-point cubic Lagrange interpolation.</li>
+<li>A support of 3.0 yields a 6-point quintic Lagrange
+interpolation.</li>
+</ul>
+<p>For any chosen support radius <span class="math inline">\(R\)</span>,
+the filter considers <span class="math inline">\(2R\)</span> points
+uniformly spaced along the sampling axis. The kernel satisfies the
+Kronecker delta property at integer intervals: <span
+class="math inline">\(L(0) = 1\)</span> and <span
+class="math inline">\(L(k) = 0\)</span> for all non-zero integers <span
+class="math inline">\(k\)</span> within the support. This ensures that
+sampling directly on a pixel center reproduces the original input value
+without blurring.</p>
+<h3 id="separable-two-pass-resampling">Separable Two-Pass
+Resampling</h3>
+<p>For standard affine transformations, scaling, and distortions,
+ImageMagick optimizes multi-point reconstruction using separable
+filtering. Rather than calculating a complex two-dimensional surface
+polynomial simultaneously, the operation decomposes into two orthogonal
+1D passes:</p>
+<ol type="1">
+<li><strong>Horizontal Pass:</strong> For each row, ImageMagick
+identifies the surrounding horizontal pixels within the support
+boundary, calculates the 1D Lagrange weights based on sub-pixel offsets,
+and computes the intermediate row values.</li>
+<li><strong>Vertical Pass:</strong> The process repeats vertically along
+the columns of the intermediate image, applying the same 1D Lagrange
+kernel to determine final pixel color values.</li>
+</ol>
+<p>When using cylindrical Elliptical Weighted Average (EWA)
+resampling—typically invoked during non-orthogonal or perspective
+distortions—ImageMagick maps the Lagrange function into a radial
+profile, weighting source pixels based on their radial distance in the
+mapped coordinate space.</p>
+<h3 id="characteristics-and-artifact-handling">Characteristics and
+Artifact Handling</h3>
+<p>Because the Lagrange filter fits an exact polynomial through the
+discrete points, it functions as an interpolating filter rather than an
+approximating filter (such as a Gaussian or B-spline filter). This
+design produces distinct visual characteristics:</p>
+<ul>
+<li><strong>Sharpness Preservation:</strong> Edge definition remains
+high because high-frequency transitions are not smoothed out by
+attenuation at the pixel centers.</li>
+<li><strong>Runge’s Phenomenon and Ringing:</strong> When higher-order
+polynomials (higher support radii) are configured, multi-point
+polynomial interpolation can oscillate near sharp transitions. This
+causes visible ringing or halo artifacts around high-contrast
+edges.</li>
+<li><strong>Negative Lobes:</strong> The Lagrange basis polynomials
+yield negative values between sample nodes outside the central peak. In
+ImageMagick, this can produce undershoot (values dropping below zero) or
+overshoot (values exceeding the maximum quantum depth), which are
+clamped to the valid color range during output generation.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

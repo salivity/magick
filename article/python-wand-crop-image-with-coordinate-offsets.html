@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Wand Crop Image with Coordinate Offsets - magick</title>
+    <meta name="description" content="This article explains how to crop images using coordinate offsets in Python Wand, the ctypes-based ImageMagick binding. You will learn about the crop() method, understand how its positional arguments define crop boundaries, and review a concise code exam">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/python-wand-crop-image-with-coordinate-offsets">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Python Wand Crop Image with Coordinate Offsets - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/python-wand-crop-image-with-coordinate-offsets" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to crop images using coordinate offsets in Python Wand, the ctypes-based ImageMagick binding. You will learn about the crop() method, understand how its positional arguments define crop boundaries, and review a concise code exam" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="python-wand-crop-image-with-coordinate-offsets">Python Wand Crop
+Image with Coordinate Offsets</h1>
+<p>This article explains how to crop images using coordinate offsets in
+Python Wand, the ctypes-based ImageMagick binding. You will learn about
+the <code>crop()</code> method, understand how its positional arguments
+define crop boundaries, and review a concise code example demonstrating
+how to execute coordinate-based cropping in your projects.</p>
+<p>The primary method used to crop an image with coordinate offsets in
+Python Wand is <code>Image.crop()</code>. This method interfaces
+directly with ImageMagick's cropping routines, allowing you to specify
+starting offset points along the X and Y axes, as well as the dimensions
+or end boundaries of the extracted region.</p>
+<h3 id="the-crop-method-syntax">The <code>crop()</code> Method
+Syntax</h3>
+<p>The <code>crop()</code> method accepts the following key
+parameters:</p>
+<ul>
+<li><strong><code>left</code></strong>: The starting horizontal offset
+(X-coordinate) from the left edge of the image.</li>
+<li><strong><code>top</code></strong>: The starting vertical offset
+(Y-coordinate) from the top edge of the image.</li>
+<li><strong><code>width</code></strong>: The horizontal width of the
+cropped area starting from <code>left</code>.</li>
+<li><strong><code>height</code></strong>: The vertical height of the
+cropped area starting from <code>top</code>.</li>
+<li><strong><code>right</code></strong>: The ending horizontal
+coordinate (alternative to setting <code>width</code>).</li>
+<li><strong><code>bottom</code></strong>: The ending vertical coordinate
+(alternative to setting <code>height</code>).</li>
+<li><strong><code>reset_coords</code></strong>: A boolean flag (defaults
+to <code>True</code>) that resets the virtual canvas coordinates to
+<code>0,0</code>, preventing offset issues in downstream processing or
+file formats like PNG and GIF.</li>
+</ul>
+<h3 id="implementation-example">Implementation Example</h3>
+<p>To crop an image using coordinate offsets, open the image using the
+<code>Image</code> context manager, call the <code>crop()</code> method
+with your specified <code>left</code> and <code>top</code> offsets, and
+save the result:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> wand.image <span class="im">import</span> Image</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Define coordinate offsets and dimensions</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>x_offset <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>y_offset <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>target_width <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>target_height <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> Image(filename<span class="op">=</span><span class="st">&#39;input.jpg&#39;</span>) <span class="im">as</span> img:</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Crop using starting offsets and dimensions</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    img.crop(left<span class="op">=</span>x_offset, top<span class="op">=</span>y_offset, width<span class="op">=</span>target_width, height<span class="op">=</span>target_height)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    img.save(filename<span class="op">=</span><span class="st">&#39;cropped_output.jpg&#39;</span>)</span></code></pre></div>
+<p>Alternatively, you can crop using absolute boundary coordinates
+instead of width and height:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> Image(filename<span class="op">=</span><span class="st">&#39;input.jpg&#39;</span>) <span class="im">as</span> img:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Crop using left, top, right, and bottom boundary coordinates</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    img.crop(left<span class="op">=</span><span class="dv">50</span>, top<span class="op">=</span><span class="dv">100</span>, right<span class="op">=</span><span class="dv">350</span>, bottom<span class="op">=</span><span class="dv">300</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    img.save(filename<span class="op">=</span><span class="st">&#39;boundary_output.jpg&#39;</span>)</span></code></pre></div>
+<p>Wand also supports Python slice notation on the image object itself
+(e.g., <code>img[50:350, 100:300]</code>), but invoking the explicit
+<code>crop()</code> method provides full control over coordinate resets
+and parameter definitions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

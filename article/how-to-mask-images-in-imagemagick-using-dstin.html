@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Mask Images in ImageMagick Using DstIn - magick</title>
+    <meta name="description" content="This article provides a practical guide on using ImageMagick’s DstIn (Destination In) composition operator to mask an image using an alpha shape. You will learn the mechanics behind the DstIn alpha composition model, the proper order of source and dest">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-mask-images-in-imagemagick-using-dstin">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Mask Images in ImageMagick Using DstIn - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-mask-images-in-imagemagick-using-dstin" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on using ImageMagick’s DstIn (Destination In) composition operator to mask an image using an alpha shape. You will learn the mechanics behind the DstIn alpha composition model, the proper order of source and dest" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-mask-images-in-imagemagick-using-dstin">How to Mask
+Images in ImageMagick Using DstIn</h1>
+<p>This article provides a practical guide on using ImageMagick’s
+<code>DstIn</code> (Destination In) composition operator to mask an
+image using an alpha shape. You will learn the mechanics behind the
+<code>DstIn</code> alpha composition model, the proper order of source
+and destination layers, and specific command-line examples for clipping
+images into custom shapes with transparent backgrounds.</p>
+<h2 id="understanding-the-dstin-operator">Understanding the DstIn
+Operator</h2>
+<p>The <code>DstIn</code> operator is one of the classic Porter-Duff
+compositing operators. In ImageMagick:</p>
+<ul>
+<li><strong>Destination (<code>Dst</code>):</strong> The first
+(background) image, which is the main graphic or photo you want to
+keep.</li>
+<li><strong>Source (<code>Src</code>):</strong> The second (overlay)
+image, which acts as the alpha mask defining the shape.</li>
+<li><strong>In:</strong> The operation keeps the parts of the
+<strong>Destination</strong> that lie <strong>Inside</strong> the
+non-transparent areas of the <strong>Source</strong>.</li>
+</ul>
+<p>When applying <code>DstIn</code>, ImageMagick multiplies the alpha
+channel of the destination image by the alpha channel of the source
+image. Any area of the destination image that overlaps with fully
+transparent pixels in the source mask becomes completely transparent in
+the final output.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick 7, the standard syntax for applying a mask with
+<code>DstIn</code> is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> destination.png mask.png <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><strong><code>destination.png</code></strong>: The target image you
+want to mask.</li>
+<li><strong><code>mask.png</code></strong>: The shape image containing
+transparent and opaque areas.</li>
+<li><strong><code>-alpha set</code></strong>: Ensures the destination
+image has an active alpha channel.</li>
+<li><strong><code>-compose DstIn</code></strong>: Selects the
+Destination In blending mode.</li>
+<li><strong><code>-composite</code></strong>: Executes the composite
+operation on the two loaded images.</li>
+<li><strong><code>output.png</code></strong>: The resulting masked image
+(must be saved in a format supporting transparency, such as PNG, WebP,
+or TIFF).</li>
+</ul>
+<h2 id="step-by-step-examples">Step-by-Step Examples</h2>
+<h3 id="1-masking-with-a-pre-existing-alpha-mask">1. Masking with a
+Pre-existing Alpha Mask</h3>
+<p>If you have a base photo (<code>photo.jpg</code>) and a separate PNG
+mask containing a shape with transparency (<code>shape.png</code>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg shape.png <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> masked_photo.png</span></code></pre></div>
+<h3 id="2-generating-a-mask-dynamically-eg-circle-mask">2. Generating a
+Mask Dynamically (e.g., Circle Mask)</h3>
+<p>You can generate a mask on the fly using parenthesis sub-commands so
+you do not need an external mask file:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 500x500 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;circle 250,250 250,10&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> circle_output.png</span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li><code>photo.jpg</code> is loaded as the destination.</li>
+<li>A 500x500 transparent canvas (<code>xc:none</code>) with a white
+circle is generated as the source.</li>
+<li><code>-compose DstIn -composite</code> crops <code>photo.jpg</code>
+to the dimensions and soft edges of the drawn circle.</li>
+</ol>
+<h3 id="3-masking-with-soft--anti-aliased-edges">3. Masking with Soft /
+Anti-Aliased Edges</h3>
+<p>The <code>DstIn</code> operator supports variable transparency (8-bit
+alpha channels). If the source mask has semi-transparent or blurred
+edges, those soft edges will carry over into the masked image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> photo.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 500x500 xc:none <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;roundrectangle 20,20 480,480 50,50&quot;</span> <span class="at">-blur</span> 0x5 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> feathered_box.png</span></code></pre></div>
+<h2 id="important-considerations">Important Considerations</h2>
+<ul>
+<li><strong>Layer Order:</strong> If the order is reversed
+(<code>mask.png photo.jpg -compose DstIn</code>), ImageMagick will keep
+the pixels of the mask where the photo exists. To use the reverse order
+without changing the file sequence, use <code>-compose SrcIn</code>
+instead.</li>
+<li><strong>File Formats:</strong> Always save the final output to a
+format that supports an alpha channel (such as <code>.png</code> or
+<code>.webp</code>). Saving to <code>.jpg</code> will flatten the image
+and replace transparent areas with a solid background color (usually
+white or black).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

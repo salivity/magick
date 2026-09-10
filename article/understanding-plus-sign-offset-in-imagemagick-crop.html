@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Plus Sign Offset in ImageMagick Crop - magick</title>
+    <meta name="description" content="In ImageMagick, the -crop geometry argument defines both the dimensions of the cropped area and its placement on the source image using coordinates. This article provides a clear breakdown of what the plus sign (+) offset syntax represents, how it dictat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-plus-sign-offset-in-imagemagick-crop">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding Plus Sign Offset in ImageMagick Crop - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-plus-sign-offset-in-imagemagick-crop" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the -crop geometry argument defines both the dimensions of the cropped area and its placement on the source image using coordinates. This article provides a clear breakdown of what the plus sign (+) offset syntax represents, how it dictat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="understanding-plus-sign-offset-in-imagemagick-crop">Understanding
+Plus Sign Offset in ImageMagick Crop</h1>
+<p>In ImageMagick, the <code>-crop</code> geometry argument defines both
+the dimensions of the cropped area and its placement on the source image
+using coordinates. This article provides a clear breakdown of what the
+plus sign (<code>+</code>) offset syntax represents, how it dictates
+coordinate placement, and how it interacts with reference origins and
+gravity settings.</p>
+<h2 id="the-crop-geometry-syntax">The Crop Geometry Syntax</h2>
+<p>ImageMagick specifies crop operations using the following geometry
+format:</p>
+<pre class="text"><code>[width]x[height]+[x_offset]+[y_offset]</code></pre>
+<p>In this syntax, <code>width</code> and <code>height</code> designate
+the size of the output area, while the two offset values dictate where
+the cropping rectangle begins.</p>
+<h2 id="the-meaning-of-the-plus-sign-">The Meaning of the Plus Sign
+(<code>+</code>)</h2>
+<p>The plus sign represents a positive displacement along the Cartesian
+coordinate grid of the image canvas:</p>
+<ul>
+<li><strong><code>+x</code> (Horizontal Offset):</strong> Specifies the
+number of pixels to shift to the right from the reference edge.</li>
+<li><strong><code>+y</code> (Vertical Offset):</strong> Specifies the
+number of pixels to shift downward from the reference edge.</li>
+</ul>
+<p>By default, ImageMagick sets the origin point <code>(0,0)</code> at
+the <strong>top-left corner</strong> of the image. Therefore, an offset
+formatted as <code>+50+100</code> instructs ImageMagick to move 50
+pixels to the right of the left edge and 100 pixels down from the top
+edge before starting the crop.</p>
+<h3 id="example">Example</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-crop</span> 400x300+50+100 output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><strong><code>400x300</code></strong> extracts a box measuring 400
+pixels wide and 300 pixels high.</li>
+<li><strong><code>+50</code></strong> places the left boundary of the
+box 50 pixels in from the left edge.</li>
+<li><strong><code>+100</code></strong> places the top boundary of the
+box 100 pixels down from the top edge.</li>
+</ul>
+<h2 id="interaction-with-the--gravity-setting">Interaction with the
+<code>-gravity</code> Setting</h2>
+<p>When the <code>-gravity</code> operator is used, the point of origin
+shifts away from the default top-left corner, changing the directional
+behavior of the plus sign offset:</p>
+<ul>
+<li><strong><code>-gravity Center -crop 200x200+10+20</code></strong>:
+The reference point becomes the center of the image. The
+<code>+10</code> shifts the crop 10 pixels right of center, and
+<code>+20</code> shifts it 20 pixels down from center.</li>
+<li><strong><code>-gravity SouthEast -crop 200x200+10+20</code></strong>:
+The reference point is the bottom-right corner. Here, positive offsets
+move inward toward the image frame—shifting the crop 10 pixels left from
+the right edge and 20 pixels up from the bottom edge.</li>
+</ul>
+<h2 id="contrast-with-the-minus-sign--">Contrast with the Minus Sign
+(<code>-</code>)</h2>
+<p>While the plus sign explicitly designates a positive, inward shift
+from the reference boundary, a minus sign (<code>-</code>) indicates a
+negative offset. A negative offset typically positions the crop region
+outside the visible canvas or counts inward from the opposite boundary,
+depending on configuration and canvas geometry. Using the plus sign
+ensures standard, predictable positioning within the image
+boundaries.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

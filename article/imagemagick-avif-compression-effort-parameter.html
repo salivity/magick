@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick AVIF Compression Effort Parameter - magick</title>
+    <meta name="description" content="When encoding AVIF images in ImageMagick, controlling the compression effort allows you to balance CPU encoding time with resulting file size. This guide explains the exact parameter used to adjust compression effort for AVIF files, how the values work,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-avif-compression-effort-parameter">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick AVIF Compression Effort Parameter - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-avif-compression-effort-parameter" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When encoding AVIF images in ImageMagick, controlling the compression effort allows you to balance CPU encoding time with resulting file size. This guide explains the exact parameter used to adjust compression effort for AVIF files, how the values work," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-avif-compression-effort-parameter">ImageMagick AVIF
+Compression Effort Parameter</h1>
+<p>When encoding AVIF images in ImageMagick, controlling the compression
+effort allows you to balance CPU encoding time with resulting file size.
+This guide explains the exact parameter used to adjust compression
+effort for AVIF files, how the values work, and how to implement it
+effectively in your command-line workflows.</p>
+<h2 id="the-compression-effort-parameter">The Compression Effort
+Parameter</h2>
+<p>In ImageMagick, the compression effort for AVIF images is controlled
+using the <code>-define heic:speed</code> parameter (or
+<code>-define avif:speed</code>, depending on your ImageMagick build and
+delegate libraries such as <code>libheif</code> or
+<code>libaom</code>).</p>
+<p>Because AVIF is built on the HEVC/HEIF container format framework
+within ImageMagick delegates, the <code>heic:speed</code> definition
+directly maps to the underlying encoder's speed and effort settings.</p>
+<h3 id="value-range-and-behavior">Value Range and Behavior</h3>
+<p>The <code>speed</code> parameter typically accepts integer values
+ranging from <strong>0 to 9</strong> (or 0 to 10 on certain encoder
+builds):</p>
+<ul>
+<li><strong>0 (Maximum Effort / Slowest):</strong> Directs the encoder
+to analyze the image thoroughly for maximum compression efficiency. This
+produces the smallest file size at a given quality level but requires
+the most CPU time.</li>
+<li><strong>5 or 6 (Default / Balanced):</strong> Provides a standard
+balance between encoding speed and compression ratio, suitable for
+general-purpose batch processing.</li>
+<li><strong>9 or 10 (Minimum Effort / Fastest):</strong> Minimizes CPU
+usage to encode the image as quickly as possible. This results in larger
+file sizes compared to lower speed values at the same visual
+quality.</li>
+</ul>
+<h2 id="effort-vs-quality">Effort vs. Quality</h2>
+<p>It is essential to distinguish between compression
+<strong>effort</strong> and compression <strong>quality</strong>:</p>
+<ul>
+<li><strong><code>-quality &lt;value&gt;</code></strong>: Sets the
+visual fidelity and quantization level (0–100). Lower values reduce
+image quality to save space.</li>
+<li><strong><code>-define heic:speed=&lt;value&gt;</code></strong>: Sets
+the computational effort the encoder spends compressing the data. It
+does not intentionally degrade visual quality, but lower effort yields
+less optimal compression.</li>
+</ul>
+<h2 id="command-examples">Command Examples</h2>
+<h3 id="maximum-compression-high-effort-slow">Maximum Compression (High
+Effort, Slow)</h3>
+<p>To achieve the smallest possible file size when encoding time is not
+a constraint:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 65 <span class="at">-define</span> heic:speed=0 output.avif</span></code></pre></div>
+<h3 id="fast-encoding-low-effort-quick">Fast Encoding (Low Effort,
+Quick)</h3>
+<p>For real-time or high-throughput batch processing where processing
+speed is critical:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 65 <span class="at">-define</span> heic:speed=8 output.avif</span></code></pre></div>
+<h3 id="lossless-avif-with-custom-effort">Lossless AVIF with Custom
+Effort</h3>
+<p>When creating lossless AVIF files, the speed parameter dictates how
+hard the encoder works to reduce the lossless payload:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 100 <span class="at">-define</span> heic:lossless=true <span class="at">-define</span> heic:speed=2 output.avif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

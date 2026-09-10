@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick MagickWand C API Functions Guide - magick</title>
+    <meta name="description" content="The MagickWand C API is the primary, recommended mid-level programming interface for ImageMagick, providing developers with an accessible yet comprehensive set of functions to manipulate digital images. This guide details the essential functional categor">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-magickwand-c-api-functions-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick MagickWand C API Functions Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-magickwand-c-api-functions-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The MagickWand C API is the primary, recommended mid-level programming interface for ImageMagick, providing developers with an accessible yet comprehensive set of functions to manipulate digital images. This guide details the essential functional categor" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-magickwand-c-api-functions-guide">ImageMagick
+MagickWand C API Functions Guide</h1>
+<p>The MagickWand C API is the primary, recommended mid-level
+programming interface for ImageMagick, providing developers with an
+accessible yet comprehensive set of functions to manipulate digital
+images. This guide details the essential functional categories and
+specific C functions provided under the MagickWand interface, spanning
+library initialization, wand lifecycle management, image reading and
+writing, geometrical transformations, color enhancement, visual effects,
+and auxiliary object handling.</p>
+<h2 id="environment-initialization-and-termination">Environment
+Initialization and Termination</h2>
+<p>Before calling any wand operations, the MagickWand runtime
+environment must be initialized and properly torn down when execution
+completes.</p>
+<ul>
+<li><code>MagickWandGenesis(void)</code>: Initializes the MagickWand
+environment and loads required configuration resources.</li>
+<li><code>MagickWandTerminus(void)</code>: Releases all internal
+resources and terminates the MagickWand environment.</li>
+</ul>
+<h2 id="wand-lifecycle-and-management">Wand Lifecycle and
+Management</h2>
+<p>A <code>MagickWand</code> structure represents a list of images and
+holds operational state. The API includes foundational functions to
+manage these objects:</p>
+<ul>
+<li><code>NewMagickWand(void)</code>: Allocates and returns an empty
+<code>MagickWand</code> pointer.</li>
+<li><code>DestroyMagickWand(MagickWand *wand)</code>: Deallocates the
+wand and frees associated memory.</li>
+<li><code>CloneMagickWand(const MagickWand *wand)</code>: Duplicates an
+existing wand and its entire image sequence.</li>
+<li><code>ClearMagickWand(MagickWand *wand)</code>: Clears all images
+and properties from a wand without deallocating the structure
+itself.</li>
+<li><code>IsMagickWand(const MagickWand *wand)</code>: Verifies if a
+pointer represents a valid wand structure.</li>
+</ul>
+<h2 id="image-input-and-output-io">Image Input and Output (I/O)</h2>
+<p>MagickWand provides multiple ways to load and export image data from
+files, memory buffers, or direct file descriptors.</p>
+<ul>
+<li><code>MagickReadImage(MagickWand *wand, const char *filename)</code>:
+Reads an image or image sequence from a file.</li>
+<li><code>MagickReadImageBlob(MagickWand *wand, const void *blob, const size_t length)</code>:
+Decodes an image from an in-memory byte buffer.</li>
+<li><code>MagickReadImageFile(MagickWand *wand, FILE *file)</code>:
+Reads image data directly from an open standard C file stream.</li>
+<li><code>MagickWriteImage(MagickWand *wand, const char *filename)</code>:
+Encodes and writes the current image to disk.</li>
+<li><code>MagickWriteImages(MagickWand *wand, const char *filename, const MagickBooleanType adjoin)</code>:
+Writes an entire sequence of images (such as animated GIFs or multi-page
+PDFs).</li>
+<li><code>MagickWriteImageBlob(MagickWand *wand, size_t *length)</code>:
+Encodes the image and returns a pointer to a newly allocated memory
+blob.</li>
+<li><code>MagickWriteImageFile(MagickWand *wand, FILE *file)</code>:
+Writes the current image directly to an open standard C file
+stream.</li>
+</ul>
+<h2 id="image-transformation-and-geometry">Image Transformation and
+Geometry</h2>
+<p>Functions in this category modify the dimensions, orientation, and
+framing of images.</p>
+<ul>
+<li><code>MagickResizeImage(MagickWand *wand, const size_t columns, const size_t rows, const FilterType filter)</code>:
+Resizes an image using a specified interpolation filter.</li>
+<li><code>MagickScaleImage(MagickWand *wand, const size_t columns, const size_t rows)</code>:
+Scales an image quickly using simple pixel sampling.</li>
+<li><code>MagickCropImage(MagickWand *wand, const size_t width, const size_t height, const ssize_t x, const ssize_t y)</code>:
+Extracts a rectangular region from the current image.</li>
+<li><code>MagickRotateImage(MagickWand *wand, const PixelWand *background, const double degrees)</code>:
+Rotates the image by a specified angle, filling empty areas with a
+background color.</li>
+<li><code>MagickFlipImage(MagickWand *wand)</code>: Creates a vertical
+mirror image by reflecting the pixels along the central x-axis.</li>
+<li><code>MagickFlopImage(MagickWand *wand)</code>: Creates a horizontal
+mirror image by reflecting the pixels along the central y-axis.</li>
+<li><code>MagickThumbnailImage(MagickWand *wand, const size_t columns, const size_t rows)</code>:
+Quickly scales an image down to thumbnail size and strips high-overhead
+metadata.</li>
+</ul>
+<h2 id="color-filters-and-visual-effects">Color, Filters, and Visual
+Effects</h2>
+<p>The interface provides an extensive set of algorithms to adjust
+colors, apply convolutions, and generate creative filters.</p>
+<ul>
+<li><code>MagickBlurImage(MagickWand *wand, const double radius, const double sigma)</code>:
+Applies a Gaussian blur effect.</li>
+<li><code>MagickSharpenImage(MagickWand *wand, const double radius, const double sigma)</code>:
+Sharpens the details of an image.</li>
+<li><code>MagickBrightnessContrastImage(MagickWand *wand, const double brightness, const double contrast)</code>:
+Adjusts the brightness and contrast levels.</li>
+<li><code>MagickModulateImage(MagickWand *wand, const double brightness, const double saturation, const double hue)</code>:
+Adjusts the brightness, saturation, and hue of an image
+simultaneously.</li>
+<li><code>MagickAutoGammaImage(MagickWand *wand)</code>: Automatically
+adjusts the gamma level.</li>
+<li><code>MagickAutoLevelImage(MagickWand *wand)</code>: Automatically
+adjusts the color levels of the current image channels.</li>
+<li><code>MagickCompositeImage(MagickWand *wand, const MagickWand *source_wand, const CompositeOperator compose, const MagickBooleanType clip_to_self, const ssize_t x, const ssize_t y)</code>:
+Composites one image onto another at a specified offset using a blending
+operator.</li>
+</ul>
+<h2 id="image-properties-and-metadata">Image Properties and
+Metadata</h2>
+<p>Developers can inspect and alter various characteristics, formats,
+and metadata tags associated with images.</p>
+<ul>
+<li><code>MagickGetImageWidth(MagickWand *wand)</code>: Returns the
+width in pixels of the current image.</li>
+<li><code>MagickGetImageHeight(MagickWand *wand)</code>: Returns the
+height in pixels of the current image.</li>
+<li><code>MagickGetImageFormat(MagickWand *wand)</code>: Retrieves the
+file format (e.g., "PNG", "JPEG") of the image.</li>
+<li><code>MagickSetImageFormat(MagickWand *wand, const char *format)</code>:
+Specifies the output format for subsequent write operations.</li>
+<li><code>MagickGetImageProperty(MagickWand *wand, const char *property)</code>:
+Retrieves arbitrary string metadata associated with a named property
+key.</li>
+<li><code>MagickSetImageProperty(MagickWand *wand, const char *property, const char *value)</code>:
+Associates a key-value metadata property with the image.</li>
+<li><code>MagickSetImageCompressionQuality(MagickWand *wand, const size_t quality)</code>:
+Sets the compression quality factor (commonly 1–100 for JPEG).</li>
+</ul>
+<h2 id="auxiliary-wand-interfaces">Auxiliary Wand Interfaces</h2>
+<p>The MagickWand API operates alongside specialized helper wands:</p>
+<h3 id="pixelwand">PixelWand</h3>
+<p>Used for defining and querying pixel color properties.</p>
+<ul>
+<li><code>NewPixelWand(void)</code>: Allocates a new
+<code>PixelWand</code>.</li>
+<li><code>PixelSetColor(PixelWand *wand, const char *color)</code>: Sets
+the wand color using CSS strings, hex values, or names (e.g.,
+<code>"blue"</code>, <code>"#FFFFFF"</code>).</li>
+<li><code>PixelGetRed(const PixelWand *wand)</code>: Returns the
+normalized red channel intensity.</li>
+<li><code>DestroyPixelWand(PixelWand *wand)</code>: Deallocates a
+<code>PixelWand</code>.</li>
+</ul>
+<h3 id="drawingwand">DrawingWand</h3>
+<p>Used for vector graphics rendering and text annotation.</p>
+<ul>
+<li><code>NewDrawingWand(void)</code>: Creates a new vector drawing
+context.</li>
+<li><code>DrawAnnotation(DrawingWand *wand, const double x, const double y, const unsigned char *text)</code>:
+Draws text on the target image.</li>
+<li><code>DrawLine(DrawingWand *wand, const double sx, const double sy, const double ex, const double ey)</code>:
+Draws a line between two coordinates.</li>
+<li><code>MagickDrawImage(MagickWand *wand, const DrawingWand *drawing_wand)</code>:
+Renders vector drawing operations onto the current image.</li>
+<li><code>DestroyDrawingWand(DrawingWand *wand)</code>: Deallocates a
+<code>DrawingWand</code>.</li>
+</ul>
+<h2 id="error-handling-and-diagnostics">Error Handling and
+Diagnostics</h2>
+<p>MagickWand provides detailed exception reporting functions to monitor
+failures during runtime.</p>
+<ul>
+<li><code>MagickGetException(const MagickWand *wand, ExceptionType *severity)</code>:
+Returns a descriptive string explaining the most recent error or
+warning, along with its severity rating.</li>
+<li><code>MagickClearException(MagickWand *wand)</code>: Clears any
+active exceptions associated with the wand.</li>
+<li><code>MagickRelinquishMemory(void *resource)</code>: Safely frees
+memory allocated by ImageMagick functions (such as strings or blobs
+returned by API calls).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

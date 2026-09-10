@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Annotate Syntax: 0x0+10+10 Explained - magick</title>
+    <meta name="description" content="In ImageMagick, the -annotate operator allows you to draw text directly onto an image using a specific geometry argument to control its transformation and position. This article breaks down the -annotate 0x0+10+10 syntax, explaining exactly how the first">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-annotate-syntax-0x0-10-10-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Annotate Syntax: 0x0+10+10 Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-annotate-syntax-0x0-10-10-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, the -annotate operator allows you to draw text directly onto an image using a specific geometry argument to control its transformation and position. This article breaks down the -annotate 0x0+10+10 syntax, explaining exactly how the first" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-annotate-syntax-0x01010-explained">ImageMagick
+Annotate Syntax: 0x0+10+10 Explained</h1>
+<p>In ImageMagick, the <code>-annotate</code> operator allows you to
+draw text directly onto an image using a specific geometry argument to
+control its transformation and position. This article breaks down the
+<code>-annotate 0x0+10+10</code> syntax, explaining exactly how the
+first two values dictate text rotation and skew, and how the final two
+values establish the exact placement offset relative to the canvas.</p>
+<h2 id="deconstructing-the-geometry-argument">Deconstructing the
+Geometry Argument</h2>
+<p>The full geometry specification for the <code>-annotate</code>
+parameter follows the format:</p>
+<pre class="text"><code>{degrees_x}[x{degrees_y}]{+-}{tx}{+-}{ty}</code></pre>
+<p>This expression divides into two functional parts: the rotation/shear
+settings (<code>0x0</code>) and the translation offsets
+(<code>+10+10</code>).</p>
+<hr />
+<h2 id="rotation-and-shearing-0x0">Rotation and Shearing:
+<code>0x0</code></h2>
+<p>The values preceding the sign indicators determine the rotational
+angles and shearing of the text:</p>
+<ul>
+<li><strong>The first <code>0</code> (degrees X):</strong> Defines the
+clockwise rotation angle of the text. Setting this to <code>0</code>
+means the baseline of the text is completely horizontal with zero
+degrees of rotation.</li>
+<li><strong>The second <code>0</code> (degrees Y):</strong> Defines the
+vertical shearing angle applied to the characters. A value of
+<code>0</code> ensures there is no italicization, skew, or vertical
+deformation.</li>
+</ul>
+<p>Combined as <code>0x0</code>, the text is rendered completely upright
+in standard horizontal orientation without any tilt, rotation, or
+shearing.</p>
+<hr />
+<h2 id="placement-and-offset-1010">Placement and Offset:
+<code>+10+10</code></h2>
+<p>The signed numbers after the rotation definition represent pixel
+displacement along the Cartesian coordinate plane:</p>
+<ul>
+<li><strong>The first <code>+10</code> (X-offset):</strong> Shifts the
+text 10 pixels along the horizontal axis (moving rightward).</li>
+<li><strong>The second <code>+10</code> (Y-offset):</strong> Shifts the
+text 10 pixels along the vertical axis (moving downward).</li>
+</ul>
+<p>The exact origin point for these offsets depends on the
+<code>-gravity</code> setting applied before the <code>-annotate</code>
+command:</p>
+<ul>
+<li><strong>Default (NorthWest / No Gravity):</strong> The text
+reference point is measured 10 pixels right and 10 pixels down from the
+top-left corner of the image.</li>
+<li><strong>With <code>-gravity</code> defined:</strong> The offset is
+calculated relative to that specified anchor. For example, using
+<code>-gravity SouthEast -annotate 0x0+10+10 "Text"</code> positions the
+text 10 pixels inward from both the right and bottom edges.</li>
+</ul>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>When using <code>-annotate 0x0+10+10</code>, ImageMagick renders the
+specified text in an upright, unrotated orientation (<code>0x0</code>)
+and shifts it 10 pixels horizontally and 10 pixels vertically
+(<code>+10+10</code>) from the designated anchor point.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

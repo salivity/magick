@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compute Skew Angle with ImageMagick Deskew - magick</title>
+    <meta name="description" content="This guide demonstrates how to calculate the skew angle of scanned text documents using ImageMagick's built-in -deskew operator. By running the deskew analysis and querying the internal image metadata, you can extract the exact rotation angle in degrees">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compute-skew-angle-with-imagemagick-deskew">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compute Skew Angle with ImageMagick Deskew - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compute-skew-angle-with-imagemagick-deskew" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to calculate the skew angle of scanned text documents using ImageMagick's built-in -deskew operator. By running the deskew analysis and querying the internal image metadata, you can extract the exact rotation angle in degrees" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compute-skew-angle-with-imagemagick-deskew">Compute Skew Angle
+with ImageMagick Deskew</h1>
+<p>This guide demonstrates how to calculate the skew angle of scanned
+text documents using ImageMagick's built-in <code>-deskew</code>
+operator. By running the deskew analysis and querying the internal image
+metadata, you can extract the exact rotation angle in degrees without
+needing to modify or save a new image file.</p>
+<h3 id="how-imagemagick-calculates-skew-angle">How ImageMagick
+Calculates Skew Angle</h3>
+<p>ImageMagick's <code>-deskew</code> operator analyzes the distribution
+of dark and light pixels along various projection angles to find the
+dominant orientation of text lines. When this operation runs,
+ImageMagick sets an internal property named <code>deskew:angle</code>,
+which stores the calculated angle in degrees.</p>
+<h3 id="command-to-output-the-skew-angle">Command to Output the Skew
+Angle</h3>
+<p>To compute and print only the skew angle directly to the terminal,
+run the following command:</p>
+<p><strong>For ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_scan.png <span class="at">-deskew</span> 40% <span class="at">-format</span> <span class="st">&quot;%[deskew:angle]\n&quot;</span> info:</span></code></pre></div>
+<p><strong>For ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_scan.png <span class="at">-deskew</span> 40% <span class="at">-format</span> <span class="st">&quot;%[deskew:angle]\n&quot;</span> info:</span></code></pre></div>
+<h3 id="explanation-of-command-options">Explanation of Command
+Options</h3>
+<ul>
+<li><strong><code>input_scan.png</code></strong>: The path to your input
+image (TIFF, PNG, JPEG, or PDF page).</li>
+<li><strong><code>-deskew 40%</code></strong>: Analyzes the image to
+calculate the tilt angle. The <code>40%</code> value is the threshold
+percentage, which defines how strictly the algorithm differentiates
+foreground text from the background. A setting of <code>40%</code> is
+optimal for most standard text documents.</li>
+<li><strong><code>-format "%[deskew:angle]\n"</code></strong>: Extracts
+the calculated angle value stored in the image properties and appends a
+newline.</li>
+<li><strong><code>info:</code></strong>: Outputs the formatted text
+directly to standard output (<code>stdout</code>) rather than writing an
+output image to the disk.</li>
+</ul>
+<h3 id="interpreting-the-output">Interpreting the Output</h3>
+<p>The output is a single floating-point number representing the
+rotation angle in degrees:</p>
+<ul>
+<li>A <strong>positive value</strong> (e.g., <code>1.452</code>)
+indicates the document is tilted clockwise.</li>
+<li>A <strong>negative value</strong> (e.g., <code>-2.105</code>)
+indicates the document is tilted counter-clockwise.</li>
+<li>A value of <code>0</code> indicates no significant skew was detected
+within the specified threshold.</li>
+</ul>
+<h3 id="tuning-the-detection-threshold">Tuning the Detection
+Threshold</h3>
+<p>If the detected angle is inaccurate, adjust the threshold
+percentage:</p>
+<ul>
+<li><strong>Lower values (e.g.,
+<code>20%</code>–<code>30%</code>)</strong>: Better for low-contrast
+scans or documents with faint text.</li>
+<li><strong>Higher values (e.g.,
+<code>60%</code>–<code>80%</code>)</strong>: Better for high-contrast,
+clean documents with heavy background noise, bleed-through, or dark
+borders.</li>
+</ul>
+<h3 id="correcting-the-skew">Correcting the Skew</h3>
+<p>If you want to compute the angle and automatically rotate the image
+in a single step, supply an output filename instead of the
+<code>info:</code> directive:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_scan.png <span class="at">-deskew</span> 40% output_deskewed.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

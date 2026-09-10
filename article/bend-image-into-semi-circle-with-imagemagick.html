@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bend Image into Semi-Circle with ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick enables you to warp flat rectangular graphics into curved shapes using the Arc distortion operator. By configuring the operator's arguments—specifically setting the sweep angle to 180 degrees—you can bend any image into a precise semi-cir">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/bend-image-into-semi-circle-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Bend Image into Semi-Circle with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/bend-image-into-semi-circle-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick enables you to warp flat rectangular graphics into curved shapes using the Arc distortion operator. By configuring the operator's arguments—specifically setting the sweep angle to 180 degrees—you can bend any image into a precise semi-cir" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="bend-image-into-semi-circle-with-imagemagick">Bend Image into
+Semi-Circle with ImageMagick</h1>
+<p>ImageMagick enables you to warp flat rectangular graphics into curved
+shapes using the <code>Arc</code> distortion operator. By configuring
+the operator's arguments—specifically setting the sweep angle to 180
+degrees—you can bend any image into a precise semi-circle or arch. This
+guide breaks down the syntax, the core parameters required for a
+semi-circular transformation, and practical command-line examples.</p>
+<h2 id="the-arc-distortion-syntax">The Arc Distortion Syntax</h2>
+<p>In ImageMagick, the <code>Arc</code> operator is invoked using the
+<code>-distort</code> setting. The argument string accepts up to four
+numerical parameters:</p>
+<pre class="text"><code>-distort Arc &quot;{arc_angle} {rotation_angle} {outer_radius} {inner_radius}&quot;</code></pre>
+<p>Only the first parameter is strictly required; ImageMagick will
+automatically calculate sensible defaults for any omitted values.</p>
+<h2 id="configuring-the-parameters-for-a-semi-circle">Configuring the
+Parameters for a Semi-Circle</h2>
+<p>To create a semi-circle, configure the parameters as follows:</p>
+<ul>
+<li><strong>Arc Angle (<code>180</code>):</strong> This is the crucial
+setting. A complete circle is 360 degrees, so setting this value to
+<code>180</code> restricts the bend to a half-circle.</li>
+<li><strong>Rotation Angle (Optional, default <code>0</code>):</strong>
+Determines the orientation of the center of the arc. A rotation of
+<code>0</code> places the center of the arc at the top (creating an arch
+or rainbow shape). A value of <code>180</code> flips the arc upside down
+(creating a bowl or smile shape).</li>
+<li><strong>Outer Radius (Optional):</strong> Controls the distance from
+the center point of the arc to the outer edge of the curved image. If
+left undefined, ImageMagick sizes it automatically based on the source
+image dimensions.</li>
+<li><strong>Inner Radius (Optional):</strong> Controls the radius of the
+inner cutout, determining the thickness of the band. If omitted, it
+defaults to placing the bottom edge of the image at the center
+point.</li>
+</ul>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="basic-arch-rainbow-orientation">Basic Arch (Rainbow
+Orientation)</h3>
+<p>To bend an image into a standard upward semi-circle, supply an angle
+of <code>180</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-virtual-pixel</span> HorizontalTile <span class="at">-background</span> none <span class="at">-distort</span> Arc 180 output.png</span></code></pre></div>
+<p><em>Note: For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<h3 id="inverted-semi-circle-u-shape">Inverted Semi-Circle
+(U-Shape)</h3>
+<p>To invert the curve so it resembles a bowl, set the rotation
+parameter to <code>180</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-virtual-pixel</span> HorizontalTile <span class="at">-background</span> none <span class="at">-distort</span> Arc <span class="st">&quot;180 180&quot;</span> output.png</span></code></pre></div>
+<h3 id="specifying-radii-for-precise-thickness">Specifying Radii for
+Precise Thickness</h3>
+<p>To control the exact curvature and inner hole size, specify the outer
+and inner radii:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-virtual-pixel</span> HorizontalTile <span class="at">-background</span> none <span class="at">-distort</span> Arc <span class="st">&quot;180 0 200 100&quot;</span> output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>180</code> defines the semi-circle.</li>
+<li><code>0</code> keeps the arch centered upward.</li>
+<li><code>200</code> sets the outer edge radius to 200 pixels.</li>
+<li><code>100</code> sets the inner edge radius to 100 pixels, producing
+a 100-pixel thick curved band.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

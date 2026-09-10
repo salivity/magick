@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unwarp Equirectangular 360 Panorama in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to convert a 360-degree equirectangular panoramic image into a flat, rectilinear (perspective) projection using ImageMagick. You will learn the exact mathematical transformation required to extract a standard field of view (FOV) f">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/unwarp-equirectangular-360-panorama-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Unwarp Equirectangular 360 Panorama in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/unwarp-equirectangular-360-panorama-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to convert a 360-degree equirectangular panoramic image into a flat, rectilinear (perspective) projection using ImageMagick. You will learn the exact mathematical transformation required to extract a standard field of view (FOV) f" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="unwarp-equirectangular-360-panorama-in-imagemagick">Unwarp
+Equirectangular 360 Panorama in ImageMagick</h1>
+<p>This guide explains how to convert a 360-degree equirectangular
+panoramic image into a flat, rectilinear (perspective) projection using
+ImageMagick. You will learn the exact mathematical transformation
+required to extract a standard field of view (FOV) from a spherical
+projection, customize viewing angles (yaw and pitch), and run the
+command directly from your terminal.</p>
+<h3 id="understanding-the-projection">Understanding the Projection</h3>
+<p>An equirectangular image maps a full sphere onto a 2:1 aspect ratio
+rectangle, where the X-axis represents longitude (yaw) from <span
+class="math inline">\(-180^\circ\)</span> to <span
+class="math inline">\(+180^\circ\)</span> and the Y-axis represents
+latitude (pitch) from <span class="math inline">\(-90^\circ\)</span> to
+<span class="math inline">\(+90^\circ\)</span>. A rectilinear projection
+simulates a standard pinhole camera view (gnomonic projection),
+projecting a portion of that sphere onto a flat plane.</p>
+<h3 id="the-imagemagick-command">The ImageMagick Command</h3>
+<p>To perform this transformation in ImageMagick 7, use the
+<code>-fx</code> operator to map each pixel of the rectilinear output
+back to the spherical coordinates of the equirectangular source
+image.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_360.jpg <span class="at">-virtual-pixel</span> HorizontalTile <span class="at">-monitor</span> <span class="at">-fx</span> <span class="st">&#39;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">  fov = 90 * pi / 180;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">  yaw = 0 * pi / 180;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">  pitch = 0 * pi / 180;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="st">  nx = (2 * i / w - 1) * tan(fov / 2);</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="st">  ny = (1 - 2 * j / h) * tan(fov / 2) * (h / w);</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="st">  d = hypot(nx, ny);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="st">  c = atan(d);</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="st">  lat = (d == 0) ? pitch : asin(cos(c) * sin(pitch) + (ny * sin(c) * cos(pitch)) / d);</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="st">  lon = yaw + atan2(nx * sin(c), (d * cos(pitch) * cos(c) - ny * sin(pitch) * sin(c)));</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="st">  u_norm = (lon / (2 * pi) + 0.5) - floor(lon / (2 * pi) + 0.5);</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="st">  v_norm = 0.5 - (lat / pi);</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="st">  </span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="st">  u.p{u_norm * u.w, v_norm * u.h}</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> <span class="at">-resize</span> 1920x1080 output_rectilinear.jpg</span></code></pre></div>
+<h3 id="parameter-explanations">Parameter Explanations</h3>
+<ul>
+<li><strong><code>fov</code> (Field of View):</strong> Defines the
+horizontal angle of view in degrees (e.g., <code>90</code> for a
+wide-angle standard lens). Adjust between <code>60</code> and
+<code>110</code> depending on the desired perspective.</li>
+<li><strong><code>yaw</code>:</strong> Horizontal rotation angle in
+degrees. Set <code>0</code> for center-front view, <code>90</code> for
+right, <code>-90</code> for left, or <code>180</code> for rear
+view.</li>
+<li><strong><code>pitch</code>:</strong> Vertical tilt angle in degrees.
+Set <code>0</code> for straight ahead, positive values (e.g.,
+<code>30</code>) to look upward, and negative values (e.g.,
+<code>-30</code>) to look downward.</li>
+<li><strong><code>-virtual-pixel HorizontalTile</code>:</strong> Ensures
+smooth wrapping around the <span
+class="math inline">\(360^\circ\)</span> boundary without black border
+artifacts.</li>
+<li><strong><code>-resize</code>:</strong> Sets the final output
+resolution while maintaining the rectilinear aspect ratio.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Coalesces GIFs with Local Palettes - magick</title>
+    <meta name="description" content="This article explains how ImageMagick manages frame-specific local color tables when rebuilding animated GIFs through the coalesce operation. Animated GIFs often optimize file size by storing only changed pixels across frames, frequently using localized">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-coalesces-gifs-with-local-palettes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Coalesces GIFs with Local Palettes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-coalesces-gifs-with-local-palettes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick manages frame-specific local color tables when rebuilding animated GIFs through the coalesce operation. Animated GIFs often optimize file size by storing only changed pixels across frames, frequently using localized" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-coalesces-gifs-with-local-palettes">How
+ImageMagick Coalesces GIFs with Local Palettes</h1>
+<p>This article explains how ImageMagick manages frame-specific local
+color tables when rebuilding animated GIFs through the coalesce
+operation. Animated GIFs often optimize file size by storing only
+changed pixels across frames, frequently using localized palettes rather
+than a single global color table. Understanding how ImageMagick elevates
+indexed color data to a truecolor canvas during composition ensures your
+workflows retain color accuracy without palette collisions or clipping
+artifacts.</p>
+<h2 id="the-structure-of-optimized-gifs-and-local-palettes">The
+Structure of Optimized GIFs and Local Palettes</h2>
+<p>A standard animated GIF contains a Global Color Table (GCT) that
+provides a shared palette of up to 256 colors. However, individual
+frames can also define their own Local Color Table (LCT). Optimized GIFs
+leverage LCTs alongside delta frames—storing only bounding boxes of
+modified regions and setting disposal methods such as "None," "Do Not
+Dispose," or "Restore to Background."</p>
+<p>When consecutive frames use different local palettes, simple frame
+stacking in an indexed color mode causes palette corruption, as a single
+8-bit index would reference conflicting RGB values on previous and
+subsequent layers.</p>
+<h2
+id="the-internal-image-representation-directclass-vs-pseudoclass">The
+Internal Image Representation: DirectClass vs. PseudoClass</h2>
+<p>ImageMagick handles image data using internal storage modes:</p>
+<ul>
+<li><strong>PseudoClass:</strong> Represents indexed color images where
+pixels store index keys pointing to a color map (palette).</li>
+<li><strong>DirectClass:</strong> Represents truecolor images where
+every pixel holds full Red, Green, Blue, and Alpha (RGBA) values in
+memory.</li>
+</ul>
+<p>When ImageMagick reads a GIF, it decodes the LZW-compressed raster
+data. If frames contain conflicting local color tables or variable
+transparency, ImageMagick immediately converts the frame data from
+PseudoClass to DirectClass. By translating 8-bit indexed values into raw
+24-bit or 32-bit RGBA color packets upon ingest, the dependency on
+individual frame palettes is decoupled from the pixel data.</p>
+<h2 id="how-the-coalesce-operation-preserves-colors">How the Coalesce
+Operation Preserves Colors</h2>
+<p>The <code>-coalesce</code> command reconstructs a sequence of fully
+rendered, self-contained frames from an optimized animation. ImageMagick
+accomplishes this through the following steps:</p>
+<ol type="1">
+<li><strong>Canvas Initialization:</strong> ImageMagick inspects the
+virtual canvas metadata (<code>page</code> geometry, offsets, and
+disposal settings) defined in the GIF header.</li>
+<li><strong>Truecolor Compositing:</strong> Instead of copying indexed
+pixels onto an indexed canvas, ImageMagick performs the composition in
+DirectClass space. The delta frame is composited over the accumulated
+canvas according to its specified disposal method (e.g.,
+<code>OverCompositeOp</code>).</li>
+<li><strong>Pixel Value Preservation:</strong> Because the canvas
+operates with full RGB channels, colors originating from Frame A's local
+palette and Frame B's local palette coexist on the same frame buffer
+without quantization or index remapping errors.</li>
+<li><strong>Disposal Handling:</strong> Once the current frame is
+materialized, ImageMagick handles the disposal state in memory to
+prepare the backing canvas for the next frame, maintaining exact color
+definitions across temporal boundaries.</li>
+</ol>
+<h2 id="output-generation-and-re-quantization">Output Generation and
+Re-Quantization</h2>
+<p>After running <code>-coalesce</code>, the sequence exists in memory
+as complete, full-color DirectClass images. If the output format is
+another GIF, ImageMagick must convert these frames back to PseudoClass
+(indexed color).</p>
+<p>To preserve the fidelity originally provided by the LCTs,
+ImageMagick's quantizer evaluates the color distribution of each
+frame:</p>
+<ul>
+<li><strong>Per-Frame Quantization:</strong> If the overall animation
+contains more than 256 distinct colors across the timeline, ImageMagick
+assigns an individual local color table to each frame that exceeds the
+common color threshold.</li>
+<li><strong>Global Palette Remapping:</strong> If the <code>-map</code>
+or specific quantization settings (such as <code>-colors 256</code>) are
+supplied, ImageMagick will map all coalesced frames to a unified
+palette. Without forced unification, the GIF encoder dynamically writes
+an LCT for any frame whose color requirements diverge from the global
+palette.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

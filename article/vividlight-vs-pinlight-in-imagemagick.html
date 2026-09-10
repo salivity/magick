@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VividLight vs PinLight in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a comparative breakdown of the VividLight and PinLight compose methods in ImageMagick, explaining how their underlying algorithms alter image contrast, tonal ranges, and color values. While both methods belong to the extreme lightin">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/vividlight-vs-pinlight-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="VividLight vs PinLight in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/vividlight-vs-pinlight-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a comparative breakdown of the VividLight and PinLight compose methods in ImageMagick, explaining how their underlying algorithms alter image contrast, tonal ranges, and color values. While both methods belong to the extreme lightin" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="vividlight-vs-pinlight-in-imagemagick">VividLight vs PinLight in
+ImageMagick</h1>
+<p>This article provides a comparative breakdown of the
+<code>VividLight</code> and <code>PinLight</code> compose methods in
+ImageMagick, explaining how their underlying algorithms alter image
+contrast, tonal ranges, and color values. While both methods belong to
+the extreme lighting family of blend modes and use a 50% gray midpoint
+to divide their processing, they produce fundamentally different visual
+results: <code>VividLight</code> aggressively alters contrast using
+dodge and burn calculations, whereas <code>PinLight</code> replaces
+pixels conditionally using lighten and darken logic.</p>
+<h3 id="core-algorithmic-differences">Core Algorithmic Differences</h3>
+<p>ImageMagick treats <code>VividLight</code> and <code>PinLight</code>
+as hybrid blend modes determined by whether the source (overlay) pixel
+is brighter or darker than 50% gray (0.5 in normalized color space).</p>
+<h4 id="vividlight-extreme-contrast-manipulation">VividLight: Extreme
+Contrast Manipulation</h4>
+<p><code>VividLight</code> combines the <strong>Color Dodge</strong> and
+<strong>Color Burn</strong> blend modes. It scales and shifts the
+contrast of the destination (base) image relative to the source:</p>
+<ul>
+<li><strong>If the source pixel is darker than 50% gray:</strong> The
+engine applies a <strong>Color Burn</strong>, darkening the base image
+by increasing contrast.</li>
+<li><strong>If the source pixel is brighter than 50% gray:</strong> The
+engine applies a <strong>Color Dodge</strong>, brightening the base
+image by reducing contrast.</li>
+</ul>
+<p>Mathematically, this involves dividing color channels, which steepens
+the tonal curve. This creates saturated midtones, deep compressed
+shadows, and blown-out specular highlights. 50% gray acts as a
+completely neutral pass-through; pure black burns the destination to
+black, and pure white dodges the destination to white.</p>
+<h4 id="pinlight-selective-value-replacement">PinLight: Selective Value
+Replacement</h4>
+<p><code>PinLight</code> combines the <strong>Darken</strong> and
+<strong>Lighten</strong> blend modes. Rather than altering contrast
+through multiplicative or divisional scaling, it acts as a conditional
+clamp:</p>
+<ul>
+<li><strong>If the source pixel is darker than 50% gray:</strong> The
+engine applies a <strong>Darken</strong> operation. Any destination
+pixel brighter than double the source value is replaced by that value
+(<code>min(destination, 2 * source)</code>).</li>
+<li><strong>If the source pixel is brighter than 50% gray:</strong> The
+engine applies a <strong>Lighten</strong> operation. Any destination
+pixel darker than double the source value offset by 1 is replaced
+(<code>max(destination, 2 * (source - 0.5))</code>).</li>
+</ul>
+<p>Because <code>PinLight</code> performs minimum/maximum comparisons
+rather than color-curve scaling, it clips or replaces extreme values
+without shifting contrast across smooth gradients. It strips away
+midtones, leaving a flatter, posterized, or stenciled look.</p>
+<h3 id="key-visual-and-practical-differences">Key Visual and Practical
+Differences</h3>
+<ul>
+<li><strong>Tonal Gradients:</strong> <code>VividLight</code> preserves
+continuous gradients, stretching and compressing them violently into
+high-contrast transitions. <code>PinLight</code> creates hard edges and
+flat tonal bands wherever the source brightness crosses the replacement
+threshold.</li>
+<li><strong>Color Saturation:</strong> <code>VividLight</code>
+dramatically increases color saturation in midtones due to burn and
+dodge formulas. <code>PinLight</code> does not amplify saturation; it
+only overwrites hue and luminance values directly where thresholds are
+met.</li>
+<li><strong>Noise and Texture:</strong> <code>VividLight</code>
+intensifies textures, grain, and micro-contrast. <code>PinLight</code>
+tends to suppress fine textures in the destination layer, flattening
+regions that fall beneath or above the source layer's control
+thresholds.</li>
+</ul>
+<h3 id="imagemagick-command-usage">ImageMagick Command Usage</h3>
+<p>Both operators are invoked using the <code>-compose</code> setting
+followed by <code>-composite</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using VividLight</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> VividLight <span class="at">-composite</span> output_vivid.png</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Using PinLight</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> PinLight <span class="at">-composite</span> output_pin.png</span></code></pre></div>
+<p>In summary, choose <code>VividLight</code> in ImageMagick when you
+need harsh, vivid lighting with amplified contrast and saturation, and
+choose <code>PinLight</code> when you want to selectively clip
+highlights, crush shadows, or produce posterized composite effects.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

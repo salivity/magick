@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Force BigTIFF in ImageMagick - magick</title>
+    <meta name="description" content="Standard TIFF files rely on 32-bit offsets, creating an architectural limit that restricts file sizes to 4 GB (and frequently causes errors at 2 GB depending on how unsigned offsets are handled). To overcome this, the BigTIFF specification uses 64-bit of">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-force-bigtiff-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Force BigTIFF in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-force-bigtiff-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Standard TIFF files rely on 32-bit offsets, creating an architectural limit that restricts file sizes to 4 GB (and frequently causes errors at 2 GB depending on how unsigned offsets are handled). To overcome this, the BigTIFF specification uses 64-bit of" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-force-bigtiff-in-imagemagick">How to Force BigTIFF in
+ImageMagick</h1>
+<p>Standard TIFF files rely on 32-bit offsets, creating an architectural
+limit that restricts file sizes to 4 GB (and frequently causes errors at
+2 GB depending on how unsigned offsets are handled). To overcome this,
+the BigTIFF specification uses 64-bit offsets to support massive raster
+datasets. This guide covers the precise ImageMagick commands and
+definitions required to force the generation of BigTIFF format headers
+for large files.</p>
+<h2 id="the-bigtiff-format-option">The BigTIFF Format Option</h2>
+<p>By default, ImageMagick uses standard 32-bit TIFF headers unless
+instructed otherwise. To force ImageMagick to write 64-bit BigTIFF
+headers, use the <code>-define tiff:bigtiff=yes</code> setting or
+specify the format prefix directly in the output filename.</p>
+<h3 id="method-1-using-the--define-option-recommended">Method 1: Using
+the <code>-define</code> Option (Recommended)</h3>
+<p>The most robust way to force BigTIFF creation across various
+ImageMagick operations is to pass the <code>tiff:bigtiff=yes</code>
+define flag.</p>
+<p><strong>ImageMagick 7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.ext <span class="at">-define</span> tiff:bigtiff=yes output.tif</span></code></pre></div>
+<p><strong>ImageMagick 6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.ext <span class="at">-define</span> tiff:bigtiff=yes output.tif</span></code></pre></div>
+<p>You can pass <code>yes</code>, <code>true</code>, or <code>on</code>
+to enable the option. If set to <code>no</code>, standard 32-bit offsets
+are enforced instead.</p>
+<h3 id="method-2-using-the-format-prefix">Method 2: Using the Format
+Prefix</h3>
+<p>ImageMagick allows you to declare the output format explicitly by
+prefixing the destination file path with either <code>BIGTIFF:</code> or
+<code>TIFF64:</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.ext BIGTIFF:output.tif</span></code></pre></div>
+<p>or</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.ext TIFF64:output.tif</span></code></pre></div>
+<p>This method overrides the file extension's default behavior and
+forces the LibTIFF delegate to initialize the file with the 64-bit
+BigTIFF header structure from the start of the write operation.</p>
+<h2 id="recommended-settings-for-large-files">Recommended Settings for
+Large Files</h2>
+<p>When generating TIFFs large enough to require BigTIFF (over 2 GB to 4
+GB), combine the command with compression and tiling to prevent memory
+exhaustion and optimize read performance:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.ext <span class="at">-define</span> tiff:bigtiff=yes <span class="at">-define</span> tiff:tile-geometry=256x256 <span class="at">-compress</span> lzw output.tif</span></code></pre></div>
+<ul>
+<li><code>-compress lzw</code> or <code>-compress zip</code>: Reduces
+output size significantly compared to uncompressed raw pixels.</li>
+<li><code>-define tiff:tile-geometry=256x256</code>: Organizes pixels
+into accessible blocks rather than massive single strips, which is
+standard practice for large-format imagery.</li>
+</ul>
+<h2 id="verifying-the-output">Verifying the Output</h2>
+<p>To verify that the output file contains the BigTIFF structure rather
+than standard TIFF headers, use the <code>tiffinfo</code> utility
+provided by LibTIFF:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tiffinfo</span> output.tif</span></code></pre></div>
+<p>A properly forced file will explicitly state that it is a BigTIFF
+(ClassicTIFF vs. BigTIFF) in the header metadata output.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

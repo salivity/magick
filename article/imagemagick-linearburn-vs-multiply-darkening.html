@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick LinearBurn vs Multiply Darkening - magick</title>
+    <meta name="description" content="Both LinearBurn and Multiply are darkening compositing operators in ImageMagick, but they manipulate color channels using fundamentally different mathematical formulas. While Multiply reduces brightness proportionally by multiplying pixel values, LinearB">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-linearburn-vs-multiply-darkening">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick LinearBurn vs Multiply Darkening - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-linearburn-vs-multiply-darkening" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Both LinearBurn and Multiply are darkening compositing operators in ImageMagick, but they manipulate color channels using fundamentally different mathematical formulas. While Multiply reduces brightness proportionally by multiplying pixel values, LinearB" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-linearburn-vs-multiply-darkening">ImageMagick
+LinearBurn vs Multiply Darkening</h1>
+<p>Both <code>LinearBurn</code> and <code>Multiply</code> are darkening
+compositing operators in ImageMagick, but they manipulate color channels
+using fundamentally different mathematical formulas. While
+<code>Multiply</code> reduces brightness proportionally by multiplying
+pixel values, <code>LinearBurn</code> darkens an image through linear
+subtraction. This difference causes <code>LinearBurn</code> to produce
+far deeper shadows, higher contrast, and aggressive clipping to pure
+black compared to the smoother, more gradual darkening of
+<code>Multiply</code>.</p>
+<h3 id="the-mathematical-difference">The Mathematical Difference</h3>
+<p>To understand how each operator darkens an image, assume pixel color
+values are normalized on a scale from <span
+class="math inline">\(0.0\)</span> (pure black) to <span
+class="math inline">\(1.0\)</span> (pure white):</p>
+<ul>
+<li><strong>Multiply:</strong> <span
+class="math display">\[\text{Result} = A \times B\]</span></li>
+<li><strong>LinearBurn:</strong> <span
+class="math display">\[\text{Result} = A + B - 1 \quad (\text{clamped at
+} 0.0)\]</span></li>
+</ul>
+<p>In both methods, pure white (<span
+class="math inline">\(1.0\)</span>) acts as a neutral identity color
+that produces no change:</p>
+<ul>
+<li><span class="math inline">\(A \times 1.0 = A\)</span></li>
+<li><span class="math inline">\(A + 1.0 - 1.0 = A\)</span></li>
+</ul>
+<p>However, their treatment of any value lower than <span
+class="math inline">\(1.0\)</span> diverges sharply.</p>
+<h3 id="shadow-clipping-and-pure-black">Shadow Clipping and Pure
+Black</h3>
+<p>The most noticeable difference between the two operators is how
+quickly they push pixels to pure black:</p>
+<ul>
+<li><strong>Multiply preserves shadow details:</strong> Because it
+relies on multiplication, the result can only reach pure black (<span
+class="math inline">\(0.0\)</span>) if at least one of the input pixels
+is already pure black. Combining two dark pixels (for example, <span
+class="math inline">\(0.2 \times 0.2\)</span>) yields <span
+class="math inline">\(0.04\)</span>. Although dark, tonal variation and
+image data are still retained.</li>
+<li><strong>LinearBurn crushes shadows:</strong> Because it subtracts
+the inverted blend value from the base image (<span
+class="math inline">\(A - (1 - B)\)</span>), any pixel pair whose sum is
+less than or equal to <span class="math inline">\(1.0\)</span> is
+clipped directly to <span class="math inline">\(0.0\)</span>. Combining
+the same two <span class="math inline">\(0.2\)</span> pixels results in
+<span class="math inline">\(0.2 + 0.2 - 1.0 = -0.6\)</span>, which
+clamps to <span class="math inline">\(0.0\)</span>. As a consequence,
+large portions of midtones and shadows collapse entirely into pure
+black.</li>
+</ul>
+<h3 id="midtone-compression-and-contrast">Midtone Compression and
+Contrast</h3>
+<p><code>Multiply</code> darkens the image with a smooth, curved
+falloff. Midtones blend proportionally without drastically skewing the
+overall dynamic range of the image. The result resembles looking through
+two overlapping photographic slides, which preserves the relative tonal
+relationships across the canvas.</p>
+<p><code>LinearBurn</code> reduces brightness linearly, which increases
+perceived contrast and saturation before pixels clip to black. It
+removes brightness uniformly rather than scaling it down, making midtone
+areas darken much faster relative to standard <code>Multiply</code>.</p>
+<h3 id="summary-of-behavioral-differences">Summary of Behavioral
+Differences</h3>
+<ul>
+<li><strong>Rate of Darkening:</strong> <code>LinearBurn</code> darkens
+significantly faster and harsher across all non-white values than
+<code>Multiply</code>.</li>
+<li><strong>Shadow Detail:</strong> <code>Multiply</code> retains subtle
+details within dark regions, whereas <code>LinearBurn</code> frequently
+clips shadows to pure black.</li>
+<li><strong>Contrast:</strong> <code>LinearBurn</code> significantly
+boosts image contrast and saturation, while <code>Multiply</code>
+produces a balanced, natural-looking shadow blend.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

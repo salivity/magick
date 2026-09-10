@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Laplacian of Gaussian Edge Detection - magick</title>
+    <meta name="description" content="This article provides an overview of how ImageMagick implements Laplacian of Gaussian (LoG) edge detection. It covers the underlying mathematical principles, how ImageMagick utilizes kernel convolution through its morphology engine, the Difference of Gau">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-laplacian-of-gaussian-edge-detection">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Laplacian of Gaussian Edge Detection - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-laplacian-of-gaussian-edge-detection" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of how ImageMagick implements Laplacian of Gaussian (LoG) edge detection. It covers the underlying mathematical principles, how ImageMagick utilizes kernel convolution through its morphology engine, the Difference of Gau" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-laplacian-of-gaussian-edge-detection">ImageMagick
+Laplacian of Gaussian Edge Detection</h1>
+<p>This article provides an overview of how ImageMagick implements
+Laplacian of Gaussian (LoG) edge detection. It covers the underlying
+mathematical principles, how ImageMagick utilizes kernel convolution
+through its morphology engine, the Difference of Gaussians (DoG)
+approximation, and the specific command-line parameters required to
+process edges and manage zero-crossing intensity ranges.</p>
+<h2 id="the-log-algorithm-concept">The LoG Algorithm Concept</h2>
+<p>Laplacian of Gaussian (LoG) is a two-step edge detection method
+combined into a single convolution operation:</p>
+<ol type="1">
+<li><strong>Gaussian Smoothing:</strong> Filters out high-frequency
+noise from an image.</li>
+<li><strong>Laplacian Operator:</strong> Calculates the second spatial
+derivative of the smoothed image to identify areas of rapid intensity
+change.</li>
+</ol>
+<p>Edges appear at "zero-crossings," where the second derivative changes
+sign from positive to negative.</p>
+<h2 id="kernel-generation-in-imagemagick">Kernel Generation in
+ImageMagick</h2>
+<p>ImageMagick implements LoG through its morphology convolution engine
+(<code>-morphology Convolve</code>). When a user requests a LoG kernel,
+ImageMagick dynamically generates a discretized, circularly symmetric
+Mexican Hat kernel using the formula:</p>
+<p><span class="math display">\[\text{LoG}(x, y) = -\frac{1}{\pi
+\sigma^4} \left( 1 - \frac{x^2 + y^2}{2\sigma^2} \right) e^{-\frac{x^2 +
+y^2}{2\sigma^2}}\]</span></p>
+<p>In the CLI, the kernel is defined as <code>LoG:radius,sigma</code>.
+If <code>radius</code> is set to <code>0</code>, ImageMagick
+automatically computes a radius of approximately <span
+class="math inline">\(3 \times \sigma\)</span> to ensure the kernel
+covers the full bell-curve distribution.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;LoG:0,1.5&quot;</span> output.png</span></code></pre></div>
+<h2 id="difference-of-gaussians-dog-approximation">Difference of
+Gaussians (DoG) Approximation</h2>
+<p>Because true LoG calculations can be computationally intensive,
+ImageMagick also provides a Difference of Gaussians (DoG) kernel. DoG
+approximates the LoG operator by subtracting one Gaussian-blurred
+version of the image from another with a different standard deviation
+(<span class="math inline">\(\sigma_1\)</span> and <span
+class="math inline">\(\sigma_2\)</span>):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;DoG:0,1.0,2.0&quot;</span> output.png</span></code></pre></div>
+<p>ImageMagick implements DoG internally by calculating two Gaussian
+matrices, subtracting the second from the first, and normalizing the
+matrix sum to zero.</p>
+<h2 id="handling-negative-values-and-zero-crossings">Handling Negative
+Values and Zero-Crossings</h2>
+<p>Because the Laplacian represents a second derivative, convolution
+generates both positive and negative values:</p>
+<ul>
+<li><strong>Zero-Crossings:</strong> Represent true edge locations.</li>
+<li><strong>Quantum Range Management:</strong> Since standard image
+formats (like PNG or JPEG) cannot store negative numbers, ImageMagick
+biases the convolution output. A value of zero in the derivative is
+mapped to the mid-point of the color quantum depth (50% gray), positive
+derivatives become brighter, and negative derivatives become
+darker.</li>
+</ul>
+<p>To isolate true edges from this output, a high-pass threshold or
+zero-crossing edge detector is typically chained after the
+convolution:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve <span class="st">&quot;LoG:0,1.5&quot;</span> <span class="at">-auto-level</span> <span class="at">-threshold</span> 50% output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

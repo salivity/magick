@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limit Disk Cache in ImageMagick policy.xml - magick</title>
+    <meta name="description" content="This guide explains how to restrict the maximum disk cache allocation in ImageMagick by configuring resource boundaries in the policy.xml file. By default, when image operations exceed physical memory and memory-mapped files, ImageMagick offloads pixel c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/limit-disk-cache-in-imagemagick-policy-xml">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Limit Disk Cache in ImageMagick policy.xml - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/limit-disk-cache-in-imagemagick-policy-xml" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to restrict the maximum disk cache allocation in ImageMagick by configuring resource boundaries in the policy.xml file. By default, when image operations exceed physical memory and memory-mapped files, ImageMagick offloads pixel c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="limit-disk-cache-in-imagemagick-policyxml">Limit Disk Cache in
+ImageMagick policy.xml</h1>
+<p>This guide explains how to restrict the maximum disk cache allocation
+in ImageMagick by configuring resource boundaries in the
+<code>policy.xml</code> file. By default, when image operations exceed
+physical memory and memory-mapped files, ImageMagick offloads pixel
+cache data to temporary disk storage. Without explicit limits, this
+behavior can exhaust available drive space and lead to server crashes.
+The following instructions provide the exact configuration needed to
+enforce a hard cap on disk cache usage.</p>
+<h2 id="locate-the-policyxml-file">Locate the policy.xml File</h2>
+<p>The <code>policy.xml</code> configuration file controls security
+policies and system resource allocations for ImageMagick. Its location
+depends on your operating system and ImageMagick version:</p>
+<ul>
+<li><strong>Ubuntu / Debian (ImageMagick 7):</strong>
+<code>/etc/ImageMagick-7/policy.xml</code></li>
+<li><strong>Ubuntu / Debian (ImageMagick 6):</strong>
+<code>/etc/ImageMagick-6/policy.xml</code></li>
+<li><strong>RHEL / CentOS / AlmaLinux:</strong>
+<code>/etc/ImageMagick/policy.xml</code></li>
+<li><strong>macOS (Homebrew):</strong>
+<code>/opt/homebrew/etc/ImageMagick-7/policy.xml</code> or
+<code>/usr/local/etc/ImageMagick-7/policy.xml</code></li>
+</ul>
+<p>Open the file in a text editor with root or administrative
+privileges:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/ImageMagick-6/policy.xml</span></code></pre></div>
+<h2 id="configure-the-disk-cache-limit">Configure the Disk Cache
+Limit</h2>
+<p>Within the <code>&lt;policymap&gt;</code> tags, look for a policy
+directive defining the <code>disk</code> resource. If it does not exist,
+you can add it directly above the closing
+<code>&lt;/policymap&gt;</code> tag.</p>
+<p>To set a limit, define the <code>domain</code>, <code>name</code>,
+and <code>value</code> attributes. For example, to restrict
+ImageMagick's temporary disk cache to 2 Gigabytes:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;2GiB&quot;</span>/&gt;</span></code></pre></div>
+<p>Supported units include:</p>
+<ul>
+<li><code>B</code> (Bytes)</li>
+<li><code>KB</code> / <code>KiB</code> (Kilobytes)</li>
+<li><code>MB</code> / <code>MiB</code> (Megabytes)</li>
+<li><code>GB</code> / <code>GiB</code> (Gigabytes)</li>
+</ul>
+<p>To disable disk caching entirely—forcing ImageMagick to fail
+immediately rather than using the hard drive when RAM is exhausted—set
+the value to <code>0</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;0&quot;</span>/&gt;</span></code></pre></div>
+<p>Save the file and exit the editor. Changes take effect immediately
+without requiring a daemon restart.</p>
+<h2 id="verify-the-resource-limit">Verify the Resource Limit</h2>
+<p>Confirm that ImageMagick recognizes the newly applied limit by
+querying the active resource policies using the terminal:</p>
+<p>For ImageMagick 7:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> resource</span></code></pre></div>
+<p>For ImageMagick 6:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">identify</span> <span class="at">-list</span> resource</span></code></pre></div>
+<p>Look for the <code>Disk</code> line in the output:</p>
+<pre class="text"><code>Resource limits:
+  Width: 16KP
+  Height: 16KP
+  List length: 18.446744EP
+  Area: 128MP
+  Memory: 1GiB
+  Map: 2GiB
+  Disk: 2GiB
+  ...</code></pre>
+<p>The output should match the value specified in your
+<code>policy.xml</code>. Once this threshold is reached during
+processing, ImageMagick will stop allocating temporary disk space and
+throw a <code>CacheResourcesExhausted</code> exception, safeguarding the
+host system against disk exhaustion.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

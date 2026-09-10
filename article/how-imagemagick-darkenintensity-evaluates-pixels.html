@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick DarkenIntensity Evaluates Pixels - magick</title>
+    <meta name="description" content="This article provides a technical overview of how ImageMagick's DarkenIntensity compositing operator evaluates and renders pixel data in multi-layer composites. It details the underlying mathematical model, compares its whole-pixel selection behavior aga">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-darkenintensity-evaluates-pixels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick DarkenIntensity Evaluates Pixels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-darkenintensity-evaluates-pixels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a technical overview of how ImageMagick's DarkenIntensity compositing operator evaluates and renders pixel data in multi-layer composites. It details the underlying mathematical model, compares its whole-pixel selection behavior aga" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-darkenintensity-evaluates-pixels">How
+ImageMagick DarkenIntensity Evaluates Pixels</h1>
+<p>This article provides a technical overview of how ImageMagick's
+<code>DarkenIntensity</code> compositing operator evaluates and renders
+pixel data in multi-layer composites. It details the underlying
+mathematical model, compares its whole-pixel selection behavior against
+standard channel-by-channel compositing methods, and explains how alpha
+transparency and luminance metrics influence final output values across
+image layers.</p>
+<h3 id="the-fundamental-logic-of-darkenintensity">The Fundamental Logic
+of DarkenIntensity</h3>
+<p>In digital image compositing, the standard <code>Darken</code>
+operator evaluates pixels on a per-channel basis. For an RGB image, it
+independently compares red to red, green to green, and blue to blue,
+keeping the lowest numerical value for each channel. While
+mathematically straightforward, this per-channel comparison often
+produces unexpected hues and artifacts because the resulting color may
+be a hybrid mixture that did not exist in either source layer.</p>
+<p>The <code>DarkenIntensity</code> operator solves this problem by
+treating the pixel as an indivisible color unit. Instead of splitting
+pixel data across independent color channels,
+<code>DarkenIntensity</code> computes a single scalar intensity
+(luminance) value for both the source (overlay) pixel and the
+destination (background) pixel. It then compares these two scalar values
+and selects the entire color vector—red, green, and blue together—from
+whichever pixel possesses the lower overall intensity.</p>
+<h3 id="the-luminance-calculation">The Luminance Calculation</h3>
+<p>To determine which pixel is darker, ImageMagick converts the color
+information of each pixel into an intensity value using standard
+photometric weighting. Under typical sRGB or linear RGB profiles, the
+intensity (<span class="math inline">\(Y\)</span>) is computed using
+standardized luma coefficients:</p>
+<p><span class="math display">\[Y = 0.299R + 0.587G +
+0.114B\]</span></p>
+<p>Depending on the active colorspace and ImageMagick compilation
+settings (such as Rec709 or Rec601 standards), the exact weights
+assigned to red, green, and blue may vary slightly, but green
+consistently carries the highest perceptual weight due to the human
+visual system's sensitivity.</p>
+<h3 id="pixel-evaluation-and-selection">Pixel Evaluation and
+Selection</h3>
+<p>During a composite operation between a destination image (<span
+class="math inline">\(D\)</span>) and a source image (<span
+class="math inline">\(S\)</span>), the evaluation follows this
+conditional logic for every overlapping pixel:</p>
+<ol type="1">
+<li><strong>Calculate Intensities:</strong> Compute <span
+class="math inline">\(Y_S\)</span> for the source pixel and <span
+class="math inline">\(Y_D\)</span> for the destination pixel.</li>
+<li><strong>Compare Values:</strong> Compare <span
+class="math inline">\(Y_S\)</span> against <span
+class="math inline">\(Y_D\)</span>.</li>
+<li><strong>Assign Color Output:</strong>
+<ul>
+<li>If <span class="math inline">\(Y_S &lt; Y_D\)</span>, the output
+color <span class="math inline">\((R_{out}, G_{out}, B_{out})\)</span>
+is taken directly from the source: <span class="math inline">\((R_S,
+G_S, B_S)\)</span>.</li>
+<li>If <span class="math inline">\(Y_S \ge Y_D\)</span>, the output
+color <span class="math inline">\((R_{out}, G_{out}, B_{out})\)</span>
+remains the destination value: <span class="math inline">\((R_D, G_D,
+B_D)\)</span>.</li>
+</ul></li>
+</ol>
+<p>Because the entire RGB triplet is preserved from the winning pixel,
+<code>DarkenIntensity</code> prevents the hue shifting and chromatic
+distortions common to standard minimum-channel operations.</p>
+<h3 id="handling-alpha-channels">Handling Alpha Channels</h3>
+<p>When layers contain transparency, ImageMagick applies the intensity
+comparison to the color components while scaling the final result by the
+respective alpha values.</p>
+<p>If a pixel has partial opacity, the intensity comparison determines
+the target color, and the standard over-compositing algebra blends the
+source and destination according to their coverage:</p>
+<p><span class="math display">\[\alpha_{out} = \alpha_S + \alpha_D \cdot
+(1 - \alpha_S)\]</span></p>
+<p>If the source pixel is completely transparent (<span
+class="math inline">\(\alpha_S = 0\)</span>), the destination pixel
+remains unaltered regardless of theoretical intensity differences. When
+both pixels possess partial transparency, the operator evaluates the
+premultiplied color values to ensure that transparent regions do not
+artificially evaluate as black (zero intensity).</p>
+<h3 id="behavior-in-multi-layer-stacks">Behavior in Multi-Layer
+Stacks</h3>
+<p>When processing more than two layers, ImageMagick applies the
+<code>DarkenIntensity</code> operation sequentially down the layer
+stack:</p>
+<ol type="1">
+<li>The first layer serves as the initial destination (<span
+class="math inline">\(D\)</span>).</li>
+<li>The second layer acts as the source (<span
+class="math inline">\(S\)</span>), generating an intermediate composite
+image based on the intensity comparison.</li>
+<li>Each subsequent layer acts as a new source against the accumulated
+composite, progressively retaining the lowest-intensity pixel at every
+coordinate across the entire stack.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

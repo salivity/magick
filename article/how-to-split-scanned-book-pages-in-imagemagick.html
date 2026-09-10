@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Split Scanned Book Pages in ImageMagick - magick</title>
+    <meta name="description" content="Digitizing books often results in double-page spreads where two facing pages are captured within a single image file. Splitting these spreads into individual, sequential pages is essential for standard PDF creation and e-readers. ImageMagick allows you t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-split-scanned-book-pages-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Split Scanned Book Pages in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-split-scanned-book-pages-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Digitizing books often results in double-page spreads where two facing pages are captured within a single image file. Splitting these spreads into individual, sequential pages is essential for standard PDF creation and e-readers. ImageMagick allows you t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-split-scanned-book-pages-in-imagemagick">How to Split
+Scanned Book Pages in ImageMagick</h1>
+<p>Digitizing books often results in double-page spreads where two
+facing pages are captured within a single image file. Splitting these
+spreads into individual, sequential pages is essential for standard PDF
+creation and e-readers. ImageMagick allows you to automate this process
+via the command line by dividing the image directly down the center and
+outputting the halves in correct reading order.</p>
+<h3 id="basic-command-for-a-single-spread">Basic Command for a Single
+Spread</h3>
+<p>To cut a two-page scan vertically into two equal halves (left page
+first, right page second), use the following ImageMagick command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_spread.jpg <span class="at">-crop</span> 50%x100% +repage page_%03d.jpg</span></code></pre></div>
+<p><em>(Note: If you are using ImageMagick v6 or earlier, replace
+<code>magick</code> with <code>convert</code>.)</em></p>
+<h3 id="explanation-of-parameters">Explanation of Parameters</h3>
+<ul>
+<li><strong><code>input_spread.jpg</code></strong>: The source image
+containing the two-page scan.</li>
+<li><strong><code>-crop 50%x100%</code></strong>: Instructs ImageMagick
+to divide the image horizontally into two 50% wide sections while
+maintaining 100% of the original height.</li>
+<li><strong><code>+repage</code></strong>: Resets the canvas coordinates
+(virtual canvas metadata) so each generated image behaves as a
+standalone file.</li>
+<li><strong><code>page_%03d.jpg</code></strong>: The output naming
+template. The <code>%03d</code> format specifier generates sequential,
+zero-padded numbering (e.g., <code>page_000.jpg</code> for the left page
+and <code>page_001.jpg</code> for the right page).</li>
+</ul>
+<h3 id="handling-right-to-left-rtl-book-layouts">Handling Right-to-Left
+(RTL) Book Layouts</h3>
+<p>For right-to-left reading materials (such as manga or Arabic/Hebrew
+texts), the right side of the spread is read before the left side. You
+can reverse the resulting layer order using the <code>-reverse</code>
+operator before saving:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> rtl_spread.jpg <span class="at">-crop</span> 50%x100% +repage <span class="at">-reverse</span> page_%03d.jpg</span></code></pre></div>
+<p>This ensures the right-hand page is output as the first sequential
+image and the left-hand page as the second.</p>
+<h3 id="batch-processing-multiple-spreads">Batch Processing Multiple
+Spreads</h3>
+<p>To process an entire folder of scanned spreads while maintaining
+chronological sequence, run a simple loop in your terminal:</p>
+<p><strong>Linux / macOS (Bash/Zsh):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">counter</span><span class="op">=</span>1</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-crop</span> 50%x100% +repage temp_%d.jpg</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mv</span> temp_0.jpg <span class="st">&quot;page_</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;%04d&quot;</span> <span class="va">$counter)</span><span class="st">.jpg&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">counter</span><span class="op">=</span><span class="va">$((counter</span> <span class="op">+</span> <span class="dv">1</span><span class="va">))</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mv</span> temp_1.jpg <span class="st">&quot;page_</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;%04d&quot;</span> <span class="va">$counter)</span><span class="st">.jpg&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="va">counter</span><span class="op">=</span><span class="va">$((counter</span> <span class="op">+</span> <span class="dv">1</span><span class="va">))</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p><strong>Windows (Command Prompt):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">setlocal</span> enabledelayedexpansion</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">/a</span> <span class="va">counter</span><span class="op">=</span><span class="dv">1</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="va">%%f</span> <span class="kw">in</span> <span class="kw">(</span>*.jpg<span class="kw">)</span> <span class="kw">do</span> <span class="kw">(</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    magick <span class="st">&quot;</span><span class="sc">%%</span><span class="va">f</span><span class="st">&quot;</span> <span class="at">-crop</span> 50<span class="pp">%</span><span class="va">x100</span><span class="pp">%</span> +repage temp_<span class="sc">%%</span><span class="va">d</span>.jpg</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="pp">!</span><span class="va">counter</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="pp">!</span><span class="va">counter</span><span class="pp">!</span> <span class="kw">lss</span> 10 <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="st">0</span><span class="pp">!</span><span class="va">counter</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="pp">!</span><span class="va">counter</span><span class="pp">!</span> <span class="kw">lss</span> 100 <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="st">0</span><span class="pp">!</span><span class="va">formatted</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">ren</span> temp_0.jpg <span class="st">&quot;page_</span><span class="pp">!</span><span class="va">formatted</span><span class="pp">!</span><span class="st">.jpg&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="at">/a</span> <span class="va">counter</span><span class="op">+=</span><span class="dv">1</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="pp">!</span><span class="va">counter</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="pp">!</span><span class="va">counter</span><span class="pp">!</span> <span class="kw">lss</span> 10 <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="st">0</span><span class="pp">!</span><span class="va">counter</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="pp">!</span><span class="va">counter</span><span class="pp">!</span> <span class="kw">lss</span> 100 <span class="bu">set</span> <span class="st">&quot;</span><span class="va">formatted</span>=<span class="st">0</span><span class="pp">!</span><span class="va">formatted</span><span class="pp">!</span><span class="st">&quot;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">ren</span> temp_1.jpg <span class="st">&quot;page_</span><span class="pp">!</span><span class="va">formatted</span><span class="pp">!</span><span class="st">.jpg&quot;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="at">/a</span> <span class="va">counter</span><span class="op">+=</span><span class="dv">1</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="kw">)</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Gaussian Kernel Radius and Sigma in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to define and configure a discrete Gaussian kernel's radius and sigma in ImageMagick. You will learn the exact syntax for specifying these values, the mathematical difference between radius and sigma, and how to apply them using s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-gaussian-kernel-radius-and-sigma-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set Gaussian Kernel Radius and Sigma in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-gaussian-kernel-radius-and-sigma-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to define and configure a discrete Gaussian kernel's radius and sigma in ImageMagick. You will learn the exact syntax for specifying these values, the mathematical difference between radius and sigma, and how to apply them using s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-gaussian-kernel-radius-and-sigma-in-imagemagick">Set
+Gaussian Kernel Radius and Sigma in ImageMagick</h1>
+<p>This guide explains how to define and configure a discrete Gaussian
+kernel's radius and sigma in ImageMagick. You will learn the exact
+syntax for specifying these values, the mathematical difference between
+radius and sigma, and how to apply them using standard blur operations
+and custom convolution kernels.</p>
+<h2 id="the-radius-x-sigma-syntax">The Radius x Sigma Syntax</h2>
+<p>In ImageMagick, Gaussian kernels are defined using the geometry
+format <code>{radius}x{sigma}</code>.</p>
+<ul>
+<li><strong><code>sigma</code> (<span
+class="math inline">\(\sigma\)</span>):</strong> The standard deviation
+of the Gaussian distribution. It determines the actual spread or
+intensity of the blur. A higher sigma produces a wider curve and a
+stronger blur.</li>
+<li><strong><code>radius</code> (<span
+class="math inline">\(r\)</span>):</strong> The physical half-width of
+the discrete matrix window. The generated convolution matrix will have
+dimensions of <span class="math inline">\((2r + 1) \times (2r +
+1)\)</span> pixels.</li>
+</ul>
+<h2 id="basic-gaussian-blur-command">Basic Gaussian Blur Command</h2>
+<p>To apply a Gaussian filter directly to an image, use the
+<code>-gaussian-blur</code> or <code>-blur</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-gaussian-blur</span> 5x2 output.png</span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li>The kernel radius is <code>5</code>, creating an <span
+class="math inline">\(11 \times 11\)</span> matrix window (<span
+class="math inline">\(2 \times 5 + 1\)</span>).</li>
+<li>The sigma is <code>2.0</code>, defining the bell-curve spread inside
+that <span class="math inline">\(11 \times 11\)</span> area.</li>
+</ul>
+<h2 id="defining-a-gaussian-kernel-with-morphology">Defining a Gaussian
+Kernel with Morphology</h2>
+<p>To construct a specific discrete Gaussian matrix for convolution or
+morphology operations, use the <code>-morphology</code> operator:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Convolve Gaussian:5x2 output.png</span></code></pre></div>
+<p>You can also output the generated kernel values directly to the
+terminal for inspection by passing the kernel definition to the
+<code>showkernel</code> format:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> morphology:showkernel=1 <span class="at">-morphology</span> Convolve Gaussian:3x1.5 null:</span></code></pre></div>
+<h2 id="automatic-radius-calculation">Automatic Radius Calculation</h2>
+<p>If you set the radius to <code>0</code>, ImageMagick automatically
+calculates an optimal matrix size based on the provided sigma:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-gaussian-blur</span> 0x3 output.png</span></code></pre></div>
+<p>When <code>radius</code> is set to <code>0</code>, ImageMagick
+typically sets the radius to approximately <span class="math inline">\(3
+\times \sigma\)</span> or <span class="math inline">\(4 \times
+\sigma\)</span>. This ensures that the discrete array is large enough to
+capture roughly 99.7% or more of the Gaussian curve, preventing harsh
+edge cutoffs while avoiding unnecessary matrix computations.</p>
+<h2 id="key-considerations-for-discrete-kernels">Key Considerations for
+Discrete Kernels</h2>
+<ol type="1">
+<li><strong>Clipping:</strong> If the radius is set too small relative
+to the sigma (e.g., <code>radius = 1, sigma = 5</code>), the Gaussian
+curve will be clipped prematurely, leading to hard edges and clipping
+artifacts.</li>
+<li><strong>Performance:</strong> Increasing the radius expands the
+matrix size quadratically. For large blurs, relying on a fixed sigma
+with <code>radius = 0</code> allows ImageMagick to balance performance
+and visual quality.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

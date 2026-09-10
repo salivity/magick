@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Ephemeral Coder Security Risks - magick</title>
+    <meta name="description" content="The ImageMagick ephemeral coder is a built-in pseudo-protocol designed to automatically delete a source file immediately after reading it, introducing severe security vulnerabilities when used in environments that process untrusted user input. If an appl">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-ephemeral-coder-security-risks">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Ephemeral Coder Security Risks - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-ephemeral-coder-security-risks" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick ephemeral coder is a built-in pseudo-protocol designed to automatically delete a source file immediately after reading it, introducing severe security vulnerabilities when used in environments that process untrusted user input. If an appl" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-ephemeral-coder-security-risks">ImageMagick
+Ephemeral Coder Security Risks</h1>
+<p>The ImageMagick <code>ephemeral</code> coder is a built-in
+pseudo-protocol designed to automatically delete a source file
+immediately after reading it, introducing severe security
+vulnerabilities when used in environments that process untrusted user
+input. If an application fails to properly sanitize input paths or file
+formats passed to ImageMagick commands, attackers can exploit this
+feature to perform unauthorized, arbitrary file deletions on the host
+system. This article examines how the <code>ephemeral</code> coder
+works, the primary risks it creates—such as denial of service and system
+compromise—and how to effectively mitigate these threats.</p>
+<h3 id="how-the-ephemeral-coder-works">How the Ephemeral Coder
+Works</h3>
+<p>ImageMagick supports numerous protocols and format delegates via
+prefixes. The <code>ephemeral:</code> prefix instructs the software to
+treat the designated file as temporary. Once ImageMagick finishes
+reading and loading the file into memory, it invokes an unlinking
+routine to delete the original file from the disk.</p>
+<p>Under normal circumstances, developers use this behavior to clean up
+transient files generated during multi-step image processing pipelines.
+However, when the file path or image specification string is influenced
+by an external user, the intended utility turns into a destructive
+mechanism.</p>
+<h3 id="arbitrary-file-deletion">Arbitrary File Deletion</h3>
+<p>The most critical risk associated with the <code>ephemeral</code>
+coder is arbitrary file deletion. If an application accepts a filename,
+URL, or image processing instruction from a user and passes it directly
+to an ImageMagick operation (such as <code>convert</code> or
+<code>magick</code>), an attacker can prepend the
+<code>ephemeral:</code> scheme to a critical system or application
+path.</p>
+<p>For example, supplying an input such as:</p>
+<pre class="text"><code>ephemeral:/var/www/html/config.php</code></pre>
+<p>instructs ImageMagick to read the target file and promptly delete it
+from the server's filesystem, subject to the file permissions of the
+running process.</p>
+<h3 id="exploitation-vectors">Exploitation Vectors</h3>
+<p>Attackers can trigger the <code>ephemeral</code> coder through
+various attack vectors:</p>
+<ul>
+<li><strong>Direct Filename Injection:</strong> Web applications
+allowing users to specify a source image path or select an image from a
+list can be manipulated if parameters are concatenated directly into
+command-line executions or API calls without validation.</li>
+<li><strong>Embedded Image Directives:</strong> Certain vector formats
+parsed by ImageMagick, such as SVG (Scalable Vector Graphics) or MVG
+(Magick Vector Graphics), allow embedded references to external images.
+An attacker can upload an SVG file containing an
+<code>&lt;image xlink:href="ephemeral:/path/to/target"&gt;</code> tag.
+When the server renders the SVG, the parser evaluates the reference and
+removes the specified file.</li>
+<li><strong>Chained Exploits:</strong> In complex exploit chains,
+attackers use arbitrary file deletion to disable security mechanisms.
+For instance, deleting <code>.htaccess</code> files, application lock
+files, or temporary firewall/rate-limiting tokens can pave the way for
+remote code execution or authentication bypass.</li>
+</ul>
+<h3 id="denial-of-service-and-system-destabilization">Denial of Service
+and System Destabilization</h3>
+<p>Arbitrary file deletion inherently causes denial of service (DoS).
+Even if the process lacks the root privileges required to delete
+operating system binaries, it frequently operates with sufficient
+permissions to delete:</p>
+<ul>
+<li>Application source code and script files.</li>
+<li>Database files (such as SQLite databases) or local session
+stores.</li>
+<li>Upload directories and media assets.</li>
+<li>Configuration files that cause the hosting web server or worker
+daemon to crash on subsequent reloads.</li>
+</ul>
+<h3 id="mitigation-strategies">Mitigation Strategies</h3>
+<p>To neutralize the risks posed by the <code>ephemeral</code> coder,
+systems running ImageMagick should implement the following defenses:</p>
+<ol type="1">
+<li><p><strong>Disable the Ephemeral Coder via Security
+Policy:</strong><br />
+The most robust solution is to modify ImageMagick's
+<code>policy.xml</code> file to explicitly forbid the
+<code>ephemeral</code> coder. Add the following rule within the
+<code>&lt;policymap&gt;</code> block:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;EPHEMERAL&quot;</span> /&gt;</span></code></pre></div></li>
+<li><p><strong>Input Validation and Whitelisting:</strong><br />
+Strictly validate all user-supplied filenames. Enforce strict character
+whitelists (e.g., alphanumeric characters only) and strip prefixes
+containing colons (<code>:</code>) to prevent the invocation of protocol
+schemes.</p></li>
+<li><p><strong>Apply the Principle of Least Privilege:</strong><br />
+Run ImageMagick processes under an unprivileged system account with
+minimal read and write access. Ensure the worker process does not have
+write or delete permissions over critical application files, source
+repositories, or configuration directories.</p></li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decode Fujifilm RAF Files Using ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to decode and convert Fujifilm RAF (raw) image files using ImageMagick. It covers the essential command-line syntax for both basic conversions and advanced raw processing, including white balance adjustments, color management, and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/decode-fujifilm-raf-files-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Decode Fujifilm RAF Files Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/decode-fujifilm-raf-files-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to decode and convert Fujifilm RAF (raw) image files using ImageMagick. It covers the essential command-line syntax for both basic conversions and advanced raw processing, including white balance adjustments, color management, and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="decode-fujifilm-raf-files-using-imagemagick">Decode Fujifilm RAF
+Files Using ImageMagick</h1>
+<p>This guide explains how to decode and convert Fujifilm RAF (raw)
+image files using ImageMagick. It covers the essential command-line
+syntax for both basic conversions and advanced raw processing, including
+white balance adjustments, color management, and delegate configuration
+using LibRaw or dcraw.</p>
+<h3 id="how-imagemagick-handles-raf-files">How ImageMagick Handles RAF
+Files</h3>
+<p>ImageMagick does not decode RAF files natively; it delegates raw
+decoding to external tools—primarily <strong>LibRaw</strong> or
+<strong>dcraw</strong>. Ensure that your ImageMagick build includes raw
+delegate support before running these commands. You can verify support
+by checking the output of <code>magick -version</code> or
+<code>magick -list configure</code> for <code>libraw</code> or
+<code>dng</code>.</p>
+<h3 id="basic-conversion-syntax">Basic Conversion Syntax</h3>
+<p>For ImageMagick 7, use the <code>magick</code> command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.RAF output.jpg</span></code></pre></div>
+<p>For ImageMagick 6, use the <code>convert</code> syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.RAF output.jpg</span></code></pre></div>
+<p>To preserve maximum bit depth, convert to a 16-bit format such as
+TIFF or PNG:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.RAF <span class="at">-depth</span> 16 output.tiff</span></code></pre></div>
+<h3 id="raw-processing-directives--define-dng">Raw Processing Directives
+(<code>-define dng:</code>)</h3>
+<p>Because ImageMagick passes raw files through its DNG/LibRaw delegate,
+you can control raw-specific decoding settings using the
+<code>-define dng:</code> prefixes. These must be placed
+<strong>before</strong> the input filename in ImageMagick 7.</p>
+<h4 id="1-white-balance-settings">1. White Balance Settings</h4>
+<p>Use camera white balance:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:use-camera-wb=true input.RAF output.jpg</span></code></pre></div>
+<p>Use automatic white balance calculated across the entire image:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:use-auto-wb=true input.RAF output.jpg</span></code></pre></div>
+<h4 id="2-demosaicing-and-quality">2. Demosaicing and Quality</h4>
+<p>Set the demosaicing interpolation quality (crucial for Fujifilm
+X-Trans and Bayer sensor patterns):</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:interpolation-quality=3 <span class="at">-define</span> dng:use-camera-wb=true input.RAF output.jpg</span></code></pre></div>
+<p><em>Value range is typically 0 to 4 (0 = linear, 3 = AHD, 4 = custom
+LibRaw modes).</em></p>
+<h4 id="3-color-space-and-gamut">3. Color Space and Gamut</h4>
+<p>Ensure the decoded image is converted to a standard color profile,
+preventing washed-out tones:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:use-camera-wb=true input.RAF <span class="at">-colorspace</span> sRGB <span class="at">-quality</span> 95 output.jpg</span></code></pre></div>
+<h4 id="4-faster-previews-half-size-decoding">4. Faster Previews
+(Half-Size Decoding)</h4>
+<p>For rapid batch processing or quick previews, decode at half
+resolution:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:read-half=true input.RAF preview.jpg</span></code></pre></div>
+<h3 id="complete-production-example">Complete Production Example</h3>
+<p>For an optimal balance of detail, color accuracy, and file quality,
+combine raw directives with standard output options:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:use-camera-wb=true <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-define</span> dng:interpolation-quality=3 <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>       input.RAF <span class="dt">\</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">-auto-orient</span> <span class="dt">\</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">-colorspace</span> sRGB <span class="dt">\</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">-quality</span> 92 <span class="dt">\</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>       output.jpg</span></code></pre></div>
+<ul>
+<li><code>-auto-orient</code>: Reads EXIF orientation flags to correct
+image rotation automatically.</li>
+<li><code>-quality 92</code>: Sets JPEG compression to high quality
+without excessive file size.</li>
+</ul>
+<h3 id="batch-conversion-syntax">Batch Conversion Syntax</h3>
+<p>To decode an entire directory of RAF files to JPEG on Unix-like
+systems (Linux, macOS):</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-format</span> jpg <span class="at">-define</span> dng:use-camera-wb=true <span class="at">-auto-orient</span> <span class="pp">*</span>.RAF</span></code></pre></div>
+<p>On Windows (PowerShell):</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">*.</span><span class="fu">RAF</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    magick <span class="op">-</span>define dng<span class="op">:</span>use-camera-wb<span class="op">=</span>true <span class="va">$_</span><span class="op">.</span><span class="fu">FullName</span> <span class="op">-</span>auto-orient <span class="st">&quot;</span><span class="op">$(</span><span class="va">$_</span><span class="op">.</span><span class="fu">BaseName</span><span class="op">)</span><span class="st">.jpg&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

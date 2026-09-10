@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clamping Pixels with Evaluate Min and Max in ImageMagick - magick</title>
+    <meta name="description" content="Clamping pixel values in ImageMagick restricts image channels to a specified lower and upper bound, effectively truncating extreme highlights and shadows without scaling the data in between. By combining the -evaluate Max and -evaluate Min operators in s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/clamping-pixels-with-evaluate-min-and-max-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Clamping Pixels with Evaluate Min and Max in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/clamping-pixels-with-evaluate-min-and-max-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Clamping pixel values in ImageMagick restricts image channels to a specified lower and upper bound, effectively truncating extreme highlights and shadows without scaling the data in between. By combining the -evaluate Max and -evaluate Min operators in s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="clamping-pixels-with-evaluate-min-and-max-in-imagemagick">Clamping
+Pixels with Evaluate Min and Max in ImageMagick</h1>
+<p>Clamping pixel values in ImageMagick restricts image channels to a
+specified lower and upper bound, effectively truncating extreme
+highlights and shadows without scaling the data in between. By combining
+the <code>-evaluate Max</code> and <code>-evaluate Min</code> operators
+in sequence, you can set absolute floor and ceiling thresholds for your
+pixels. This guide details the command-line syntax, explains the
+operational logic of the <code>Min</code> and <code>Max</code> evaluate
+operators, and demonstrates how to apply bounds across specific channels
+or the entire image.</p>
+<h3 id="syntax-overview">Syntax Overview</h3>
+<p>To clamp pixel values within a lower and upper boundary, use the
+following syntax structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> Max <span class="op">&lt;</span>lower_bound<span class="op">&gt;</span> -evaluate Min <span class="op">&lt;</span>upper_bound<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p><em>(Note: In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h3 id="how--evaluate-max-and--evaluate-min-work">How
+<code>-evaluate Max</code> and <code>-evaluate Min</code> Work</h3>
+<p>The logic behind the operator names can feel counter-intuitive when
+clamping:</p>
+<ul>
+<li><strong><code>-evaluate Max &lt;value&gt;</code> sets the lower
+limit (floor):</strong> This operation calculates
+<code>result = max(pixel, value)</code>. If a pixel's value is lower
+than the parameter, it is raised to match that parameter. Any pixel
+above this value remains untouched.</li>
+<li><strong><code>-evaluate Min &lt;value&gt;</code> sets the upper
+limit (ceiling):</strong> This operation calculates
+<code>result = min(pixel, value)</code>. If a pixel's value is higher
+than the parameter, it is lowered to match that parameter. Any pixel
+below this value remains untouched.</li>
+</ul>
+<p>Executing both in sequence guarantees that all output pixels remain
+strictly inside the <code>[lower_bound, upper_bound]</code> range.</p>
+<h3 id="example-using-percentages">Example: Using Percentages</h3>
+<p>The most portable way to clamp pixel data is using percentages, which
+automatically adapt to your ImageMagick build's quantum depth (e.g., Q8,
+Q16, or Q32):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-evaluate</span> Max 10% <span class="at">-evaluate</span> Min 90% output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li>Any pixel with an intensity below 10% is forced up to 10%.</li>
+<li>Any pixel with an intensity above 90% is forced down to 90%.</li>
+<li>Pixel values between 10% and 90% are unchanged.</li>
+</ul>
+<h3 id="example-using-raw-quantum-values">Example: Using Raw Quantum
+Values</h3>
+<p>You can also specify absolute integer values based on your build's
+bit-depth. For an 8-bit quantum depth image (values from 0 to 255):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> Max 25 <span class="at">-evaluate</span> Min 230 output.png</span></code></pre></div>
+<p>For a 16-bit quantum depth image (values from 0 to 65535):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> Max 6554 <span class="at">-evaluate</span> Min 58982 output.png</span></code></pre></div>
+<h3 id="applying-clamping-to-specific-channels">Applying Clamping to
+Specific Channels</h3>
+<p>By default, the <code>-evaluate</code> operation applies to all color
+channels. If you need to clamp a single channel (for example, the alpha
+channel or the red channel), combine the evaluate operators with the
+<code>-channel</code> flag:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> A <span class="at">-evaluate</span> Max 20% <span class="at">-evaluate</span> Min 80% +channel output.png</span></code></pre></div>
+<p>The <code>+channel</code> switch at the end restores default channel
+behavior for any subsequent operations in the pipeline.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Create a Tilt-Shift Effect in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to transform standard landscape or high-angle photography into a miniature-style scene using ImageMagick. You will learn how to simulate a shallow depth of field by generating a linear gradient mask, applying variable blurring acr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-create-a-tilt-shift-effect-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Create a Tilt-Shift Effect in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-create-a-tilt-shift-effect-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to transform standard landscape or high-angle photography into a miniature-style scene using ImageMagick. You will learn how to simulate a shallow depth of field by generating a linear gradient mask, applying variable blurring acr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-create-a-tilt-shift-effect-in-imagemagick">How to Create
+a Tilt-Shift Effect in ImageMagick</h1>
+<p>This guide explains how to transform standard landscape or high-angle
+photography into a miniature-style scene using ImageMagick. You will
+learn how to simulate a shallow depth of field by generating a linear
+gradient mask, applying variable blurring across the image, and
+enhancing color saturation to achieve a convincing tilt-shift miniature
+effect directly from the command line.</p>
+<hr />
+<h3 id="understanding-the-tilt-shift-miniature-effect">Understanding the
+Tilt-Shift Miniature Effect</h3>
+<p>A tilt-shift miniature effect relies on two primary visual
+characteristics:</p>
+<ol type="1">
+<li><strong>Selective Focus:</strong> A narrow horizontal strip remains
+in sharp focus, while the top and bottom of the frame progressively
+blur.</li>
+<li><strong>Vibrant Colors:</strong> Saturated colors mimic the painted
+plastic surfaces of scale models and dioramas.</li>
+</ol>
+<p>In ImageMagick, this effect is achieved using <strong>composite
+blurring</strong>, where a grayscale gradient image controls the
+intensity of the blur across the source photo.</p>
+<hr />
+<h3 id="step-1-preparing-the-gradient-blur-mask">Step 1: Preparing the
+Gradient Blur Mask</h3>
+<p>ImageMagick's <code>-compose Blur</code> operation uses a mask
+where:</p>
+<ul>
+<li><strong>Black (<code>#000000</code>)</strong> represents zero blur
+(the focal plane).</li>
+<li><strong>White (<code>#FFFFFF</code>)</strong> represents maximum
+blur (the out-of-focus areas).</li>
+</ul>
+<p>To create a horizontal focal band across the middle of an image, you
+can use a mirrored gradient or the <code>-sparse-color</code>
+operator.</p>
+<p>A linear gradient transitioning from white at the top, to black in
+the middle, and back to white at the bottom defines the blur map:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-sparse-color</span> Barycentric <span class="st">&quot;0,0 white  0,%[fx:h*0.5] black  0,%[h] white&quot;</span> <span class="kw">)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">mask.png</span></span></code></pre></div>
+<hr />
+<h3 id="step-2-applying-the-gradient-blur-and-color-enhancement">Step 2:
+Applying the Gradient Blur and Color Enhancement</h3>
+<p>You can combine mask generation, variable blurring, and color
+adjustments into a single ImageMagick command.</p>
+<h4 id="for-imagemagick-7">For ImageMagick 7:</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-modulate</span> 105,140,100 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="er">(</span> <span class="ex">+clone</span> <span class="at">-sparse-color</span> Barycentric <span class="st">&quot;0,0 white 0,%[fx:h*0.55] black 0,%[h] white&quot;</span> <span class="kw">)</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-compose</span> Blur <span class="at">-set</span> option:compose:args 15x0 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  tilt_shift_output.jpg</span></code></pre></div>
+<hr />
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ul>
+<li><strong><code>input.jpg</code></strong>: The source photo (works
+best with elevated or aerial perspective shots).</li>
+<li><strong><code>-modulate 105,140,100</code></strong>: Slightly
+increases brightness (105%) and significantly boosts saturation (140%)
+to make objects look toy-like.</li>
+<li><strong><code>+clone</code></strong>: Duplicates the source image in
+memory to create a mask with the exact same dimensions.</li>
+<li><strong><code>-sparse-color Barycentric "..."</code></strong>:
+Constructs a vertical gradient with three control points:
+<ul>
+<li><code>0,0 white</code>: Full blur at the top edge.</li>
+<li><code>0,%[fx:h*0.55] black</code>: Sharp focus at 55% from the top
+(slightly below center).</li>
+<li><code>0,%[h] white</code>: Full blur at the bottom edge.</li>
+</ul></li>
+<li><strong><code>-compose Blur</code></strong>: Selects the variable
+blur composition operator.</li>
+<li><strong><code>-set option:compose:args 15x0</code></strong>: Defines
+the maximum blur radius (15 pixels horizontally, 0 pixels vertically to
+maintain a horizontal focal plane).</li>
+<li><strong><code>-composite</code></strong>: Blends the blurred effect
+onto the original photo using the mask.</li>
+</ul>
+<hr />
+<h3 id="customizing-the-effect">Customizing the Effect</h3>
+<ul>
+<li><strong>Shift the Focal Plane:</strong> Change
+<code>0,%[fx:h*0.55]</code> to a different fraction (such as
+<code>0.3</code> for upper focus or <code>0.7</code> for lower focus)
+depending on where your subject is located.</li>
+<li><strong>Adjust Blur Strength:</strong> Increase <code>15x0</code> to
+<code>25x0</code> or higher for higher-resolution images, or decrease it
+for subtler effects.</li>
+<li><strong>Widen the In-Focus Area:</strong> Use a multi-point gradient
+or adjust contrast curves on the mask to create a broader plateau of
+black in the center for larger subjects.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Threshold a WebP Image with ImageMagick? - magick</title>
+    <meta name="description" content="Thresholding a WebP image using ImageMagick allows you to convert continuous-tone graphics or photos into high-contrast, black-and-white binary representations. This article walks through the necessary command-line syntax for applying simple global cutof">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-threshold-a-webp-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Threshold a WebP Image with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-threshold-a-webp-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Thresholding a WebP image using ImageMagick allows you to convert continuous-tone graphics or photos into high-contrast, black-and-white binary representations. This article walks through the necessary command-line syntax for applying simple global cutof" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-threshold-a-webp-image-with-imagemagick">How to Threshold
+a WebP Image with ImageMagick?</h1>
+<p>Thresholding a WebP image using ImageMagick allows you to convert
+continuous-tone graphics or photos into high-contrast, black-and-white
+binary representations. This article walks through the necessary
+command-line syntax for applying simple global cutoffs, percentage-based
+thresholds, and adaptive local methods to <code>.webp</code> files. You
+will also learn how to preserve transparency and optimize the resulting
+output format.</p>
+<h2 id="prerequisites-and-webp-support">Prerequisites and WebP
+Support</h2>
+<p>Before executing thresholding operations, ensure your ImageMagick
+installation includes delegates for the WebP image format. You can
+verify that ImageMagick can read and write WebP files by querying its
+supported formats:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> webp</span></code></pre></div>
+<p>If <code>WEBP</code> appears with read and write permissions
+(<code>rw-</code> or <code>rw+</code>), your environment is ready.
+Modern versions of ImageMagick (version 7 and later) use the
+<code>magick</code> command directly rather than the legacy
+<code>convert</code> binary.</p>
+<h2 id="basic-global-thresholding">Basic Global Thresholding</h2>
+<p>Global thresholding evaluates every pixel against a single fixed
+intensity value. Pixels brighter than the threshold turn pure white,
+while darker pixels turn pure black.</p>
+<p>The most common method uses a percentage value to define the
+separation point:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-threshold</span> 50% output.webp</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.webp</code> is your source graphic.</li>
+<li><code>-threshold 50%</code> forces pixels with an intensity greater
+than 50% to white, while pixels at or below 50% become black.</li>
+<li><code>output.webp</code> stores the resulting binary image.</li>
+</ul>
+<p>You can adjust this cutoff to capture darker or lighter details:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-threshold</span> 35% output_dark.webp</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-threshold</span> 70% output_light.webp</span></code></pre></div>
+<h2 id="grayscale-preprocessing">Grayscale Preprocessing</h2>
+<p>While the <code>-threshold</code> operator evaluates grayscale values
+internally, explicit conversion to grayscale beforehand provides better
+control over color channel weights.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% output.webp</span></code></pre></div>
+<p>Using <code>-colorspace Gray</code> standardizes the luminance
+calculation across all RGB channels before the cutoff point is
+applied.</p>
+<h2 id="adaptive-thresholding-for-uneven-lighting">Adaptive Thresholding
+for Uneven Lighting</h2>
+<p>When processing scanned documents, line drawings, or photos with
+uneven lighting, a global threshold can wash out bright areas or darken
+shadows completely. Adaptive thresholding computes a local threshold for
+each pixel based on the pixel values in its immediate neighborhood.</p>
+<p>The syntax for local adaptive thresholding is:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-lat</span> widthxheight+offset output.webp</span></code></pre></div>
+<p>For example:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-lat</span> 25x25+10% output.webp</span></code></pre></div>
+<ul>
+<li><code>25x25</code>: The pixel dimensions of the surrounding
+neighborhood inspected around each pixel.</li>
+<li><code>+10%</code>: The offset or bias subtracted from the local
+average. Increasing this value suppresses noise, while decreasing it
+reveals fainter lines.</li>
+</ul>
+<h2 id="handling-alpha-channels-and-transparency">Handling Alpha
+Channels and Transparency</h2>
+<p>WebP images often contain an alpha channel for transparency. Applying
+a standard threshold directly can unintentionally fill transparent
+backgrounds with black or white.</p>
+<p>To threshold only the visible image data while keeping the alpha mask
+intact, isolate the color channels:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-channel</span> RGB <span class="at">-threshold</span> 50% +channel output.webp</span></code></pre></div>
+<ul>
+<li><code>-channel RGB</code>: Restricts subsequent operations
+exclusively to the Red, Green, and Blue channels.</li>
+<li><code>+channel</code>: Resets channel operations back to the default
+state so the alpha channel remains untouched during output
+encoding.</li>
+</ul>
+<p>If you instead want to threshold the transparency itself (forcing
+semi-transparent drop shadows into solid masks), target the alpha
+channel specifically:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-channel</span> A <span class="at">-threshold</span> 50% +channel output.webp</span></code></pre></div>
+<h2 id="compressing-thresholded-webp-output">Compressing Thresholded
+WebP Output</h2>
+<p>Binary images compress exceptionally well with lossless encoding.
+Because WebP defaults to lossy compression in many ImageMagick builds,
+explicitly specifying lossless encoding prevents compression artifacts
+from degrading high-contrast black-and-white edges:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-threshold</span> 50% <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<p>Using the lossless definition produces clean 1-bit style boundaries
+with minimal file overhead.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compile ImageMagick with 16-Bit Depth and No HDRI - magick</title>
+    <meta name="description" content="This guide explains how to compile ImageMagick from source with a 16-bit quantum depth while explicitly disabling High Dynamic Range Imaging (HDRI). By applying the appropriate configure script flags, you can build a lightweight binary tailored for stand">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compile-imagemagick-with-16-bit-depth-and-no-hdri">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compile ImageMagick with 16-Bit Depth and No HDRI - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compile-imagemagick-with-16-bit-depth-and-no-hdri" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to compile ImageMagick from source with a 16-bit quantum depth while explicitly disabling High Dynamic Range Imaging (HDRI). By applying the appropriate configure script flags, you can build a lightweight binary tailored for stand" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compile-imagemagick-with-16-bit-depth-and-no-hdri">Compile
+ImageMagick with 16-Bit Depth and No HDRI</h1>
+<p>This guide explains how to compile ImageMagick from source with a
+16-bit quantum depth while explicitly disabling High Dynamic Range
+Imaging (HDRI). By applying the appropriate configure script flags, you
+can build a lightweight binary tailored for standard 16-bit integer
+operations, reducing the memory overhead and processing cost associated
+with floating-point calculations.</p>
+<h3 id="the-configure-flags">The Configure Flags</h3>
+<p>To configure ImageMagick for 16-bit depth with HDRI disabled, use the
+following two flags together during the configuration step:</p>
+<ul>
+<li><code>--with-quantum-depth=16</code></li>
+<li><code>--disable-hdri</code></li>
+</ul>
+<p>Combined into a single command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="at">--with-quantum-depth</span><span class="op">=</span>16 <span class="at">--disable-hdri</span></span></code></pre></div>
+<h3 id="why-use-these-flags">Why Use These Flags</h3>
+<p>In modern versions of ImageMagick (ImageMagick 7 and later), the
+default build configuration is <strong>Q16HDRI</strong> (16-bit quantum
+depth with HDRI enabled). Under this default, pixel values are stored as
+32-bit single-precision floating-point numbers to prevent clipping and
+precision loss during complex transformations.</p>
+<p>However, enabling HDRI roughly doubles the memory footprint of
+processed images and can introduce performance penalties for workflows
+that only require standard integer calculations. Supplying
+<code>--disable-hdri</code> forces ImageMagick to use 16-bit integer
+values (spanning 0 to 65,535) rather than floats.</p>
+<h3 id="complete-compilation-process">Complete Compilation Process</h3>
+<p>To build and install ImageMagick with these settings from source, run
+the standard build sequence:</p>
+<ol type="1">
+<li><p><strong>Configure the build:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="at">--with-quantum-depth</span><span class="op">=</span>16 <span class="at">--disable-hdri</span></span></code></pre></div></li>
+<li><p><strong>Compile the source:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div></li>
+<li><p><strong>Install the binaries:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ldconfig /usr/local/lib</span></code></pre></div></li>
+</ol>
+<h3 id="verifying-the-build">Verifying the Build</h3>
+<p>Once installation is complete, verify that the configuration was
+applied correctly by checking the installed version:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look at the output under <strong>Features</strong>. A build without
+HDRI will list features such as <code>Cipher DPC</code>, but it will
+<strong>not</strong> list <code>HDRI</code>. The quantum depth should
+explicitly show <code>Q16</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

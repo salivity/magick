@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect ImageMagick Stderr to Structured Logs - magick</title>
+    <meta name="description" content="This article explains how to capture, format, and route standard error (stderr) output from ImageMagick into modern structured log collectors. When processing media, ImageMagick writes errors, warnings, and diagnostic traces to stderr as unstructured tex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/redirect-imagemagick-stderr-to-structured-logs">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Redirect ImageMagick Stderr to Structured Logs - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/redirect-imagemagick-stderr-to-structured-logs" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to capture, format, and route standard error (stderr) output from ImageMagick into modern structured log collectors. When processing media, ImageMagick writes errors, warnings, and diagnostic traces to stderr as unstructured tex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="redirect-imagemagick-stderr-to-structured-logs">Redirect
+ImageMagick Stderr to Structured Logs</h1>
+<p>This article explains how to capture, format, and route standard
+error (stderr) output from ImageMagick into modern structured log
+collectors. When processing media, ImageMagick writes errors, warnings,
+and diagnostic traces to stderr as unstructured text. By configuring
+internal log formats, wrapping execution inside application
+subprocesses, or piping streams through transformation utilities, you
+can convert these raw messages into structured formats like JSON for
+ingestion into aggregators such as Fluentd, Vector, and Logstash.</p>
+<h3 id="configure-imagemagick-diagnostic-output">Configure ImageMagick
+Diagnostic Output</h3>
+<p>ImageMagick provides built-in mechanisms to adjust the verbosity and
+format of its diagnostic messages. By default, errors are printed as
+plain text strings to <code>stderr</code>. You can enhance this output
+using environment variables or configuration files before capturing
+it.</p>
+<p>To define the events to log, use the <code>-debug</code> flag or the
+<code>MAGICK_DEBUG</code> environment variable:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_DEBUG</span><span class="op">=</span><span class="st">&quot;Error,Exception,Warning&quot;</span></span></code></pre></div>
+<p>To control the format of the output, modify the <code>log.xml</code>
+configuration file located in your ImageMagick configuration directory
+(typically <code>/etc/ImageMagick-7/log.xml</code> or
+<code>/usr/local/share/doc/ImageMagick-7/</code>). You can define an
+output format that closely resembles structured fields:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">log</span> <span class="ot">format=</span><span class="st">&quot;%t %r %u %v %d %c[%p]: %m&quot;</span>/&gt;</span></code></pre></div>
+<p>This prefixes each message with timestamps, elapsed runtime, and
+module contexts, making downstream parsing significantly easier.</p>
+<h3 id="capture-and-structure-via-application-subprocesses">Capture and
+Structure via Application Subprocesses</h3>
+<p>The most reliable way to integrate ImageMagick into a structured
+logging architecture is to invoke commands via an application runtime
+(such as Node.js, Python, or Go) rather than raw shell scripts. The
+application executes the binary, captures the <code>stderr</code>
+stream, and emits a structured JSON log entry.</p>
+<h4 id="example-python-subprocess-wrapper">Example: Python Subprocess
+Wrapper</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_magick(command):</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    process <span class="op">=</span> subprocess.Popen(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        command,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        stdout<span class="op">=</span>subprocess.PIPE,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        stderr<span class="op">=</span>subprocess.PIPE,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        text<span class="op">=</span><span class="va">True</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    stdout, stderr <span class="op">=</span> process.communicate()</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> process.returncode <span class="op">!=</span> <span class="dv">0</span> <span class="kw">or</span> stderr:</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        log_entry <span class="op">=</span> {</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;timestamp&quot;</span>: datetime.utcnow().isoformat() <span class="op">+</span> <span class="st">&quot;Z&quot;</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;level&quot;</span>: <span class="st">&quot;error&quot;</span> <span class="cf">if</span> process.returncode <span class="op">!=</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">&quot;warning&quot;</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;service&quot;</span>: <span class="st">&quot;imagemagick&quot;</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;command&quot;</span>: <span class="st">&quot; &quot;</span>.join(command),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;exit_code&quot;</span>: process.returncode,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;message&quot;</span>: stderr.strip()</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Write structured JSON to stdout for log agents to collect</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(json.dumps(log_entry), <span class="bu">file</span><span class="op">=</span>sys.stderr)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> process.returncode</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>run_magick([<span class="st">&quot;magick&quot;</span>, <span class="st">&quot;input.jpg&quot;</span>, <span class="st">&quot;-resize&quot;</span>, <span class="st">&quot;800x600&quot;</span>, <span class="st">&quot;output.png&quot;</span>])</span></code></pre></div>
+<p>This pattern encapsulates execution details, normalizes unstructured
+error strings, and routes clean JSON to standard streams.</p>
+<h3 id="stream-directly-to-collectors-via-cli-pipes">Stream Directly to
+Collectors via CLI Pipes</h3>
+<p>In CLI-heavy environments, cron jobs, or lightweight deployment
+pipelines, you can redirect standard error directly to ingestion agents
+using standard shell redirection and stream transformers.</p>
+<h4 id="using-jq-for-real-time-serialization">Using <code>jq</code> for
+Real-Time Serialization</h4>
+<p>You can capture <code>stderr</code>, pipe it through standard tools,
+and construct a JSON payload on the fly:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert broken_input.jpg output.png <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="op">&gt;</span>/dev/null <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">jq</span> <span class="at">-R</span> <span class="at">-c</span> <span class="at">--arg</span> host <span class="st">&quot;</span><span class="va">$HOSTNAME</span><span class="st">&quot;</span> <span class="at">--arg</span> service <span class="st">&quot;imagemagick&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;{timestamp: (now | todate), host: $host, service: $service, message: .}&#39;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">nc</span> logstash-collector.local 5000</span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li><code>2&gt;&amp;1 &gt;/dev/null</code> drops normal output while
+redirecting <code>stderr</code> to <code>stdout</code>.</li>
+<li><code>jq -R -c</code> reads the raw string lines and outputs compact
+JSON objects.</li>
+<li>The JSON stream is piped over the network directly into a TCP-based
+collector.</li>
+</ol>
+<h3 id="ingestion-via-container-runtimes-and-log-forwarders">Ingestion
+via Container Runtimes and Log Forwarders</h3>
+<p>In Kubernetes or containerized Docker environments, services
+typically write raw errors directly to the container's
+<code>stderr</code>. Log forwarders (such as Vector, Fluent Bit, or
+Filebeat) mounted on the host nodes can collect and structure these
+streams.</p>
+<h4 id="vector-log-parser-configuration">Vector Log Parser
+Configuration</h4>
+<p>If ImageMagick writes raw stderr to standard container streams, use a
+parser block in your log collector to detect and transform ImageMagick
+messages.</p>
+<p>Below is an example Vector configuration (<code>vector.yaml</code>)
+that parses ImageMagick error strings into structured fields:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sources</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">container_logs</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">type</span><span class="kw">:</span><span class="at"> docker-logs</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">transforms</span><span class="kw">:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parse_imagemagick</span><span class="kw">:</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">type</span><span class="kw">:</span><span class="at"> remap</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">inputs</span><span class="kw">:</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> container_logs</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">    source</span><span class="kw">: </span><span class="ch">|</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>      if contains(string!(.message), &quot;magick:&quot;) {</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        .service = &quot;imagemagick&quot;</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        parsed, err = parse_regex(.message, r&#39;^(?P&lt;binary&gt;\S+): (?P&lt;error_type&gt;\S+) (?P&lt;detail&gt;.+)$&#39;)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        if err == null {</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>          .imagemagick = parsed</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>          .level = &quot;error&quot;</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">sinks</span><span class="kw">:</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">elasticsearch</span><span class="kw">:</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">type</span><span class="kw">:</span><span class="at"> elasticsearch</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">inputs</span><span class="kw">:</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> parse_imagemagick</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">endpoint</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;http://elasticsearch:9200&quot;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">mode</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;bulk&quot;</span></span></code></pre></div>
+<p>This separates the binary name, error type, and description into
+discrete, queryable database fields, completing the transition from raw
+terminal output to indexed, queryable data.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

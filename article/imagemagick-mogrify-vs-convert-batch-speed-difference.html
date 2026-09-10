@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Mogrify vs Convert Batch Speed Difference - magick</title>
+    <meta name="description" content="When processing large batches of images with ImageMagick, mogrify is significantly faster than using convert inside a shell loop. This speed difference occurs because mogrify launches the ImageMagick binary once and processes all files within a single ex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-mogrify-vs-convert-batch-speed-difference">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Mogrify vs Convert Batch Speed Difference - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-mogrify-vs-convert-batch-speed-difference" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When processing large batches of images with ImageMagick, mogrify is significantly faster than using convert inside a shell loop. This speed difference occurs because mogrify launches the ImageMagick binary once and processes all files within a single ex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-mogrify-vs-convert-batch-speed-difference">ImageMagick
+Mogrify vs Convert Batch Speed Difference</h1>
+<p>When processing large batches of images with ImageMagick,
+<code>mogrify</code> is significantly faster than using
+<code>convert</code> inside a shell loop. This speed difference occurs
+because <code>mogrify</code> launches the ImageMagick binary once and
+processes all files within a single execution cycle, whereas running
+<code>convert</code> across multiple files spawns a new operating system
+process, reloads shared libraries, and reinitializes configuration
+settings for every single image.</p>
+<h2 id="why-mogrify-is-faster-for-batch-processing">Why Mogrify Is
+Faster for Batch Processing</h2>
+<p>The primary factor behind the performance advantage of
+<code>mogrify</code> is process initialization overhead.</p>
+<ul>
+<li><strong>Single-Process Execution:</strong> When you execute a
+command such as <code>mogrify -resize 800x600 *.jpg</code>, ImageMagick
+loads into memory once. It parses the command-line options once and then
+sequentially reads, modifies, and writes each image using an internal
+loop.</li>
+<li><strong>Reduced System Calls:</strong> By avoiding repeated process
+creation (<code>fork</code> and <code>exec</code> on Unix-like systems,
+or <code>CreateProcess</code> on Windows), <code>mogrify</code> saves
+significant CPU cycles and kernel-level context switching.</li>
+<li><strong>Resource Caching:</strong> Shared libraries, delegate
+libraries (such as <code>libjpeg</code> or <code>libpng</code>), and
+fonts remain loaded in memory for the duration of the entire batch.</li>
+</ul>
+<h2 id="why-convert-is-slower-in-batch-operations">Why Convert Is Slower
+in Batch Operations</h2>
+<p>The <code>convert</code> command is designed to process one operation
+pipeline per invocation. To process hundreds or thousands of images,
+users typically wrap <code>convert</code> in a shell script or loop:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">convert</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-resize</span> 800x600 <span class="st">&quot;processed_</span><span class="va">$file</span><span class="st">&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>This approach introduces severe performance bottlenecks:</p>
+<ol type="1">
+<li><strong>Repeated Process Spawning:</strong> For a batch of 1,000
+images, the operating system must create and tear down the ImageMagick
+process 1,000 individual times.</li>
+<li><strong>Repeated Library Loading:</strong> Every single iteration
+forces the system to dynamically link and initialize ImageMagick
+modules, configuration XML files, and third-party decoders.</li>
+<li><strong>Shell Overhead:</strong> The shell itself incurs overhead by
+managing the loop and spawning subshells for each execution.</li>
+</ol>
+<p>On modern systems, especially on operating systems with higher
+process-creation costs like Windows, this overhead can make a
+<code>convert</code> loop 2 to 10 times slower than an equivalent
+<code>mogrify</code> operation.</p>
+<h2 id="feature-differences-and-trade-offs">Feature Differences and
+Trade-offs</h2>
+<p>While <code>mogrify</code> is vastly superior in batch speed, it has
+structural limitations compared to <code>convert</code>:</p>
+<ul>
+<li><strong>In-Place Overwriting:</strong> By default,
+<code>mogrify</code> overwrites original files unless explicit output
+directories (<code>-path</code>) or format conversions
+(<code>-format</code>) are specified.</li>
+<li><strong>Pipeline Complexity:</strong> <code>convert</code> allows
+complex multi-image compositing, stacking, and individualized operations
+that <code>mogrify</code> cannot perform. <code>mogrify</code> applies
+the exact same operation sequence uniformly across all targeted
+files.</li>
+</ul>
+<p>For simple, uniform batch operations—such as resizing, converting
+formats, or adjusting quality across many files—<code>mogrify</code> is
+the optimal choice for maximum throughput.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

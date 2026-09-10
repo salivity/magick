@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Blend Interpolation Weight Calculation - magick</title>
+    <meta name="description" content="The -interpolate Blend operator in ImageMagick calculates the value of a target point at fractional coordinates by performing standard bilinear interpolation across the four surrounding pixel neighbors. This article explains how ImageMagick determines th">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-blend-interpolation-weight-calculation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Blend Interpolation Weight Calculation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-blend-interpolation-weight-calculation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -interpolate Blend operator in ImageMagick calculates the value of a target point at fractional coordinates by performing standard bilinear interpolation across the four surrounding pixel neighbors. This article explains how ImageMagick determines th" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-blend-interpolation-weight-calculation">ImageMagick
+Blend Interpolation Weight Calculation</h1>
+<p>The <code>-interpolate Blend</code> operator in ImageMagick
+calculates the value of a target point at fractional coordinates by
+performing standard bilinear interpolation across the four surrounding
+pixel neighbors. This article explains how ImageMagick determines the
+coordinates of these four bounding pixels, derives the fractional
+offsets, and applies rectangular area weighting to calculate each
+neighbor's contribution to the final interpolated pixel.</p>
+<h2 id="identifying-the-four-surrounding-pixels">Identifying the Four
+Surrounding Pixels</h2>
+<p>When a coordinate <span class="math inline">\((x, y)\)</span> falls
+at a non-integer position, ImageMagick selects the four neighboring
+pixels forming a <span class="math inline">\(1 \times 1\)</span>
+bounding square around that point.</p>
+<p>The bounding coordinates are defined using the floor function:</p>
+<ul>
+<li><strong>Top-Left (<span
+class="math inline">\(P_{00}\)</span>):</strong> <span
+class="math inline">\((x_0, y_0) = (\lfloor x \rfloor, \lfloor y
+\rfloor)\)</span></li>
+<li><strong>Top-Right (<span
+class="math inline">\(P_{10}\)</span>):</strong> <span
+class="math inline">\((x_1, y_0) = (x_0 + 1, y_0)\)</span></li>
+<li><strong>Bottom-Left (<span
+class="math inline">\(P_{01}\)</span>):</strong> <span
+class="math inline">\((x_0, y_1) = (x_0, y_0 + 1)\)</span></li>
+<li><strong>Bottom-Right (<span
+class="math inline">\(P_{11}\)</span>):</strong> <span
+class="math inline">\((x_1, y_1) = (x_0 + 1, y_0 + 1)\)</span></li>
+</ul>
+<h2 id="calculating-fractional-offsets">Calculating Fractional
+Offsets</h2>
+<p>Once the integer grid coordinates are established, ImageMagick
+computes the fractional distance (offset) from the top-left pixel to the
+target point:</p>
+<p><span class="math display">\[\Delta x = x - x_0\]</span> <span
+class="math display">\[\Delta y = y - y_0\]</span></p>
+<p>Because <span class="math inline">\(x_0 \le x &lt; x_1\)</span> and
+<span class="math inline">\(y_0 \le y &lt; y_1\)</span>, both <span
+class="math inline">\(\Delta x\)</span> and <span
+class="math inline">\(\Delta y\)</span> always fall within the interval
+<span class="math inline">\([0, 1)\)</span>.</p>
+<h2 id="computing-neighbor-weights">Computing Neighbor Weights</h2>
+<p>ImageMagick's <code>Blend</code> method assigns weights to each of
+the four pixels proportional to the area of the opposing sub-rectangle
+created by dividing the bounding cell at <span
+class="math inline">\((\Delta x, \Delta y)\)</span>. The closer the
+target coordinate is to a neighboring pixel, the larger the opposing
+area and the higher that pixel's weight.</p>
+<p>The weights for the four neighbors are calculated as follows:</p>
+<ul>
+<li><strong>Top-Left Weight (<span
+class="math inline">\(w_{00}\)</span>):</strong> <span
+class="math inline">\((1 - \Delta x) \times (1 - \Delta y)\)</span></li>
+<li><strong>Top-Right Weight (<span
+class="math inline">\(w_{10}\)</span>):</strong> <span
+class="math inline">\(\Delta x \times (1 - \Delta y)\)</span></li>
+<li><strong>Bottom-Left Weight (<span
+class="math inline">\(w_{01}\)</span>):</strong> <span
+class="math inline">\((1 - \Delta x) \times \Delta y\)</span></li>
+<li><strong>Bottom-Right Weight (<span
+class="math inline">\(w_{11}\)</span>):</strong> <span
+class="math inline">\(\Delta x \times \Delta y\)</span></li>
+</ul>
+<p>These weights naturally sum to <span
+class="math inline">\(1.0\)</span>:</p>
+<p><span class="math display">\[w_{00} + w_{10} + w_{01} + w_{11} =
+1.0\]</span></p>
+<h2 id="final-color-and-alpha-integration">Final Color and Alpha
+Integration</h2>
+<p>For fully opaque images, the resulting channel value <span
+class="math inline">\(C\)</span> is the sum of each neighbor's channel
+value multiplied by its respective geometric weight:</p>
+<p><span class="math display">\[C = w_{00} C_{00} + w_{10} C_{10} +
+w_{01} C_{01} + w_{11} C_{11}\]</span></p>
+<p>When transparency is present, ImageMagick factors each pixel's alpha
+channel into the calculation. The effective weight of each pixel becomes
+<span class="math inline">\(w_{ij} \times \alpha_{ij}\)</span>. The
+color channels are summed using these alpha-weighted factors and
+normalized by the total accumulated alpha weight, preventing fully or
+partially transparent pixels from incorrectly skewing the color values
+of neighboring opaque pixels.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

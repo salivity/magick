@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Undercolor vs Fill Text Settings - magick</title>
+    <meta name="description" content="When annotating images with text in ImageMagick, the -fill and -undercolor settings control two completely different visual components of the rendering process. In short, the -fill setting determines the color of the actual text characters (the glyphs),">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-undercolor-vs-fill-text-settings">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Undercolor vs Fill Text Settings - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-undercolor-vs-fill-text-settings" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When annotating images with text in ImageMagick, the -fill and -undercolor settings control two completely different visual components of the rendering process. In short, the -fill setting determines the color of the actual text characters (the glyphs)," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-undercolor-vs-fill-text-settings">ImageMagick
+Undercolor vs Fill Text Settings</h1>
+<p>When annotating images with text in ImageMagick, the
+<code>-fill</code> and <code>-undercolor</code> settings control two
+completely different visual components of the rendering process. In
+short, the <code>-fill</code> setting determines the color of the actual
+text characters (the glyphs), while the <code>-undercolor</code> setting
+creates a colored rectangular background box directly behind that text
+to enhance readability against complex backgrounds.</p>
+<h2 id="the-fill-setting">The Fill Setting</h2>
+<p>The <code>-fill</code> setting defines the foreground color of the
+text characters. When you draw or annotate text, ImageMagick uses the
+color specified by <code>-fill</code> to paint the interior of each
+letter and number.</p>
+<ul>
+<li><strong>Purpose:</strong> Sets the text font color.</li>
+<li><strong>Default Behavior:</strong> If no fill is specified,
+ImageMagick defaults to black.</li>
+<li><strong>Scope:</strong> It applies directly to the vector outlines
+of the text glyphs and does not alter the canvas or background area
+surrounding the characters.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fill</span> white <span class="at">-annotate</span> +50+50 <span class="st">&quot;White Text&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="the-undercolor-setting">The Undercolor Setting</h2>
+<p>The <code>-undercolor</code> setting defines the color of a solid
+rectangular bounding box rendered immediately behind the annotated text.
+It acts as an inline highlight or label background, ensuring that text
+remains legible when placed over busy, multi-colored, or low-contrast
+image regions.</p>
+<ul>
+<li><strong>Purpose:</strong> Sets the background bounding box color for
+the text snippet.</li>
+<li><strong>Default Behavior:</strong> By default,
+<code>-undercolor</code> is set to <code>none</code> (fully
+transparent), meaning no box is drawn behind the text.</li>
+<li><strong>Scope:</strong> It only covers the exact dimensional
+bounding box of the rendered text string, not the entire image
+canvas.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-undercolor</span> black <span class="at">-annotate</span> +50+50 <span class="st">&quot;Text with Background Box&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="key-differences-summary">Key Differences Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>-fill</code></th>
+<th style="text-align: left;"><code>-undercolor</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Visual Target</strong></td>
+<td style="text-align: left;">Text glyphs (the letters themselves)</td>
+<td style="text-align: left;">Rectangular area behind the text</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Default Value</strong></td>
+<td style="text-align: left;"><code>black</code> (or current draw
+fill)</td>
+<td style="text-align: left;"><code>none</code> (transparent)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Use</strong></td>
+<td style="text-align: left;">Defining the font color</td>
+<td style="text-align: left;">Adding contrast against complex
+backgrounds</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Transparency</strong></td>
+<td style="text-align: left;">Can be transparent (leaves hollow text if
+stroked)</td>
+<td style="text-align: left;">Transparent by default</td>
+</tr>
+</tbody>
+</table>
+<h2 id="using-both-settings-together">Using Both Settings Together</h2>
+<p>Combining <code>-fill</code> and <code>-undercolor</code> is standard
+practice for creating subtitles, captions, or watermarks. This ensures
+the text color and its background box provide immediate visual contrast
+against whatever image is underneath.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-font</span> Arial <span class="at">-pointsize</span> 24 <span class="at">-fill</span> yellow <span class="at">-undercolor</span> <span class="st">&quot;rgba(0,0,0,0.7)&quot;</span> <span class="at">-annotate</span> +20+40 <span class="st">&quot;High Contrast Caption&quot;</span> output.jpg</span></code></pre></div>
+<p>In this example, <code>-fill yellow</code> turns the text bright
+yellow, while <code>-undercolor "rgba(0,0,0,0.7)"</code> places a
+semi-transparent black rectangular backdrop behind the text.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

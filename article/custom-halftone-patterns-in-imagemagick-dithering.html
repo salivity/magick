@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Halftone Patterns in ImageMagick Dithering - magick</title>
+    <meta name="description" content="This article explains how to create and apply custom halftone screen patterns in ImageMagick using ordered dithering threshold maps. You will learn how threshold matrices work, how to write your own custom pattern definition in an XML configuration file,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/custom-halftone-patterns-in-imagemagick-dithering">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Custom Halftone Patterns in ImageMagick Dithering - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/custom-halftone-patterns-in-imagemagick-dithering" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to create and apply custom halftone screen patterns in ImageMagick using ordered dithering threshold maps. You will learn how threshold matrices work, how to write your own custom pattern definition in an XML configuration file," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="custom-halftone-patterns-in-imagemagick-dithering">Custom
+Halftone Patterns in ImageMagick Dithering</h1>
+<p>This article explains how to create and apply custom halftone screen
+patterns in ImageMagick using ordered dithering threshold maps. You will
+learn how threshold matrices work, how to write your own custom pattern
+definition in an XML configuration file, and how to execute the
+command-line operations required to render the custom halftone effect
+onto your images.</p>
+<h2 id="understanding-ordered-dithering-in-imagemagick">Understanding
+Ordered Dithering in ImageMagick</h2>
+<p>ImageMagick's <code>-ordered-dither</code> operator relies on
+predefined threshold maps (matrices) to determine whether a pixel should
+turn black, white, or a specific intermediate tone based on its
+brightness. While ImageMagick includes standard matrices such as Bayer
+patterns (<code>o8x8</code>, <code>o4x4</code>) and standard halftone
+circles (<code>h8x8a</code>, <code>h6x6a</code>), you can create custom
+screens by defining your own matrix.</p>
+<h2 id="step-1-define-the-custom-matrix-in-xml">Step 1: Define the
+Custom Matrix in XML</h2>
+<p>ImageMagick loads ordered dither matrices from an XML configuration
+file named <code>thresholds.xml</code>. You can define custom dot sizes,
+angled screens, lines, or crosshatch patterns by creating or modifying
+this file.</p>
+<p>Create a file named <code>thresholds.xml</code> in your current
+working directory (or in your ImageMagick configuration directory, such
+as <code>~/.config/ImageMagick/</code> on Linux/macOS):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">thresholdmap</span> <span class="dt">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">thresholdmap</span> (threshold)+<span class="dt">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">threshold</span> (description,levels,divisor,matrix)<span class="dt">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">threshold</span> map CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">description</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">levels</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">divisor</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">matrix</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="dt">]&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">thresholdmap</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom-diamond&quot;</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 4x4 Diamond Halftone Pattern&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span>&gt;1&lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">divisor</span>&gt;16&lt;/<span class="kw">divisor</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      12,  4,  5, 13,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>       3,  0,  1,  6,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>       8,  2,  7, 14,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      15,  9, 10, 11</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">thresholdmap</span>&gt;</span></code></pre></div>
+<h3 id="matrix-components-explained">Matrix Components Explained</h3>
+<ul>
+<li><strong><code>map</code></strong>: The unique identifier used to
+call your pattern in the CLI (e.g., <code>custom-diamond</code>).</li>
+<li><strong><code>levels</code></strong>: The base number of intensity
+levels represented by the matrix (usually set to <code>1</code>).</li>
+<li><strong><code>divisor</code></strong>: The total range of threshold
+values (typically equal to the total number of cells in the matrix, such
+as <code>16</code> for a 4x4 matrix).</li>
+<li><strong><code>matrix</code></strong>: A comma-separated list of
+threshold values arranged in a grid. The order of numbers dictates the
+sequence in which pixels activate as image brightness increases.</li>
+</ul>
+<h2 id="step-2-applying-the-custom-pattern">Step 2: Applying the Custom
+Pattern</h2>
+<p>Once the XML file is placed in your working directory or ImageMagick
+configuration path, invoke your custom map using the
+<code>-ordered-dither</code> operator:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom-diamond output.png</span></code></pre></div>
+<p>For ImageMagick version 6, use:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-ordered-dither</span> custom-diamond output.png</span></code></pre></div>
+<h2 id="step-3-multi-level-and-color-halftoning">Step 3: Multi-Level and
+Color Halftoning</h2>
+<p>You can expand your custom matrix beyond simple 1-bit monochrome
+output by specifying color levels directly in the command:</p>
+<ul>
+<li><strong>Multi-level Grayscale:</strong> To produce an output with 4
+distinct tonal levels per channel:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom-diamond,4 output.png</span></code></pre></div></li>
+<li><strong>Separated Color Channels:</strong> To apply different color
+quantization levels across RGB channels (e.g., Red: 2 levels, Green: 4
+levels, Blue: 2 levels):
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom-diamond,2,4,2 output.png</span></code></pre></div></li>
+</ul>
+<h2 id="designing-line-and-dot-screens">Designing Line and Dot
+Screens</h2>
+<p>To create specific geometric screens, control the layout of the
+matrix values:</p>
+<ul>
+<li><strong>Clustered Dot (Round Halftone):</strong> Place lower
+threshold values in the center and increase values outward to create
+dots that grow as brightness rises.</li>
+<li><strong>Line Screens:</strong> Assign identical threshold values
+across entire rows or columns to produce horizontal or vertical halftone
+scanning lines.</li>
+<li><strong>Diagonal Lines:</strong> Place incrementing values
+diagonally across the matrix to create 45-degree angled line
+screens.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

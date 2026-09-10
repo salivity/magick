@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Resize a WebP Image with ImageMagick? - magick</title>
+    <meta name="description" content="Resizing a WebP image using ImageMagick is a straightforward process performed through the command-line interface. This guide covers how to set up ImageMagick with WebP support, resize single images by exact dimensions or percentages, maintain proper asp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-resize-a-webp-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Resize a WebP Image with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-resize-a-webp-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Resizing a WebP image using ImageMagick is a straightforward process performed through the command-line interface. This guide covers how to set up ImageMagick with WebP support, resize single images by exact dimensions or percentages, maintain proper asp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-resize-a-webp-image-with-imagemagick">How to Resize a
+WebP Image with ImageMagick?</h1>
+<p>Resizing a WebP image using ImageMagick is a straightforward process
+performed through the command-line interface. This guide covers how to
+set up ImageMagick with WebP support, resize single images by exact
+dimensions or percentages, maintain proper aspect ratios, preserve
+animation frames, and run batch processing across entire
+directories.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and
+Installation</h2>
+<p>ImageMagick requires the <code>libwebp</code> delegate library to
+read and write WebP files. Modern installations typically include this
+out of the box, but you should confirm your system configuration before
+running conversion commands.</p>
+<p>To verify WebP support on your installation, run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> under the <strong>Delegates</strong> list.
+If it is missing, install the WebP libraries and ImageMagick using your
+system's package manager:</p>
+<ul>
+<li><strong>Ubuntu / Debian:</strong></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install imagemagick libwebp-dev</span></code></pre></div>
+<ul>
+<li><strong>macOS (Homebrew):</strong></li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install imagemagick webp</span></code></pre></div>
+<ul>
+<li><strong>Windows:</strong> Download and install the pre-compiled
+binary from the official ImageMagick website, ensuring the option to add
+the utility to your system path is checked.</li>
+</ul>
+<p><em>Note: In ImageMagick 7 and newer, use the <code>magick</code>
+command. For legacy ImageMagick 6 installations, replace
+<code>magick</code> with <code>convert</code>.</em></p>
+<h2 id="basic-resizing-commands">Basic Resizing Commands</h2>
+<p>The <code>-resize</code> parameter handles dimension adjustments
+while automatically preserving the original aspect ratio.</p>
+<h3 id="resizing-to-fit-specified-dimensions">Resizing to Fit Specified
+Dimensions</h3>
+<p>To constrain an image within specific maximum boundaries (e.g., 800px
+wide by 600px tall) without distorting the image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> 800x600 output.webp</span></code></pre></div>
+<p>ImageMagick fits the image inside this box, scaling proportionally
+based on whichever axis hits the limit first.</p>
+<h3 id="resizing-by-width-or-height-only">Resizing by Width or Height
+Only</h3>
+<p>If you only need to match a single dimension and let the other scale
+proportionally, omit the second measurement:</p>
+<ul>
+<li><strong>Specify Width (800px):</strong></li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> 800x output.webp</span></code></pre></div>
+<ul>
+<li><strong>Specify Height (600px):</strong></li>
+</ul>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> x600 output.webp</span></code></pre></div>
+<h3 id="resizing-by-percentage">Resizing by Percentage</h3>
+<p>To scale an image relative to its original size:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> 50% output.webp</span></code></pre></div>
+<h2 id="advanced-resizing-options">Advanced Resizing Options</h2>
+<h3 id="forcing-exact-dimensions">Forcing Exact Dimensions</h3>
+<p>If you need an image to match exact pixel dimensions regardless of
+distortion, append an exclamation point (<code>!</code>) to the geometry
+argument. In many shells, escape the exclamation mark to avoid syntax
+errors:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> <span class="st">&quot;800x600\!&quot;</span> output.webp</span></code></pre></div>
+<h3 id="only-shrinking-larger-images">Only Shrinking Larger Images</h3>
+<p>To avoid upscaling small images and only resize images that exceed
+target dimensions, append the greater-than symbol
+(<code>&gt;</code>):</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> <span class="st">&quot;1200x1200&gt;&quot;</span> output.webp</span></code></pre></div>
+<h3 id="controlling-output-quality-and-compression">Controlling Output
+Quality and Compression</h3>
+<p>WebP supports both lossy and lossless modes. Use the
+<code>-quality</code> flag to balance file size against visual
+clarity:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> 800x <span class="at">-quality</span> 80 output.webp</span></code></pre></div>
+<p>For lossless WebP resizing, specify the define parameter:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-resize</span> 800x <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h2 id="handling-animated-webp-files">Handling Animated WebP Files</h2>
+<p>Resizing an animated WebP file without special flags can break frame
+delays or strip animation completely. Use <code>-coalesce</code> before
+resizing and include your output configuration to maintain proper frame
+timing:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-coalesce</span> <span class="at">-resize</span> 400x <span class="at">-layers</span> optimize output.webp</span></code></pre></div>
+<p>The <code>-coalesce</code> option ensures each frame has a full
+canvas to prevent tearing during resizing, and
+<code>-layers optimize</code> removes redundant frame data to keep the
+file size minimal.</p>
+<h2 id="batch-resizing-multiple-webp-files">Batch Resizing Multiple WebP
+Files</h2>
+<p>To resize multiple files at once, use ImageMagick's
+<code>mogrify</code> tool or shell scripting loops.</p>
+<h3 id="using-mogrify">Using Mogrify</h3>
+<p><code>mogrify</code> modifies files in place or writes them to a
+specific output path:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./resized/ <span class="at">-resize</span> 800x <span class="pp">*</span>.webp</span></code></pre></div>
+<p>This processes every <code>.webp</code> file in the current directory
+and places the resized versions inside the <code>resized</code>
+folder.</p>
+<h3 id="using-a-bash-loop">Using a Bash Loop</h3>
+<p>A shell loop allows you to retain original filenames while writing to
+a structured output format:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.webp<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-resize</span> 800x <span class="st">&quot;resized_</span><span class="va">${file}</span><span class="st">&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

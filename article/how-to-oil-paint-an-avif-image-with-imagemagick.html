@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Oil Paint an AVIF Image With ImageMagick? - magick</title>
+    <meta name="description" content="Applying an oil painting effect to modern AVIF images is a straightforward process using ImageMagick’s built-in filtering tools. This guide explains how to verify AVIF format support, apply the -paint operator from the command line, and adjust effect r">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-oil-paint-an-avif-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Oil Paint an AVIF Image With ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-oil-paint-an-avif-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying an oil painting effect to modern AVIF images is a straightforward process using ImageMagick’s built-in filtering tools. This guide explains how to verify AVIF format support, apply the -paint operator from the command line, and adjust effect r" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-oil-paint-an-avif-image-with-imagemagick">How to Oil
+Paint an AVIF Image With ImageMagick?</h1>
+<p>Applying an oil painting effect to modern AVIF images is a
+straightforward process using ImageMagick’s built-in filtering tools.
+This guide explains how to verify AVIF format support, apply the
+<code>-paint</code> operator from the command line, and adjust effect
+radii to produce realistic artistic textures without leaving your
+terminal.</p>
+<h2 id="prerequisites-and-avif-support">Prerequisites and AVIF
+Support</h2>
+<p>Before processing files, ensure your ImageMagick installation
+includes support for the AVIF format. AVIF encoding and decoding rely on
+underlying libraries such as <code>libheif</code>.</p>
+<p>You can verify whether your installed version supports AVIF by
+running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> in the
+<code>Delegates</code> list. Alternatively, query the format list
+directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> avif</span></code></pre></div>
+<p>If the output lists <code>AVIF</code> with read/write permissions
+(<code>rw-</code> or <code>r--</code>), your installation is ready. If
+AVIF is missing, update ImageMagick or install <code>libheif</code>
+using your operating system's package manager.</p>
+<h2 id="the-basic-oil-paint-command">The Basic Oil Paint Command</h2>
+<p>ImageMagick applies painterly textures via the <code>-paint</code>
+operator. This filter simulates an oil painting by analyzing circular
+neighborhoods around each pixel and assigning the most common color
+intensity.</p>
+<p>To convert an AVIF file using the default settings:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-paint</span> 3 output.avif</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>input.avif</code> specifies the source image.</li>
+<li><code>-paint 3</code> dictates the radius of the circular
+neighborhood examined for the brush effect.</li>
+<li><code>output.avif</code> writes the finished result directly back
+into AVIF format.</li>
+</ul>
+<h2 id="fine-tuning-the-effect-radius">Fine-Tuning the Effect
+Radius</h2>
+<p>The value passed to <code>-paint</code> represents the radius of the
+brush stroke in pixels. Adjusting this parameter determines how
+pronounced the painted texture appears:</p>
+<ul>
+<li><strong>Subtle texture (<code>-paint 1</code> to
+<code>-paint 2</code>):</strong> Ideal for preserving fine photographic
+details while adding a light canvas-like softness.</li>
+<li><strong>Balanced oil paint (<code>-paint 3</code> to
+<code>-paint 5</code>):</strong> Well-suited for general photography,
+clearly turning smooth gradients into distinct painted swatches.</li>
+<li><strong>Heavy abstraction (<code>-paint 6</code> and
+higher):</strong> Blurs fine lines together into broad, impressionistic
+color patches.</li>
+</ul>
+<p>For a 4K or high-resolution AVIF photo, you may need a larger radius
+such as <code>6</code> or <code>8</code> to achieve noticeable brush
+marks across the wider pixel grid.</p>
+<h2 id="enhancing-brush-strokes-and-contrast">Enhancing Brush Strokes
+and Contrast</h2>
+<p>A standard <code>-paint</code> filter can occasionally soften edges
+too much. Combining it with subtle color adjustments or edge sharpening
+before and after the paint pass yields a more dynamic canvas look:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-modulate</span> 105,120 <span class="at">-paint</span> 4 <span class="at">-unsharp</span> 0x1 output.avif</span></code></pre></div>
+<ul>
+<li><code>-modulate 105,120</code> raises brightness by 5% and
+saturation by 20%, mimicking the vivid pigment of oil paints.</li>
+<li><code>-paint 4</code> applies the brush effect.</li>
+<li><code>-unsharp 0x1</code> sharpens the edges of the newly generated
+brush strokes to make the strokes stand out.</li>
+</ul>
+<h2 id="batch-processing-avif-images">Batch Processing AVIF Images</h2>
+<p>To convert an entire folder of AVIF images while retaining the same
+file format, use the <code>mogrify</code> tool included with
+ImageMagick:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./painted_output <span class="at">-paint</span> 4 <span class="pp">*</span>.avif</span></code></pre></div>
+<p>This processes every <code>.avif</code> file in the current directory
+and places the painted versions inside the <code>painted_output</code>
+folder, keeping original files safe from unintended overwrites.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

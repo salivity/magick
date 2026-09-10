@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Is the ImageMagick Signature Attribute? - magick</title>
+    <meta name="description" content="When running the identify -verbose command in ImageMagick, the output includes a unique hexadecimal string labeled as the signature. This article explains what the ImageMagick image signature represents, how it is generated exclusively from raw pixel dat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/what-is-the-imagemagick-signature-attribute">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What Is the ImageMagick Signature Attribute? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/what-is-the-imagemagick-signature-attribute" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When running the identify -verbose command in ImageMagick, the output includes a unique hexadecimal string labeled as the signature. This article explains what the ImageMagick image signature represents, how it is generated exclusively from raw pixel dat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-the-imagemagick-signature-attribute">What Is the
+ImageMagick Signature Attribute?</h1>
+<p>When running the <code>identify -verbose</code> command in
+ImageMagick, the output includes a unique hexadecimal string labeled as
+the <code>signature</code>. This article explains what the ImageMagick
+image signature represents, how it is generated exclusively from raw
+pixel data, and how it differs from traditional file checksums for image
+verification and deduplication tasks.</p>
+<h3 id="understanding-the-signature-attribute">Understanding the
+Signature Attribute</h3>
+<p>The <code>signature</code> attribute in ImageMagick is a
+cryptographic hash—typically generated using the SHA-256
+algorithm—computed strictly from the image's raw, uncompressed pixel
+values. Rather than hashing the physical file on disk, ImageMagick
+decodes the image into memory and processes the raw color components
+(such as red, green, blue, and alpha channels) in standard scanline
+order to create the hash.</p>
+<h3 id="signature-vs-standard-file-hashes">Signature vs. Standard File
+Hashes</h3>
+<p>A standard cryptographic hash (like running <code>md5sum</code> or
+<code>sha256sum</code> on a file) hashes the entire file container,
+including headers, compression streams, and embedded metadata. In
+contrast, the ImageMagick pixel signature ignores container-level
+differences:</p>
+<ul>
+<li><strong>Format Independence:</strong> If an identical image is saved
+as an uncompressed TIFF and a lossless PNG, both files will have
+different file-level SHA-256 checksums, but their ImageMagick
+<code>signature</code> attributes will be identical.</li>
+<li><strong>Metadata Independence:</strong> Modifying, adding, or
+stripping EXIF, IPTC, or XMP metadata does not alter the pixel data,
+meaning the ImageMagick signature remains unchanged.</li>
+<li><strong>Lossy vs. Lossless Changes:</strong> Because the signature
+depends entirely on exact pixel values, any lossy compression (such as
+saving to JPEG) or color adjustment will alter the pixel data and
+produce a completely different signature.</li>
+</ul>
+<h3 id="practical-use-cases">Practical Use Cases</h3>
+<ol type="1">
+<li><strong>Pixel-Level Deduplication:</strong> You can reliably detect
+duplicate images across your storage systems even if they are stored in
+different file formats or contain different embedded metadata tags.</li>
+<li><strong>Integrity and Rendering Verification:</strong> Software
+pipelines use the signature to verify that image decoders, renderers, or
+transformations produce the exact expected pixel output across different
+environments.</li>
+<li><strong>Change Detection:</strong> It provides a fast way to confirm
+whether an image editing operation actually modified the visual content
+of an image or merely altered its metadata headers.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

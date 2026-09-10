@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Salt-and-Pepper Noise in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to effectively eliminate salt-and-pepper noise from images using ImageMagick's built-in median filter. You will learn the exact command-line syntax for both modern ImageMagick v7 and legacy ImageMagick v6, understand how the media">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/remove-salt-and-pepper-noise-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remove Salt-and-Pepper Noise in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/remove-salt-and-pepper-noise-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to effectively eliminate salt-and-pepper noise from images using ImageMagick's built-in median filter. You will learn the exact command-line syntax for both modern ImageMagick v7 and legacy ImageMagick v6, understand how the media" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="remove-salt-and-pepper-noise-in-imagemagick">Remove
+Salt-and-Pepper Noise in ImageMagick</h1>
+<p>This guide explains how to effectively eliminate salt-and-pepper
+noise from images using ImageMagick's built-in median filter. You will
+learn the exact command-line syntax for both modern ImageMagick v7 and
+legacy ImageMagick v6, understand how the median filter functions to
+replace noisy outlier pixels without excessively blurring edges, and
+discover how to adjust the filter radius for optimal results.</p>
+<h3 id="the-median-filter-command">The Median Filter Command</h3>
+<p>Salt-and-pepper noise manifests as randomly scattered white and black
+pixels across an image. Because the median filter replaces each pixel
+with the median value of its surrounding neighborhood, it easily
+discards these extreme high and low outlier values while preserving
+image edges better than standard blur or mean filters.</p>
+<h4 id="imagemagick-v7-current">ImageMagick v7 (Current)</h4>
+<p>In ImageMagick 7, the preferred method is the
+<code>-statistic median</code> operator using a defined geometry (width
+x height) for the neighborhood kernel:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-statistic</span> median 3x3 output.png</span></code></pre></div>
+<h4 id="imagemagick-v6-legacy">ImageMagick v6 (Legacy)</h4>
+<p>In ImageMagick 6, you use the <code>convert</code> tool combined with
+either the <code>-statistic</code> operator or the shorthand
+<code>-median</code> option:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-median</span> 1 output.png</span></code></pre></div>
+<h3 id="choosing-the-correct-filter-size">Choosing the Correct Filter
+Size</h3>
+<p>The dimensions specified for the median filter determine the size of
+the pixel neighborhood analyzed:</p>
+<ul>
+<li><strong><code>3x3</code> (or radius <code>1</code> to
+<code>1.5</code>):</strong> Ideal for fine, single-pixel salt-and-pepper
+noise. It removes the artifacts while retaining maximum sharpness in
+image details.</li>
+<li><strong><code>5x5</code> (or radius <code>2</code>):</strong> Best
+for heavier noise where corrupted pixels cluster into small groups.</li>
+<li><strong>Larger Kernels (<code>7x7</code> and above):</strong> Useful
+only for very large artifacts or high-resolution images. Applying a
+large kernel to standard-resolution images creates a heavy posterized or
+watercolor-like smoothing effect.</li>
+</ul>
+<h3 id="advanced-usage-selective-channel-filtering">Advanced Usage:
+Selective Channel Filtering</h3>
+<p>By default, the median filter processes all color channels
+simultaneously. If your noise is confined to luminance or a specific
+color channel, you can restrict the filter using the
+<code>-channel</code> flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> RGB <span class="at">-statistic</span> median 3x3 +channel output.png</span></code></pre></div>
+<p>For general cleanup, a simple <code>3x3</code> median statistic
+applied across the image provides the fastest and cleanest balance
+between noise reduction and edge retention.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

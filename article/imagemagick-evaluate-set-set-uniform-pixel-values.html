@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Evaluate Set: Set Uniform Pixel Values - magick</title>
+    <meta name="description" content="This article explains how the -evaluate Set operator in ImageMagick overwrites pixel channel data to establish a uniform numeric constant across an image. You will learn the mechanics behind this command, how it interacts with quantum ranges and color ch">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-set-set-uniform-pixel-values">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Evaluate Set: Set Uniform Pixel Values - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-set-set-uniform-pixel-values" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the -evaluate Set operator in ImageMagick overwrites pixel channel data to establish a uniform numeric constant across an image. You will learn the mechanics behind this command, how it interacts with quantum ranges and color ch" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-evaluate-set-set-uniform-pixel-values">ImageMagick
+Evaluate Set: Set Uniform Pixel Values</h1>
+<p>This article explains how the <code>-evaluate Set</code> operator in
+ImageMagick overwrites pixel channel data to establish a uniform numeric
+constant across an image. You will learn the mechanics behind this
+command, how it interacts with quantum ranges and color channels, and
+how ImageMagick processes raw numerical and percentage inputs to alter
+pixel memory directly.</p>
+<h2 id="the-mechanism-of--evaluate-set">The Mechanism of
+<code>-evaluate Set</code></h2>
+<p>The <code>-evaluate</code> operator in ImageMagick provides
+command-line access to arithmetic and logical operations applied
+directly to image channels. When paired with the <code>Set</code>
+method, it acts as an absolute assignment operator rather than a
+modifier. Unlike operations such as <code>Add</code>,
+<code>Multiply</code>, or <code>Divide</code>, which read the existing
+pixel value, calculate an offset, and write the result, <code>Set</code>
+completely ignores the original pixel data. It assigns the specified
+constant value uniformly across all targeted pixels in the image
+buffer.</p>
+<h2 id="quantum-depth-and-value-interpretation">Quantum Depth and Value
+Interpretation</h2>
+<p>ImageMagick processes pixel intensities using an internal scale
+defined by its compile-time quantum depth (typically <code>Q8</code> or
+<code>Q16</code>, with integer or floating-point variations). The
+maximum representable value is referred to as
+<code>QuantumRange</code>:</p>
+<ul>
+<li><strong>Q8:</strong> Values range from <code>0</code> to
+<code>255</code>.</li>
+<li><strong>Q16:</strong> Values range from <code>0</code> to
+<code>65535</code>.</li>
+</ul>
+<p>When you supply an argument to <code>-evaluate Set</code>,
+ImageMagick interprets the input in one of two ways:</p>
+<ol type="1">
+<li><strong>Percentages:</strong> Appending a <code>%</code> symbol
+(such as <code>-evaluate Set 50%</code>) forces ImageMagick to calculate
+the target value as a normalized percentage of
+<code>QuantumRange</code>. On a Q16 build, <code>50%</code> sets every
+targeted channel value directly to <code>32767.5</code>.</li>
+<li><strong>Raw Integers or Floats:</strong> Supplying an absolute
+number without a percentage sets the channel to that exact raw value,
+clamped between <code>0</code> and <code>QuantumRange</code>. For
+instance, running <code>-evaluate Set 128</code> on a Q16 image sets the
+channel to <code>128</code> out of <code>65535</code>, resulting in a
+nearly black pixel rather than mid-gray.</li>
+</ol>
+<h2 id="channel-targeting-and-masking">Channel Targeting and
+Masking</h2>
+<p>The assignment behavior of <code>-evaluate Set</code> is strictly
+bound to the active channel mask controlled by the <code>-channel</code>
+option:</p>
+<ul>
+<li><strong>Default Masking:</strong> If no channel mask is defined, the
+command applies to default color channels (such as Red, Green, and
+Blue), leaving the Alpha (transparency) channel unmodified.</li>
+<li><strong>Explicit Masking:</strong> By preceding the command with
+<code>-channel</code>, you can isolate specific channels. For example,
+using <code>-channel A -evaluate Set 100%</code> overrides the alpha
+channel completely, making an image fully opaque without altering
+underlying RGB color information. Conversely,
+<code>-channel R -evaluate Set 0</code> completely zeroes out the red
+channel, leaving green, blue, and alpha untouched.</li>
+</ul>
+<h2 id="execution-flow-in-memory">Execution Flow in Memory</h2>
+<p>When executed, ImageMagick iterates over the pixel cache of the
+specified image via a nested loop covering image height and width. For
+each pixel coordinate within the loop, ImageMagick checks the channel
+mask. For every active channel, it replaces the existing memory byte or
+floating-point representation with the calculated uniform constant.
+Because there are no intermediate arithmetic steps or pixel-to-pixel
+dependencies, the operation executes rapidly and produces a strictly
+flat, uniform value across the designated channels.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick SouthWest Gravity Cropping Explained - magick</title>
+    <meta name="description" content="This article explains how ImageMagick establishes anchor points and calculates crop coordinates when using SouthWest gravity. It covers how the canvas origin shifts to the bottom-left corner, how crop dimensions (WxH) are positioned relative to that corn">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-southwest-gravity-cropping-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick SouthWest Gravity Cropping Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-southwest-gravity-cropping-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick establishes anchor points and calculates crop coordinates when using SouthWest gravity. It covers how the canvas origin shifts to the bottom-left corner, how crop dimensions (WxH) are positioned relative to that corn" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-southwest-gravity-cropping-explained">ImageMagick
+SouthWest Gravity Cropping Explained</h1>
+<p>This article explains how ImageMagick establishes anchor points and
+calculates crop coordinates when using SouthWest gravity. It covers how
+the canvas origin shifts to the bottom-left corner, how crop dimensions
+(<code>WxH</code>) are positioned relative to that corner, and how
+positive offsets (<code>+X+Y</code>) adjust the final cut area.</p>
+<p>In ImageMagick, the <code>-gravity</code> setting alters the
+reference origin for coordinate operations. By default, ImageMagick uses
+<code>NorthWest</code> gravity, which places the origin
+<code>(0, 0)</code> at the top-left corner of the image canvas. When you
+define <code>-gravity SouthWest</code>, the software relocates the
+primary anchor point to the bottom-left corner of the source image.</p>
+<h3 id="the-southwest-anchor-position">The SouthWest Anchor
+Position</h3>
+<p>When evaluating a crop command such as <code>-crop WxH+X+Y</code>,
+ImageMagick binds the bottom-left corner of the crop window to the
+bottom-left corner of the target image:</p>
+<ul>
+<li><strong>Horizontal Anchor:</strong> The left edge of the image
+canvas (<code>X = 0</code>).</li>
+<li><strong>Vertical Anchor:</strong> The bottom edge of the image
+canvas (<code>Y = Canvas_Height</code>).</li>
+</ul>
+<h3 id="calculating-the-crop-region">Calculating the Crop Region</h3>
+<p>Once the SouthWest anchor is established, ImageMagick determines the
+pixel area to extract based on the crop width (<span
+class="math inline">\(W\)</span>), height (<span
+class="math inline">\(H\)</span>), and the offsets (<span
+class="math inline">\(X\)</span> and <span
+class="math inline">\(Y\)</span>).</p>
+<ol type="1">
+<li><p><strong>Zero Offsets (<code>-crop WxH+0+0</code>):</strong> The
+crop box sits directly against the bottom-left corner.</p>
+<ul>
+<li><strong>Left boundary:</strong> <span
+class="math inline">\(0\)</span></li>
+<li><strong>Right boundary:</strong> <span
+class="math inline">\(W\)</span></li>
+<li><strong>Bottom boundary:</strong> <span
+class="math inline">\(\text{Canvas\_Height}\)</span></li>
+<li><strong>Top boundary:</strong> <span
+class="math inline">\(\text{Canvas\_Height} - H\)</span></li>
+</ul></li>
+<li><p><strong>Applying Offsets (<code>-crop WxH+X+Y</code>):</strong>
+Offsets measure displacement away from the anchor point:</p>
+<ul>
+<li><strong>Horizontal Offset (<span
+class="math inline">\(+X\)</span>):</strong> Moves the crop box inward
+to the right. The left boundary becomes <span
+class="math inline">\(X\)</span>.</li>
+<li><strong>Vertical Offset (<span
+class="math inline">\(+Y\)</span>):</strong> Moves the crop box inward
+toward the top. The bottom boundary becomes <span
+class="math inline">\(\text{Canvas\_Height} - Y\)</span>.</li>
+</ul></li>
+</ol>
+<p>Using standard top-left Cartesian coordinates (where <span
+class="math inline">\(y = 0\)</span> is the top of the image),
+ImageMagick converts a SouthWest crop into absolute coordinates using
+the following formulas:</p>
+<p><span class="math display">\[\text{Top-Left } X = X\]</span> <span
+class="math display">\[\text{Top-Left } Y = \text{Canvas\_Height} - H -
+Y\]</span></p>
+<p>The extracted area spans horizontally from <span
+class="math inline">\(X\)</span> to <span class="math inline">\(X +
+W\)</span>, and vertically from <span
+class="math inline">\(\text{Canvas\_Height} - H - Y\)</span> to <span
+class="math inline">\(\text{Canvas\_Height} - Y\)</span>. Any portion of
+the defined rectangle extending beyond the canvas boundaries will be
+clipped unless virtual canvas adjustments are explicitly preserved.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

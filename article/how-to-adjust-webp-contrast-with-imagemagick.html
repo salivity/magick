@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Adjust WebP Contrast with ImageMagick? - magick</title>
+    <meta name="description" content="Adjusting the contrast of a WebP image using ImageMagick can be accomplished quickly via the command line using operations like sigmoid-contrast, brightness-contrast, or level adjustments. ImageMagick natively supports the WebP format, allowing you to re">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-adjust-webp-contrast-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Adjust WebP Contrast with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-adjust-webp-contrast-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting the contrast of a WebP image using ImageMagick can be accomplished quickly via the command line using operations like sigmoid-contrast, brightness-contrast, or level adjustments. ImageMagick natively supports the WebP format, allowing you to re" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-adjust-webp-contrast-with-imagemagick">How to Adjust WebP
+Contrast with ImageMagick?</h1>
+<p>Adjusting the contrast of a WebP image using ImageMagick can be
+accomplished quickly via the command line using operations like
+sigmoid-contrast, brightness-contrast, or level adjustments. ImageMagick
+natively supports the WebP format, allowing you to read, modify tone
+curves, and output high-quality compressed images without complex
+multi-step conversions.</p>
+<h2 id="prerequisites-and-verification">Prerequisites and
+Verification</h2>
+<p>Before processing your files, ensure your ImageMagick build has WebP
+delegate support compiled in. You can confirm this by checking your
+installed delegates:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> in the <code>Delegates (built-in)</code>
+list. Note that ImageMagick 7 uses the <code>magick</code> command,
+while ImageMagick 6 uses <code>convert</code>. The examples below use
+the modern <code>magick</code> syntax.</p>
+<h2 id="recommended-method-sigmoidal-contrast">Recommended Method:
+Sigmoidal Contrast</h2>
+<p>The <code>-sigmoidal-contrast</code> operator provides smooth,
+natural contrast enhancement without abruptly clipping shadow or
+highlight detail. It adjusts contrast along an S-curve defined by two
+values: contrast factor and mid-point.</p>
+<p>To increase contrast:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-sigmoidal-contrast</span> 5x50% output.webp</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>5</code> represents the intensity of the contrast adjustment.
+Higher numbers yield stronger contrast, while lower numbers produce
+subtler changes.</li>
+<li><code>50%</code> designates the mid-point around which tones expand.
+A 50% value preserves overall midtone balance.</li>
+</ul>
+<p>To decrease contrast instead, prefix the flag with a plus sign:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp +sigmoidal-contrast 5x50% output.webp</span></code></pre></div>
+<h2 id="linear-adjustments-brightness-and-contrast">Linear Adjustments:
+Brightness and Contrast</h2>
+<p>If you need a straightforward linear shift, the
+<code>-brightness-contrast</code> operator provides familiar controls
+similar to standard graphic editors:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-brightness-contrast</span> 0x20 output.webp</span></code></pre></div>
+<p>The parameter format is <code>{brightness}x{contrast}</code>:</p>
+<ul>
+<li><code>0</code> leaves the overall brightness unchanged.</li>
+<li><code>20</code> increases contrast by 20 percent. Negative values
+reduce contrast.</li>
+</ul>
+<h2 id="histogram-stretching-the-level-operator">Histogram Stretching:
+The Level Operator</h2>
+<p>For images that appear flat due to poor dynamic range, stretching the
+tonal histogram often yields the best results:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-auto-level</span> output.webp</span></code></pre></div>
+<p>The <code>-auto-level</code> flag automatically maps the darkest
+pixel in the input to pure black and the lightest pixel to pure
+white.</p>
+<p>If you prefer manual control over white, black, and gamma points, use
+<code>-level</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-level</span> 10%,90%,1.0 output.webp</span></code></pre></div>
+<p>This sets all pixels at or below 10% brightness to black, all pixels
+at or above 90% brightness to white, and applies a gamma correction of
+1.0 to midtones.</p>
+<h2 id="preserving-webp-compression-settings">Preserving WebP
+Compression Settings</h2>
+<p>When writing output back to WebP format, ImageMagick applies default
+compression unless configured otherwise. To retain fine details and
+control output size, specify the quality flag:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-sigmoidal-contrast</span> 4x50% <span class="at">-quality</span> 85 output.webp</span></code></pre></div>
+<p>For completely lossless output, append the <code>-define</code>
+flag:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-sigmoidal-contrast</span> 4x50% <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h2 id="batch-processing-webp-files">Batch Processing WebP Files</h2>
+<p>To adjust contrast across an entire folder of WebP images
+simultaneously, use the <code>mogrify</code> utility:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./processed <span class="at">-sigmoidal-contrast</span> 5x50% <span class="at">-quality</span> 85 <span class="pp">*</span>.webp</span></code></pre></div>
+<p>This applies the contrast curve to every <code>.webp</code> file in
+the current directory and writes the updated files into a subdirectory
+named <code>processed</code>, preventing accidental overwrites of
+original assets.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

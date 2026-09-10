@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Label vs Caption for Sizing Text - magick</title>
+    <meta name="description" content="ImageMagick provides two primary pseudo-image protocols for rendering text: label: and caption:. While both can dynamically adjust font sizes to fit specific dimensions defined by the -size parameter, they differ fundamentally in how they handle line bre">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-label-vs-caption-for-sizing-text">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Label vs Caption for Sizing Text - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-label-vs-caption-for-sizing-text" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides two primary pseudo-image protocols for rendering text: label: and caption:. While both can dynamically adjust font sizes to fit specific dimensions defined by the -size parameter, they differ fundamentally in how they handle line bre" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-label-vs-caption-for-sizing-text">ImageMagick Label
+vs Caption for Sizing Text</h1>
+<p>ImageMagick provides two primary pseudo-image protocols for rendering
+text: <code>label:</code> and <code>caption:</code>. While both can
+dynamically adjust font sizes to fit specific dimensions defined by the
+<code>-size</code> parameter, they differ fundamentally in how they
+handle line breaks and text wrapping. The <code>label:</code> protocol
+is designed for non-wrapping text, scaling a single line (or explicitly
+broken lines) to fill the available space, whereas <code>caption:</code>
+automatically word-wraps text across multiple lines to fit within the
+designated width and height constraints.</p>
+<h2 id="the-label-protocol">The <code>label:</code> Protocol</h2>
+<p>The <code>label:</code> protocol renders text strictly as provided,
+without introducing automatic word breaks.</p>
+<ul>
+<li><strong>Line Wrapping:</strong> <code>label:</code> does not perform
+automatic word wrapping. If text exceeds the boundary width, it will not
+break into a second line unless newline characters (<code>\n</code>) are
+manually inserted into the string.</li>
+<li><strong>Auto-Sizing Behavior:</strong> When a fixed box is defined
+using <code>-size WIDTHxHEIGHT</code> and no point size is specified,
+<code>label:</code> calculates the largest possible font size that
+allows the entire text line to fit within both the width and height
+limits.</li>
+<li><strong>Single Dimension Sizing:</strong> If only the width is
+defined (e.g., <code>-size 500x</code>), <code>label:</code> will scale
+the font size until the text spans that width, adjusting the canvas
+height proportionally.</li>
+<li><strong>Primary Use Case:</strong> Short strings, titles, banners,
+single-line buttons, and graphics where text must span as large as
+possible across a predefined area without breaking.</li>
+</ul>
+<p>Example command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x100 <span class="at">-background</span> lightblue <span class="at">-fill</span> black label:<span class="st">&quot;Single Line Text&quot;</span> output_label.png</span></code></pre></div>
+<h2 id="the-caption-protocol">The <code>caption:</code> Protocol</h2>
+<p>The <code>caption:</code> protocol is specifically engineered for
+multi-line text formatting and paragraph rendering.</p>
+<ul>
+<li><strong>Line Wrapping:</strong> <code>caption:</code> automatically
+inserts line breaks between words to ensure the text wraps to fit the
+specified canvas width.</li>
+<li><strong>Auto-Sizing Behavior:</strong> When both dimensions are set
+with <code>-size WIDTHxHEIGHT</code>, <code>caption:</code> iteratively
+wraps the words and adjusts the font point size down until the entire
+paragraph fits neatly within the exact bounding box.</li>
+<li><strong>Single Dimension Sizing:</strong> If only width is defined
+(e.g., <code>-size 400x</code>) alongside a fixed
+<code>-pointsize</code>, <code>caption:</code> will wrap the text at
+that width and automatically expand the canvas height downward to
+accommodate all necessary lines.</li>
+<li><strong>Primary Use Case:</strong> Descriptions, paragraphs,
+watermarks with variable length, and automated templates where dynamic
+input text must be contained inside a fixed bounding area.</li>
+</ul>
+<p>Example command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x100 <span class="at">-background</span> lightgray <span class="at">-fill</span> black caption:<span class="st">&quot;This is a longer block of text that will automatically wrap into multiple lines to fit the canvas.&quot;</span> output_caption.png</span></code></pre></div>
+<h2 id="key-sizing-differences-summary">Key Sizing Differences
+Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>label:</code></th>
+<th style="text-align: left;"><code>caption:</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Automatic Word Wrap</strong></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Long Text in Fixed
+Box</strong></td>
+<td style="text-align: left;">Shrinks font heavily to keep text on one
+line</td>
+<td style="text-align: left;">Wraps text across lines, balancing font
+size</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Height Allocation</strong></td>
+<td style="text-align: left;">Matches the height of the single line</td>
+<td style="text-align: left;">Expands to fit wrapped lines or scales
+font to fit fixed height</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Best Suited For</strong></td>
+<td style="text-align: left;">Titles, badges, and headers</td>
+<td style="text-align: left;">Paragraphs, dynamic user text, and long
+captions</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

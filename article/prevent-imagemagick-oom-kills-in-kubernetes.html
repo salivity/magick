@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prevent ImageMagick OOM Kills in Kubernetes - magick</title>
+    <meta name="description" content="ImageMagick processes images by decompressing them into raw pixel caches, which often causes rapid, massive memory spikes that trigger the Kubernetes Out-Of-Memory (OOM) killer (exit code 137). Preventing these terminations requires a synchronized strate">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/prevent-imagemagick-oom-kills-in-kubernetes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Prevent ImageMagick OOM Kills in Kubernetes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/prevent-imagemagick-oom-kills-in-kubernetes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick processes images by decompressing them into raw pixel caches, which often causes rapid, massive memory spikes that trigger the Kubernetes Out-Of-Memory (OOM) killer (exit code 137). Preventing these terminations requires a synchronized strate" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="prevent-imagemagick-oom-kills-in-kubernetes">Prevent ImageMagick
+OOM Kills in Kubernetes</h1>
+<p>ImageMagick processes images by decompressing them into raw pixel
+caches, which often causes rapid, massive memory spikes that trigger the
+Kubernetes Out-Of-Memory (OOM) killer (exit code 137). Preventing these
+terminations requires a synchronized strategy: enforcing ImageMagick's
+internal memory thresholds, restricting thread concurrency, aligning
+Kubernetes resource requests and limits, and offloading excess memory
+usage to fast ephemeral disk storage.</p>
+<h2 id="1-configure-imagemagicks-policyxml">1. Configure ImageMagick's
+<code>policy.xml</code></h2>
+<p>By default, ImageMagick attempts to allocate as much system memory as
+possible before falling back to disk. In a containerized environment, it
+may read host-level resources rather than container limits, causing
+Kubernetes to kill the pod.</p>
+<p>Mount a custom <code>policy.xml</code> file (typically located at
+<code>/etc/ImageMagick-7/policy.xml</code> or
+<code>/etc/ImageMagick-6/policy.xml</code>) into your worker container
+to explicitly cap internal memory allocations:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Maximum RAM dedicated to pixel cache --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;memory&quot;</span> <span class="ot">value=</span><span class="st">&quot;256MiB&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Maximum memory-mapped file cache --&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;map&quot;</span> <span class="ot">value=</span><span class="st">&quot;512MiB&quot;</span>/&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Maximum width and height of an image --&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;area&quot;</span> <span class="ot">value=</span><span class="st">&quot;128MP&quot;</span>/&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Maximum disk space allowed when caching spills over --&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;4GiB&quot;</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit CPU thread concurrency --&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;thread&quot;</span> <span class="ot">value=</span><span class="st">&quot;1&quot;</span>/&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong><code>memory</code></strong>: The maximum RAM allocated for
+cached pixel rows. When this threshold is crossed, ImageMagick spills
+rows to disk or mapped memory.</li>
+<li><strong><code>map</code></strong>: The memory limit for
+memory-mapped disk files.</li>
+<li><strong><code>disk</code></strong>: The maximum disk space used when
+memory and map limits are exceeded.</li>
+<li><strong><code>area</code></strong>: Prevents "decompression bombs"
+by rejecting images with dimensions beyond safe limits.</li>
+</ul>
+<h2 id="2-restrict-multithreading-and-openmp">2. Restrict Multithreading
+and OpenMP</h2>
+<p>ImageMagick utilizes OpenMP for parallel processing by default. When
+multiple threads process image chunks simultaneously, memory consumption
+multiplies proportionately. Restrict execution to a single thread per
+process by passing environment variables in the pod specification:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> MAGICK_THREAD_LIMIT</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;1&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> OMP_NUM_THREADS</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;1&quot;</span></span></code></pre></div>
+<p>Running single-threaded operations significantly smoothens memory
+consumption curves and ensures predictable resource use.</p>
+<h2 id="3-configure-ephemeral-disk-storage-for-disk-spills">3. Configure
+Ephemeral Disk Storage for Disk Spills</h2>
+<p>When ImageMagick runs out of allocated memory, it creates temporary
+disk files. If the container's root file system fills up, the pod will
+be evicted. Mount a dedicated <code>emptyDir</code> volume backed by SSD
+or node storage to handle the cache:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">spec</span><span class="kw">:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">containers</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> imagemagick-worker</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">image</span><span class="kw">:</span><span class="at"> your-worker-image:latest</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">env</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> MAGICK_TEMPORARY_PATH</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">value</span><span class="kw">:</span><span class="at"> /tmp/imagemagick</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">volumeMounts</span><span class="kw">:</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> magick-tmp</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">mountPath</span><span class="kw">:</span><span class="at"> /tmp/imagemagick</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">volumes</span><span class="kw">:</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> magick-tmp</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">emptyDir</span><span class="kw">:</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">sizeLimit</span><span class="kw">:</span><span class="at"> 10Gi</span></span></code></pre></div>
+<h2 id="4-align-kubernetes-resource-limits">4. Align Kubernetes Resource
+Limits</h2>
+<p>Set the Kubernetes memory limit higher than the sum of your
+ImageMagick memory limits to account for runtime overhead (such as
+Node.js, Python, or Go wrappers running the process):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;500m&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;512Mi&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;1000m&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;1Gi&quot;</span></span></code></pre></div>
+<p>If the ImageMagick <code>memory</code> limit is <code>256MiB</code>
+and <code>map</code> is <code>512MiB</code>, a Kubernetes memory limit
+of <code>1Gi</code> or <code>1.5Gi</code> provides adequate buffer room
+for the host application and kernel page caches, preventing abrupt OOM
+kills.</p>
+<h2 id="5-architectural-worker-pool-sizing">5. Architectural Worker Pool
+Sizing</h2>
+<ul>
+<li><strong>Single Task Concurrency:</strong> Configure worker pods to
+handle one (or a very small fixed number) of image jobs at a time.
+Processing multiple high-resolution images concurrently in a single pod
+multiplies memory usage unpredictably.</li>
+<li><strong>Horizontal Scaling:</strong> Instead of scaling pods
+vertically to support parallel tasks, scale horizontally using
+queue-depth metrics (e.g., RabbitMQ, Redis, or AWS SQS) via KEDA
+(Kubernetes Event-driven Autoscaling).</li>
+<li><strong>Process Isolation:</strong> Execute ImageMagick commands in
+separate, spawned sub-processes so that the operating system immediately
+reclaims memory after execution, preventing long-term memory
+fragmentation in long-running worker processes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

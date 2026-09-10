@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Crop Offset Without Dimensions - magick</title>
+    <meta name="description" content="When you specify an offset without width and height dimensions in the ImageMagick -crop geometry (such as -crop +X+Y), ImageMagick defaults the target dimensions to the original image's full width and height. Because the origin shifts to the designated c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-crop-offset-without-dimensions">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Crop Offset Without Dimensions - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-crop-offset-without-dimensions" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When you specify an offset without width and height dimensions in the ImageMagick -crop geometry (such as -crop +X+Y), ImageMagick defaults the target dimensions to the original image's full width and height. Because the origin shifts to the designated c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-crop-offset-without-dimensions">ImageMagick Crop
+Offset Without Dimensions</h1>
+<p>When you specify an offset without width and height dimensions in the
+ImageMagick <code>-crop</code> geometry (such as
+<code>-crop +X+Y</code>), ImageMagick defaults the target dimensions to
+the original image's full width and height. Because the origin shifts to
+the designated coordinate while retaining the original boundary size,
+ImageMagick clips the crop area to the existing canvas limits,
+effectively trimming the top and left sides of the image and returning
+everything from the offset point to the bottom-right edge.</p>
+<h3 id="how-imagemagick-interprets-the-geometry">How ImageMagick
+Interprets the Geometry</h3>
+<p>The standard syntax for ImageMagick's crop option is
+<code>[width]x[height]+[x]+[y]</code>. When the <code>width</code> and
+<code>height</code> parameters are omitted, ImageMagick substitutes the
+image's current dimensions:</p>
+<ul>
+<li><strong>Width fallback:</strong> Defaults to the original image
+width (<span class="math inline">\(W\)</span>).</li>
+<li><strong>Height fallback:</strong> Defaults to the original image
+height (<span class="math inline">\(H\)</span>).</li>
+</ul>
+<p>If you run a command like <code>-crop +50+100</code> on an image with
+dimensions of <span class="math inline">\(800 \times 600\)</span>, the
+internal geometry is interpreted as <code>800x600+50+100</code>.</p>
+<h3 id="resulting-output-dimensions">Resulting Output Dimensions</h3>
+<p>Because the crop box starts at coordinate <span
+class="math inline">\((X, Y)\)</span> and attempts to span the full
+original dimensions (<span class="math inline">\(W \times H\)</span>),
+it extends beyond the canvas boundaries. ImageMagick automatically clips
+the crop region to fit the actual pixel data available.</p>
+<p>As a result:</p>
+<ul>
+<li><strong>Output Width:</strong> <span
+class="math inline">\(\text{Original Width} - X\)</span> (e.g., <span
+class="math inline">\(800 - 50 = 750\text{px}\)</span>)</li>
+<li><strong>Output Height:</strong> <span
+class="math inline">\(\text{Original Height} - Y\)</span> (e.g., <span
+class="math inline">\(600 - 100 = 500\text{px}\)</span>)</li>
+</ul>
+<p>This operation acts as a shortcut to shave off <span
+class="math inline">\(X\)</span> pixels from the left and <span
+class="math inline">\(Y\)</span> pixels from the top without having to
+manually calculate the remaining width and height.</p>
+<h3 id="example-command">Example Command</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-crop</span> +150+80 +repage output.png</span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li>The crop window starts at <span class="math inline">\(X =
+150\)</span> and <span class="math inline">\(Y = 80\)</span>.</li>
+<li>The width and height default to the input image's size.</li>
+<li>The image is cropped from <span class="math inline">\((150,
+80)\)</span> down to the bottom-right corner.</li>
+<li><code>+repage</code> removes the virtual canvas metadata, ensuring
+the canvas matches the new, smaller dimensions.</li>
+</ol>
+<h3 id="behavior-with-negative-offsets">Behavior with Negative
+Offsets</h3>
+<p>If negative offsets are used without dimensions (such as
+<code>-crop -50-50</code>):</p>
+<ul>
+<li>The crop window begins outside the bounds of the original
+image.</li>
+<li>Depending on the output format and configuration, ImageMagick may
+retain the original image dimensions intact while assigning negative
+virtual canvas coordinates, or expand the canvas if background-fill
+operators are actively configured. In standard raster exports without
+extra canvas layers, the visible pixel data remains uncropped.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick DePolar Distortion for Circular Images - magick</title>
+    <meta name="description" content="This article explains how the DePolar distortion operator works in ImageMagick, specifically focusing on its ability to unroll circular and radial graphics into flat, rectangular images. It covers the mathematical transformation behind the operator, how">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-depolar-distortion-for-circular-images">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick DePolar Distortion for Circular Images - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-depolar-distortion-for-circular-images" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the DePolar distortion operator works in ImageMagick, specifically focusing on its ability to unroll circular and radial graphics into flat, rectangular images. It covers the mathematical transformation behind the operator, how" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-depolar-distortion-for-circular-images">ImageMagick
+DePolar Distortion for Circular Images</h1>
+<p>This article explains how the <code>DePolar</code> distortion
+operator works in ImageMagick, specifically focusing on its ability to
+unroll circular and radial graphics into flat, rectangular images. It
+covers the mathematical transformation behind the operator, how the
+coordinate mapping translates visual features, and the primary use cases
+for unwrapping circular visual data.</p>
+<h2 id="understanding-the-depolar-operator">Understanding the DePolar
+Operator</h2>
+<p>The <code>DePolar</code> operator performs a coordinate
+transformation that converts an image from polar coordinates <span
+class="math inline">\((r, \theta)\)</span> to Cartesian coordinates
+<span class="math inline">\((x, y)\)</span>. When applied to a circular
+image, it effectively slices the circle along a radius and "unrolls" it
+into a standard rectangle.</p>
+<p>In this transformation:</p>
+<ul>
+<li><strong>Horizontal Axis (Width):</strong> Represents the angle
+(<span class="math inline">\(\theta\)</span>) around the circular image,
+typically traversing 360 degrees from left to right.</li>
+<li><strong>Vertical Axis (Height):</strong> Represents the radial
+distance (<span class="math inline">\(r\)</span>) from the center of the
+circle to its outer perimeter.</li>
+</ul>
+<p>By default, the center point of the circular image is mapped to the
+bottom edge of the resulting rectangle, while the outer circumference is
+mapped to the top edge.</p>
+<h2 id="how-depolar-affects-circular-content">How DePolar Affects
+Circular Content</h2>
+<p>Applying <code>DePolar</code> fundamentally changes how curved and
+radial features appear:</p>
+<ul>
+<li><strong>Concentric Rings Become Horizontal Lines:</strong> Any
+circular path or ring centered on the original image becomes a straight,
+horizontal band across the output image.</li>
+<li><strong>Radial Spokes Become Vertical Lines:</strong> Lines
+emanating outward from the center point of the circle are straightened
+into vertical lines spanning the height of the output.</li>
+<li><strong>Circular Text Becomes Linear Text:</strong> Text printed
+along an arc, such as the lettering on a coin, bottle cap, or circular
+stamp, is straightened out into standard, readable horizontal text.</li>
+</ul>
+<h2 id="practical-applications">Practical Applications</h2>
+<p>The <code>DePolar</code> operator is predominantly used in image
+processing and computer vision workflows requiring radial
+unwrapping:</p>
+<ol type="1">
+<li><strong>Optical Character Recognition (OCR):</strong> Standard OCR
+engines struggle with text curved along circular paths. Unrolling the
+circle with <code>DePolar</code> aligns the text horizontally, making
+automated recognition significantly more reliable.</li>
+<li><strong>Panoramic Unwrapping:</strong> Images captured with
+upward-facing 360-degree fisheye lenses or curved conical mirrors
+produce circular "donut" images. <code>DePolar</code> unwraps these
+circular projections into traditional wide-angle rectangular
+panoramas.</li>
+<li><strong>Inspection and Quality Control:</strong> In manufacturing,
+inspecting circular parts (like bearings, seals, or printed disc labels)
+is simplified when the perimeter is converted into a uniform rectangular
+strip.</li>
+</ol>
+<h2 id="syntax-and-control-arguments">Syntax and Control Arguments</h2>
+<p>In ImageMagick, the basic command takes the following form:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> DePolar 0 output.png</span></code></pre></div>
+<p>Setting the parameter to <code>0</code> tells ImageMagick to
+automatically calculate the center point, outer radius, and output
+dimensions based on the source image dimensions.</p>
+<p>Users can also provide custom parameters to control the
+transformation:</p>
+<ul>
+<li><strong>Radius (Max and Min):</strong> Setting an inner radius
+allows you to extract an annular band (a ring) rather than the entire
+disk, ignoring the inner core.</li>
+<li><strong>Center Coordinates:</strong> Explicitly defining the <span
+class="math inline">\(X\)</span> and <span
+class="math inline">\(Y\)</span> center prevents distortion if the
+circular subject is not perfectly centered in the source frame.</li>
+<li><strong>Angle Range:</strong> You can restrict the unwrapping to a
+specific angular segment instead of the full 360-degree
+circumference.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

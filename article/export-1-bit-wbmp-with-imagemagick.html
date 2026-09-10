@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export 1-Bit WBMP with ImageMagick - magick</title>
+    <meta name="description" content="This article provides the exact ImageMagick syntax and command options required to generate 1-bit monochrome Wireless Application Protocol Bitmap (WBMP) files. WBMP is an uncompressed, 1-bit format consisting of a simple header followed by packed pixel d">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/export-1-bit-wbmp-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Export 1-Bit WBMP with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/export-1-bit-wbmp-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the exact ImageMagick syntax and command options required to generate 1-bit monochrome Wireless Application Protocol Bitmap (WBMP) files. WBMP is an uncompressed, 1-bit format consisting of a simple header followed by packed pixel d" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="export-1-bit-wbmp-with-imagemagick">Export 1-Bit WBMP with
+ImageMagick</h1>
+<p>This article provides the exact ImageMagick syntax and command
+options required to generate 1-bit monochrome Wireless Application
+Protocol Bitmap (WBMP) files. WBMP is an uncompressed, 1-bit format
+consisting of a simple header followed by packed pixel data, making it
+ideal for resource-constrained microcontrollers driving monochrome OLED,
+LCD, and e-paper screens.</p>
+<h3 id="basic-conversion-syntax">Basic Conversion Syntax</h3>
+<p>For ImageMagick version 7, use the <code>magick</code> command. For
+ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<p>The fundamental command to convert an input image to a 1-bit WBMP
+is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-monochrome</span> output.wbmp</span></code></pre></div>
+<h3 id="complete-syntax-for-microcontroller-displays">Complete Syntax
+for Microcontroller Displays</h3>
+<p>Embedded displays typically require specific target dimensions (such
+as 128x64 or 250x122) and strict control over dithering and bit
+polarity. The standard full command syntax is:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 128x64<span class="dt">\!</span> <span class="at">-colorspace</span> Gray <span class="at">-dither</span> FloydSteinberg <span class="at">-monochrome</span> output.wbmp</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-resize &lt;width&gt;x&lt;height&gt;\!</code></strong>:
+Resizes the image to the exact hardware resolution of your display. The
+exclamation mark (<code>\!</code> in Bash, or <code>!</code> in Windows
+Command Prompt) forces the resize to ignore the original aspect ratio so
+it fits the display buffer completely.</li>
+<li><strong><code>-colorspace Gray</code></strong>: Converts color
+channels to a single grayscale channel before binary conversion,
+preventing color artifacts.</li>
+<li><strong><code>-dither &lt;method&gt;</code></strong>: Controls
+spatial dithering. Use <code>FloydSteinberg</code> to simulate shading
+on photographic inputs, or use <code>None</code> if converting pixel
+art, fonts, or UI schematics where crisp lines are required.</li>
+<li><strong><code>-monochrome</code></strong>: Forces the image buffer
+to strict 1-bit black-and-white.</li>
+<li><strong><code>output.wbmp</code></strong>: ImageMagick uses the
+<code>.wbmp</code> extension to automatically apply the Wireless Bitmap
+encoder. You can explicitly force the encoder by prefixing the filename
+with <code>wbmp:</code> (e.g., <code>wbmp:output.bin</code>).</li>
+</ul>
+<h3
+id="alternative-high-contrast-thresholding-no-dithering">Alternative:
+High-Contrast Thresholding (No Dithering)</h3>
+<p>If dithering creates unwanted visual noise on low-resolution embedded
+displays, substitute <code>-monochrome</code> with the
+<code>-threshold</code> operator to create solid black-and-white
+shapes:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 128x64<span class="dt">\!</span> <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% output.wbmp</span></code></pre></div>
+<p>Adjust the percentage value up or down to control how dark a pixel
+must be before turning completely black.</p>
+<h3 id="inverting-pixel-polarity">Inverting Pixel Polarity</h3>
+<p>Certain microcontroller display drivers (like the SSD1306 or SH1106)
+interpret a <code>1</code> bit as illuminated (white) and <code>0</code>
+as off (black), while others expect the reverse. To invert the bits
+directly during export, use the <code>-negate</code> flag:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 128x64<span class="dt">\!</span> <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-negate</span> output.wbmp</span></code></pre></div>
+<h3 id="verifying-the-output">Verifying the Output</h3>
+<p>To verify that the output is strictly 1-bit before flashing it to
+your microcontroller:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.wbmp</span></code></pre></div>
+<p>Look for <code>Format: WBMP</code>, <code>Depth: 1-bit</code>, and
+<code>Colors: 2</code> in the metadata output to confirm hardware
+compatibility.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

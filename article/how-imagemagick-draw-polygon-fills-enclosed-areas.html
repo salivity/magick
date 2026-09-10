@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Draw Polygon Fills Enclosed Areas - magick</title>
+    <meta name="description" content="The ImageMagick -draw 'polygon' operator renders solid shapes by converting arbitrary vertex coordinates into closed geometric paths, processing them through a scanline rasterization algorithm, and evaluating boundary rules to determine which pixels resi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-draw-polygon-fills-enclosed-areas">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Draw Polygon Fills Enclosed Areas - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-draw-polygon-fills-enclosed-areas" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -draw 'polygon' operator renders solid shapes by converting arbitrary vertex coordinates into closed geometric paths, processing them through a scanline rasterization algorithm, and evaluating boundary rules to determine which pixels resi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-draw-polygon-fills-enclosed-areas">How
+ImageMagick Draw Polygon Fills Enclosed Areas</h1>
+<p>The ImageMagick <code>-draw 'polygon'</code> operator renders solid
+shapes by converting arbitrary vertex coordinates into closed geometric
+paths, processing them through a scanline rasterization algorithm, and
+evaluating boundary rules to determine which pixels reside inside the
+shape. By projecting edges across a discrete pixel grid and calculating
+fractional coverage, ImageMagick accurately fills standard, concave, and
+self-intersecting polygons while applying antialiasing to smooth the
+outer edges.</p>
+<h3 id="path-closure-and-edge-table-construction">Path Closure and Edge
+Table Construction</h3>
+<p>When you pass a series of coordinate pairs to
+<code>-draw 'polygon x0,y0 x1,y1 ... xN,yN'</code>, ImageMagick first
+establishes the polygon perimeter by connecting consecutive points with
+straight line segments. Unlike the <code>polyline</code> primitive,
+<code>polygon</code> automatically adds an implicit closing segment
+connecting the final coordinate back to the initial coordinate if they
+do not match.</p>
+<p>Once the path is defined, ImageMagick's rendering engine constructs
+an Edge Table (ET). It decomposes the linear boundaries into a
+collection of directed vectors, discarding horizontal edges and sorting
+the remaining segments vertically by their minimum Y-coordinates.</p>
+<h3 id="scanline-rasterization">Scanline Rasterization</h3>
+<p>To paint the interior, ImageMagick processes the shape row by row
+using a scanline algorithm:</p>
+<ol type="1">
+<li><strong>Active Edge Management:</strong> For each horizontal
+scanline crossing the bounding box of the polygon, the renderer
+maintains an Active Edge Table (AET) containing only the edges
+intersecting the current Y-level.</li>
+<li><strong>Intersection Calculation:</strong> The exact X-axis
+intersections between the scanline and the active edges are
+computed.</li>
+<li><strong>Sorting:</strong> The intersection points along the scanline
+are sorted from left to right.</li>
+</ol>
+<h3 id="interior-determination-fill-rules">Interior Determination: Fill
+Rules</h3>
+<p>When a polygon self-intersects, loops back on itself, or contains
+nested paths, the rendering engine must decide which enclosed spaces are
+"inside" (filled) and which are "outside" (holes). ImageMagick resolves
+this using fill rules, which determine whether a pixel span between two
+intersections receives paint:</p>
+<ul>
+<li><strong>Non-Zero Winding Rule (Default):</strong> The algorithm
+tracks a winding number, initialized to zero. As the scanline moves left
+to right, intersecting a ray drawn upward adds <code>+1</code> to the
+counter, while intersecting a downward-pointing ray subtracts
+<code>1</code>. Regions where the winding number is non-zero are marked
+as interior and filled with the active <code>-fill</code> color. Regions
+where the count returns to zero are treated as exterior.</li>
+<li><strong>Even-Odd Rule:</strong> Configured using the
+<code>-fill-rule evenodd</code> setting, this rule simply counts the
+number of edge crossings. An odd number of crossings indicates an
+interior point, while an even number indicates an exterior point.</li>
+</ul>
+<h3 id="subpixel-coverage-and-antialiasing">Subpixel Coverage and
+Antialiasing</h3>
+<p>Unless disabled via <code>+antialias</code>, ImageMagick does not
+make purely binary (in or out) decisions for edge pixels. Instead, it
+evaluates polygon boundaries at subpixel resolution or uses analytical
+area integration.</p>
+<p>The rasterizer determines what fraction of each boundary pixel is
+covered by the enclosed polygon area. It then calculates an alpha value
+proportional to this coverage, blending the fill color smoothly with the
+existing background pixels to prevent jagged staircase artifacts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

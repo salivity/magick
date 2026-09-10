@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Virtual Pixel Gray in Displacement Maps - magick</title>
+    <meta name="description" content="The -virtual-pixel gray setting in ImageMagick ensures stable boundary calculations during displacement mapping by establishing a neutral, zero-shift baseline beyond the edges of the displacement canvas. In ImageMagick, displacement maps interpret pixel">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-gray-in-displacement-maps">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Virtual Pixel Gray in Displacement Maps - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-gray-in-displacement-maps" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -virtual-pixel gray setting in ImageMagick ensures stable boundary calculations during displacement mapping by establishing a neutral, zero-shift baseline beyond the edges of the displacement canvas. In ImageMagick, displacement maps interpret pixel" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-virtual-pixel-gray-in-displacement-maps">ImageMagick
+Virtual Pixel Gray in Displacement Maps</h1>
+<p>The <code>-virtual-pixel gray</code> setting in ImageMagick ensures
+stable boundary calculations during displacement mapping by establishing
+a neutral, zero-shift baseline beyond the edges of the displacement
+canvas. In ImageMagick, displacement maps interpret pixel luminance as
+directional vectors where 50% gray represents zero displacement, while
+darker and lighter values trigger negative and positive shifts
+respectively. By setting the virtual pixel behavior to neutral gray, any
+boundary calculations that sample coordinates outside the displacement
+map register no movement, eliminating edge distortion, unnatural
+tearing, and smearing artifacts.</p>
+<p>Displacement mapping relies on reading pixel intensity from a
+secondary map to calculate how far to move pixels from the source image.
+During this process, pixels near the image boundaries often require
+sampling coordinates that lie partially or entirely outside the map's
+defined dimensions. Without a defined virtual pixel behavior,
+ImageMagick must rely on default fallback methods to determine what
+values exist in that undefined space.</p>
+<p>When non-neutral virtual pixel modes are used, boundary calculations
+yield disruptive visual errors. For example, using
+<code>-virtual-pixel black</code> treats off-canvas space as complete
+darkness (0% intensity), which translates to a maximum negative
+displacement. Conversely, <code>-virtual-pixel white</code> applies
+maximum positive displacement. Modes like
+<code>-virtual-pixel edge</code> replicate the color of the closest
+border pixel outward indefinitely, which causes displacement vectors to
+streak continuously across the canvas edges.</p>
+<p>The <code>-virtual-pixel gray</code> setting explicitly defines
+out-of-bounds pixels as 50% gray (often represented as
+<code>gray50</code> or <code>#808080</code>). Because displacement
+mapping algorithms use 50% gray as the neutral midpoint where no
+geometric translation occurs, lookups that extend beyond the physical
+boundary are evaluated with an offset vector of zero.</p>
+<p>This behavior allows boundary calculations to terminate cleanly.
+Instead of aggressively pulling edge pixels inward or pushing them
+outward, the source image retains its native geometric position at its
+perimeter. Using <code>-virtual-pixel gray</code> ensures smooth,
+predictable transitions at image borders, keeping displacement effects
+contained strictly to the areas dictated by the actual displacement
+map.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

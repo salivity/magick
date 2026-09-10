@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protect Regions During ImageMagick Seam Carving - magick</title>
+    <meta name="description" content="Content-aware resizing, or seam carving, allows you to change an image's aspect ratio by removing or inserting low-energy pixels across the canvas. However, this process can frequently distort important subjects like faces, logos, or defined geometric st">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/protect-regions-during-imagemagick-seam-carving">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Protect Regions During ImageMagick Seam Carving - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/protect-regions-during-imagemagick-seam-carving" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Content-aware resizing, or seam carving, allows you to change an image's aspect ratio by removing or inserting low-energy pixels across the canvas. However, this process can frequently distort important subjects like faces, logos, or defined geometric st" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="protect-regions-during-imagemagick-seam-carving">Protect Regions
+During ImageMagick Seam Carving</h1>
+<p>Content-aware resizing, or seam carving, allows you to change an
+image's aspect ratio by removing or inserting low-energy pixels across
+the canvas. However, this process can frequently distort important
+subjects like faces, logos, or defined geometric structures. To prevent
+this, ImageMagick allows you to supply a protection mask alongside the
+<code>-liquid-rescale</code> operator, effectively telling the algorithm
+which pixel paths to avoid during carving.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To use seam carving in ImageMagick, your installation must be
+compiled with the Liquid Rescale library (<code>liblqr</code>). You can
+verify support by checking <code>magick -version</code> or
+<code>convert -version</code> for the <code>lqr</code> feature flag.</p>
+<h3 id="how-protection-masks-work">How Protection Masks Work</h3>
+<p>Seam carving determines which pixels to discard based on an "energy"
+map, where low-contrast regions have low energy and high-contrast edges
+have high energy. Pixels along the lowest energy seams are removed
+first.</p>
+<p>By supplying an auxiliary grayscale mask, you manually manipulate
+these energy levels:</p>
+<ul>
+<li><strong>White (high energy):</strong> Protects the region. The
+algorithm routes seams around these areas to preserve their shape and
+detail.</li>
+<li><strong>Black (low energy / neutral):</strong> Treated as standard
+image areas or targets for prioritized removal.</li>
+</ul>
+<h3 id="step-by-step-protection-process">Step-by-Step Protection
+Process</h3>
+<h4 id="1-create-the-protection-mask">1. Create the Protection Mask</h4>
+<p>Open your source image in any image editor and create a new layer
+over it. Paint pure white (<code>#FFFFFF</code>) over the subjects you
+want to protect and fill the rest of the canvas with pure black
+(<code>#000000</code>). Save this file with the exact same pixel
+dimensions as your original image (e.g., <code>mask.png</code>).</p>
+<h4 id="2-apply-the-mask-with--liquid-rescale">2. Apply the Mask with
+<code>-liquid-rescale</code></h4>
+<p>In ImageMagick, you composite or feed the mask into the command
+pipeline so the LQR delegate can read the protection weights:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg mask.png <span class="at">-define</span> lqr:feature-mask=mask.png <span class="at">-liquid-rescale</span> 70%x100% output.jpg</span></code></pre></div>
+<p>In standard syntax where the mask is piped directly into the
+operator:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> mask.png <span class="at">-alpha</span> off <span class="dt">\)</span> <span class="at">-set</span> option:lqr:feature-mask <span class="st">&quot;%[f]&quot;</span> <span class="at">-liquid-rescale</span> 600x400! output.jpg</span></code></pre></div>
+<h3 id="best-practices-for-clean-results">Best Practices for Clean
+Results</h3>
+<ul>
+<li><strong>Add Padding Around Critical Features:</strong> Paint
+slightly outside the edges of the object you want to protect. Tight
+masks may still suffer edge warping if neighboring seams bend
+sharply.</li>
+<li><strong>Avoid Over-Constraining:</strong> If you protect too large a
+percentage of the image's width or height, the algorithm will run out of
+viable seams to carve, forcing seams through protected areas or
+producing severe compression artifacts in the unmasked background.</li>
+<li><strong>Combine with Standard Scaling:</strong> For dramatic
+dimension changes, scale the image normally by 10–20% before applying
+<code>-liquid-rescale</code> to minimize extreme background
+distortion.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

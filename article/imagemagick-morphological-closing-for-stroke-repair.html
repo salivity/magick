@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Morphological Closing for Stroke Repair - magick</title>
+    <meta name="description" content="This article explains how ImageMagick repairs broken, fragmented line art and text strokes using mathematical morphology. By applying a morphological "Close" operation, ImageMagick bridges micro-fractures, fills small gaps, and restores continuity to dam">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-morphological-closing-for-stroke-repair">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Morphological Closing for Stroke Repair - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-morphological-closing-for-stroke-repair" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick repairs broken, fragmented line art and text strokes using mathematical morphology. By applying a morphological "Close" operation, ImageMagick bridges micro-fractures, fills small gaps, and restores continuity to dam" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-morphological-closing-for-stroke-repair">ImageMagick
+Morphological Closing for Stroke Repair</h1>
+<p>This article explains how ImageMagick repairs broken, fragmented line
+art and text strokes using mathematical morphology. By applying a
+morphological "Close" operation, ImageMagick bridges micro-fractures,
+fills small gaps, and restores continuity to damaged strokes without
+permanently altering the general thickness or geometry of the
+shapes.</p>
+<h3 id="the-problem-of-damaged-strokes">The Problem of Damaged
+Strokes</h3>
+<p>Scanned documents, low-resolution rasterization, and harsh
+binarization often produce broken or discontinuous strokes in text and
+line drawings. These fractures disrupt optical character recognition
+(OCR) and degrade visual fidelity. Standard blurring or thickening can
+close these gaps, but it often leads to unwanted stroke weight expansion
+and loss of fine detail.</p>
+<h3 id="what-is-morphological-closing">What is Morphological
+Closing?</h3>
+<p>Morphological closing is a two-step mathematical operation derived
+from set theory: <strong>dilation</strong> followed immediately by
+<strong>erosion</strong>, both using the same structuring element
+(kernel).</p>
+<ol type="1">
+<li><strong>Dilation (Expansion):</strong> The operation scans the
+binary or grayscale image and expands the foreground (strokes). As
+foreground pixels grow outward, adjacent stroke segments expand toward
+each other until their boundaries overlap, effectively bridging the
+fracture.</li>
+<li><strong>Erosion (Contraction):</strong> The operation then contracts
+the foreground pixels by the exact same radius. While the overall stroke
+shrinks back to its original baseline thickness, the bridge formed
+across the fracture remains intact, provided the initial gap was smaller
+than the kernel diameter.</li>
+</ol>
+<p>Because dilation and erosion cancel each other out on continuous
+boundaries, closing acts selectively: it fills internal holes and
+connects narrow breaks while leaving the outer dimensions of the stroke
+largely unchanged.</p>
+<h3 id="implementing-closing-in-imagemagick">Implementing Closing in
+ImageMagick</h3>
+<p>ImageMagick provides access to morphological operations via the
+<code>-morphology</code> operator. The standard syntax for stroke
+reconstruction is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Close <span class="op">&lt;</span>KernelType<span class="op">&gt;</span>[:<span class="op">&lt;</span>Radius<span class="op">&gt;</span>] output.png</span></code></pre></div>
+<h4 id="selecting-the-kernel">Selecting the Kernel</h4>
+<p>The structuring element determines the shape and reach of the
+connection:</p>
+<ul>
+<li><strong>Disk:</strong> The most common kernel for general stroke
+repair (e.g., <code>Disk:1.5</code>). It bridges gaps uniformly in all
+directions without introducing sharp corners.</li>
+<li><strong>Diamond:</strong> Useful for low-resolution or pixelated
+images (e.g., <code>Diamond:1</code>) to prevent excessive diagonal
+bridging.</li>
+<li><strong>Rectangle or Line:</strong> If breaks occur predominantly
+along a specific axis (such as horizontal scanning dropouts),
+directional kernels like <code>Rectangle:3x1</code> can target
+horizontal gaps without affecting vertical spacing.</li>
+</ul>
+<h3 id="controlling-the-reconstruction">Controlling the
+Reconstruction</h3>
+<p>The kernel radius defines the maximum gap width that can be repaired.
+A kernel with a radius of <span class="math inline">\(R\)</span> can
+bridge gaps up to <span class="math inline">\(2R\)</span> pixels
+wide.</p>
+<p>Selecting the appropriate size is critical:</p>
+<ul>
+<li><strong>Under-filtering:</strong> If the kernel is too small, the
+dilation phase will fail to make the broken stroke segments touch, and
+the subsequent erosion will simply restore the original disconnected
+state.</li>
+<li><strong>Over-filtering:</strong> If the kernel is too large, it may
+bridge intentional gaps, fusing distinct characters together (e.g.,
+merging "c" and "l" into "d", or closing the loop in "e").</li>
+</ul>
+<p>For best results on grayscale scans, images are typically thresholded
+or normalized prior to applying the closing operation, ensuring a clean
+distinction between the damaged stroke foreground and the
+background.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

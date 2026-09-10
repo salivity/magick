@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Stroke Dash Patterns and Line Caps - magick</title>
+    <meta name="description" content="Customizing vector line styles in ImageMagick allows you to create precise borders, diagrams, and graphic overlays directly from the command line. This guide covers how to define dashed stroke patterns and configure line cap styles using ImageMagick’s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-stroke-dash-patterns-and-line-caps">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Stroke Dash Patterns and Line Caps - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-stroke-dash-patterns-and-line-caps" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Customizing vector line styles in ImageMagick allows you to create precise borders, diagrams, and graphic overlays directly from the command line. This guide covers how to define dashed stroke patterns and configure line cap styles using ImageMagick’s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-stroke-dash-patterns-and-line-caps">ImageMagick
+Stroke Dash Patterns and Line Caps</h1>
+<p>Customizing vector line styles in ImageMagick allows you to create
+precise borders, diagrams, and graphic overlays directly from the
+command line. This guide covers how to define dashed stroke patterns and
+configure line cap styles using ImageMagick’s drawing options and Magick
+Vector Graphics (MVG) syntax. By adjusting parameters like
+<code>stroke-dasharray</code> and <code>stroke-linecap</code>, you can
+control dash lengths, gap intervals, and line endpoint shapes.</p>
+<h2 id="setting-line-caps">Setting Line Caps</h2>
+<p>Line caps determine the shape applied to the endpoints of open
+subpaths and lines. ImageMagick supports three standard line cap
+styles:</p>
+<ul>
+<li><strong><code>butt</code></strong>: The default style. The stroke
+stops abruptly at the exact coordinate of the endpoint with a flat
+edge.</li>
+<li><strong><code>round</code></strong>: Extends the stroke beyond the
+endpoint with a semicircle whose diameter matches the stroke width.</li>
+<li><strong><code>square</code></strong>: Extends the stroke beyond the
+endpoint with a rectangular shape whose length is equal to half the
+stroke width.</li>
+</ul>
+<h3 id="command-line-usage">Command-Line Usage</h3>
+<p>You can define line caps using the <code>-stroke-linecap</code>
+setting or directly inside the <code>-draw</code> primitive:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using CLI options</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x100 xc:white <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 10 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke-linecap</span> round <span class="at">-draw</span> <span class="st">&quot;line 20,50 280,50&quot;</span> output_round.png</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Using MVG commands inside -draw</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x100 xc:white <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;stroke black stroke-width 10 stroke-linecap square line 20,50 280,50&quot;</span> output_square.png</span></code></pre></div>
+<hr />
+<h2 id="specifying-stroke-dash-patterns">Specifying Stroke Dash
+Patterns</h2>
+<p>Stroke dash patterns are controlled by specifying a sequence of
+numbers that alternate between the length of the dash (drawn portion)
+and the length of the gap (empty space).</p>
+<h3 id="syntax-for-stroke-dasharray">Syntax for
+<code>stroke-dasharray</code></h3>
+<p>The <code>stroke-dasharray</code> property accepts a comma-separated
+or space-separated list of pixel values:</p>
+<ul>
+<li><strong>Simple Dash/Gap</strong>: <code>5, 5</code> creates a
+5-pixel dash followed by a 5-pixel gap.</li>
+<li><strong>Asymmetric Dash/Gap</strong>: <code>10, 4</code> creates a
+10-pixel dash followed by a 4-pixel gap.</li>
+<li><strong>Complex Pattern</strong>: <code>10, 4, 2, 4</code> creates a
+dash-dot pattern (10px dash, 4px gap, 2px dot, 4px gap).</li>
+<li><strong>Reset</strong>: Use <code>none</code> to disable dashing and
+revert to a solid stroke.</li>
+</ul>
+<h3 id="dash-offset">Dash Offset</h3>
+<p>The <code>stroke-dashoffset</code> setting allows you to specify an
+offset into the dash pattern, changing the exact point along the pattern
+where the line starts rendering.</p>
+<h3 id="command-line-usage-1">Command-Line Usage</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Specifying a dashed pattern using CLI options</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x100 xc:white <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 4 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke-dasharray</span> 10 5 <span class="at">-draw</span> <span class="st">&quot;line 20,50 380,50&quot;</span> dashed_line.png</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Specifying a dash-dot pattern with an offset inside -draw</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x100 xc:white <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;stroke black stroke-width 4 stroke-dasharray 12,4,2,4 stroke-dashoffset 2 line 20,50 380,50&quot;</span> dash_dot.png</span></code></pre></div>
+<hr />
+<h2 id="combined-example">Combined Example</h2>
+<p>You can combine both properties to create custom lines, such as a
+rounded dashed line or border:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 500x200 xc:#f0f0f0 <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> none <span class="at">-stroke</span> <span class="co">#333333 -strokewidth 6 \</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-stroke-linecap</span> round <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-stroke-dasharray</span> 15 10 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;roundrectangle 20,20 480,180 15,15&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  dashed_box.png</span></code></pre></div>
+<p>In this example, each dash within the array inherits the rounded cap
+style, creating smooth pill-shaped segments along the rounded rectangle
+path.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

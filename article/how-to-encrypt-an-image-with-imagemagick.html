@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Encrypt an Image with ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick includes a built-in -encipher operator that allows users to convert visual image data into encrypted visual noise using a passphrase file. This article explains how to prepare a key file, execute the encipher command from the terminal, avoid">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-encrypt-an-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Encrypt an Image with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-encrypt-an-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick includes a built-in -encipher operator that allows users to convert visual image data into encrypted visual noise using a passphrase file. This article explains how to prepare a key file, execute the encipher command from the terminal, avoid" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-encrypt-an-image-with-imagemagick">How to Encrypt an
+Image with ImageMagick</h1>
+<p>ImageMagick includes a built-in <code>-encipher</code> operator that
+allows users to convert visual image data into encrypted visual noise
+using a passphrase file. This article explains how to prepare a key
+file, execute the encipher command from the terminal, avoid common
+format pitfalls, and decrypt the resulting image using the
+<code>-decipher</code> operator.</p>
+<h3 id="1-create-a-passphrase-file">1. Create a Passphrase File</h3>
+<p>The <code>-encipher</code> operator requires a standard text file
+containing your passphrase to handle the encryption key.</p>
+<p>Create a plain text file named <code>passphrase.txt</code> and enter
+your desired password:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;YourStrongPassphraseHere&quot;</span> <span class="op">&gt;</span> passphrase.txt</span></code></pre></div>
+<h3 id="2-encrypt-the-image-using--encipher">2. Encrypt the Image Using
+<code>-encipher</code></h3>
+<p>Run the ImageMagick command by specifying the input image, the
+<code>-encipher</code> operator pointing to your passphrase file, and
+the output filename.</p>
+<p>For ImageMagick v7+:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-encipher</span> passphrase.txt encrypted.png</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-encipher</span> passphrase.txt encrypted.png</span></code></pre></div>
+<p>The resulting <code>encrypted.png</code> file will appear as random
+visual static or pixel noise.</p>
+<h3 id="3-critical-requirement-use-lossless-formats">3. Critical
+Requirement: Use Lossless Formats</h3>
+<p>Encrypted images must be saved in a lossless format, such as
+<strong>PNG</strong>, <strong>TIFF</strong>, or
+<strong>MIFF</strong>.</p>
+<p>Do not save the encrypted output as a JPEG. JPEG applies lossy
+compression, which alters the exact pixel values upon saving. If
+encrypted pixel values are modified by compression artifacts, the image
+cannot be decrypted and will be permanently corrupted.</p>
+<h3 id="4-decrypt-the-image-using--decipher">4. Decrypt the Image Using
+<code>-decipher</code></h3>
+<p>To restore the encrypted image back to its original visual state, run
+the command using the <code>-decipher</code> operator with the same
+passphrase file:</p>
+<p>For ImageMagick v7+:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> encrypted.png <span class="at">-decipher</span> passphrase.txt decrypted.png</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> encrypted.png <span class="at">-decipher</span> passphrase.txt decrypted.png</span></code></pre></div>
+<p>If the passphrase matches and the encrypted file was saved in a
+lossless format, <code>decrypted.png</code> will match the original
+image.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

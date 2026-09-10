@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limit ImageMagick Execution Time to Prevent DoS - magick</title>
+    <meta name="description" content="Processing untrusted images with ImageMagick can expose your server to Denial of Service (DoS) attacks caused by complex files or "image bombs" that consume excessive CPU and hang indefinitely. This guide demonstrates how to configure execution time limi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/limit-imagemagick-execution-time-to-prevent-dos">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Limit ImageMagick Execution Time to Prevent DoS - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/limit-imagemagick-execution-time-to-prevent-dos" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing untrusted images with ImageMagick can expose your server to Denial of Service (DoS) attacks caused by complex files or "image bombs" that consume excessive CPU and hang indefinitely. This guide demonstrates how to configure execution time limi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="limit-imagemagick-execution-time-to-prevent-dos">Limit
+ImageMagick Execution Time to Prevent DoS</h1>
+<p>Processing untrusted images with ImageMagick can expose your server
+to Denial of Service (DoS) attacks caused by complex files or "image
+bombs" that consume excessive CPU and hang indefinitely. This guide
+demonstrates how to configure execution time limits in ImageMagick using
+the built-in security policy file, command-line arguments, and operating
+system-level process management to ensure your servers remain responsive
+and secure.</p>
+<hr />
+<h3 id="1-configure-the-global-policy-file-policyxml">1. Configure the
+Global Policy File (<code>policy.xml</code>)</h3>
+<p>The most robust way to enforce time limits globally is through
+ImageMagick’s <code>policy.xml</code> file. Setting this limit ensures
+that no ImageMagick command—whether run manually or triggered by a web
+application—can exceed the allocated time.</p>
+<h4 id="locate-policyxml">Locate <code>policy.xml</code></h4>
+<p>The configuration file is typically found in:</p>
+<ul>
+<li><strong>ImageMagick 7:</strong>
+<code>/etc/ImageMagick-7/policy.xml</code></li>
+<li><strong>ImageMagick 6:</strong>
+<code>/etc/ImageMagick-6/policy.xml</code></li>
+<li><strong>Custom/Local installations:</strong>
+<code>/usr/local/etc/ImageMagick-7/policy.xml</code></li>
+</ul>
+<h4 id="set-the-time-limit">Set the Time Limit</h4>
+<p>Open the file in a text editor with administrative privileges and add
+or update the <code>time</code> resource limit within the
+<code>&lt;policymap&gt;</code> tags:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit maximum execution time to 10 seconds --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;time&quot;</span> <span class="ot">value=</span><span class="st">&quot;10&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<p>The <code>value</code> is specified in seconds. When an operation
+exceeds this duration, ImageMagick immediately aborts processing and
+throws a <code>ResourceLimitExceeded</code> error.</p>
+<hr />
+<h3 id="2-apply-time-limits-via-the-command-line">2. Apply Time Limits
+via the Command Line</h3>
+<p>If you cannot edit the global policy or need custom limits for
+specific tasks, pass the <code>-limit</code> parameter directly in your
+command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-limit</span> time 5 input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div>
+<p>For ImageMagick 6 installations, use the <code>convert</code>
+binary:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-limit</span> time 5 input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div>
+<hr />
+<h3 id="3-implement-system-level-timeouts">3. Implement System-Level
+Timeouts</h3>
+<p>Software-level limits can occasionally fail if a process deadlocks at
+the system level. Implementing OS-level process management adds a
+critical second layer of defense.</p>
+<h4 id="linux-timeout-command">Linux <code>timeout</code> Command</h4>
+<p>Wrap your ImageMagick commands using the coreutils
+<code>timeout</code> tool:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">timeout</span> 10s magick input.png <span class="at">-resize</span> 1000x1000 output.png</span></code></pre></div>
+<p>To send a forceful kill signal if the process ignores standard
+termination:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">timeout</span> <span class="at">-k</span> 2s 10s magick input.png <span class="at">-resize</span> 1000x1000 output.png</span></code></pre></div>
+<h4 id="application-runtime-timeouts">Application Runtime Timeouts</h4>
+<p>When executing ImageMagick from a backend programming language,
+enforce timeouts at the child-process level:</p>
+<ul>
+<li><strong>Node.js (<code>child_process.exec</code>):</strong> Set the
+<code>timeout</code> option (in milliseconds):
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exec</span>(<span class="st">&#39;magick input.jpg output.png&#39;</span><span class="op">,</span> { <span class="dt">timeout</span><span class="op">:</span> <span class="dv">10000</span> }<span class="op">,</span> (error<span class="op">,</span> stdout<span class="op">,</span> stderr) <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> })<span class="op">;</span></span></code></pre></div></li>
+<li><strong>PHP:</strong> Use <code>proc_open</code> with stream
+timeouts, or use extensions like <code>imagick</code> while setting
+<code>Imagick::setResourceLimit(Imagick::RESOURCETYPE_TIME, 10)</code>.</li>
+<li><strong>Python (<code>subprocess.run</code>):</strong> Use the
+<code>timeout</code> parameter:
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>subprocess.run([<span class="st">&#39;magick&#39;</span>, <span class="st">&#39;input.jpg&#39;</span>, <span class="st">&#39;output.png&#39;</span>], timeout<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div></li>
+</ul>
+<hr />
+<h3 id="4-verify-active-resource-limits">4. Verify Active Resource
+Limits</h3>
+<p>To confirm that your time limits are properly recognized by
+ImageMagick, check the current resource configuration:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> resource</span></code></pre></div>
+<p>Look for the <code>Time</code> line in the output:</p>
+<pre class="text"><code>Resource limits:
+  ...
+  Memory: 256MiB
+  Time: 10</code></pre>
+<hr />
+<h3 id="recommended-companion-resource-limits">Recommended Companion
+Resource Limits</h3>
+<p>Limiting time alone does not protect against all resource exhaustion
+attacks. Combine the <code>time</code> limit with other limits in
+<code>policy.xml</code> for complete DoS mitigation:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;memory&quot;</span> <span class="ot">value=</span><span class="st">&quot;256MiB&quot;</span>/&gt;</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;map&quot;</span> <span class="ot">value=</span><span class="st">&quot;512MiB&quot;</span>/&gt;</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;area&quot;</span> <span class="ot">value=</span><span class="st">&quot;128MB&quot;</span>/&gt;</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;1GiB&quot;</span>/&gt;</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;thread&quot;</span> <span class="ot">value=</span><span class="st">&quot;2&quot;</span>/&gt;</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;time&quot;</span> <span class="ot">value=</span><span class="st">&quot;10&quot;</span>/&gt;</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

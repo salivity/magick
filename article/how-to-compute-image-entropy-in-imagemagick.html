@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Compute Image Entropy in ImageMagick - magick</title>
+    <meta name="description" content="Image information entropy measures the statistical randomness and distribution of pixel intensity values, making it an essential metric for quantifying texture complexity, visual detail, and noise levels in an image. This guide explains how to calculate">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-compute-image-entropy-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Compute Image Entropy in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-compute-image-entropy-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Image information entropy measures the statistical randomness and distribution of pixel intensity values, making it an essential metric for quantifying texture complexity, visual detail, and noise levels in an image. This guide explains how to calculate" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-compute-image-entropy-in-imagemagick">How to Compute
+Image Entropy in ImageMagick</h1>
+<p>Image information entropy measures the statistical randomness and
+distribution of pixel intensity values, making it an essential metric
+for quantifying texture complexity, visual detail, and noise levels in
+an image. This guide explains how to calculate Shannon entropy directly
+from the command line using ImageMagick tools, interpret the resulting
+values, and apply these measurements to assess texture complexity across
+individual channels or entire image datasets.</p>
+<h2 id="understanding-image-entropy">Understanding Image Entropy</h2>
+<p>Shannon entropy measures the uncertainty or average information
+content within a dataset. In digital image processing, entropy (<span
+class="math inline">\(H\)</span>) is calculated based on the normalized
+histogram of pixel intensities:</p>
+<p><span class="math display">\[H = -\sum_{i=0}^{N-1} p_i
+\log_2(p_i)\]</span></p>
+<p>Where <span class="math inline">\(p_i\)</span> represents the
+probability of a pixel possessing intensity value <span
+class="math inline">\(i\)</span>, and <span
+class="math inline">\(N\)</span> is the total number of intensity levels
+(such as 256 for an 8-bit image).</p>
+<p>When evaluating texture complexity:</p>
+<ul>
+<li><strong>High Entropy:</strong> Indicates a wide, uniform
+distribution of pixel intensities, corresponding to complex textures,
+high detail, fine grain, or noise.</li>
+<li><strong>Low Entropy:</strong> Indicates redundant or clustered pixel
+values, corresponding to flat, smooth, or low-contrast areas (such as
+clear skies or solid backgrounds).</li>
+</ul>
+<h2 id="basic-entropy-computation">Basic Entropy Computation</h2>
+<p>ImageMagick provides built-in format properties to retrieve entropy
+values without requiring custom external scripts. In ImageMagick 7, use
+the <code>magick</code> command paired with the <code>info:</code>
+output format:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-format</span> <span class="st">&quot;%[entropy]\n&quot;</span> info:</span></code></pre></div>
+<p>For ImageMagick 6 installations, use the <code>identify</code>
+utility:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">identify</span> <span class="at">-format</span> <span class="st">&quot;%[entropy]\n&quot;</span> input.jpg</span></code></pre></div>
+<p>ImageMagick returns the entropy as a normalized floating-point value
+ranging from <code>0.0</code> (minimum complexity, single solid color)
+to <code>1.0</code> (maximum complexity, uniform random
+distribution).</p>
+<h2 id="computing-grayscale-entropy-for-pure-texture">Computing
+Grayscale Entropy for Pure Texture</h2>
+<p>Color images calculate entropy across multiple channels (Red, Green,
+Blue), which can sometimes conflate color variance with structural
+texture complexity. To evaluate purely structural texture, convert the
+image to grayscale before computing entropy:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-format</span> <span class="st">&quot;%[entropy]\n&quot;</span> info:</span></code></pre></div>
+<h2 id="retrieving-per-channel-entropy-metrics">Retrieving Per-Channel
+Entropy Metrics</h2>
+<p>To view comprehensive image statistics, including individual channel
+entropy values along with standard deviation and mean:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> input.jpg</span></code></pre></div>
+<p>Under the <code>Image statistics:</code> section of the output, each
+channel lists an <code>Entropy</code> property alongside an overall
+multi-channel aggregate:</p>
+<pre class="text"><code>Image statistics:
+  Overall:
+    min: 0
+    max: 255
+    mean: 118.42
+    standard deviation: 58.12
+    entropy: 0.88421</code></pre>
+<p>You can extract specific channel entropy programmatically using
+channel-specific format properties:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Red Channel Entropy</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-format</span> <span class="st">&quot;%[channel:entropy.red]\n&quot;</span> info:</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Green Channel Entropy</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-format</span> <span class="st">&quot;%[channel:entropy.green]\n&quot;</span> info:</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Blue Channel Entropy</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-format</span> <span class="st">&quot;%[channel:entropy.blue]\n&quot;</span> info:</span></code></pre></div>
+<h2 id="batch-processing-and-texture-ranking">Batch Processing and
+Texture Ranking</h2>
+<p>To compare texture complexity across multiple images in a directory
+and sort them from lowest to highest complexity, use a standard shell
+pipeline:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> img <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">score</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$img</span><span class="st">&quot;</span> <span class="at">-colorspace</span> Gray <span class="at">-format</span> <span class="st">&quot;%[entropy]&quot;</span> info:<span class="va">)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$score</span><span class="st"> </span><span class="va">$img</span><span class="st">&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-n</span></span></code></pre></div>
+<p>This output lists all analyzed images alongside their normalized
+entropy score, enabling fast automated filtering of smooth surfaces
+versus textured regions.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

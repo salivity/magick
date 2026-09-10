@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Normalize a WebP Image with ImageMagick? - magick</title>
+    <meta name="description" content="Normalizing a WebP image using ImageMagick enhances dynamic contrast by stretching the color spectrum across the full tonal range, ensuring the darkest pixels map to pure black and the brightest pixels map to pure white. This article covers the essential">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-normalize-a-webp-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Normalize a WebP Image with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-normalize-a-webp-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Normalizing a WebP image using ImageMagick enhances dynamic contrast by stretching the color spectrum across the full tonal range, ensuring the darkest pixels map to pure black and the brightest pixels map to pure white. This article covers the essential" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-normalize-a-webp-image-with-imagemagick">How to Normalize
+a WebP Image with ImageMagick?</h1>
+<p>Normalizing a WebP image using ImageMagick enhances dynamic contrast
+by stretching the color spectrum across the full tonal range, ensuring
+the darkest pixels map to pure black and the brightest pixels map to
+pure white. This article covers the essential ImageMagick commands for
+normalizing static and animated WebP files, explains the difference
+between the <code>-normalize</code> and <code>-contrast-stretch</code>
+operators, and outlines methods to handle channel separation and
+transparency preservation.</p>
+<h2 id="understanding-normalization-in-imagemagick">Understanding
+Normalization in ImageMagick</h2>
+<p>Normalization, also known as contrast stretching or histogram
+stretching, adjusts the pixel values of an image to occupy the complete
+available brightness range from 0 to 255 in 8-bit depth. If an original
+WebP file appears flat, washed out, or underexposed due to compressed
+pixel distribution, normalizing adjusts the dynamic range across all
+color channels simultaneously.</p>
+<p>ImageMagick provides the <code>-normalize</code> operator for this
+task. It analyzes the distribution of image tones and automatically
+clips a tiny percentage of the darkest and brightest pixels (typically
+0.15% at the lower and upper bounds) to eliminate outliers before
+stretching the remaining pixel range.</p>
+<h2 id="basic-command-to-normalize-a-webp-image">Basic Command to
+Normalize a WebP Image</h2>
+<p>For ImageMagick v7, the primary command-line tool is
+<code>magick</code>. To read an input WebP, normalize it, and output the
+processed result, run the following command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-normalize</span> output.webp</span></code></pre></div>
+<p>For systems running ImageMagick v6, replace <code>magick</code> with
+the <code>convert</code> tool:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.webp <span class="at">-normalize</span> output.webp</span></code></pre></div>
+<p>Because WebP can be encoded losslessly or lossily, you can preserve
+quality and control file size by appending the <code>-quality</code>
+flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-normalize</span> <span class="at">-quality</span> 90 output.webp</span></code></pre></div>
+<p>For absolute lossless output:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-normalize</span> <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h2 id="advanced-contrast-control-with-contrast-stretch">Advanced
+Contrast Control with Contrast-Stretch</h2>
+<p>While <code>-normalize</code> uses predefined clipping thresholds,
+the <code>-contrast-stretch</code> operator allows precise control over
+the percentage or absolute number of black and white points to clip.</p>
+<p>The parameter syntax is:</p>
+<pre class="text"><code>-contrast-stretch {black-point}x{white-point}
+</code></pre>
+<p>To clip 1% of the darkest pixels and 1% of the brightest pixels:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-contrast-stretch</span> 1%x1% output.webp</span></code></pre></div>
+<p>To stretch the histogram without clipping any pixels at all (a pure
+linear stretch), set both parameters to zero:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-contrast-stretch</span> 0x0 output.webp</span></code></pre></div>
+<h2 id="handling-color-casts-and-channel-separation">Handling Color
+Casts and Channel Separation</h2>
+<p>By default, <code>-normalize</code> operates on all RGB channels
+together, which preserves the overall color balance. If an image has an
+unwanted color cast—such as a heavy blue or yellow tint—normalizing each
+color channel independently can balance the tones:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-channel</span> RGB <span class="at">-normalize</span> +channel output.webp</span></code></pre></div>
+<p>The <code>-channel RGB</code> argument restricts the operation to the
+red, green, and blue planes while protecting any existing alpha channel.
+The trailing <code>+channel</code> resets channel selection so
+subsequent operators operate on the full image canvas.</p>
+<h2 id="preserving-alpha-channels-in-webp-images">Preserving Alpha
+Channels in WebP Images</h2>
+<p>WebP images often feature transparent backgrounds. Running
+normalization over all channels without isolating color information can
+inadvertently stretch or corrupt transparency. Always shield the alpha
+channel by specifying color channels explicitly:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-channel</span> RGB <span class="at">-normalize</span> +channel output.webp</span></code></pre></div>
+<p>If transparency must remain intact alongside lossy compression, keep
+alpha quality high by defining:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-channel</span> RGB <span class="at">-normalize</span> +channel <span class="at">-define</span> webp:alpha-quality=100 output.webp</span></code></pre></div>
+<h2 id="normalizing-animated-webp-files">Normalizing Animated WebP
+Files</h2>
+<p>Animated WebP files contain multiple frames. To ensure that every
+frame within the animation is normalized sequentially without collapsing
+the animation sequence, apply the operation across the frame stack:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-coalesce</span> <span class="at">-channel</span> RGB <span class="at">-normalize</span> +channel output.webp</span></code></pre></div>
+<p>The <code>-coalesce</code> flag reconstructs each individual frame to
+its full canvas size before processing, preventing ghosting artifacts or
+inconsistent frame boundaries across the animation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

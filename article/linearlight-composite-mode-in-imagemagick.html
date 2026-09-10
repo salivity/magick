@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinearLight Composite Mode in ImageMagick - magick</title>
+    <meta name="description" content="The LinearLight composite mode in ImageMagick is a contrast-increasing blend operator that combines the effects of Linear Dodge and Linear Burn based on the brightness of the composite (overlay) image. This article explains how the underlying mathematica">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/linearlight-composite-mode-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LinearLight Composite Mode in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/linearlight-composite-mode-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The LinearLight composite mode in ImageMagick is a contrast-increasing blend operator that combines the effects of Linear Dodge and Linear Burn based on the brightness of the composite (overlay) image. This article explains how the underlying mathematica" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="linearlight-composite-mode-in-imagemagick">LinearLight Composite
+Mode in ImageMagick</h1>
+<p>The <code>LinearLight</code> composite mode in ImageMagick is a
+contrast-increasing blend operator that combines the effects of Linear
+Dodge and Linear Burn based on the brightness of the composite (overlay)
+image. This article explains how the underlying mathematical formula
+directly impacts pixels, brightening highlights when the blend layer is
+above 50% gray and deepening shadows when it is below, resulting in
+pronounced tonal shifts and high-contrast effects.</p>
+<h2 id="how-linearlight-calculates-pixel-values">How LinearLight
+Calculates Pixel Values</h2>
+<p>ImageMagick processes pixel values on a normalized scale from 0.0
+(pure black) to 1.0 (pure white), where 0.5 represents neutral 50% gray.
+The mathematical formula governing the <code>LinearLight</code> operator
+is:</p>
+<p><span class="math display">\[\text{Output} = \text{Base} + 2 \times
+\text{Blend} - 1.0\]</span></p>
+<p>In this equation:</p>
+<ul>
+<li><strong>Base</strong> is the destination image pixel.</li>
+<li><strong>Blend</strong> is the source (overlay) image pixel.</li>
+<li><strong>Output</strong> is clamped between 0.0 and 1.0.</li>
+</ul>
+<p>Because the calculation relies on simple addition and subtraction
+without the exponential curves found in modes like
+<code>SoftLight</code> or <code>Overlay</code>, the tonal transformation
+is strictly linear and aggressive.</p>
+<h2 id="alteration-of-highlights">Alteration of Highlights</h2>
+<p>When the blend image pixel value is greater than 0.5 (lighter than
+neutral gray), <code>LinearLight</code> behaves as a <strong>Linear
+Dodge</strong> (addition):</p>
+<ul>
+<li><strong>Mechanism:</strong> The formula simplifies to adding an
+offset: <span class="math inline">\(\text{Base} + 2 \times (\text{Blend}
+- 0.5)\)</span>.</li>
+<li><strong>Impact on Highlights:</strong> Midtones and bright areas in
+the base image are pushed higher toward pure white. Because the
+adjustment is linear, highlights do not gently roll off; instead, they
+expand outward quickly.</li>
+<li><strong>Clipping:</strong> High-luminosity areas rapidly reach 1.0
+(white clipping), blowing out subtle highlight details if the blend
+layer contains strong light tones.</li>
+</ul>
+<h2 id="alteration-of-shadows">Alteration of Shadows</h2>
+<p>When the blend image pixel value is less than 0.5 (darker than
+neutral gray), <code>LinearLight</code> behaves as a <strong>Linear
+Burn</strong> (subtraction):</p>
+<ul>
+<li><strong>Mechanism:</strong> The formula decreases pixel luminosity:
+<span class="math inline">\(\text{Base} - 2 \times (0.5 -
+\text{Blend})\)</span>.</li>
+<li><strong>Impact on Shadows:</strong> Dark pixels and lower-midtones
+in the base image are driven further down toward pure black. Shadow
+regions lose ambient light rapidly, creating deep, harsh blacks.</li>
+<li><strong>Crushing:</strong> Subtle shadow gradients are frequently
+crushed to 0.0 (black clipping), leading to high-contrast silhouettes or
+dramatically reduced dynamic range in the darker portions of the
+image.</li>
+</ul>
+<h2 id="behavior-at-neutral-gray">Behavior at Neutral Gray</h2>
+<p>When the blend pixel is exactly 0.5 (neutral gray), the formula
+yields:</p>
+<p><span class="math display">\[\text{Base} + 2 \times (0.5) - 1.0 =
+\text{Base}\]</span></p>
+<p>At this value, the base pixel remains completely unchanged. Neutral
+gray acts as an invisible threshold, allowing editors to isolate
+highlight boosts and shadow decreases by painting above or below the 50%
+luminance mark on the overlay layer.</p>
+<h2 id="practical-usage-in-imagemagick">Practical Usage in
+ImageMagick</h2>
+<p>To apply this mode using modern ImageMagick syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-compose</span> LinearLight <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>Because of its harsh highlight clipping and aggressive shadow
+crushing, <code>LinearLight</code> is primarily utilized in specialized
+workflows, such as frequency separation for texture sharpening, specular
+highlight enhancement, or creating stylized, high-contrast graphic
+art.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

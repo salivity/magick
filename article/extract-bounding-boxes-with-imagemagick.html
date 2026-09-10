@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Bounding Boxes with ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide on using ImageMagick's connected-components labeling feature to detect distinct objects within an image and extract their exact bounding box dimensions and coordinates. To extract the bounding box coordinates of shape">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-bounding-boxes-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Bounding Boxes with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-bounding-boxes-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide on using ImageMagick's connected-components labeling feature to detect distinct objects within an image and extract their exact bounding box dimensions and coordinates. To extract the bounding box coordinates of shape" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-bounding-boxes-with-imagemagick">Extract Bounding Boxes
+with ImageMagick</h1>
+<p>This article provides a direct guide on using ImageMagick's
+connected-components labeling feature to detect distinct objects within
+an image and extract their exact bounding box dimensions and
+coordinates.</p>
+<h2 id="the-command">The Command</h2>
+<p>To extract the bounding box coordinates of shapes in an image, run
+the following ImageMagick command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> connected-components:verbose=true <span class="at">-connected-components</span> 8 null:</span></code></pre></div>
+<p><em>(Note: If you are using ImageMagick version 6, replace
+<code>magick</code> with <code>convert</code>.)</em></p>
+<h2 id="how-the-parameters-work">How the Parameters Work</h2>
+<ul>
+<li><strong><code>-define connected-components:verbose=true</code></strong>:
+Tells ImageMagick to print the detailed statistical data—including
+bounding boxes, centroids, and pixel areas—to the standard output
+console.</li>
+<li><strong><code>-connected-components 8</code></strong>: Executes the
+connected-components algorithm. The value <code>8</code> specifies
+8-directional connectivity (pixels touching diagonally or orthogonally
+are treated as one shape). You can change this to <code>4</code> for
+strictly orthogonal connectivity.</li>
+<li><strong><code>null:</code></strong>: Discards the resulting visual
+image data so that only the text metadata is output to the
+terminal.</li>
+</ul>
+<h2 id="understanding-the-output">Understanding the Output</h2>
+<p>Running the command produces output structured in the following
+format:</p>
+<pre class="text"><code>Objects (id: bounding-box centroid area mean-color):
+  0: 500x500+0+0 249.5,249.5 248650 srgb(0,0,0)
+  1: 45x30+120+45 142.1,59.3 1350 srgb(255,255,255)</code></pre>
+<p>In the output line for each detected shape:</p>
+<ul>
+<li><strong><code>id</code></strong>: Unique identifier for the detected
+component (object <code>0</code> is typically the background).</li>
+<li><strong><code>bounding-box</code></strong>: Expressed as
+<code>Width</code>x<code>Height</code>+<code>X-offset</code>+<code>Y-offset</code>
+(e.g., <code>45x30+120+45</code>).</li>
+<li><strong><code>centroid</code></strong>: The center coordinates of
+the shape (<code>X,Y</code>).</li>
+<li><strong><code>area</code></strong>: The total pixel count of the
+object.</li>
+<li><strong><code>mean-color</code></strong>: The average color value
+inside the boundary.</li>
+</ul>
+<h2 id="filtering-small-artifacts-and-noise">Filtering Small Artifacts
+and Noise</h2>
+<p>To exclude small specks or noise from being detected as valid shapes,
+add an area threshold define:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> connected-components:verbose=true <span class="at">-define</span> connected-components:area-threshold=50 <span class="at">-connected-components</span> 8 null:</span></code></pre></div>
+<p>This flag ignores any connected component containing fewer than 50
+pixels.</p>
+<h2 id="extracting-only-bounding-box-values">Extracting Only Bounding
+Box Values</h2>
+<p>To parse only the bounding box coordinates from the output, pipe the
+command to standard command-line tools like <code>awk</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> connected-components:verbose=true <span class="at">-connected-components</span> 8 null: <span class="kw">|</span> <span class="fu">awk</span> <span class="st">&#39;NR&gt;1 {print $2}&#39;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Convert PNG to AVIF Using ImageMagick? - magick</title>
+    <meta name="description" content="Converting PNG images to AVIF format with ImageMagick allows you to significantly reduce file sizes while maintaining high visual fidelity. This guide walks you through the essential command-line syntax, fine-tuning compression settings like quality and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-convert-png-to-avif-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Convert PNG to AVIF Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-convert-png-to-avif-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting PNG images to AVIF format with ImageMagick allows you to significantly reduce file sizes while maintaining high visual fidelity. This guide walks you through the essential command-line syntax, fine-tuning compression settings like quality and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-convert-png-to-avif-using-imagemagick">How to Convert PNG
+to AVIF Using ImageMagick?</h1>
+<p>Converting PNG images to AVIF format with ImageMagick allows you to
+significantly reduce file sizes while maintaining high visual fidelity.
+This guide walks you through the essential command-line syntax,
+fine-tuning compression settings like quality and effort levels,
+handling batch conversions, and verifying that your installed version of
+ImageMagick includes AVIF delegate support.</p>
+<h2 id="verifying-avif-support-in-imagemagick">Verifying AVIF Support in
+ImageMagick</h2>
+<p>Before running conversion commands, verify that your local
+installation of ImageMagick was built with AVIF delegate support
+(typically provided via <code>libheif</code> or <code>libavif</code>).
+Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> listed under the
+<strong>Delegates</strong> output. Alternatively, check format support
+directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> avif</span></code></pre></div>
+<p>If AVIF appears with read and write permissions (<code>rw-</code> or
+<code>rw+</code>), your environment is ready to process conversions.</p>
+<h2 id="basic-png-to-avif-conversion">Basic PNG to AVIF Conversion</h2>
+<p>ImageMagick 7 uses the <code>magick</code> command (or
+<code>convert</code> in ImageMagick 6). The simplest command syntax
+requires only the input file and the target output path with the
+<code>.avif</code> extension:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png output.avif</span></code></pre></div>
+<p>ImageMagick automatically invokes the appropriate encoder based on
+the file extension and applies standard default compression
+parameters.</p>
+<h2 id="controlling-quality-and-encoding-speed">Controlling Quality and
+Encoding Speed</h2>
+<p>AVIF relies on modern video-coding standards (AV1), meaning
+compression parameters significantly influence both visual quality and
+processing time.</p>
+<h3 id="adjusting-quality">Adjusting Quality</h3>
+<p>The <code>-quality</code> flag controls visual lossiness on a scale
+from 0 to 100:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-quality</span> 65 output.avif</span></code></pre></div>
+<ul>
+<li><strong>Values between 50 and 70</strong> generally provide the
+optimal balance of sharp details and low file weight for web
+graphics.</li>
+<li><strong>A value of 100</strong> does not always guarantee lossless
+output in standard delegates unless specific lossless flags are
+passed.</li>
+</ul>
+<h3 id="configuring-compression-effort">Configuring Compression
+Effort</h3>
+<p>Encoding AVIF files requires substantial CPU resources. You can
+adjust the encoding speed versus file density trade-off using the
+<code>heic:speed</code> define:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> heic:speed=4 <span class="at">-quality</span> 65 output.avif</span></code></pre></div>
+<p>Speed values range from 0 (slowest processing, highest compression
+density) to 9 (fastest encoding, larger resulting file size). A setting
+between 4 and 6 works well for routine production pipelines.</p>
+<h3 id="lossless-conversion">Lossless Conversion</h3>
+<p>If you need a bit-exact, lossless version of a PNG graphic, set the
+lossless definition flag:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> heic:lossless=true output.avif</span></code></pre></div>
+<p>Lossless AVIF compression typically creates files smaller than
+standard PNGs, though savings are smaller compared to lossy
+encoding.</p>
+<h2 id="batch-converting-multiple-png-files">Batch Converting Multiple
+PNG Files</h2>
+<p>To convert an entire folder of PNG images to AVIF simultaneously,
+utilize standard shell utilities alongside ImageMagick.</p>
+<h3 id="linux-and-macos-bashzsh">Linux and macOS (Bash/Zsh)</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.png<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-quality</span> 65 <span class="st">&quot;</span><span class="va">${file</span><span class="op">%</span>.png<span class="va">}</span><span class="st">.avif&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<h3 id="windows-powershell">Windows (PowerShell)</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">-</span>Filter <span class="op">*.</span><span class="fu">png</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  magick <span class="va">$_</span><span class="op">.</span><span class="fu">FullName</span> <span class="op">-</span>quality <span class="dv">65</span> <span class="op">(</span><span class="va">$_</span><span class="op">.</span><span class="fu">BaseName</span> <span class="op">+</span> <span class="st">&quot;.avif&quot;</span><span class="op">)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Using these commands, you can integrate lightweight, modern AVIF
+images across your websites and graphic asset pipelines directly from
+your terminal.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

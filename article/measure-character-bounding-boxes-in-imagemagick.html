@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measure Character Bounding Boxes in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide to identifying and measuring the bounding box dimensions of individual scanned characters using ImageMagick. By preprocessing the image and applying the connected-components labeling feature, you can extract the exact">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/measure-character-bounding-boxes-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Measure Character Bounding Boxes in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/measure-character-bounding-boxes-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide to identifying and measuring the bounding box dimensions of individual scanned characters using ImageMagick. By preprocessing the image and applying the connected-components labeling feature, you can extract the exact" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="measure-character-bounding-boxes-in-imagemagick">Measure
+Character Bounding Boxes in ImageMagick</h1>
+<p>This article provides a direct guide to identifying and measuring the
+bounding box dimensions of individual scanned characters using
+ImageMagick. By preprocessing the image and applying the
+connected-components labeling feature, you can extract the exact width,
+height, and positional coordinates of each character directly from the
+command line without external OCR frameworks.</p>
+<h3 id="step-1-preprocess-the-scanned-image">Step 1: Preprocess the
+Scanned Image</h3>
+<p>Scanned documents generally contain noise, background gradients, and
+anti-aliasing around text glyphs. ImageMagick must first reduce the scan
+to a high-contrast binary (black and white) image.</p>
+<p>Characters should ideally be isolated as white foreground objects
+against a black background, as connected-components analysis treats
+white pixels as distinct objects by default.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scanned_text.png <span class="at">-colorspace</span> gray <span class="at">-negate</span> <span class="at">-threshold</span> 50% preprocessed.png</span></code></pre></div>
+<ul>
+<li><code>-colorspace gray</code>: Strips color channels to simplify the
+pixel values.</li>
+<li><code>-negate</code>: Inverts the image so that black ink becomes
+white foreground objects.</li>
+<li><code>-threshold 50%</code>: Forces pixels to strictly black (0) or
+white (max value), removing compression artifacts. Adjust the percentage
+depending on the scan exposure.</li>
+</ul>
+<h3 id="step-2-run-connected-components-analysis">Step 2: Run
+Connected-Components Analysis</h3>
+<p>ImageMagick provides the <code>-connected-components</code> operator
+to segment an image into distinct contiguous clusters of pixels. To
+output geometry and dimensions to the terminal without writing a new
+image, output to <code>null:</code>.</p>
+<p>Execute the following command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scanned_text.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> gray <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-negate</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=10 <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  null:</span></code></pre></div>
+<ul>
+<li><code>-define connected-components:verbose=true</code>: Outputs the
+statistical properties of each detected component to standard
+output.</li>
+<li><code>-define connected-components:area-threshold=10</code>:
+Discards any speckles or artifacts smaller than 10 total pixels to
+prevent stray scan noise from registering as characters.</li>
+<li><code>-connected-components 8</code>: Groups pixels sharing edges or
+corners (8-connectivity).</li>
+<li><code>null:</code>: Discards the visual image output while still
+generating the text stream.</li>
+</ul>
+<h3 id="step-3-parse-the-bounding-box-data">Step 3: Parse the Bounding
+Box Data</h3>
+<p>When run with verbose mode enabled, ImageMagick generates a
+structured text table formatted like this:</p>
+<pre class="text"><code>Objects (id: box centroid area color):
+  0: 1200x800+0+0 598.1,399.4 945120 srgb(0,0,0)
+  1: 18x24+142+88 150.3,99.7 215 srgb(255,255,255)
+  2: 12x25+164+87 169.8,99.2 145 srgb(255,255,255)
+  3: 16x18+180+94 187.6,102.8 160 srgb(255,255,255)</code></pre>
+<p>The fields are defined as follows:</p>
+<ul>
+<li><strong><code>id</code></strong>: The component label identifier.
+Object <code>0</code> is typically the background.</li>
+<li><strong><code>box</code></strong>: The bounding box in
+<code>WidthxHeight+X+Y</code> syntax. For example,
+<code>18x24+142+88</code> indicates a character that is 18 pixels wide,
+24 pixels high, offset 142 pixels from the left margin, and 88 pixels
+from the top margin.</li>
+<li><strong><code>centroid</code></strong>: The geometric center
+coordinate (<code>X,Y</code>) of the object.</li>
+<li><strong><code>area</code></strong>: The total pixel count inside the
+character.</li>
+<li><strong><code>color</code></strong>: The color used to identify the
+component (<code>srgb(255,255,255)</code> signifies foreground
+characters).</li>
+</ul>
+<h3 id="step-4-extract-only-the-character-dimensions">Step 4: Extract
+Only the Character Dimensions</h3>
+<p>To isolate the bounding boxes of characters and filter out the
+background entry, pipe the output through standard command-line
+filtering tools like <code>awk</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scanned_text.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> gray <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-negate</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=10 <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  null: <span class="kw">|</span> <span class="fu">awk</span> <span class="st">&#39;/srgb\(255,255,255\)/ {print $2}&#39;</span></span></code></pre></div>
+<p>This command filters exclusively for the white foreground components
+and prints a list of bounding box measurements (such as
+<code>18x24+142+88</code>) suitable for parsing in automated batch
+pipelines.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

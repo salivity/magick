@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Bidirectional Text Layout Parameter - magick</title>
+    <meta name="description" content="This guide explains how to render bidirectional (BiDi) text layout in ImageMagick, focusing on the -direction parameter, necessary library dependencies, and practical command-line examples for correctly shaping Right-to-Left (RTL) scripts such as Arabic">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-bidirectional-text-layout-parameter">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Bidirectional Text Layout Parameter - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-bidirectional-text-layout-parameter" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to render bidirectional (BiDi) text layout in ImageMagick, focusing on the -direction parameter, necessary library dependencies, and practical command-line examples for correctly shaping Right-to-Left (RTL) scripts such as Arabic" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-bidirectional-text-layout-parameter">ImageMagick
+Bidirectional Text Layout Parameter</h1>
+<p>This guide explains how to render bidirectional (BiDi) text layout in
+ImageMagick, focusing on the <code>-direction</code> parameter,
+necessary library dependencies, and practical command-line examples for
+correctly shaping Right-to-Left (RTL) scripts such as Arabic and Hebrew
+alongside Left-to-Right (LTR) text.</p>
+<p>In ImageMagick, the primary parameter used to specify text layout
+direction is <code>-direction</code>.</p>
+<h3 id="the--direction-parameter">The <code>-direction</code>
+Parameter</h3>
+<p>The <code>-direction</code> setting instructs ImageMagick how to flow
+and align the rendered glyphs. The supported values are:</p>
+<ul>
+<li><code>right-to-left</code>: Renders text starting from the right
+side, flowing to the left.</li>
+<li><code>left-to-right</code>: Default text rendering from left to
+right.</li>
+</ul>
+<p>Example syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="at">-fill</span> black <span class="at">-font</span> <span class="st">&quot;Amiri-Regular.ttf&quot;</span> <span class="at">-pointsize</span> 36 <span class="at">-direction</span> right-to-left label:<span class="st">&quot;مرحبا بالعالم&quot;</span> output.png</span></code></pre></div>
+<h3 id="requirements-for-proper-bidirectional-shaping">Requirements for
+Proper Bidirectional Shaping</h3>
+<p>Using the <code>-direction</code> parameter alone is often not enough
+for complex bidirectional text containing ligatures or mixed-direction
+phrases. For full bidirectional layout support, ImageMagick must be
+compiled with the following dependencies:</p>
+<ul>
+<li><strong>RAQM (<code>libraqm</code>)</strong>: Enables complex text
+layout, bidirectional support, and script detection.</li>
+<li><strong>FriBidi</strong>: Implements the Unicode Bidirectional
+Algorithm.</li>
+<li><strong>HarfBuzz</strong>: Handles text shaping and proper OpenType
+glyph substitution.</li>
+</ul>
+<p>To verify whether your ImageMagick build supports Raqm, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>raqm</code> in the <code>Features</code> or
+<code>Delegates</code> list.</p>
+<h3 id="alternative-rendering-via-pango">Alternative Rendering via
+Pango</h3>
+<p>If ImageMagick is not compiled with <code>libraqm</code>,
+bidirectional text can be rendered accurately using the Pango delegate
+format (<code>pango:</code>). Pango natively handles bidirectional text
+layout and font shaping.</p>
+<p>Example syntax using Pango:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="at">-fill</span> black pango:<span class="st">&quot;&lt;span font=&#39;Amiri 24&#39;&gt;مرحبا بالعالم (Hello World)&lt;/span&gt;&quot;</span> output_pango.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

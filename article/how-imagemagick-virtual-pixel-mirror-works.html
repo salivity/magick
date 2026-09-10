@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Virtual-Pixel Mirror Works - magick</title>
+    <meta name="description" content="This article examines how ImageMagick’s -virtual-pixel Mirror setting constructs seamless reflections at image borders during distortion, filtering, and resampling operations. It details the coordinate transformation mechanics, explains how the algorit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-virtual-pixel-mirror-works">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Virtual-Pixel Mirror Works - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-virtual-pixel-mirror-works" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article examines how ImageMagick’s -virtual-pixel Mirror setting constructs seamless reflections at image borders during distortion, filtering, and resampling operations. It details the coordinate transformation mechanics, explains how the algorit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-virtual-pixel-mirror-works">How ImageMagick
+Virtual-Pixel Mirror Works</h1>
+<p>This article examines how ImageMagick’s
+<code>-virtual-pixel Mirror</code> setting constructs seamless
+reflections at image borders during distortion, filtering, and
+resampling operations. It details the coordinate transformation
+mechanics, explains how the algorithm prevents edge artifacts and visual
+discontinuities, and highlights how the mirror method compares to
+standard clamping or tiling techniques.</p>
+<h2 id="the-role-of-virtual-pixels">The Role of Virtual Pixels</h2>
+<p>When ImageMagick applies geometric distortions, rotations, scaling,
+or convolution filters (such as large Gaussian blurs), the sampling
+coordinate often extends beyond the bounded dimensions of the source
+image. Under normal circumstances, an image only contains defined data
+within the range of <span class="math inline">\([0,
+\text{width}-1]\)</span> and <span class="math inline">\([0,
+\text{height}-1]\)</span>.</p>
+<p>The <code>-virtual-pixel</code> setting dictates how the rendering
+engine should extrapolate color and alpha values when an operation
+queries coordinates that lie outside this valid coordinate space.
+Without a virtual-pixel strategy, algorithms default to returning
+background colors, transparent pixels, or edge clamps, which can disrupt
+visual continuity.</p>
+<h2 id="coordinate-folding-and-symmetry">Coordinate Folding and
+Symmetry</h2>
+<p>The <code>Mirror</code> setting solves out-of-bounds lookups by
+applying a symmetric folding function across each axis independently.
+Instead of repeating the entire image in a continuous loop (which causes
+hard seams where the right edge meets the left edge),
+<code>Mirror</code> treats boundary limits as reflection planes.</p>
+<p>Mathematically, when an interpolated coordinate <span
+class="math inline">\(x\)</span> falls outside the interval <span
+class="math inline">\([0, W - 1]\)</span>, ImageMagick maps it back into
+the image domain using a periodic triangle-wave function. The coordinate
+space folds across the boundary:</p>
+<ol type="1">
+<li><strong>Axis Independence</strong>: The horizontal coordinate <span
+class="math inline">\(x\)</span> and vertical coordinate <span
+class="math inline">\(y\)</span> are evaluated separately. An
+out-of-bounds pixel at <span class="math inline">\((x, y)\)</span> is
+folded along the <span class="math inline">\(X\)</span>-axis and <span
+class="math inline">\(Y\)</span>-axis independently to find its target
+pixel within the source image.</li>
+<li><strong>Boundary Inversion</strong>: As the sampling position moves
+beyond the boundary index <span class="math inline">\(W - 1\)</span>,
+the direction of traversal reverses. The coordinates proceed backwards
+into the image data, sampling <span class="math inline">\(W-2,
+W-3\)</span>, and so on, before bouncing forward again once the opposite
+virtual boundary is reached.</li>
+<li><strong>Edge Continuity</strong>: Unlike settings that duplicate the
+boundary pixel immediately, <code>Mirror</code> reflects the sequence
+without doubling the terminal edge pixel at the reflection line. This
+produces an alternating, inverted pattern that maintains continuous
+gradient transitions across the boundary.</li>
+</ol>
+<h2 id="eliminating-seams-and-edge-artifacts">Eliminating Seams and Edge
+Artifacts</h2>
+<p>ImageMagick's <code>Mirror</code> setting ensures seamless boundaries
+by preserving spatial and photometric continuity:</p>
+<ul>
+<li><strong>Continuity in Color and Luminance</strong>: Tiled images
+introduce abrupt color jumps because opposing edges of an image rarely
+share the same pixel values. By folding the coordinate space backward,
+the pixel directly outside the boundary shares the exact characteristics
+of the pixel adjacent to the boundary inside the image, removing sharp
+luminance steps.</li>
+<li><strong>Preserving Convolution Weights</strong>: When calculating
+wide blur radii, convolution kernels extending beyond an image edge
+sample mirrored values. Because the mirrored pixels carry nearly
+identical local brightness and variance, the convolution avoids the dark
+borders, faded transparency, or halo artifacts typically introduced by
+black, transparent, or clamped virtual pixels.</li>
+<li><strong>Smooth Geometric Distortions</strong>: For non-linear
+mapping operations like perspective, barrel distortion, or polar
+coordinates, <code>Mirror</code> guarantees that expanding grids
+smoothly invert their curvature at the borders, creating organic
+reflections rather than hard clipping lines.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

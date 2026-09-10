@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick Out Compositing - magick</title>
+    <meta name="description" content="This article explains how the ImageMagick Out compositing operator functions under the hood to isolate pixels where the destination image does not exist. It covers the Porter-Duff compositing model, the underlying alpha channel mathematics, and the exact">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-out-compositing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick Out Compositing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-out-compositing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the ImageMagick Out compositing operator functions under the hood to isolate pixels where the destination image does not exist. It covers the Porter-Duff compositing model, the underlying alpha channel mathematics, and the exact" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="understanding-imagemagick-out-compositing">Understanding
+ImageMagick Out Compositing</h1>
+<p>This article explains how the ImageMagick <code>Out</code>
+compositing operator functions under the hood to isolate pixels where
+the destination image does not exist. It covers the Porter-Duff
+compositing model, the underlying alpha channel mathematics, and the
+exact process used to punch out shapes from a source image.</p>
+<h2 id="the-porter-duff-foundation">The Porter-Duff Foundation</h2>
+<p>ImageMagick implements alpha blending using standard Porter-Duff
+compositing rules. In this framework, <code>Out</code> generally refers
+to the <strong>Source Out Destination</strong> (<code>SrcOut</code>)
+operation. This operation treats the destination image as a negative
+clipping mask against the source image. Instead of combining color
+values to blend images together, it calculates where the two layers
+overlap and selectively discards overlapping source pixels.</p>
+<h2 id="the-alpha-channel-calculation">The Alpha Channel
+Calculation</h2>
+<p>The core mechanism of the <code>Out</code> operator relies on the
+destination image's alpha channel (<span
+class="math inline">\(D_a\)</span>) to determine the final transparency
+(<span class="math inline">\(R_a\)</span>) and color values (<span
+class="math inline">\(R_c\)</span>) of the source image (<span
+class="math inline">\(S_a, S_c\)</span>).</p>
+<p>The mathematical formula governing the <code>Out</code> operator
+is:</p>
+<p><span class="math display">\[R_a = S_a \times (1 - D_a)\]</span>
+<span class="math display">\[R_c = S_c \times S_a \times (1 -
+D_a)\]</span></p>
+<p>The isolating behavior is driven entirely by the factor <span
+class="math inline">\((1 - D_a)\)</span>:</p>
+<ul>
+<li><strong>Where the destination shape is fully opaque (<span
+class="math inline">\(D_a = 1.0\)</span>):</strong><br />
+The formula evaluates to <span class="math inline">\((1 - 1.0) =
+0\)</span>. Consequently, both the final alpha and color become zero.
+The source pixels are completely cleared, creating empty
+transparency.</li>
+<li><strong>Where the destination shape does not exist (<span
+class="math inline">\(D_a = 0.0\)</span>):</strong><br />
+The formula evaluates to <span class="math inline">\((1 - 0.0) =
+1\)</span>. The calculation simplifies to <span
+class="math inline">\(R_a = S_a \times 1\)</span>, leaving the source
+pixels fully intact with their original colors and opacity.</li>
+<li><strong>Where the destination edge is partially transparent (<span
+class="math inline">\(0 &lt; D_a &lt; 1\)</span>):</strong><br />
+Anti-aliased edges in the destination create fractional values. If a
+destination pixel has 40% opacity (<span class="math inline">\(D_a =
+0.4\)</span>), the source retains <span class="math inline">\(1 - 0.4 =
+0.6\)</span> (60%) of its opacity, yielding smooth, anti-aliased
+cutouts.</li>
+</ul>
+<h2 id="inverse-masking-in-practice">Inverse Masking in Practice</h2>
+<p>In traditional masking, white or opaque regions preserve an image,
+while black or transparent areas hide it. The <code>Out</code> operator
+effectively reverses this relationship without requiring an explicit
+grayscale mask conversion.</p>
+<p>When you composite using <code>Out</code>, ImageMagick reads the
+transparency layer directly:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> source.png destination.png <span class="at">-compose</span> Out <span class="at">-composite</span> output.png</span></code></pre></div>
+<p>Because the destination's opaque shape dictates what gets erased, the
+output preserves the source image strictly in the empty space
+surrounding that shape. Any area where the destination has zero coverage
+remains visible, effectively isolating the negative space of the
+destination canvas.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

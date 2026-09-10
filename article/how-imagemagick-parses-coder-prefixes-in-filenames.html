@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Parses Coder Prefixes in Filenames - magick</title>
+    <meta name="description" content="When ImageMagick processes an input or output target, it allows users to explicitly specify the image format using coder prefixes such as png: or jpg: prepended to the filename. This article explains the internal parsing mechanism ImageMagick uses to ide">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-parses-coder-prefixes-in-filenames">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Parses Coder Prefixes in Filenames - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-parses-coder-prefixes-in-filenames" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When ImageMagick processes an input or output target, it allows users to explicitly specify the image format using coder prefixes such as png: or jpg: prepended to the filename. This article explains the internal parsing mechanism ImageMagick uses to ide" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-parses-coder-prefixes-in-filenames">How
+ImageMagick Parses Coder Prefixes in Filenames</h1>
+<p>When ImageMagick processes an input or output target, it allows users
+to explicitly specify the image format using coder prefixes such as
+<code>png:</code> or <code>jpg:</code> prepended to the filename. This
+article explains the internal parsing mechanism ImageMagick uses to
+identify these prefixes, isolate the coder specification, override
+standard file signature (magic byte) and extension detection, and route
+the image stream to the appropriate coder module.</p>
+<h3 id="string-tokenization-and-colon-delimitation">String Tokenization
+and Colon Delimitation</h3>
+<p>The parsing process begins during the initialization of the
+<code>ImageInfo</code> structure, typically inside MagickCore's
+<code>SetImageInfo()</code> function. ImageMagick scans the input string
+from left to right looking for a colon (<code>:</code>) separator.</p>
+<p>When a colon is encountered, the substring preceding it is evaluated
+as a potential coder or protocol name. The parser splits the full input
+path into two primary components:</p>
+<ol type="1">
+<li><strong>The Prefix (Coder/Protocol):</strong> The text preceding the
+colon (e.g., <code>png</code> in <code>png:input.dat</code>).</li>
+<li><strong>The Target Path:</strong> The text succeeding the colon,
+which represents the actual file system path, stream descriptor, or
+delegate parameter (e.g., <code>input.dat</code> or <code>-</code> for
+standard input).</li>
+</ol>
+<p>If the string contains multiple colons (such as in Windows absolute
+paths like <code>C:\images\test.png</code>), ImageMagick applies sanity
+checks. Single-letter prefixes followed by a backslash or slash (e.g.,
+<code>c:</code>) are recognized as Windows drive letters and are ignored
+by the coder parsing logic.</p>
+<h3 id="registry-lookup-via-getmagickinfo">Registry Lookup via
+<code>GetMagickInfo</code></h3>
+<p>Once a candidate prefix is isolated, ImageMagick does not immediately
+assume it is a valid format. Instead, it queries its internal coder
+registry using the <code>GetMagickInfo()</code> function:</p>
+<ol type="1">
+<li>The extracted prefix is converted to uppercase to perform a
+case-insensitive lookup.</li>
+<li>ImageMagick searches its registered table of <code>MagickInfo</code>
+structures, which define all available read/write delegates, built-in
+formats, and pseudoclass handlers.</li>
+<li>If a match is found (for example, <code>PNG</code> or
+<code>JPEG</code>), ImageMagick populates the <code>magick</code> member
+of the <code>ImageInfo</code> structure with that format name.</li>
+</ol>
+<p>If the prefix matches a protocol handler (such as <code>http:</code>,
+<code>https:</code>, or <code>fd:</code>), the string is routed to the
+corresponding I/O sub-handler rather than treated strictly as an
+encoding format.</p>
+<h3 id="bypassing-automatic-format-detection">Bypassing Automatic Format
+Detection</h3>
+<p>Under normal circumstances, ImageMagick determines an image's format
+using a two-tier fallback system:</p>
+<ul>
+<li><strong>Magic Bytes:</strong> Inspecting the initial header bytes of
+the file content.</li>
+<li><strong>File Extension:</strong> Falling back to the file extension
+at the end of the filename if header sniffing fails.</li>
+</ul>
+<p>When an explicit prefix is parsed and set in
+<code>ImageInfo-&gt;magick</code>, this default detection sequence is
+bypassed. During the subsequent call to <code>ReadImage()</code>:</p>
+<ol type="1">
+<li>ImageMagick checks if <code>image_info-&gt;magick</code> is
+non-empty.</li>
+<li>If set, it skips header sniffing and directly invokes the registered
+decoding routine (the <code>ReadImage</code> function pointer defined
+within the corresponding coder module, such as <code>ReadPNGImage</code>
+for <code>png:</code>).</li>
+<li>The remaining portion of the filename (everything after the colon)
+is used strictly to locate the bytes on disk or in memory.</li>
+</ol>
+<h3 id="handling-modifiers-and-sub-image-indexes">Handling Modifiers and
+Sub-Image Indexes</h3>
+<p>Coder prefix parsing occurs before embedded read modifiers or frame
+specifiers are handled. Once the prefix has been extracted and assigned
+to <code>ImageInfo-&gt;magick</code>, ImageMagick continues parsing the
+remaining path for bracketed sub-image expressions (such as
+<code>[0]</code> in <code>gif:animation.gif[0]</code>) and canvas
+geometry settings. The coder itself remains locked to the explicit
+prefix defined at the beginning of the string.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

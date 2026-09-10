@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Connected Components Bounding Boxes - magick</title>
+    <meta name="description" content="This guide covers the syntax and commands required to calculate image bounding boxes using ImageMagick's connected-components labeling feature. By analyzing pixel connectivity, ImageMagick can identify distinct objects within an image and output their ge">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-connected-components-bounding-boxes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Connected Components Bounding Boxes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-connected-components-bounding-boxes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide covers the syntax and commands required to calculate image bounding boxes using ImageMagick's connected-components labeling feature. By analyzing pixel connectivity, ImageMagick can identify distinct objects within an image and output their ge" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-connected-components-bounding-boxes">ImageMagick
+Connected Components Bounding Boxes</h1>
+<p>This guide covers the syntax and commands required to calculate image
+bounding boxes using ImageMagick's connected-components labeling
+feature. By analyzing pixel connectivity, ImageMagick can identify
+distinct objects within an image and output their geometric dimensions,
+offsets, areas, and centroid coordinates.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>To extract bounding box data, combine the
+<code>-connected-components</code> operator with the verbose output
+definition. Directing the output to <code>null:</code> prevents writing
+an unnecessary output image file.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> connected-components:verbose=true <span class="at">-connected-components</span> 8 null:</span></code></pre></div>
+<p><em>Note: For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</em></p>
+<h2 id="command-options-and-parameters">Command Options and
+Parameters</h2>
+<p>ImageMagick provides several <code>-define</code> options to control
+how objects are analyzed and reported:</p>
+<ul>
+<li><strong>Connectivity (<code>4</code> or <code>8</code>):</strong>
+The integer passed to <code>-connected-components</code> defines pixel
+neighbors.
+<ul>
+<li><code>4</code>: Analyzes adjacent pixels (top, bottom, left,
+right).</li>
+<li><code>8</code>: Analyzes adjacent and diagonal pixels.</li>
+</ul></li>
+<li><strong><code>-define connected-components:verbose=true</code>:</strong>
+Prints the text report containing component IDs, bounding box
+geometries, centroids, areas, and mean colors to standard output.</li>
+<li><strong><code>-define connected-components:area-threshold=&lt;value&gt;</code>:</strong>
+Excludes objects smaller than the specified pixel count to eliminate
+noise.</li>
+<li><strong><code>-define connected-components:mean-color=true</code>:</strong>
+Replaces the color of each labeled region with its mean color (useful
+when outputting an image visualization).</li>
+</ul>
+<h2 id="practical-example">Practical Example</h2>
+<p>To find bounding boxes while filtering out noise smaller than 100
+pixels:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> objects.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=100 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  null:</span></code></pre></div>
+<h2 id="understanding-the-output">Understanding the Output</h2>
+<p>The verbose flag outputs a structured table. A typical output row
+looks like this:</p>
+<pre class="text"><code>Objects (id: box centroid area mean-color):
+  0: 500x400+0+0 249.5,199.5 200000 srgb(0,0,0)
+  1: 64x64+120+45 151.5,76.5 4096 srgb(255,255,255)</code></pre>
+<p>The fields are defined as follows:</p>
+<ul>
+<li><strong><code>id</code>:</strong> The index assigned to the detected
+component (ID 0 is usually the background).</li>
+<li><strong><code>box</code>:</strong> The bounding box geometry
+formatted as <code>WIDTHxHEIGHT+X+Y</code>, where <code>WIDTH</code> and
+<code>HEIGHT</code> represent the dimensions, and <code>+X+Y</code>
+represents the top-left coordinate.</li>
+<li><strong><code>centroid</code>:</strong> The center coordinate
+(<code>X,Y</code>) of the object.</li>
+<li><strong><code>area</code>:</strong> The total count of pixels
+contained within the object.</li>
+<li><strong><code>mean-color</code>:</strong> The average color of the
+component.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

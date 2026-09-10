@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Parzen Filter: Sharpness vs Ringing - magick</title>
+    <meta name="description" content="When magnifying digital images, resampling filters must constantly negotiate the trade-off between retaining edge sharpness and preventing visual defects like ringing artifacts. The Parzen filter in ImageMagick addresses this challenge by utilizing a smo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-parzen-filter-sharpness-vs-ringing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Parzen Filter: Sharpness vs Ringing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-parzen-filter-sharpness-vs-ringing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When magnifying digital images, resampling filters must constantly negotiate the trade-off between retaining edge sharpness and preventing visual defects like ringing artifacts. The Parzen filter in ImageMagick addresses this challenge by utilizing a smo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-parzen-filter-sharpness-vs-ringing">ImageMagick
+Parzen Filter: Sharpness vs Ringing</h1>
+<p>When magnifying digital images, resampling filters must constantly
+negotiate the trade-off between retaining edge sharpness and preventing
+visual defects like ringing artifacts. The Parzen filter in ImageMagick
+addresses this challenge by utilizing a smooth, piecewise cubic B-spline
+window that prioritizes smooth transitions over aggressive edge
+enhancement. This article examines how the mathematical characteristics
+of the Parzen filter allow it to suppress ringing artifacts entirely
+during magnification while retaining an acceptable level of clarity.</p>
+<h2
+id="understanding-ringing-and-sharpness-in-magnification">Understanding
+Ringing and Sharpness in Magnification</h2>
+<p>Magnifying an image requires interpolating new pixel values from
+existing data. Standard high-sharpness filters, such as Lanczos or
+standard Sinc-based functions, use kernels with negative lobes. While
+these negative lobes accentuate high-frequency details and create the
+perception of crisp edges, they also cause the Gibbs phenomenon,
+commonly known as ringing or haloing. Ringing manifests as distracting
+light or dark bands along high-contrast boundaries, such as dark text on
+a white background.</p>
+<p>Conversely, filters that eliminate ringing entirely, such as simple
+bilinear interpolation or wide Gaussian filters, tend to produce overly
+blurred results, sacrificing too much structural detail.</p>
+<h2 id="the-mathematical-structure-of-the-parzen-filter">The
+Mathematical Structure of the Parzen Filter</h2>
+<p>In ImageMagick, the Parzen filter is based on the Parzen window (a
+third-order B-spline function). It is defined as a piecewise cubic
+polynomial with a finite radius (support) typically spanning two
+units:</p>
+<ul>
+<li>For distances <span class="math inline">\(|x| &lt; 1\)</span>, the
+function behaves as <span class="math inline">\(1 - 6x^2 +
+6|x|^3\)</span>.</li>
+<li>For distances <span class="math inline">\(1 \le |x| &lt; 2\)</span>,
+the function behaves as <span class="math inline">\(2(1 -
+|x|)^3\)</span>.</li>
+<li>For distances <span class="math inline">\(|x| \ge 2\)</span>, the
+value is <span class="math inline">\(0\)</span>.</li>
+</ul>
+<p>Because this function is continuous through its second derivative
+(<span class="math inline">\(C^2\)</span> continuity), the resulting
+interpolated curves are exceptionally smooth.</p>
+<h2 id="how-parzen-eliminates-ringing">How Parzen Eliminates
+Ringing</h2>
+<p>The defining characteristic of the Parzen filter regarding artifact
+control is the complete absence of negative lobes. In filtering
+algorithms:</p>
+<ul>
+<li><strong>Negative weights</strong> allow output pixel values to
+exceed the maximum or fall below the minimum values of nearby original
+pixels (overshoot and undershoot). This fluctuation is the root cause of
+ringing.</li>
+<li><strong>Non-negative weights</strong>, which define the Parzen
+kernel, ensure that any interpolated value remains strictly within the
+range of the local source pixels.</li>
+</ul>
+<p>Because it cannot produce overshoot or undershoot, the Parzen filter
+inherently eliminates ringing artifacts. There are no halos around sharp
+edges, regardless of how high the magnification factor is.</p>
+<h2 id="the-sharpness-trade-off">The Sharpness Trade-off</h2>
+<p>Because Parzen avoids negative lobes, it cannot artificially enhance
+edges via acutance. Instead, it acts as a low-pass filter.</p>
+<p>Compared to filters like Catmull-Rom or Lanczos, Parzen produces a
+noticeably softer image. However, compared to standard Gaussian blurs or
+nearest-neighbor scaling:</p>
+<ul>
+<li>It provides higher structural clarity and continuity than low-radius
+Gaussian filters.</li>
+<li>It avoids the jagged, pixelated edges produced by nearest-neighbor
+interpolation.</li>
+<li>Its cubic formulation creates natural, curved gradients rather than
+the faceted, diamond-shaped transitions typical of bilinear or tent
+filters.</li>
+</ul>
+<h2 id="ideal-use-cases-in-imagemagick">Ideal Use Cases in
+ImageMagick</h2>
+<p>The Parzen filter is accessible in ImageMagick using the
+<code>-filter Parzen -resize</code> command. It is best applied in
+scenarios where edge integrity is vital but ringing cannot be
+tolerated:</p>
+<ol type="1">
+<li><strong>Line Art and Vector Graphics:</strong> Scaling rasterized
+logos, diagrams, or text where ringing halos would disrupt solid colors
+or create dirty borders.</li>
+<li><strong>Scientific and Medical Imaging:</strong> Scenarios where
+false values (overshoots) generated by ringing could lead to
+misinterpretation of data or pixel measurements.</li>
+<li><strong>Noisy Sources:</strong> Images with fine grain or
+compression noise, where sharper filters would accentuate artifacts by
+ringing around individual noise pixels.</li>
+</ol>
+<p>By substituting negative-lobe edge amplification with continuous
+cubic interpolation, the Parzen filter delivers clean, artifact-free
+image magnifications where smoothness and data fidelity outweigh the
+desire for exaggerated edge contrast.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

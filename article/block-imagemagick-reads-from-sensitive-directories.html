@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block ImageMagick Reads from Sensitive Directories - magick</title>
+    <meta name="description" content="Securing ImageMagick requires restricting its access to the underlying filesystem to prevent Local File Inclusion (LFI) and unauthorized data disclosure vulnerabilities. By modifying the policy.xml configuration file, administrators can define granular p">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/block-imagemagick-reads-from-sensitive-directories">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Block ImageMagick Reads from Sensitive Directories - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/block-imagemagick-reads-from-sensitive-directories" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Securing ImageMagick requires restricting its access to the underlying filesystem to prevent Local File Inclusion (LFI) and unauthorized data disclosure vulnerabilities. By modifying the policy.xml configuration file, administrators can define granular p" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="block-imagemagick-reads-from-sensitive-directories">Block
+ImageMagick Reads from Sensitive Directories</h1>
+<p>Securing ImageMagick requires restricting its access to the
+underlying filesystem to prevent Local File Inclusion (LFI) and
+unauthorized data disclosure vulnerabilities. By modifying the
+<code>policy.xml</code> configuration file, administrators can define
+granular path policies that explicitly deny read and write permissions
+to sensitive system paths such as <code>/etc</code>, <code>/root</code>,
+or application-specific configuration directories.</p>
+<h3 id="1-locate-the-imagemagick-policy-file">1. Locate the ImageMagick
+Policy File</h3>
+<p>ImageMagick's security policies are managed in the
+<code>policy.xml</code> file. The exact path depends on your operating
+system and ImageMagick version:</p>
+<ul>
+<li><strong>ImageMagick 6 (Debian/Ubuntu):</strong>
+<code>/etc/ImageMagick-6/policy.xml</code></li>
+<li><strong>ImageMagick 7 (Debian/Ubuntu/RHEL):</strong>
+<code>/etc/ImageMagick-7/policy.xml</code></li>
+<li><strong>General Unix/Linux systems:</strong>
+<code>/etc/ImageMagick/policy.xml</code> or
+<code>/usr/local/etc/ImageMagick-7/policy.xml</code></li>
+</ul>
+<p>You can verify the exact file location by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> configure <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="st">&quot;CONFIGURE_PATH\|POLICY_PATH&quot;</span></span></code></pre></div>
+<p><em>(Use <code>convert -list configure</code> for ImageMagick
+6).</em></p>
+<h3 id="2-configure-path-based-read-restrictions">2. Configure
+Path-Based Read Restrictions</h3>
+<p>Open <code>policy.xml</code> in a text editor with root or
+administrative privileges:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/ImageMagick-6/policy.xml</span></code></pre></div>
+<p>Locate the <code>&lt;policymap&gt;</code> block. You can block read
+access using policies with the <code>domain="path"</code> attribute.</p>
+<h4 id="option-a-blacklist-sensitive-directories">Option A: Blacklist
+Sensitive Directories</h4>
+<p>To prevent ImageMagick from reading or writing to specific
+directories such as <code>/etc</code>, <code>/root</code>, or hidden
+configuration files, add the following rules inside the
+<code>&lt;policymap&gt;</code> tags:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Block access to sensitive system paths --&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/etc/*&quot;</span>/&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/root/*&quot;</span>/&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/var/run/*&quot;</span>/&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/proc/*&quot;</span>/&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/sys/*&quot;</span>/&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;.*&quot;</span>/&gt; <span class="co">&lt;!-- Blocks hidden files like .env --&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h4 id="option-b-use-an-allowlist-recommended">Option B: Use an
+Allowlist (Recommended)</h4>
+<p>A more secure approach is to block access to the entire filesystem by
+default and only allow read operations in designated application
+directories:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Deny access to everything by default --&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;*&quot;</span>/&gt;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Allow read and write access only to specific directories --&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read | write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/var/www/html/uploads/*&quot;</span>/&gt;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read | write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/tmp/*&quot;</span>/&gt;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<p><em>Note: Rules are evaluated in the order they appear. Place generic
+denial rules above specific allow rules if your ImageMagick version
+processes rules sequentially.</em></p>
+<h3 id="3-disable-dangerous-coders">3. Disable Dangerous Coders</h3>
+<p>Attackers frequently bypass path policies using built-in ImageMagick
+coders designed to read local files (such as <code>TEXT</code>,
+<code>SHOW</code>, <code>MSL</code>, or <code>LABEL</code>). Disable
+these directly in <code>policy.xml</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;TEXT&quot;</span> /&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;SHOW&quot;</span> /&gt;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;MSL&quot;</span> /&gt;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;LABEL&quot;</span> /&gt;</span></code></pre></div>
+<h3 id="4-verify-the-policy-enforcement">4. Verify the Policy
+Enforcement</h3>
+<p>Test the configuration to ensure the restrictions are active. Attempt
+to read a protected file using the <code>convert</code> or
+<code>magick</code> command:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> /etc/passwd output.png</span></code></pre></div>
+<p>If the policy is configured correctly, ImageMagick will reject the
+operation with an error message:</p>
+<pre class="text"><code>convert: not authorized `/etc/passwd&#39; @ error/constitute.c/ReadImage/412.</code></pre></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

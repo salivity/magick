@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Displace Images with X and Y Maps in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to distort an image in ImageMagick using separate X (horizontal) and Y (vertical) displacement maps. You will learn how ImageMagick interprets color channels for 2D shifting, how to combine distinct grayscale maps into a single di">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/displace-images-with-x-and-y-maps-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Displace Images with X and Y Maps in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/displace-images-with-x-and-y-maps-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to distort an image in ImageMagick using separate X (horizontal) and Y (vertical) displacement maps. You will learn how ImageMagick interprets color channels for 2D shifting, how to combine distinct grayscale maps into a single di" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="displace-images-with-x-and-y-maps-in-imagemagick">Displace
+Images with X and Y Maps in ImageMagick</h1>
+<p>This guide explains how to distort an image in ImageMagick using
+separate X (horizontal) and Y (vertical) displacement maps. You will
+learn how ImageMagick interprets color channels for 2D shifting, how to
+combine distinct grayscale maps into a single displacement map, and how
+to execute the command for precise pixel displacement.</p>
+<hr />
+<h3
+id="understanding-displacement-channels-in-imagemagick">Understanding
+Displacement Channels in ImageMagick</h3>
+<p>ImageMagick's <code>-displace</code> operator shifts pixels based on
+the intensity values in an overlay map. When applying two-dimensional
+distortion:</p>
+<ul>
+<li>The <strong>Red channel</strong> controls <strong>X
+(horizontal)</strong> displacement.</li>
+<li>The <strong>Green channel</strong> controls <strong>Y
+(vertical)</strong> displacement.</li>
+<li>Neutral gray (<code>#808080</code> or 50% intensity) represents
+<strong>zero displacement</strong>.</li>
+<li>Values brighter than 50% shift pixels in the positive direction
+(right/down).</li>
+<li>Values darker than 50% shift pixels in the negative direction
+(left/up).</li>
+</ul>
+<hr />
+<h3 id="method-combining-separate-x-and-y-maps">Method: Combining
+Separate X and Y Maps</h3>
+<p>If you have two separate grayscale images—<code>x_map.png</code> for
+horizontal distortion and <code>y_map.png</code> for vertical
+distortion—you must merge them into the Red and Green channels of a
+single displacement map, then apply the displacement operator.</p>
+<h4 id="imagemagick-v7-command">ImageMagick v7 Command</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="er">(</span> <span class="ex">x_map.png</span> y_map.png <span class="at">-background</span> gray50 <span class="at">-combine</span> <span class="kw">)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-virtual-pixel</span> mirror <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-displace</span> 30x20 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<h4 id="imagemagick-v6-command">ImageMagick v6 Command</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> x_map.png y_map.png <span class="at">-background</span> gray50 <span class="at">-combine</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-virtual-pixel</span> mirror <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-displace</span> 30x20 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<hr />
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ol type="1">
+<li><strong><code>input.png</code></strong>: The source image you want
+to distort.</li>
+<li><strong><code>( x_map.png y_map.png -background gray50 -combine )</code></strong>:
+Loads the two separate grayscale maps and packs them into a single
+image. <code>x_map.png</code> becomes the Red channel,
+<code>y_map.png</code> becomes the Green channel, and the background
+fills the Blue channel with 50% neutral gray.</li>
+<li><strong><code>-virtual-pixel mirror</code></strong>: Defines how
+areas outside the image boundaries are sampled when pixels are pushed
+inward (options include <code>transparent</code>, <code>edge</code>,
+<code>black</code>, or <code>mirror</code>).</li>
+<li><strong><code>-displace &lt;X_scale&gt;x&lt;Y_scale&gt;</code></strong>:
+Specifies the maximum displacement distance in pixels (or percentage if
+using <code>%</code>). For example, <code>30x20</code> means full
+white/black in the X map moves pixels up to 30 pixels horizontally, and
+full white/black in the Y map moves pixels up to 20 pixels
+vertically.</li>
+<li><strong><code>output.png</code></strong>: The final distorted
+image.</li>
+</ol>
+<hr />
+<h3 id="percentage-based-scaling">Percentage-Based Scaling</h3>
+<p>If you prefer relative distortion scaling based on the original image
+dimensions, append a percentage sign (<code>%</code>) to the
+<code>-displace</code> arguments:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="er">(</span> <span class="ex">x_map.png</span> y_map.png <span class="at">-background</span> gray50 <span class="at">-combine</span> <span class="kw">)</span> <span class="ex">-displace</span> 5%x10% output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

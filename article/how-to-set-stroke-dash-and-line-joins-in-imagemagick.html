@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set Stroke Dash and Line Joins in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to customize line appearances in ImageMagick by configuring stroke dash patterns and line join styles. Using ImageMagick’s vector drawing capabilities, you can control the spacing, length, and starting offset of dashed lines, as">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-set-stroke-dash-and-line-joins-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set Stroke Dash and Line Joins in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-set-stroke-dash-and-line-joins-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to customize line appearances in ImageMagick by configuring stroke dash patterns and line join styles. Using ImageMagick’s vector drawing capabilities, you can control the spacing, length, and starting offset of dashed lines, as" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-stroke-dash-and-line-joins-in-imagemagick">How to Set
+Stroke Dash and Line Joins in ImageMagick</h1>
+<p>This guide explains how to customize line appearances in ImageMagick
+by configuring stroke dash patterns and line join styles. Using
+ImageMagick’s vector drawing capabilities, you can control the spacing,
+length, and starting offset of dashed lines, as well as define how
+corners and intersections connect using miter, round, or bevel
+joins.</p>
+<h2 id="setting-stroke-dash-patterns">Setting Stroke Dash Patterns</h2>
+<p>ImageMagick controls dash patterns using two primary properties: the
+dash array and the dash offset. These can be defined either via
+command-line options or directly inside the <code>-draw</code> primitive
+string using Magick Vector Graphics (MVG) syntax.</p>
+<h3 id="1-the-dash-array">1. The Dash Array</h3>
+<p>The dash array defines the lengths of alternating painted segments
+(dashes) and unpainted segments (gaps).</p>
+<ul>
+<li><strong>Command-line syntax:</strong>
+<code>-strokedasharray &lt;dash_length&gt;,&lt;gap_length&gt;,...</code></li>
+<li><strong>Draw primitive syntax:</strong>
+<code>stroke-dasharray &lt;dash_length&gt; &lt;gap_length&gt; ...</code></li>
+</ul>
+<p>For example, a pattern of 10 pixels on and 5 pixels off:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x200 xc:white <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 4 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokedasharray</span> 10,5 <span class="at">-draw</span> <span class="st">&quot;line 20,100 380,100&quot;</span> dashed_line.png</span></code></pre></div>
+<p>You can define complex patterns with multiple values (e.g.,
+<code>15,5,5,5</code> creates a dash-dot pattern).</p>
+<h3 id="2-the-dash-offset">2. The Dash Offset</h3>
+<p>The dash offset determines the starting phase of the pattern along
+the stroke path.</p>
+<ul>
+<li><strong>Command-line syntax:</strong>
+<code>-strokedashoffset &lt;value&gt;</code></li>
+<li><strong>Draw primitive syntax:</strong>
+<code>stroke-dashoffset &lt;value&gt;</code></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x200 xc:white <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 4 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokedasharray</span> 10,5 <span class="at">-strokedashoffset</span> 5 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;line 20,100 380,100&quot;</span> offset_line.png</span></code></pre></div>
+<hr />
+<h2 id="configuring-line-join-styles">Configuring Line Join Styles</h2>
+<p>Line joins determine how the corner looks where two stroke segments
+meet at an angle. ImageMagick supports three standard line join
+styles:</p>
+<ul>
+<li><strong><code>miter</code></strong>: Extends the outer edges of the
+lines until they meet at a sharp point (default).</li>
+<li><strong><code>round</code></strong>: Renders a rounded corner with a
+radius equal to half the stroke width.</li>
+<li><strong><code>bevel</code></strong>: Chops off the corner with a
+straight diagonal segment across the junction.</li>
+</ul>
+<h3 id="using-the-line-join-option">Using the Line Join Option</h3>
+<p>To set the join style, use <code>-strokelinejoin</code> or the MVG
+<code>stroke-linejoin</code> command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Round Join</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> blue <span class="at">-strokewidth</span> 12 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokelinejoin</span> round <span class="at">-draw</span> <span class="st">&quot;polyline 50,250 150,50 250,250&quot;</span> round_join.png</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Bevel Join</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> red <span class="at">-strokewidth</span> 12 <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokelinejoin</span> bevel <span class="at">-draw</span> <span class="st">&quot;polyline 50,250 150,50 250,250&quot;</span> bevel_join.png</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Miter Join</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> green <span class="at">-strokewidth</span> 12 <span class="dt">\</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokelinejoin</span> miter <span class="at">-draw</span> <span class="st">&quot;polyline 50,250 150,50 250,250&quot;</span> miter_join.png</span></code></pre></div>
+<h3 id="controlling-miter-limits">Controlling Miter Limits</h3>
+<p>When using <code>miter</code>, sharp angles can produce excessively
+long spikes. Use <code>-strokemiterlimit</code> (or
+<code>stroke-miterlimit</code> in <code>-draw</code>) to specify the
+ratio limit where a miter join automatically converts to a bevel
+join:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> black <span class="at">-strokewidth</span> 10 <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokelinejoin</span> miter <span class="at">-strokemiterlimit</span> 2 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;polyline 50,250 150,50 250,250&quot;</span> miter_limit.png</span></code></pre></div>
+<hr />
+<h2 id="combined-example">Combined Example</h2>
+<p>You can combine dash arrays, dash offsets, and line joins within a
+single command to create styled shapes:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x400 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> darkred <span class="at">-strokewidth</span> 6 <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokelinejoin</span> round <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokedasharray</span> 12,6 <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-strokedashoffset</span> 3 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-draw</span> <span class="st">&quot;polygon 200,40 360,340 40,340&quot;</span> styled_triangle.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

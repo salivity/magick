@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logical AND and OR in ImageMagick FX Expressions - magick</title>
+    <meta name="description" content="ImageMagick's -fx special effects operator allows users to construct complex, per-pixel mathematical expressions using standard arithmetic and logical operations. This article explores how ImageMagick parses and evaluates logical AND (&&) and logical OR">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/logical-and-and-or-in-imagemagick-fx-expressions">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Logical AND and OR in ImageMagick FX Expressions - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/logical-and-and-or-in-imagemagick-fx-expressions" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's -fx special effects operator allows users to construct complex, per-pixel mathematical expressions using standard arithmetic and logical operations. This article explores how ImageMagick parses and evaluates logical AND (&&) and logical OR" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="logical-and-and-or-in-imagemagick-fx-expressions">Logical AND
+and OR in ImageMagick FX Expressions</h1>
+<p>ImageMagick's <code>-fx</code> special effects operator allows users
+to construct complex, per-pixel mathematical expressions using standard
+arithmetic and logical operations. This article explores how ImageMagick
+parses and evaluates logical AND (<code>&amp;&amp;</code>) and logical
+OR (<code>||</code>) operators within complex <code>-fx</code> strings,
+detailing their truthiness models, operator precedence, short-circuiting
+behavior, and integration with ternary conditionals.</p>
+<h3 id="boolean-representation-and-truthiness">Boolean Representation
+and Truthiness</h3>
+<p>The <code>-fx</code> engine handles pixel channel data as normalized
+double-precision floating-point values, generally falling between
+<code>0.0</code> (black/minimum) and <code>1.0</code> (white/maximum).
+Because it operates strictly on floating-point arithmetic rather than
+dedicated boolean types, logical evaluation relies on numeric zero and
+non-zero values:</p>
+<ul>
+<li><strong>False:</strong> Any expression resolving exactly to
+<code>0.0</code>.</li>
+<li><strong>True:</strong> Any expression resolving to any non-zero
+value (typically <code>1.0</code>, but negative or fractional numbers
+such as <code>0.2</code> or <code>-1.5</code> are also treated as
+true).</li>
+</ul>
+<p>When an expression using <code>&amp;&amp;</code> or <code>||</code>
+is evaluated, the result itself is strictly normalized to a numeric
+boolean output: <code>1.0</code> for true and <code>0.0</code> for
+false. Unlike scripting languages such as Python or JavaScript,
+ImageMagick does not return the value of the resolving operand; it
+returns binary <code>1.0</code> or <code>0.0</code>.</p>
+<h3 id="operator-precedence">Operator Precedence</h3>
+<p>In complex arithmetic strings, ImageMagick follows standard C-style
+operator precedence rules. Logical operators sit relatively low in the
+hierarchy:</p>
+<ol type="1">
+<li><strong>Parentheses:</strong> <code>()</code></li>
+<li><strong>Unary Operations:</strong> <code>-</code>,
+<code>!</code></li>
+<li><strong>Multiplicative Arithmetic:</strong> <code>*</code>,
+<code>/</code>, <code>%</code></li>
+<li><strong>Additive Arithmetic:</strong> <code>+</code>,
+<code>-</code></li>
+<li><strong>Relational Operators:</strong> <code>&lt;</code>,
+<code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>,
+<code>==</code>, <code>!=</code></li>
+<li><strong>Logical AND:</strong> <code>&amp;&amp;</code></li>
+<li><strong>Logical OR:</strong> <code>||</code></li>
+<li><strong>Conditional (Ternary):</strong> <code>? :</code></li>
+</ol>
+<p>Because <code>&amp;&amp;</code> has higher precedence than
+<code>||</code>, the engine groups AND expressions before OR
+expressions. For example, the expression:</p>
+<pre class="text"><code>u &gt; 0.5 || v &lt; 0.2 &amp;&amp; w == 1.0</code></pre>
+<p>is evaluated identically to:</p>
+<pre class="text"><code>(u &gt; 0.5) || ((v &lt; 0.2) &amp;&amp; (w == 1.0))</code></pre>
+<h3 id="short-circuit-evaluation">Short-Circuit Evaluation</h3>
+<p>ImageMagick’s expression parser employs short-circuit logic when
+evaluating expressions containing <code>&amp;&amp;</code> and
+<code>||</code>:</p>
+<ul>
+<li><strong>For <code>A &amp;&amp; B</code>:</strong> If <code>A</code>
+evaluates to <code>0.0</code> (false), <code>B</code> is skipped
+entirely, and the sub-expression immediately returns
+<code>0.0</code>.</li>
+<li><strong>For <code>A || B</code>:</strong> If <code>A</code>
+evaluates to any non-zero value (true), <code>B</code> is skipped, and
+the sub-expression immediately returns <code>1.0</code>.</li>
+</ul>
+<p>This short-circuiting is critical when combining channel lookups or
+avoiding potential divide-by-zero errors in complex formulas, such as
+<code>u != 0 &amp;&amp; (v / u) &gt; 0.5</code>.</p>
+<h3 id="use-within-ternary-expressions">Use Within Ternary
+Expressions</h3>
+<p>Logical operators are most frequently paired with the conditional
+ternary operator (<code>condition ? true_val : false_val</code>) to
+build masks, segmentations, or channel blends.</p>
+<p>Because the ternary operator has lower precedence than both
+<code>&amp;&amp;</code> and <code>||</code>, complex compound checks can
+be placed directly in the conditional slot without excessive
+nesting:</p>
+<pre class="text"><code>u.r &gt; 0.5 &amp;&amp; u.g &lt; 0.2 || u.b &gt; 0.8 ? 1.0 : 0.0</code></pre>
+<p>Explicit parentheses are still recommended in multi-level conditions
+to prevent ambiguity and ensure expressions remain predictable across
+different ImageMagick versions (ImageMagick 6 versus the updated syntax
+engine in ImageMagick 7).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

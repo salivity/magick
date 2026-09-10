@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect Image Orientation with ImageMagick Moments - magick</title>
+    <meta name="description" content="Automatic image orientation detection helps standardize visual assets by determining their principal axis of inertia without relying on EXIF metadata. This article explains how to utilize ImageMagick's moment analysis feature to compute spatial and centr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/detect-image-orientation-with-imagemagick-moments">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Detect Image Orientation with ImageMagick Moments - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/detect-image-orientation-with-imagemagick-moments" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Automatic image orientation detection helps standardize visual assets by determining their principal axis of inertia without relying on EXIF metadata. This article explains how to utilize ImageMagick's moment analysis feature to compute spatial and centr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="detect-image-orientation-with-imagemagick-moments">Detect Image
+Orientation with ImageMagick Moments</h1>
+<p>Automatic image orientation detection helps standardize visual assets
+by determining their principal axis of inertia without relying on EXIF
+metadata. This article explains how to utilize ImageMagick's moment
+analysis feature to compute spatial and central image moments, extract
+the dominant orientation angle, and programmatically determine an
+image's alignment.</p>
+<h3 id="understanding-image-moments">Understanding Image Moments</h3>
+<p>Image moments are statistical measures derived from the spatial
+distribution of pixel intensities. While zeroth-order moments represent
+total intensity (mass) and first-order moments locate the center of mass
+(centroid), second-order central moments describe the spread and
+orientation of the image features along the X and Y axes.</p>
+<p>ImageMagick calculates an equivalent ellipse based on these
+second-order central moments. The major axis of this ellipse corresponds
+to the primary direction of the image content, producing an orientation
+angle value.</p>
+<h3 id="extracting-moment-data">Extracting Moment Data</h3>
+<p>To calculate moments on an image, use the <code>identify</code> or
+<code>magick</code> command with the <code>-moments</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-moments</span> info:</span></code></pre></div>
+<p>For detailed output including the ellipse angle, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> <span class="at">-moments</span> input.jpg</span></code></pre></div>
+<p>Within the verbose output, locate the <code>Moments:</code> section.
+ImageMagick outputs values for each color channel as well as an overall
+composite:</p>
+<ul>
+<li><strong>Centroid</strong>: The coordinates of the center of
+intensity.</li>
+<li><strong>Ellipse Semi-Major/Minor axes</strong>: The length of the
+axes representing content variance.</li>
+<li><strong>Ellipse Angle</strong>: The orientation angle (in degrees)
+of the major axis relative to the horizontal plane.</li>
+</ul>
+<h3 id="automatically-extracting-the-orientation-angle">Automatically
+Extracting the Orientation Angle</h3>
+<p>To extract only the orientation angle for automated processing, query
+the format properties directly:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-moments</span> <span class="at">-format</span> <span class="st">&quot;%[moments:angle]\n&quot;</span> info:</span></code></pre></div>
+<p>If querying across individual channels, you can specify the luminance
+or overall channel:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-moments</span> <span class="at">-format</span> <span class="st">&quot;%[moments:angle]&quot;</span> info:</span></code></pre></div>
+<h3
+id="interpreting-the-results-and-correcting-orientation">Interpreting
+the Results and Correcting Orientation</h3>
+<ol type="1">
+<li><strong>Preprocessing for Better Accuracy</strong>: Background noise
+or inconsistent lighting can skew moment calculations. Convert the image
+to grayscale and apply thresholding or edge detection prior to
+calculating moments so that the calculation focuses on the primary
+subject:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-auto-threshold</span> OTSU <span class="at">-moments</span> <span class="at">-format</span> <span class="st">&quot;%[moments:angle]&quot;</span> info:</span></code></pre></div>
+<ol start="2" type="1">
+<li><p><strong>Determining the Correction Angle</strong>: The extracted
+angle indicates the tilt of the primary content axis.</p>
+<ul>
+<li>An angle close to <code>0</code> or <code>180</code> indicates
+horizontal alignment.</li>
+<li>An angle close to <code>90</code> or <code>-90</code> indicates
+vertical alignment.</li>
+<li>Intermediate values represent skew or off-axis rotation.</li>
+</ul></li>
+<li><p><strong>Applying the Rotation</strong>: Once the angle is
+retrieved in a script, rotate the image by the negative of the detected
+angle (or nearest 90-degree increment for orthogonal
+corrections):</p></li>
+</ol>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example rotating an image by an extracted angle in Bash</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="va">ANGLE</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-moments</span> <span class="at">-format</span> <span class="st">&quot;%[moments:angle]&quot;</span> info:<span class="va">)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-rotate</span> <span class="st">&quot;-</span><span class="va">$ANGLE</span><span class="st">&quot;</span> output.jpg</span></code></pre></div>
+<p>This moment-based approach operates directly on pixel content, making
+it effective for scanned documents, isolated objects, and imagery where
+EXIF orientation tags are missing or incorrect.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

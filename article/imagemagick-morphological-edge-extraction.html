@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Morphological Edge Extraction - magick</title>
+    <meta name="description" content="Morphological edge extraction in ImageMagick is a technique used to detect boundaries in an image by analyzing spatial structures through mathematical morphology. By applying the -morphology operator with specific kernels such as diamonds, disks, or squa">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-morphological-edge-extraction">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Morphological Edge Extraction - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-morphological-edge-extraction" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Morphological edge extraction in ImageMagick is a technique used to detect boundaries in an image by analyzing spatial structures through mathematical morphology. By applying the -morphology operator with specific kernels such as diamonds, disks, or squa" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-morphological-edge-extraction">ImageMagick
+Morphological Edge Extraction</h1>
+<p>Morphological edge extraction in ImageMagick is a technique used to
+detect boundaries in an image by analyzing spatial structures through
+mathematical morphology. By applying the <code>-morphology</code>
+operator with specific kernels such as diamonds, disks, or squares,
+ImageMagick can calculate the difference between dilated and eroded
+regions of an image to isolate high-contrast boundaries. This guide
+explains the commands, methods, and kernel selections required to
+extract standard, internal, and external edges using ImageMagick.</p>
+<h3 id="understanding-morphological-edge-detection">Understanding
+Morphological Edge Detection</h3>
+<p>Morphological edge extraction relies on standard dilation (expanding
+bright regions) and erosion (shrinking bright regions). ImageMagick
+provides three primary edge detection methods:</p>
+<ul>
+<li><strong>Standard Edge (Gradient):</strong> Subtracts the eroded
+image from the dilated image. This generates a balanced outline along
+object borders.</li>
+<li><strong>EdgeIn (Internal Edge):</strong> Subtracts the eroded image
+from the original image, producing an edge strictly inside the boundary
+of bright objects.</li>
+<li><strong>EdgeOut (External Edge):</strong> Subtracts the original
+image from the dilated image, producing an edge strictly outside the
+boundary of bright objects.</li>
+</ul>
+<h3 id="standard-edge-extraction-morphological-gradient">Standard Edge
+Extraction (Morphological Gradient)</h3>
+<p>To perform standard edge extraction, apply the <code>Edge</code>
+method along with a kernel definition. A 1-pixel radius diamond or
+square is commonly used for standard pixel-level boundaries.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Edge Diamond:1 output_edge.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-morphology</span> Edge Diamond:1 output_edge.png</span></code></pre></div>
+<h3 id="internal-and-external-edge-extraction">Internal and External
+Edge Extraction</h3>
+<p>If you need the edge lines to sit specifically inside or outside the
+object boundaries, use <code>EdgeIn</code> or <code>EdgeOut</code>.</p>
+<p><strong>Internal Edge (<code>EdgeIn</code>):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> EdgeIn Diamond:1 output_edge_in.png</span></code></pre></div>
+<p><strong>External Edge (<code>EdgeOut</code>):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> EdgeOut Diamond:1 output_edge_out.png</span></code></pre></div>
+<h3 id="kernel-selection-and-radius">Kernel Selection and Radius</h3>
+<p>The shape and size of the kernel determine which edge angles are
+emphasized and the thickness of the resulting line.</p>
+<ul>
+<li><strong>Diamond:</strong> Ideal for thin, pixel-aligned 4-connected
+boundary detection.
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Edge Diamond:1 output.png</span></code></pre></div></li>
+<li><strong>Square:</strong> Captures 8-connected boundaries including
+diagonal transitions.
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Edge Square:1 output.png</span></code></pre></div></li>
+<li><strong>Disk:</strong> Produces smooth, circular edge boundaries,
+which is useful when working with larger radii.
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Edge Disk:2.5 output.png</span></code></pre></div></li>
+<li><strong>Octagon:</strong> Provides a balanced, isotropic
+approximation between squares and disks.
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Edge Octagon:2 output.png</span></code></pre></div></li>
+</ul>
+<h3 id="preprocessing-and-enhancing-results">Preprocessing and Enhancing
+Results</h3>
+<p>For cleaner edge lines, it is best practice to convert the image to
+grayscale and remove unwanted noise before running the morphology
+command.</p>
+<ol type="1">
+<li><strong>Grayscale Conversion:</strong> Prevent channel-by-channel
+artifacts by converting to grayscale first using
+<code>-colorspace Gray</code>.</li>
+<li><strong>Thresholding:</strong> Apply <code>-threshold</code> either
+before morphology (for binary edge detection) or after (to remove faint
+edge artifacts).</li>
+</ol>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> Edge Diamond:1 <span class="at">-threshold</span> 10% output_clean.png</span></code></pre></div>
+<p>For binary silhouettes, thresholding the input first creates sharp,
+solid boundaries:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-morphology</span> Edge Diamond:1 output_binary_edge.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

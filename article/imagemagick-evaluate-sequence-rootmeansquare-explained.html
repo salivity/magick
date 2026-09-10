@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick evaluate-sequence RootMeanSquare Explained - magick</title>
+    <meta name="description" content="This article explains the function, mathematical process, and practical applications of the evaluate-sequence RootMeanSquare operator in ImageMagick. You will learn how this operator processes multiple input frames into a single composite image, the exac">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-rootmeansquare-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick evaluate-sequence RootMeanSquare Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-evaluate-sequence-rootmeansquare-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the function, mathematical process, and practical applications of the evaluate-sequence RootMeanSquare operator in ImageMagick. You will learn how this operator processes multiple input frames into a single composite image, the exac" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-evaluate-sequence-rootmeansquare-explained">ImageMagick
+evaluate-sequence RootMeanSquare Explained</h1>
+<p>This article explains the function, mathematical process, and
+practical applications of the
+<code>evaluate-sequence RootMeanSquare</code> operator in ImageMagick.
+You will learn how this operator processes multiple input frames into a
+single composite image, the exact calculation it performs across color
+channels, and how to use it effectively in command-line image processing
+workflows.</p>
+<h3 id="understanding-evaluate-sequence">Understanding
+evaluate-sequence</h3>
+<p>The <code>-evaluate-sequence</code> operator in ImageMagick applies a
+statistical or arithmetic function across a list of images loaded into
+memory. Unlike standard blending or compositing operations that combine
+two layers using opacity weights, <code>-evaluate-sequence</code> works
+pixel-by-pixel across an entire stack of images at identical coordinate
+positions, reducing the stack down to a single output image.</p>
+<h3 id="how-rootmeansquare-works">How RootMeanSquare Works</h3>
+<p>The <code>RootMeanSquare</code> (often referred to as RMS or
+quadratic mean) method calculates the square root of the arithmetic mean
+of the squares of corresponding pixel values across all input
+images.</p>
+<p>For any given pixel coordinate and color channel across <span
+class="math inline">\(N\)</span> images, the resulting value <span
+class="math inline">\(V\)</span> is calculated using the standard RMS
+formula:</p>
+<p><span class="math display">\[V = \sqrt{\frac{1}{N} \sum_{i=1}^{N}
+x_i^2}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(N\)</span> is the total number of images
+in the sequence.</li>
+<li><span class="math inline">\(x_i\)</span> is the channel value of the
+pixel at that coordinate in image <span
+class="math inline">\(i\)</span>.</li>
+</ul>
+<p>ImageMagick performs this calculation independently on each color
+channel (Red, Green, Blue, and Alpha, depending on channel settings)
+using the normalized range of <code>[0.0, 1.0]</code> defined by the
+current Quantum depth (such as Q16 or Q8).</p>
+<h3 id="command-syntax-and-usage">Command Syntax and Usage</h3>
+<p>To execute an RMS reduction, list the input images followed by the
+<code>-evaluate-sequence RootMeanSquare</code> command and the target
+output file.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png image2.png image3.png <span class="at">-evaluate-sequence</span> RootMeanSquare output.png</span></code></pre></div>
+<p>You can also use shell wildcards to process large sequences of
+images:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> RootMeanSquare rms_result.tif</span></code></pre></div>
+<h3 id="key-use-cases">Key Use Cases</h3>
+<ul>
+<li><strong>Signal Energy Measurement:</strong> In scientific imaging
+and signal processing, RMS is frequently used to measure the power or
+magnitude of varying signals over time without regard to whether the
+changes are positive or negative.</li>
+<li><strong>Texture and Noise Analysis:</strong> Combining difference
+maps or residual frames using RMS highlights areas with significant
+fluctuations, making it useful for detecting sensor noise or visual
+defects across frames.</li>
+<li><strong>Astrophotography and Exposure Stacking:</strong> When
+combined with dark-frame subtractions, RMS stacking helps analyze
+variance and noise profiles across multiple exposures.</li>
+<li><strong>Motion Energy Visualization:</strong> Applying RMS to a
+sequence of motion frames creates a composite showing the cumulative
+spatial energy and intensity of movement across the timeline.</li>
+</ul>
+<h3 id="important-behavioral-details">Important Behavioral Details</h3>
+<ul>
+<li><strong>Image Dimensions:</strong> All images in the sequence must
+share identical dimensions. If the dimensions differ, ImageMagick will
+generate an error or produce unexpected offsets.</li>
+<li><strong>Color Channels:</strong> By default, ImageMagick applies the
+operator to all active channels. You can restrict the operation to
+specific channels using the <code>-channel</code> option prior to
+calling <code>-evaluate-sequence</code>.</li>
+<li><strong>Dynamic Range Handling:</strong> Because the operation
+involves squaring values, it is best performed in HDRI (High Dynamic
+Range Imaging) builds of ImageMagick to prevent clipping and precision
+loss prior to the final square-root calculation.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Gaussian Blur a PNG Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Applying a Gaussian blur to a PNG image in ImageMagick is a straightforward process handled entirely from the command line. This guide demonstrates how to use the -gaussian-blur and -blur operators across both ImageMagick v7 and legacy v6 versions, expla">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-gaussian-blur-a-png-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Gaussian Blur a PNG Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-gaussian-blur-a-png-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying a Gaussian blur to a PNG image in ImageMagick is a straightforward process handled entirely from the command line. This guide demonstrates how to use the -gaussian-blur and -blur operators across both ImageMagick v7 and legacy v6 versions, expla" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-gaussian-blur-a-png-image-using-imagemagick">How to
+Gaussian Blur a PNG Image Using ImageMagick?</h1>
+<p>Applying a Gaussian blur to a PNG image in ImageMagick is a
+straightforward process handled entirely from the command line. This
+guide demonstrates how to use the <code>-gaussian-blur</code> and
+<code>-blur</code> operators across both ImageMagick v7 and legacy v6
+versions, explains the math behind radius and sigma parameters, and
+details how to handle PNG transparency without edge bleeding.</p>
+<h2 id="basic-gaussian-blur-command">Basic Gaussian Blur Command</h2>
+<p>In modern ImageMagick (version 7+), operations are executed using the
+<code>magick</code> command. The primary operator for a Gaussian filter
+is <code>-gaussian-blur</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-gaussian-blur</span> 0x8 output.png</span></code></pre></div>
+<p>If you are using ImageMagick version 6, the legacy syntax utilizes
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-gaussian-blur</span> 0x8 output.png</span></code></pre></div>
+<h2 id="understanding-the-geometry-argument-radiusxsigma">Understanding
+the Geometry Argument (<code>{radius}x{sigma}</code>)</h2>
+<p>The argument following the blur flag uses the format
+<code>{radius}x{sigma}</code>:</p>
+<ul>
+<li><strong>Radius (first value):</strong> Specifies the size of the
+convolution matrix kernel in pixels. Setting this to <code>0</code>
+instructs ImageMagick to calculate an optimal radius automatically based
+on the sigma value, ensuring a clean falloff without clipping the edges
+of the blur.</li>
+<li><strong>Sigma (second value):</strong> Represents the standard
+deviation of the Gaussian distribution, measured in pixels. This is the
+primary value that dictates the actual strength of the blur. A higher
+sigma produces a stronger, softer blur.</li>
+</ul>
+<p>Setting the radius to <code>0</code> and adjusting only the sigma
+(such as <code>0x2</code> for subtle softening, or <code>0x16</code> for
+heavy blurring) is the recommended standard practice.</p>
+<h2 id="difference-between--gaussian-blur-and--blur">Difference Between
+<code>-gaussian-blur</code> and <code>-blur</code></h2>
+<p>ImageMagick provides two similar blur operations:</p>
+<ul>
+<li><strong><code>-gaussian-blur</code>:</strong> Performs a true 2D
+mathematical Gaussian convolution. It calculates the full matrix
+directly, which is precise but can become slow on very large
+dimensions.</li>
+<li><strong><code>-blur</code>:</strong> Approximates a Gaussian blur by
+separating the convolution into two 1D passes (one horizontal and one
+vertical). In visual terms, the output is nearly indistinguishable from
+<code>-gaussian-blur</code>, but processing speed is significantly
+faster on large images.</li>
+</ul>
+<p>For batch processing or high-resolution PNGs, consider using
+<code>-blur</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-blur</span> 0x8 output.png</span></code></pre></div>
+<h2 id="preserving-png-transparency">Preserving PNG Transparency</h2>
+<p>When applying a blur to a PNG containing an alpha channel,
+semi-transparent pixels near the boundaries may interact unpredictably
+with adjacent transparent space, causing dark or discolored halos. To
+ensure alpha channels blend smoothly, enable alpha blending during the
+blur operation:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> RGBA <span class="at">-blur</span> 0x6 +channel output.png</span></code></pre></div>
+<p>The <code>-channel RGBA</code> parameter ensures that the red, green,
+blue, and alpha channels are blurred concurrently, while
+<code>+channel</code> resets channel selection back to the default state
+for writing the output.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

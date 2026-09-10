@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Percentage Geometry with Offsets - magick</title>
+    <meta name="description" content="ImageMagick’s geometry syntax allows users to define dimension scaling alongside spatial coordinates using a single expression. When percentage values are combined with offset coordinates, ImageMagick applies the percentage exclusively to the width and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-percentage-geometry-with-offsets">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Percentage Geometry with Offsets - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-percentage-geometry-with-offsets" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s geometry syntax allows users to define dimension scaling alongside spatial coordinates using a single expression. When percentage values are combined with offset coordinates, ImageMagick applies the percentage exclusively to the width and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-percentage-geometry-with-offsets">ImageMagick
+Percentage Geometry with Offsets</h1>
+<p>ImageMagick’s geometry syntax allows users to define dimension
+scaling alongside spatial coordinates using a single expression. When
+percentage values are combined with offset coordinates, ImageMagick
+applies the percentage exclusively to the width and height dimensions,
+leaving the offsets to be interpreted as absolute pixel distances. This
+article details how ImageMagick parses these hybrid geometry strings,
+how they function across different operations, and how to achieve
+relative offsets when needed.</p>
+<h3 id="the-parsing-rule-dimensions-vs-offsets">The Parsing Rule:
+Dimensions vs. Offsets</h3>
+<p>In ImageMagick, the standard geometry argument follows the
+pattern:</p>
+<pre class="text"><code>[width][%][xheight[%]][{+-}x{+-}y]</code></pre>
+<p>When a percentage sign (<code>%</code>) is provided, the geometry
+parser flags the dimension values (width and height) for proportional
+calculation relative to the original image dimensions. However, the
+offset flags (<code>+x</code> and <code>+y</code>) do not inherit this
+percentage behavior. ImageMagick strictly treats offset values as
+integer pixel counts, regardless of whether a percentage modifier is
+present in the geometry string.</p>
+<p>For example, given the geometry argument
+<code>50%x50%+100+50</code>:</p>
+<ul>
+<li><strong>Width:</strong> Calculated as 50% of the target image's
+total width.</li>
+<li><strong>Height:</strong> Calculated as 50% of the target image's
+total height.</li>
+<li><strong>X Offset:</strong> Positioned exactly 100 pixels along the
+horizontal axis.</li>
+<li><strong>Y Offset:</strong> Positioned exactly 50 pixels along the
+vertical axis.</li>
+</ul>
+<p>Attempting to attach a percent sign directly to an offset (such as
+<code>+10%+10%</code>) results in a parsing error or causes ImageMagick
+to ignore the offset values entirely, as standard geometry syntax does
+not support percentage-based offsets.</p>
+<h3 id="behavior-across-common-operations">Behavior Across Common
+Operations</h3>
+<p>How this hybrid geometry is handled depends on the operator being
+invoked:</p>
+<h4 id="1-the--crop-operator">1. The <code>-crop</code> Operator</h4>
+<p>When using percentages with <code>-crop</code>, omitting offsets
+causes ImageMagick to segment the image into a grid of tiles matching
+those percentages. However, adding offsets switches the operation from
+tiling to a single extraction:</p>
+<ul>
+<li><code>convert input.jpg -crop 50%x50%+20+20 output.jpg</code></li>
+</ul>
+<p>This command extracts a single rectangle measuring half the source
+width and half the source height, starting 20 pixels from the left edge
+and 20 pixels from the top edge.</p>
+<h4 id="2-the--geometry-and--composite-operators">2. The
+<code>-geometry</code> and <code>-composite</code> Operators</h4>
+<p>When positioning an overlay image onto a background canvas:</p>
+<ul>
+<li><code>magick composite -geometry 25%x25%+50+50 overlay.png canvas.png output.png</code></li>
+</ul>
+<p>The overlay image is scaled down to 25% of its own original
+dimensions, and it is then placed 50 pixels right and 50 pixels down
+from the canvas origin.</p>
+<h3 id="the-influence-of--gravity">The Influence of
+<code>-gravity</code></h3>
+<p>Offset coordinates are calculated relative to the coordinate origin.
+By default, this origin is the top-left corner (<code>NorthWest</code>).
+If the <code>-gravity</code> setting is defined, the pixel offset is
+applied relative to the specified anchor point:</p>
+<ul>
+<li>With <code>-gravity Center -crop 50%x50%+10+0</code>, ImageMagick
+extracts a box half the size of the image, centered vertically, but
+shifted 10 pixels to the right of the exact center.</li>
+</ul>
+<p>Even with <code>-gravity</code> enabled, the offsets remain absolute
+pixel measurements.</p>
+<h3 id="simulating-percentage-based-offsets">Simulating Percentage-Based
+Offsets</h3>
+<p>Because standard geometry strings cannot interpret offsets as
+percentages, dynamic or relative positioning requires ImageMagick
+version 7's FX expressions. In ImageMagick 7, you can calculate offsets
+mathematically based on image dimensions:</p>
+<pre class="text"><code>magick canvas.png overlay.png -geometry &quot;+%[fx:u.w*0.1]+%[fx:u.h*0.1]&quot; -composite output.png</code></pre>
+<p>This syntax evaluates the canvas width (<code>u.w</code>) and height
+(<code>u.h</code>), dynamically passing a true 10% offset in pixels to
+the geometry operator.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Hermite vs Gaussian Downscaling - magick</title>
+    <meta name="description" content="When downscaling images in ImageMagick, selecting the right resampling filter determines the balance between sharpness, aliasing, and computational overhead. The Hermite filter and the Gaussian filter represent two fundamentally different approaches to m">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hermite-vs-gaussian-downscaling">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Hermite vs Gaussian Downscaling - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hermite-vs-gaussian-downscaling" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When downscaling images in ImageMagick, selecting the right resampling filter determines the balance between sharpness, aliasing, and computational overhead. The Hermite filter and the Gaussian filter represent two fundamentally different approaches to m" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hermite-vs-gaussian-downscaling">ImageMagick Hermite
+vs Gaussian Downscaling</h1>
+<p>When downscaling images in ImageMagick, selecting the right
+resampling filter determines the balance between sharpness, aliasing,
+and computational overhead. The Hermite filter and the Gaussian filter
+represent two fundamentally different approaches to minification:
+Hermite functions as a compact, moderately sharp cubic spline with zero
+ringing, while Gaussian acts as a broad, aggressive low-pass filter that
+prioritizes smooth degradation and total anti-aliasing over fine edge
+retention. Understanding their behavioral differences enables targeted
+optimization for quality and rendering speed.</p>
+<h3 id="filter-shape-and-mathematical-support">Filter Shape and
+Mathematical Support</h3>
+<p>The primary difference between Hermite and Gaussian filtering lies in
+their mathematical profiles and support radii:</p>
+<ul>
+<li><strong>Hermite Filter:</strong> Built on a smooth cubic polynomial
+curve (<span class="math inline">\(f(x) = 2|x|^3 - 3x^2 + 1\)</span>),
+Hermite has a fixed support radius of 1.0. Because it is bounded
+strictly within <span class="math inline">\([-1, 1]\)</span> and does
+not cross below zero, it produces no negative weights.</li>
+<li><strong>Gaussian Filter:</strong> Derived from the normal
+distribution curve, Gaussian has infinite theoretical support, typically
+truncated in ImageMagick to a radius of 1.5 or 2.0 (adjustable using the
+<code>filter:sigma</code> or <code>-support</code> options). Like
+Hermite, it contains only positive weights.</li>
+</ul>
+<p>During minification, ImageMagick scales the filter's support size
+proportionally to the downscaling factor to aggregate source pixels.
+Because Hermite begins with a narrower footprint (1.0) compared to
+Gaussian (often 1.5 to 2.0), Hermite samples significantly fewer pixels
+per output destination pixel.</p>
+<h3 id="sharpness-and-perceptual-detail">Sharpness and Perceptual
+Detail</h3>
+<p>During downscaling, Hermite preserves considerably more
+high-frequency detail than Gaussian.</p>
+<p>Because the Gaussian curve assigns non-trivial weights far into its
+tails, it blends a large neighborhood of pixels together. This causes
+images downscaled with Gaussian to look soft, fuzzy, or visibly out of
+focus.</p>
+<p>In contrast, the Hermite filter concentrates its interpolation weight
+close to the sample center and drops cleanly to zero at its boundary.
+Downscaled outputs retain well-defined edges, legible text, and distinct
+micro-contrast without requiring an additional sharpening pass.</p>
+<h3 id="artifact-handling-ringing-vs-aliasing">Artifact Handling:
+Ringing vs. Aliasing</h3>
+<p>Both filters avoid ringing artifacts (also known as haloing or
+overshoot) because neither filter contains negative lobes, unlike
+Sinc-windowed alternatives such as Lanczos or Mitchell-Netravali.</p>
+<p>However, they differ in how they handle aliasing and moiré
+patterns:</p>
+<ul>
+<li><strong>Hermite:</strong> Its narrow sampling window makes it
+slightly more susceptible to undersampling artifacts when drastically
+reducing high-frequency repeating patterns (such as fine grids or fabric
+textures). In extreme reductions, this can produce slight stair-stepping
+or moiré.</li>
+<li><strong>Gaussian:</strong> Because of its aggressive smoothing,
+Gaussian is exceptionally effective at suppressing aliasing, moiré, and
+high-frequency sensor noise. It guarantees a gradual, blur-dominated
+transition even across chaotic textures.</li>
+</ul>
+<h3 id="computational-performance">Computational Performance</h3>
+<p>Because filter execution time in ImageMagick scales with the area of
+the filter kernel, Hermite is measurably faster than Gaussian. The
+smaller 1.0 support radius of Hermite requires roughly half the sampling
+operations of a default Gaussian filter per pixel in a two-pass
+separable convolution. When processing high-resolution batches or
+real-time pipelines, Hermite introduces lower CPU and memory
+overhead.</p>
+<h3 id="summary-of-use-cases">Summary of Use Cases</h3>
+<ul>
+<li><strong>Choose Hermite when:</strong> You need clean, moderately
+sharp downscaling without halo artifacts, fast processing speeds, and
+crisp line preservation (e.g., UI icons, thumbnails, and rasterized
+typography).</li>
+<li><strong>Choose Gaussian when:</strong> The goal is deliberate
+softening, pre-filtering before edge detection, smoothing out intense
+moiré/halftone patterns, or generating mipmaps where absolute smoothness
+takes precedence over edge clarity.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Image Width and Height Using ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick allows you to easily extract image dimensions directly from the command line using format specifiers. This guide demonstrates how to retrieve the width and height of an image as plain text strings and store them in environment variables acros">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-image-width-and-height-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Image Width and Height Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-image-width-and-height-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick allows you to easily extract image dimensions directly from the command line using format specifiers. This guide demonstrates how to retrieve the width and height of an image as plain text strings and store them in environment variables acros" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-image-width-and-height-using-imagemagick">Extract Image
+Width and Height Using ImageMagick</h1>
+<p>ImageMagick allows you to easily extract image dimensions directly
+from the command line using format specifiers. This guide demonstrates
+how to retrieve the width and height of an image as plain text strings
+and store them in environment variables across both Unix-like systems
+and Windows environments using modern ImageMagick commands.</p>
+<h3 id="the-basic-command">The Basic Command</h3>
+<p>To print image dimensions as plain text without any extra metadata,
+use the <code>identify</code> tool with the <code>-format</code>
+parameter.</p>
+<p>For ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%w %h&quot;</span> image.jpg</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">identify</span> <span class="at">-format</span> <span class="st">&quot;%w %h&quot;</span> image.jpg</span></code></pre></div>
+<ul>
+<li><code>%w</code> outputs the image width in pixels.</li>
+<li><code>%h</code> outputs the image height in pixels.</li>
+</ul>
+<p>To get only the width:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%w&quot;</span> image.jpg</span></code></pre></div>
+<p>To get only the height:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%h&quot;</span> image.jpg</span></code></pre></div>
+<hr />
+<h3 id="storing-dimensions-in-linux--macos-bash-variables">Storing
+Dimensions in Linux / macOS (Bash) Variables</h3>
+<p>To capture the width and height into separate shell variables using a
+single execution, use command substitution with the <code>read</code>
+command:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">read</span> <span class="va">WIDTH</span> <span class="va">HEIGHT</span> <span class="op">&lt;&lt;&lt;</span> <span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%w %h&quot;</span> image.jpg<span class="va">)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Width: </span><span class="va">$WIDTH</span><span class="st">&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Height: </span><span class="va">$HEIGHT</span><span class="st">&quot;</span></span></code></pre></div>
+<p>Alternatively, you can assign them individually:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="va">WIDTH</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%w&quot;</span> image.jpg<span class="va">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="va">HEIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%h&quot;</span> image.jpg<span class="va">)</span></span></code></pre></div>
+<hr />
+<h3 id="storing-dimensions-in-windows-command-prompt-batch">Storing
+Dimensions in Windows Command Prompt (Batch)</h3>
+<p>In a Windows batch script (<code>.bat</code>), capture both
+dimensions into variables using a <code>for /f</code> loop:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">@</span><span class="bu">echo off</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="at">/f</span> <span class="st">&quot;tokens=1,2&quot;</span> <span class="sc">%%</span><span class="va">A</span> in (&#39;magick identify -format <span class="st">&quot;</span><span class="sc">%%</span><span class="va">w</span><span class="st"> </span><span class="sc">%%</span><span class="va">h</span><span class="st">&quot;</span> image.jpg&#39;) do (</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="va">WIDTH</span>=<span class="sc">%%</span><span class="va">A</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="va">HEIGHT</span>=<span class="sc">%%</span><span class="va">B</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> Width: <span class="pp">%</span><span class="va">WIDTH</span><span class="pp">%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> Height: <span class="pp">%</span><span class="va">HEIGHT</span><span class="pp">%</span></span></code></pre></div>
+<hr />
+<h3 id="storing-dimensions-in-windows-powershell">Storing Dimensions in
+Windows PowerShell</h3>
+<p>In PowerShell, assign the output directly to variables:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="va">$dimensions</span> <span class="op">=</span> magick identify <span class="op">-</span>format <span class="st">&quot;%w %h&quot;</span> image<span class="op">.</span><span class="fu">jpg</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="va">$width</span><span class="op">,</span> <span class="va">$height</span> <span class="op">=</span> <span class="va">$dimensions</span> <span class="op">-split</span> <span class="st">&#39; &#39;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Write-Output</span> <span class="st">&quot;Width: </span><span class="va">$width</span><span class="st">&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Write-Output</span> <span class="st">&quot;Height: </span><span class="va">$height</span><span class="st">&quot;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run ImageMagick in a Sandboxed Linux Chroot Jail - magick</title>
+    <meta name="description" content="Isolating ImageMagick inside a Linux chroot jail minimizes security risks associated with parsing untrusted media files, protecting the host system from potential remote code execution and unauthorized file reads. This guide demonstrates how to establish">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/run-imagemagick-in-a-sandboxed-linux-chroot-jail">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Run ImageMagick in a Sandboxed Linux Chroot Jail - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/run-imagemagick-in-a-sandboxed-linux-chroot-jail" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Isolating ImageMagick inside a Linux chroot jail minimizes security risks associated with parsing untrusted media files, protecting the host system from potential remote code execution and unauthorized file reads. This guide demonstrates how to establish" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="run-imagemagick-in-a-sandboxed-linux-chroot-jail">Run
+ImageMagick in a Sandboxed Linux Chroot Jail</h1>
+<p>Isolating ImageMagick inside a Linux <code>chroot</code> jail
+minimizes security risks associated with parsing untrusted media files,
+protecting the host system from potential remote code execution and
+unauthorized file reads. This guide demonstrates how to establish a
+minimal filesystem directory structure, locate and copy necessary shared
+libraries, populate essential pseudo-devices, configure defensive
+security policies, and execute commands safely under an unprivileged
+user.</p>
+<h2 id="1-create-the-jail-directory-hierarchy">1. Create the Jail
+Directory Hierarchy</h2>
+<p>Define the target root directory for the jail and create standard
+system paths required for execution:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">JAIL</span><span class="op">=</span><span class="st">&quot;/var/jail/imagemagick&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mkdir <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">&quot;</span>/<span class="dt">{bin</span><span class="op">,</span><span class="dt">usr/bin</span><span class="op">,</span><span class="dt">lib</span><span class="op">,</span><span class="dt">lib64</span><span class="op">,</span><span class="dt">dev</span><span class="op">,</span><span class="dt">tmp</span><span class="op">,</span><span class="dt">etc/ImageMagick-7}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chmod 1777 <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/tmp&quot;</span></span></code></pre></div>
+<h2 id="2-copy-the-imagemagick-binaries">2. Copy the ImageMagick
+Binaries</h2>
+<p>Locate the primary ImageMagick executable (typically
+<code>magick</code> or legacy <code>convert</code>) and copy it into the
+jail:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">IM_BIN</span><span class="op">=</span><span class="va">$(</span><span class="fu">which</span> magick <span class="kw">||</span> <span class="fu">which</span> convert<span class="va">)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cp <span class="st">&quot;</span><span class="va">$IM_BIN</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/usr/bin/&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ln <span class="at">-sf</span> <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/usr/bin/magick&quot;</span> <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/bin/convert&quot;</span></span></code></pre></div>
+<h2 id="3-copy-required-shared-libraries">3. Copy Required Shared
+Libraries</h2>
+<p>ImageMagick depends on dynamic libraries that must exist within the
+sandbox. Use <code>ldd</code> to find all linked dependencies and copy
+them to the corresponding paths inside the jail:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lib <span class="kw">in</span> <span class="va">$(</span><span class="fu">ldd</span> <span class="st">&quot;</span><span class="va">$IM_BIN</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-o</span> <span class="st">&#39;/lib[^ ]*&#39;</span><span class="va">)</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sudo</span> mkdir <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$JAIL$(</span><span class="fu">dirname</span> <span class="st">&quot;</span><span class="va">$lib</span><span class="st">&quot;</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sudo</span> cp <span class="at">-u</span> <span class="st">&quot;</span><span class="va">$lib</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$JAIL$lib</span><span class="st">&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>If ImageMagick relies on runtime-loaded delegate libraries (such as
+<code>libpng</code>, <code>libjpeg</code>, or coder modules), identify
+and copy the modules directory:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">MODULE_PATH</span><span class="op">=</span><span class="va">$(</span><span class="fu">find</span> /usr/lib<span class="pp">*</span> <span class="at">-name</span> <span class="st">&quot;ImageMagick-*&quot;</span> <span class="at">-type</span> d <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 1<span class="va">)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="va">$MODULE_PATH</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sudo</span> mkdir <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$JAIL$(</span><span class="fu">dirname</span> <span class="st">&quot;</span><span class="va">$MODULE_PATH</span><span class="st">&quot;</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sudo</span> cp <span class="at">-r</span> <span class="st">&quot;</span><span class="va">$MODULE_PATH</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$JAIL$MODULE_PATH</span><span class="st">&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<h2 id="4-set-up-minimal-device-nodes">4. Set Up Minimal Device
+Nodes</h2>
+<p>ImageMagick requires access to common pseudo-devices such as
+<code>/dev/null</code> and <code>/dev/urandom</code> for cryptographic
+operations and temporary files:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mknod <span class="at">-m</span> 666 <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/dev/null&quot;</span> c 1 3</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mknod <span class="at">-m</span> 666 <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/dev/zero&quot;</span> c 1 5</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mknod <span class="at">-m</span> 444 <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/dev/urandom&quot;</span> c 1 9</span></code></pre></div>
+<h2 id="5-configure-strict-policy-rules">5. Configure Strict Policy
+Rules</h2>
+<p>Harden the installation by copying and editing the
+<code>policy.xml</code> file. This prevents ImageMagick from attempting
+network operations or spawning external delegates like Ghostscript
+inside the jail.</p>
+<p>Copy the host policy into the jail:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="va">POLICY_FILE</span><span class="op">=</span><span class="va">$(</span><span class="fu">find</span> /etc <span class="at">-name</span> <span class="st">&quot;policy.xml&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> imagemagick <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 1<span class="va">)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cp <span class="st">&quot;</span><span class="va">$POLICY_FILE</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/etc/ImageMagick-7/policy.xml&quot;</span></span></code></pre></div>
+<p>Edit <code>$JAIL/etc/ImageMagick-7/policy.xml</code> to restrict
+resource usage and disable dangerous coders:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;memory&quot;</span> <span class="ot">value=</span><span class="st">&quot;256MiB&quot;</span>/&gt;</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;map&quot;</span> <span class="ot">value=</span><span class="st">&quot;512MiB&quot;</span>/&gt;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;1GiB&quot;</span>/&gt;</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;EPHEMERAL&quot;</span> /&gt;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;URL&quot;</span> /&gt;</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;HTTPS&quot;</span> /&gt;</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;MVG&quot;</span> /&gt;</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;MSL&quot;</span> /&gt;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;TEXT&quot;</span> /&gt;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;SHOW&quot;</span> /&gt;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;WIN&quot;</span> /&gt;</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PLT&quot;</span> /&gt;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h2 id="6-execute-inside-the-jail">6. Execute Inside the Jail</h2>
+<p>Never run commands inside the jail as the <code>root</code> user. Use
+<code>chroot</code> with the <code>--userspec</code> flag to switch
+execution to a low-privilege user such as <code>nobody</code>:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare a test file inside the jail&#39;s /tmp</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cp input.jpg <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/tmp/&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Execute conversion under the &#39;nobody&#39; user</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chroot <span class="at">--userspec</span><span class="op">=</span>nobody:nogroup <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">&quot;</span> /usr/bin/magick /tmp/input.jpg <span class="at">-resize</span> 50% /tmp/output.png</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Retrieve the processed file</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> mv <span class="st">&quot;</span><span class="va">$JAIL</span><span class="st">/tmp/output.png&quot;</span> ./</span></code></pre></div>
+<p>To automate or wrap this process for web services, place incoming
+uploads directly into <code>$JAIL/tmp</code>, execute via
+<code>chroot</code>, and retrieve output files from the isolated
+environment.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

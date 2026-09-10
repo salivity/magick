@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -fx Operator for Custom Pixel Math - magick</title>
+    <meta name="description" content="The ImageMagick -fx operator is a specialized tool designed for applying custom mathematical expressions to individual pixels and color channels across one or more images. This article explores the primary purpose of -fx, how it operates at the pixel lev">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-fx-operator-for-custom-pixel-math">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -fx Operator for Custom Pixel Math - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-fx-operator-for-custom-pixel-math" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -fx operator is a specialized tool designed for applying custom mathematical expressions to individual pixels and color channels across one or more images. This article explores the primary purpose of -fx, how it operates at the pixel lev" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--fx-operator-for-custom-pixel-math">ImageMagick -fx
+Operator for Custom Pixel Math</h1>
+<p>The ImageMagick <code>-fx</code> operator is a specialized tool
+designed for applying custom mathematical expressions to individual
+pixels and color channels across one or more images. This article
+explores the primary purpose of <code>-fx</code>, how it operates at the
+pixel level, the built-in variables and functions it supports, common
+use cases, and key performance considerations when implementing custom
+image algorithms.</p>
+<h2 id="what-is-the--fx-operator">What is the <code>-fx</code>
+Operator?</h2>
+<p>The <code>-fx</code> operator acts as an embedded expression
+evaluator within ImageMagick. Unlike standard operators such as
+<code>-modulate</code>, <code>-brightness-contrast</code>, or
+<code>-blur</code>—which apply hardcoded algorithms—<code>-fx</code>
+gives users granular, programmatic control over the transformation of
+image data. It evaluates a specified mathematical formula for every
+single pixel in an image to calculate the output color values.</p>
+<h2 id="core-capabilities-and-syntax">Core Capabilities and Syntax</h2>
+<p>The primary function of <code>-fx</code> is to treat pixel properties
+as mathematical variables. Pixel values are normalized between
+<code>0.0</code> (black/empty) and <code>1.0</code> (white/full
+intensity).</p>
+<h3 id="key-variables-and-selectors">Key Variables and Selectors</h3>
+<ul>
+<li><strong>Image References:</strong> <code>u</code> refers to the
+primary (or first) image in the sequence, while <code>v</code> refers to
+the second image. Additional images can be referenced indexically (e.g.,
+<code>u[2]</code>).</li>
+<li><strong>Channel Access:</strong> Specific color channels can be
+isolated using dot notation, such as <code>u.r</code> (red),
+<code>u.g</code> (green), <code>u.b</code> (blue), <code>u.a</code>
+(alpha), or <code>u.intensity</code> (calculated grayscale
+intensity).</li>
+<li><strong>Coordinate References:</strong> Current pixel coordinates
+can be accessed via <code>i</code> (x-coordinate), <code>j</code>
+(y-coordinate), <code>w</code> (image width), and <code>h</code> (image
+height).</li>
+<li><strong>Relative Pixel Lookups:</strong> The <code>p[x, y]</code>
+syntax allows referencing adjacent pixels relative to the current
+position (e.g., <code>p[-1, 0]</code> reads the pixel immediately to the
+left), enabling custom convolution and neighborhood filters.</li>
+</ul>
+<h3 id="mathematical-functions-and-logic">Mathematical Functions and
+Logic</h3>
+<p>The operator supports a comprehensive set of operations,
+including:</p>
+<ul>
+<li><strong>Basic Arithmetic:</strong> Addition (<code>+</code>),
+subtraction (<code>-</code>), multiplication (<code>*</code>), division
+(<code>/</code>), and modulo (<code>%</code>).</li>
+<li><strong>Trigonometric &amp; Exponential Functions:</strong>
+<code>sin()</code>, <code>cos()</code>, <code>tan()</code>,
+<code>exp()</code>, <code>ln()</code>, <code>sqrt()</code>, and
+<code>pow()</code>.</li>
+<li><strong>Conditional Logic:</strong> Ternary operators
+(<code>condition ? true_expression : false_expression</code>) for
+branching pixel values based on threshold tests or color criteria.</li>
+</ul>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<ol type="1">
+<li><strong>Custom Blending and Compositing:</strong> When standard
+blend modes (like <code>Multiply</code> or <code>Screen</code>) do not
+produce the desired visual result, <code>-fx</code> allows developers to
+define proprietary blending formulas between two images (<code>u</code>
+and <code>v</code>).</li>
+<li><strong>Procedural Pattern and Gradient Generation:</strong> By
+utilizing <code>i</code>, <code>j</code>, <code>w</code>, and
+<code>h</code>, users can mathematically generate circular vignettes,
+non-linear gradients, and geometric textures without external input
+assets.</li>
+<li><strong>Complex Channel Mapping:</strong> Modifying one channel
+based on the values of another (e.g., setting transparency based on a
+combination of red and green values) is straightforward with
+<code>-fx</code>.</li>
+<li><strong>Experimental Filtering:</strong> Prototyping edge-detection,
+non-standard blurs, or spatial warping algorithms before implementing
+them in lower-level code.</li>
+</ol>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<p>Because <code>-fx</code> parses and interprets mathematical strings
+for every pixel individually, it is significantly slower than compiled
+ImageMagick operators like <code>-evaluate</code>,
+<code>-compose</code>, or <code>-level</code>. For large images or
+production batch processing, built-in C-based operators should be used
+whenever possible. The <code>-fx</code> operator is best reserved for
+complex transformations, prototyping, and scenarios where built-in tools
+cannot express the necessary mathematical logic.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

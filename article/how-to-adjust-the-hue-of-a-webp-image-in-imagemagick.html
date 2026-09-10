@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Adjust the Hue of a WebP Image in ImageMagick? - magick</title>
+    <meta name="description" content="Adjusting the hue of a WebP image using ImageMagick requires manipulating the image's color channels via the command line, most commonly with the -modulate operator or HSL color space channel shifting. This guide walks through the required commands for b">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-adjust-the-hue-of-a-webp-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Adjust the Hue of a WebP Image in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-adjust-the-hue-of-a-webp-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adjusting the hue of a WebP image using ImageMagick requires manipulating the image's color channels via the command line, most commonly with the -modulate operator or HSL color space channel shifting. This guide walks through the required commands for b" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-adjust-the-hue-of-a-webp-image-in-imagemagick">How to
+Adjust the Hue of a WebP Image in ImageMagick?</h1>
+<p>Adjusting the hue of a WebP image using ImageMagick requires
+manipulating the image's color channels via the command line, most
+commonly with the <code>-modulate</code> operator or HSL color space
+channel shifting. This guide walks through the required commands for
+both ImageMagick v6 and v7, explains how the hue values are calculated,
+and covers syntax for preserving transparency and compression quality in
+WebP files.</p>
+<h2 id="understanding-the-hue-adjustment-value">Understanding the Hue
+Adjustment Value</h2>
+<p>The standard and most versatile way to shift hue in ImageMagick is
+the <code>-modulate</code> operator. The syntax accepts values in the
+order of brightness, saturation, and hue:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-modulate</span> brightness,saturation,hue</span></code></pre></div>
+<p>When using <code>-modulate</code>, a value of <code>100</code>
+represents no change (the baseline is 100%). For the hue parameter:</p>
+<ul>
+<li><strong>100</strong> leaves the hue unchanged (0 degrees
+rotation).</li>
+<li><strong>0</strong> rotates the hue 180 degrees counter-clockwise
+(-180 degrees).</li>
+<li><strong>200</strong> rotates the hue 180 degrees clockwise (+180
+degrees).</li>
+<li><strong>150</strong> rotates the hue 90 degrees clockwise (+90
+degrees).</li>
+<li><strong>50</strong> rotates the hue 90 degrees counter-clockwise
+(-90 degrees).</li>
+</ul>
+<h2 id="basic-command-syntax">Basic Command Syntax</h2>
+<p>Depending on which version of ImageMagick you have installed, the
+entry command differs slightly. ImageMagick 7 uses the unified
+<code>magick</code> binary, while ImageMagick 6 uses
+<code>convert</code>.</p>
+<h3 id="imagemagick-7-recommended">ImageMagick 7 (Recommended)</h3>
+<p>To shift the hue by 90 degrees clockwise while leaving brightness and
+saturation unchanged:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 100,100,150 output.webp</span></code></pre></div>
+<p>To invert the color spectrum entirely (180-degree rotation):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 100,100,0 output.webp</span></code></pre></div>
+<h3 id="imagemagick-6">ImageMagick 6</h3>
+<p>For older installations using legacy binary tools:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.webp <span class="at">-modulate</span> 100,100,150 output.webp</span></code></pre></div>
+<h2 id="preserving-transparency-and-quality-in-webp">Preserving
+Transparency and Quality in WebP</h2>
+<p>WebP images often contain alpha channels (transparency) or specific
+lossy/lossless compression profiles. Applying color modulations directly
+can sometimes alter default encoding quality if not explicitly
+defined.</p>
+<h3 id="maintaining-quality-settings">Maintaining Quality Settings</h3>
+<p>By default, ImageMagick applies its own default compression when
+writing out a new WebP file. To maintain visual fidelity, specify the
+<code>-quality</code> flag:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 100,100,125 <span class="at">-quality</span> 90 output.webp</span></code></pre></div>
+<h3 id="forcing-lossless-output">Forcing Lossless Output</h3>
+<p>If the source WebP is a graphic, logo, or icon that requires lossless
+compression:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-modulate</span> 100,100,175 <span class="at">-define</span> webp:lossless=true output.webp</span></code></pre></div>
+<h2
+id="alternative-method-precise-degrees-via-hsl-color-space">Alternative
+Method: Precise Degrees via HSL Color Space</h2>
+<p>If you prefer defining the hue shift strictly in degrees (from 0 to
+360) rather than working with the 0–200 percentage scale of
+<code>-modulate</code>, convert the image to the HSL color space, roll
+the hue channel, and return to sRGB:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> HSL <span class="at">-channel</span> R <span class="at">-evaluate</span> Add 25% +channel <span class="at">-colorspace</span> sRGB output.webp</span></code></pre></div>
+<p>In this pipeline:</p>
+<ul>
+<li><code>-colorspace HSL</code> separates the image into Hue (Red
+channel), Saturation (Green channel), and Lightness (Blue channel).</li>
+<li><code>-channel R</code> isolates the Hue channel.</li>
+<li><code>-evaluate Add 25%</code> advances the hue by 25% of the
+360-degree color wheel (90 degrees).</li>
+<li><code>+channel</code> unlinks the single channel selection so
+subsequent operators apply globally.</li>
+<li><code>-colorspace sRGB</code> converts the colors back for standard
+display.</li>
+</ul>
+<h2 id="batch-processing-webp-files">Batch Processing WebP Files</h2>
+<p>To adjust the hue across multiple WebP images in a single directory,
+use the <code>mogrify</code> command. Note that this modifies files in
+place unless an output directory is designated.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./adjusted_output <span class="at">-modulate</span> 100,100,130 <span class="pp">*</span>.webp</span></code></pre></div>
+<p>This command processes all <code>.webp</code> files in the current
+folder, applies a 30% positive hue shift, and writes the output into the
+<code>adjusted_output</code> folder.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

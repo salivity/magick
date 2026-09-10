@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor ImageMagick Events with Debug and Log - magick</title>
+    <meta name="description" content="ImageMagick provides robust built-in logging capabilities that allow users and developers to inspect internal operations, diagnose processing errors, and optimize workflow performance. This article explains how to monitor internal ImageMagick events usin">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/monitor-imagemagick-events-with-debug-and-log">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Monitor ImageMagick Events with Debug and Log - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/monitor-imagemagick-events-with-debug-and-log" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides robust built-in logging capabilities that allow users and developers to inspect internal operations, diagnose processing errors, and optimize workflow performance. This article explains how to monitor internal ImageMagick events usin" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="monitor-imagemagick-events-with-debug-and-log">Monitor
+ImageMagick Events with Debug and Log</h1>
+<p>ImageMagick provides robust built-in logging capabilities that allow
+users and developers to inspect internal operations, diagnose processing
+errors, and optimize workflow performance. This article explains how to
+monitor internal ImageMagick events using the <code>-debug</code> and
+<code>-log</code> command-line options, select specific event
+categories, customize log output formats, and redirect event messages
+for analysis.</p>
+<h2 id="the--debug-option">The <code>-debug</code> Option</h2>
+<p>The <code>-debug</code> option tells ImageMagick which internal
+events to log during execution. By default, debugging is disabled. You
+can target specific subsystems or enable logging across all
+operations.</p>
+<h3 id="syntax">Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-debug</span> <span class="op">&lt;</span>events<span class="op">&gt;</span> output.png</span></code></pre></div>
+<h3 id="common-event-categories">Common Event Categories</h3>
+<p>You can pass one or more comma-separated event types to
+<code>-debug</code>:</p>
+<ul>
+<li><strong><code>All</code></strong>: Logs every internal event
+(generates substantial output).</li>
+<li><strong><code>Coder</code></strong>: Traces the reading and writing
+of image file formats.</li>
+<li><strong><code>Resource</code></strong>: Tracks resource management,
+such as memory allocation, pixel cache, and disk usage.</li>
+<li><strong><code>Transform</code></strong>: Monitors geometric
+operations, such as resizing, cropping, and rotations.</li>
+<li><strong><code>Blob</code></strong>: Tracks binary data (BLOB) reads
+and writes.</li>
+<li><strong><code>Exception</code></strong>: Logs internal warnings,
+errors, and fatal exceptions.</li>
+<li><strong><code>Performance</code></strong>: Logs execution times for
+various internal tasks.</li>
+<li><strong><code>Trace</code></strong>: Logs function entries and exits
+for low-level debugging.</li>
+</ul>
+<h3 id="example">Example</h3>
+<p>To log only image format decoding and encoding events:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png <span class="at">-debug</span> Coder output.jpg</span></code></pre></div>
+<p>To monitor multiple specific categories simultaneously:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png <span class="at">-debug</span> <span class="st">&quot;Coder,Resource&quot;</span> output.jpg</span></code></pre></div>
+<hr />
+<h2 id="the--log-option">The <code>-log</code> Option</h2>
+<p>The <code>-log</code> option controls the format and structure of the
+log messages generated by <code>-debug</code>. It accepts a format
+string composed of literal text and percent-encoded conversion
+specifiers.</p>
+<h3 id="syntax-1">Syntax</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-debug</span> <span class="op">&lt;</span>events<span class="op">&gt;</span> -log <span class="op">&lt;</span>format<span class="op">&gt;</span> output.png</span></code></pre></div>
+<h3 id="common-format-specifiers">Common Format Specifiers</h3>
+<ul>
+<li><strong><code>%d</code></strong>: Module domain or event
+category.</li>
+<li><strong><code>%e</code></strong>: Event description.</li>
+<li><strong><code>%f</code></strong>: Function name where the event
+occurred.</li>
+<li><strong><code>%l</code></strong>: Source code line number.</li>
+<li><strong><code>%m</code></strong>: Source code module name.</li>
+<li><strong><code>%p</code></strong>: Process ID (PID).</li>
+<li><strong><code>%r</code></strong>: Elapsed CPU time since the start
+of execution.</li>
+<li><strong><code>%s</code></strong>: Severity level (e.g., Information,
+Warning, Error).</li>
+<li><strong><code>%t</code></strong>: Current timestamp (wall-clock
+time).</li>
+<li><strong><code>%u</code></strong>: Total user CPU time consumed.</li>
+</ul>
+<h3 id="example-1">Example</h3>
+<p>To format log messages with a timestamp, the event domain, and the
+event description:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-debug</span> All <span class="at">-log</span> <span class="st">&quot;%t [%d] %e&quot;</span> output.png</span></code></pre></div>
+<hr />
+<h2 id="combining--debug-and--log-in-practice">Combining
+<code>-debug</code> and <code>-log</code> in Practice</h2>
+<p>Combining both options allows you to capture precise, timestamped
+diagnostic logs.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-resize</span> 50% <span class="at">-debug</span> <span class="st">&quot;Transform,Resource&quot;</span> <span class="at">-log</span> <span class="st">&quot;%t (%r) [%d] %e&quot;</span> output.tif</span></code></pre></div>
+<h3 id="redirecting-log-output-to-a-file">Redirecting Log Output to a
+File</h3>
+<p>By default, ImageMagick sends all debug logs to standard error
+(<code>stderr</code>). To store the logs in a separate file without
+polluting the terminal, redirect standard error:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-debug</span> All <span class="at">-log</span> <span class="st">&quot;%t [%d] %e&quot;</span> output.jpg <span class="dv">2</span><span class="op">&gt;</span> debug.log</span></code></pre></div>
+<hr />
+<h2 id="persistent-configuration-via-logxml">Persistent Configuration
+via <code>log.xml</code></h2>
+<p>For system-wide or persistent logging configurations, ImageMagick
+references an internal XML configuration file called
+<code>log.xml</code>. This file defines default logging handlers (such
+as logging to the console, a file, or the system event log), default
+event filters, and formatting strings. While command-line options
+(<code>-debug</code> and <code>-log</code>) override these settings for
+individual commands, editing <code>log.xml</code> is useful for
+background services and automated server environments.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

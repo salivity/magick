@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamut Checking in ImageMagick with ICC Profiles - magick</title>
+    <meta name="description" content="Gamut checking in ImageMagick allows designers and developers to determine whether the colors in an image can be accurately reproduced by a specific destination color space, such as a CMYK print profile. By leveraging the LittleCMS (lcms2) color manageme">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/gamut-checking-in-imagemagick-with-icc-profiles">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Gamut Checking in ImageMagick with ICC Profiles - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/gamut-checking-in-imagemagick-with-icc-profiles" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Gamut checking in ImageMagick allows designers and developers to determine whether the colors in an image can be accurately reproduced by a specific destination color space, such as a CMYK print profile. By leveraging the LittleCMS (lcms2) color manageme" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="gamut-checking-in-imagemagick-with-icc-profiles">Gamut Checking
+in ImageMagick with ICC Profiles</h1>
+<p>Gamut checking in ImageMagick allows designers and developers to
+determine whether the colors in an image can be accurately reproduced by
+a specific destination color space, such as a CMYK print profile. By
+leveraging the LittleCMS (lcms2) color management engine, ImageMagick
+provides robust methods to simulate output conditions, identify
+out-of-gamut pixels, and manage color clipping through profile
+conversions and difference-masking techniques.</p>
+<h2 id="how-imagemagick-processes-icc-color-profiles">How ImageMagick
+Processes ICC Color Profiles</h2>
+<p>ImageMagick does not use a standalone "gamut warning" button like
+graphical photo editors; instead, it utilizes LittleCMS to process
+International Color Consortium (ICC) profiles programmatically. Color
+conversions rely on the mathematical definitions contained within these
+profiles to translate coordinates between device-independent spaces
+(such as CIE L*a*b* or XYZ) and device-dependent spaces (such as sRGB,
+Adobe RGB, or standard CMYK profiles like GRACoL or Fogra39).</p>
+<p>When evaluating gamut compliance, ImageMagick compares the source
+color space coordinates to the destination profile’s boundary limits.
+Any color that falls outside the destination profile's physical
+capabilities is subject to gamut mapping depending on the defined
+rendering intent.</p>
+<h2 id="the-gamut-checking-process">The Gamut Checking Process</h2>
+<p>To evaluate and highlight out-of-gamut colors using ImageMagick,
+users generally perform a round-trip color conversion and compare the
+result against the original image.</p>
+<h3 id="1-rendering-intents-and-gamut-mapping">1. Rendering Intents and
+Gamut Mapping</h3>
+<p>ImageMagick supports four standard ICC rendering intents via the
+<code>-intent</code> operator:</p>
+<ul>
+<li><strong>Relative Colorimetric
+(<code>-intent Relative</code>):</strong> The default intent for gamut
+testing. In-gamut colors remain unchanged, while out-of-gamut colors are
+clipped directly to the closest reproducible color on the gamut
+boundary.</li>
+<li><strong>Absolute Colorimetric
+(<code>-intent Absolute</code>):</strong> Similar to relative
+colorimetric, but does not adjust for the white point of the target
+medium.</li>
+<li><strong>Perceptual (<code>-intent Perceptual</code>):</strong>
+Compresses the entire source gamut into the target gamut, altering all
+colors to preserve visual relationships.</li>
+<li><strong>Saturation (<code>-intent Saturation</code>):</strong>
+Preserves vividness over color accuracy, rarely used for strict gamut
+testing.</li>
+</ul>
+<p>For gamut checking, <strong>Relative Colorimetric</strong> is the
+standard choice because it isolates only the colors that exceed
+destination boundaries by clipping them.</p>
+<h3 id="2-performing-a-round-trip-difference-check">2. Performing a
+Round-Trip Difference Check</h3>
+<p>The most accurate method to visually identify out-of-gamut colors is
+to transform the image to the destination profile and then convert it
+back to the original working space. Because in-gamut pixels retain their
+values while out-of-gamut pixels are altered by clipping, comparing the
+original and round-tripped images reveals exactly which pixels cannot be
+reproduced.</p>
+<h4 id="step-1-assign-and-convert-profiles">Step 1: Assign and Convert
+Profiles</h4>
+<p>Execute the round-trip transformation using the destination ICC
+profile:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Relative <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> USWebCoatedSWOP.icc <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  roundtrip.png</span></code></pre></div>
+<h4 id="step-2-generate-a-difference-mask">Step 2: Generate a Difference
+Mask</h4>
+<p>Compare the original image to the round-tripped image using
+difference compositing to isolate the out-of-gamut regions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg roundtrip.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 0 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-negate</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  gamut_mask.png</span></code></pre></div>
+<p>Any non-black pixel in the resulting mask indicates a color shift
+caused by destination gamut limitations.</p>
+<h3 id="3-measuring-gamut-clipping-quantitatively">3. Measuring Gamut
+Clipping Quantitatively</h3>
+<p>ImageMagick can calculate mathematical metrics to quantify how
+severely an image exceeds a profile's gamut using the
+<code>-metric</code> command:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> RMSE input.jpg roundtrip.png null:</span></code></pre></div>
+<ul>
+<li><strong>Root Mean Squared Error (RMSE):</strong> Returns a
+normalized value representing the average difference between the source
+and the clipped profile.</li>
+<li><strong>Peak Absolute Error (PAE):</strong> Identifies the single
+largest color deviation in the image.</li>
+</ul>
+<h2 id="creating-a-visual-gamut-warning-overlay">Creating a Visual Gamut
+Warning Overlay</h2>
+<p>To mimic the gamut-warning overlays found in desktop publishing
+tools, ImageMagick can composite an alert color (such as bright magenta
+or gray) over the affected areas:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-profile</span> USWebCoatedSWOP.icc <span class="at">-profile</span> sRGB.icc <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0,1 <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="at">-threshold</span> 2% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="st">&quot;magenta&quot;</span> <span class="at">-colorize</span> 100% <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-reverse</span> <span class="at">-compose</span> Over <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  gamut_warning_preview.png</span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li>The image is cloned and run through the destination profile
+conversion.</li>
+<li>A difference mask is generated and filtered with a 2% tolerance
+threshold to ignore imperceptible quantization noise.</li>
+<li>Out-of-gamut areas are highlighted with a solid magenta overlay on
+top of the original image.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

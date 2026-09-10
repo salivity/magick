@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decode Apple QuickTime PICT in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how ImageMagick handles Apple QuickTime PICT files, identifying the specific delegate libraries and internal coders required to decode both vector and raster data. You will learn which software components process the legacy Macintos">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/decode-apple-quicktime-pict-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Decode Apple QuickTime PICT in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/decode-apple-quicktime-pict-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick handles Apple QuickTime PICT files, identifying the specific delegate libraries and internal coders required to decode both vector and raster data. You will learn which software components process the legacy Macintos" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="decode-apple-quicktime-pict-in-imagemagick">Decode Apple
+QuickTime PICT in ImageMagick</h1>
+<p>This article explains how ImageMagick handles Apple QuickTime PICT
+files, identifying the specific delegate libraries and internal coders
+required to decode both vector and raster data. You will learn which
+software components process the legacy Macintosh format and how
+ImageMagick manages complex PICT rendering across different
+environments.</p>
+<h2 id="the-delegate-library-for-apple-quicktime-pict">The Delegate
+Library for Apple QuickTime PICT</h2>
+<p>ImageMagick processes standard Apple Macintosh PICT (both v1 and v2)
+files primarily through its built-in internal coder,
+<code>coders/pict.c</code>. However, for advanced Apple QuickTime PICT
+files containing proprietary compression schemes, embedded vector
+operations, or QuickTime-specific extensions, ImageMagick historically
+relies on the <strong>Apple QuickTime SDK / QuickTime Framework</strong>
+as its external delegate library.</p>
+<p>Because PICT was designed around Apple's QuickDraw graphics engine,
+fully rendering both vector drawing opcodes and embedded raster bitmaps
+requires access to Apple's native graphics subsystem.</p>
+<h3 id="raster-vs-vector-pict-decoding">Raster vs. Vector PICT
+Decoding</h3>
+<ul>
+<li><strong>Raster PICT Files:</strong> For basic uncompressed or
+Run-Length Encoded (RLE) bitmaps stored within a PICT container,
+ImageMagick does not require an external third-party library. The native
+<code>pict.c</code> coder directly parses the header, color tables, and
+scanlines to reconstruct the image.</li>
+<li><strong>Vector and QuickTime-Compressed PICT Files:</strong> When a
+PICT file contains QuickDraw vector opcodes, PostScript data, or
+JPEG/QuickTime compression, ImageMagick cannot parse the drawing
+routines entirely through native C routines on non-Mac platforms. In
+Apple environments (such as classic Mac OS and older Mac OS X systems),
+ImageMagick links directly against the native <strong>QuickTime
+framework</strong> (or QuickDraw API) to delegate rendering. On
+non-Apple platforms (such as Linux and Windows), vector opcodes cannot
+be natively evaluated without an emulated interpreter, meaning vector
+data may be ignored or fail to decode without pre-conversion.</li>
+</ul>
+<h3 id="checking-pict-support-in-imagemagick">Checking PICT Support in
+ImageMagick</h3>
+<p>To verify if your ImageMagick installation is configured to read or
+write PICT files, execute the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> pict</span></code></pre></div>
+<p>A properly configured installation will return:</p>
+<pre class="text"><code>PICT*  rw-  Apple Macintosh QuickDraw/PICT
+PCT*   rw-  Apple Macintosh QuickDraw/PICT</code></pre>
+<p>To see the compiled external delegates in your current build:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look at the <code>Delegates (built-in)</code> line to inspect linked
+libraries such as <code>cairo</code>, <code>freetype</code>,
+<code>jpeg</code>, <code>png</code>, and <code>rsvg</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

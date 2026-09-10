@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect Dark Fissures Using ImageMagick CloseTopHat - magick</title>
+    <meta name="description" content="Detecting narrow, dark features such as fissures, cracks, or scratches on uneven surfaces requires isolating local intensity minima from the surrounding background. In ImageMagick, the CloseTopHat morphology operator—commonly known in image processing">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/detect-dark-fissures-using-imagemagick-closetophat">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Detect Dark Fissures Using ImageMagick CloseTopHat - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/detect-dark-fissures-using-imagemagick-closetophat" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Detecting narrow, dark features such as fissures, cracks, or scratches on uneven surfaces requires isolating local intensity minima from the surrounding background. In ImageMagick, the CloseTopHat morphology operator—commonly known in image processing" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="detect-dark-fissures-using-imagemagick-closetophat">Detect Dark
+Fissures Using ImageMagick CloseTopHat</h1>
+<p>Detecting narrow, dark features such as fissures, cracks, or
+scratches on uneven surfaces requires isolating local intensity minima
+from the surrounding background. In ImageMagick, the
+<code>CloseTopHat</code> morphology operator—commonly known in image
+processing as the "black top-hat" transform—performs this task by
+subtracting the original image from its morphological closing. This
+process neutralizes broad background lighting variations and leaves
+behind only the dark structures that fit within the specified
+structuring element.</p>
+<h3 id="how-closetophat-works">How CloseTopHat Works</h3>
+<p>Morphological closing involves a dilation followed by an erosion
+using a specific kernel (structuring element). Closing bridges gaps and
+fills in dark structures that are smaller than the kernel size while
+preserving the general background intensity.</p>
+<p>When you apply <code>CloseTopHat</code>, ImageMagick subtracts the
+original pixel values from this closed version:</p>
+<p><span class="math display">\[\text{CloseTopHat} = \text{Closing}(I) -
+I\]</span></p>
+<p>Because the closed image has the dark features filled in, subtracting
+the original dark pixels yields high values (bright pixels) exactly
+where the fissures were located. Everywhere else, the difference remains
+near zero (black).</p>
+<h3 id="basic-command-syntax">Basic Command Syntax</h3>
+<p>In ImageMagick version 7, morphology operations are applied directly
+via the <code>magick</code> command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> CloseTopHat Disk:3 fissures.png</span></code></pre></div>
+<p>For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-morphology</span> CloseTopHat Disk:3 fissures.png</span></code></pre></div>
+<h3 id="choosing-the-structuring-element-kernel">Choosing the
+Structuring Element (Kernel)</h3>
+<p>The kernel type and radius determine which features are detected:</p>
+<ul>
+<li><strong>Radius:</strong> The radius must be slightly larger than the
+half-width of the widest fissure you wish to detect. If a crack is 4
+pixels wide, a radius of <code>3</code> or <code>4</code> ensures the
+closing operation bridges the gap completely. If the radius is set too
+large, unwanted background textures may be captured.</li>
+<li><strong>Shape:</strong> The <code>Disk</code> shape provides an
+isotropic (uniform in all directions) response, which is ideal for
+organic or winding cracks. <code>Square</code> or <code>Diamond</code>
+shapes can be substituted if you are working with grid-aligned or
+directional surface defects.</li>
+</ul>
+<p>Example using an elliptical or larger disk kernel:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-morphology</span> CloseTopHat Disk:5 fissures.png</span></code></pre></div>
+<h3 id="enhancing-and-isolating-fissures">Enhancing and Isolating
+Fissures</h3>
+<p>Raw <code>CloseTopHat</code> output often contains subtle differences
+that appear dim. To convert the detected fissures into a high-contrast
+representation or a binary mask, combine the operation with contrast
+stretching and thresholding.</p>
+<h4 id="1-maximizing-contrast-with-auto-level">1. Maximizing Contrast
+with Auto-Level</h4>
+<p>Stretch the dynamic range so the most prominent fissures become stark
+white against a solid black background:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> CloseTopHat Disk:3 <span class="at">-auto-level</span> fissures_enhanced.png</span></code></pre></div>
+<h4 id="2-generating-a-binary-mask">2. Generating a Binary Mask</h4>
+<p>To isolate the cracks for automated inspection or measurement, apply
+a threshold to eliminate minor noise and keep only the strongest fissure
+boundaries:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> CloseTopHat Disk:3 <span class="at">-auto-level</span> <span class="at">-threshold</span> 20% fissure_mask.png</span></code></pre></div>
+<h4 id="3-inverting-for-black-on-white-display">3. Inverting for
+Black-on-White Display</h4>
+<p>If your workflow requires the fissures to remain dark against a white
+background, add the <code>-negate</code> operator at the end of the
+chain:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-morphology</span> CloseTopHat Disk:3 <span class="at">-auto-level</span> <span class="at">-threshold</span> 20% <span class="at">-negate</span> fissure_inverted.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

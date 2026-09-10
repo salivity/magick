@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Smush Operator for Zero Margins - magick</title>
+    <meta name="description" content="This article provides an overview of the ImageMagick smush operator and its specific role in packing images with zero margins. While standard appending methods join images along rigid rectangular boundaries, the smush operator evaluates alpha channels to">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-smush-operator-for-zero-margins">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Smush Operator for Zero Margins - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-smush-operator-for-zero-margins" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the ImageMagick smush operator and its specific role in packing images with zero margins. While standard appending methods join images along rigid rectangular boundaries, the smush operator evaluates alpha channels to" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-smush-operator-for-zero-margins">ImageMagick Smush
+Operator for Zero Margins</h1>
+<p>This article provides an overview of the ImageMagick
+<code>smush</code> operator and its specific role in packing images with
+zero margins. While standard appending methods join images along rigid
+rectangular boundaries, the <code>smush</code> operator evaluates alpha
+channels to eliminate empty space. By setting an offset of zero,
+developers and designers can tightly pack irregularly shaped graphics or
+sprites together so their visible borders touch without overlapping or
+creating unwanted gaps.</p>
+<h3 id="understanding-the-smush-operator">Understanding the Smush
+Operator</h3>
+<p>In ImageMagick, joining images is typically handled by either the
+<code>append</code> or <code>smush</code> operators. The standard
+<code>-append</code> (vertical) and <code>+append</code> (horizontal)
+commands take the outer bounding boxes of images and stack or place them
+side-by-side. If the input images have transparent padding or irregular
+shapes, standard appending preserves that empty space, resulting in
+visible margins between the actual graphic elements.</p>
+<p>The <code>smush</code> operator (<code>-smush</code> for vertical and
+<code>+smush</code> for horizontal) addresses this limitation by looking
+at the alpha channel along the abutting edges. Instead of relying solely
+on canvas boundaries, it measures the distance between non-transparent
+pixels on adjoining sides and slides the images together until the
+specified offset distance is reached.</p>
+<h3 id="the-purpose-of-zero-margins">The Purpose of Zero Margins</h3>
+<p>When using <code>+smush 0</code> or <code>-smush 0</code>, the offset
+parameter is explicitly set to zero pixels. The purpose of this
+configuration is to achieve true edge-to-edge contact between the opaque
+regions of two or more images.</p>
+<p>Key benefits of zero-margin smushing include:</p>
+<ul>
+<li><strong>Eliminating Empty Transparent Padding:</strong> If graphics
+contain uneven transparent borders, a zero-margin smush slides them
+together until the outermost solid pixel of one image meets the
+outermost solid pixel of the next.</li>
+<li><strong>Optimized Sprite Generation:</strong> For game development
+or web design, packing sprites tightly minimizes unused space within
+texture atlases, saving memory and bandwidth.</li>
+<li><strong>Seamless Visual Collages:</strong> When assembling composite
+graphics or photo strips where margins should not exist, zero-margin
+smushing prevents white or transparent seams caused by mismatched canvas
+dimensions.</li>
+</ul>
+<h3 id="how-it-differs-from-negative-offsets">How It Differs from
+Negative Offsets</h3>
+<p>A zero offset (<code>0</code>) instructs ImageMagick to stop shifting
+images the exact moment their non-transparent pixels meet. A positive
+value (e.g., <code>+smush 10</code>) leaves a uniform gap of that many
+pixels between the shapes. A negative value (e.g.,
+<code>+smush -5</code>) forces an overlap. Using zero ensures that no
+graphics overlap while removing all interior margins along the seam.</p>
+<h3 id="syntax-and-implementation">Syntax and Implementation</h3>
+<p>To horizontally pack images with zero margin based on their visual
+edges, use the plus form:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input1.png input2.png +smush 0 output.png</span></code></pre></div>
+<p>To vertically stack images with zero margin, use the minus form:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input1.png input2.png <span class="at">-smush</span> 0 output.png</span></code></pre></div>
+<p>For images without transparency, the <code>smush</code> operator
+treats the background color as the empty area, packing the images based
+on the boundary where pixel colors diverge from the designated
+background.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

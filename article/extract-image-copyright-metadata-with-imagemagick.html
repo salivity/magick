@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Image Copyright Metadata with ImageMagick - magick</title>
+    <meta name="description" content="This article provides the exact ImageMagick commands and shell script syntax required to extract copyright metadata from an image file. Whether the copyright details are stored in EXIF or IPTC profiles, you will learn how to capture this information dire">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-image-copyright-metadata-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Image Copyright Metadata with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-image-copyright-metadata-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the exact ImageMagick commands and shell script syntax required to extract copyright metadata from an image file. Whether the copyright details are stored in EXIF or IPTC profiles, you will learn how to capture this information dire" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-image-copyright-metadata-with-imagemagick">Extract Image
+Copyright Metadata with ImageMagick</h1>
+<p>This article provides the exact ImageMagick commands and shell script
+syntax required to extract copyright metadata from an image file.
+Whether the copyright details are stored in EXIF or IPTC profiles, you
+will learn how to capture this information directly into a shell
+variable for automated processing.</p>
+<h3 id="the-command-to-extract-copyright-metadata">The Command to
+Extract Copyright Metadata</h3>
+<p>In ImageMagick version 7, you use the <code>magick identify</code>
+command combined with the <code>-format</code> option to target
+copyright tags. To store the extracted value inside a shell script
+variable, use command substitution <code>$(...)</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Capture EXIF Copyright</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="va">COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[exif:copyright]&quot;</span> input.jpg<span class="va">)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Echo the result</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Copyright: </span><span class="va">$COPYRIGHT</span><span class="st">&quot;</span></span></code></pre></div>
+<p>If you are using ImageMagick 6, replace <code>magick identify</code>
+with simply <code>identify</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">identify</span> <span class="at">-format</span> <span class="st">&quot;%[exif:copyright]&quot;</span> input.jpg<span class="va">)</span></span></code></pre></div>
+<h3 id="handling-different-metadata-profiles">Handling Different
+Metadata Profiles</h3>
+<p>Copyright information may be embedded under different metadata
+specifications depending on the software that created the image.</p>
+<h4 id="1-iptc-copyright-notice">1. IPTC Copyright Notice</h4>
+<p>Many professional photography tools store copyright details in the
+IPTC dataset under tag <code>2:116</code> (Copyright Notice):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[IPTC:2:116]&quot;</span> input.jpg<span class="va">)</span></span></code></pre></div>
+<h4 id="2-generic-copyright-property">2. Generic Copyright Property</h4>
+<p>ImageMagick often aliases standard metadata tags into simplified
+properties:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[copyright]&quot;</span> input.jpg<span class="va">)</span></span></code></pre></div>
+<h3 id="complete-shell-script-example">Complete Shell Script
+Example</h3>
+<p>Below is a robust shell script that checks for the copyright string
+across both EXIF and IPTC fields, falling back to a default message if
+no metadata is present:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="va">IMAGE_FILE</span><span class="op">=</span><span class="st">&quot;sample.jpg&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract EXIF and IPTC copyright fields</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="va">EXIF_COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[exif:copyright]&quot;</span> <span class="st">&quot;</span><span class="va">$IMAGE_FILE</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="va">)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="va">IPTC_COPYRIGHT</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%[IPTC:2:116]&quot;</span> <span class="st">&quot;</span><span class="va">$IMAGE_FILE</span><span class="st">&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null<span class="va">)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Prioritize IPTC, fall back to EXIF, or mark as Not Found</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="va">$IPTC_COPYRIGHT</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="va">COPYRIGHT</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$IPTC_COPYRIGHT</span><span class="st">&quot;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> <span class="bu">[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="va">$EXIF_COPYRIGHT</span><span class="st">&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="va">COPYRIGHT</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$EXIF_COPYRIGHT</span><span class="st">&quot;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="va">COPYRIGHT</span><span class="op">=</span><span class="st">&quot;No copyright metadata found&quot;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;File: </span><span class="va">$IMAGE_FILE</span><span class="st">&quot;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Copyright Notice: </span><span class="va">$COPYRIGHT</span><span class="st">&quot;</span></span></code></pre></div>
+<p>To see all available metadata keys in an image to verify where
+copyright data is stored, run
+<code>magick identify -verbose input.jpg</code> in your terminal.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

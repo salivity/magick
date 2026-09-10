@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Decode Satellite Imagery with ImageMagick - magick</title>
+    <meta name="description" content="Multispectral satellite imagery packages distinct electromagnetic wavelengths into separate grayscale bands or channels within container formats like multi-page GeoTIFFs. This article explains how to use ImageMagick, a robust command-line utility, to ins">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-decode-satellite-imagery-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Decode Satellite Imagery with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-decode-satellite-imagery-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Multispectral satellite imagery packages distinct electromagnetic wavelengths into separate grayscale bands or channels within container formats like multi-page GeoTIFFs. This article explains how to use ImageMagick, a robust command-line utility, to ins" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-decode-satellite-imagery-with-imagemagick">How to Decode
+Satellite Imagery with ImageMagick</h1>
+<p>Multispectral satellite imagery packages distinct electromagnetic
+wavelengths into separate grayscale bands or channels within container
+formats like multi-page GeoTIFFs. This article explains how to use
+ImageMagick, a robust command-line utility, to inspect multi-layer
+files, isolate specific spectral bands, and combine them into meaningful
+true-color and false-color composites.</p>
+<h3 id="understanding-multispectral-satellite-bands">Understanding
+Multispectral Satellite Bands</h3>
+<p>Satellite sensors (such as Landsat 8/9 or Sentinel-2) do not capture
+single standard RGB images. Instead, they capture separate grayscale
+images for distinct wavelengths, including Coastal Aerosol, Blue, Green,
+Red, Near-Infrared (NIR), and Shortwave-Infrared (SWIR). Decoding these
+images requires extracting the relevant channels and merging them into
+standard color spaces.</p>
+<h3 id="inspecting-image-metadata-and-channel-layers">Inspecting Image
+Metadata and Channel Layers</h3>
+<p>Before processing, determine the number of bands and the bit depth
+contained in your satellite image file.</p>
+<p>Run the following command to identify the sub-images (layers) inside
+a multi-band file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify input_multispectral.tif</span></code></pre></div>
+<p>This output lists each sub-image index (e.g.,
+<code>input_multispectral.tif[0]</code>,
+<code>input_multispectral.tif[1]</code>) alongside its dimensions and
+color depth.</p>
+<h3 id="extracting-individual-spectral-channels">Extracting Individual
+Spectral Channels</h3>
+<p>If your satellite data is packaged as a single multi-page file, you
+can extract specific bands using ImageMagick’s bracket notation
+<code>[index]</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the first band (index 0)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_multispectral.tif<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> band1.png</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the fourth band (index 3)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_multispectral.tif<span class="pp">[</span><span class="ss">3</span><span class="pp">]</span> band4.png</span></code></pre></div>
+<h3 id="combining-channels-into-a-true-color-rgb-image">Combining
+Channels into a True-Color (RGB) Image</h3>
+<p>To reconstruct a natural true-color image, you must combine the Red,
+Green, and Blue bands into their corresponding color channels.</p>
+<p>For Landsat 8/9, the standard visual channels correspond to:</p>
+<ul>
+<li>Red: Band 4</li>
+<li>Green: Band 3</li>
+<li>Blue: Band 2</li>
+</ul>
+<p>Use the <code>-combine</code> operator along with
+<code>-auto-level</code> to expand the dynamic range of the raw sensor
+data:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> band4.tif band3.tif band2.tif <span class="at">-combine</span> <span class="at">-auto-level</span> true_color.png</span></code></pre></div>
+<p>If extracting directly from a multi-band GeoTIFF where Band 4 is
+index 3, Band 3 is index 2, and Band 2 is index 1:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif<span class="pp">[</span><span class="ss">3</span><span class="pp">]</span> input.tif<span class="pp">[</span><span class="ss">2</span><span class="pp">]</span> input.tif<span class="pp">[</span><span class="ss">1</span><span class="pp">]</span> <span class="at">-combine</span> <span class="at">-auto-level</span> <span class="at">-depth</span> 8 true_color.png</span></code></pre></div>
+<h3 id="creating-a-false-color-infrared-composite">Creating a
+False-Color Infrared Composite</h3>
+<p>False-color imagery highlights environmental details such as
+vegetation density and water bodies. A standard Color Infrared (CIR)
+composite maps the Near-Infrared band to Red, the Red band to Green, and
+the Green band to Blue.</p>
+<p>For Landsat 8/9:</p>
+<ul>
+<li>Red Channel: Band 5 (NIR)</li>
+<li>Green Channel: Band 4 (Red)</li>
+<li>Blue Channel: Band 3 (Green)</li>
+</ul>
+<p>Execute the following command:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> band5.tif band4.tif band3.tif <span class="at">-combine</span> <span class="at">-auto-level</span> false_color_cir.png</span></code></pre></div>
+<p>In this output, healthy vegetation reflects strongly in the NIR
+spectrum and appears bright red, while water absorbs NIR and appears
+dark blue or black.</p>
+<h3 id="adjusting-radiometric-contrast">Adjusting Radiometric
+Contrast</h3>
+<p>Raw satellite imagery typically contains 12-bit or 16-bit integer
+values that look dark or washed out when viewed directly. ImageMagick
+provides several parameters to adjust tonal balance:</p>
+<ul>
+<li><strong><code>-auto-level</code></strong>: Stretches the dynamic
+range of each channel across the full spectrum.</li>
+<li><strong><code>-gamma &lt;value&gt;</code></strong>: Corrects
+brightness non-linearly (e.g., <code>-gamma 1.2</code> brightens
+mid-tones).</li>
+<li><strong><code>-sigmoidal-contrast &lt;contrast&gt;x&lt;midpoint&gt;%</code></strong>:
+Increases contrast around a specific threshold without blowing out
+highlights or shadows.</li>
+</ul>
+<p>Example composite with contrast correction:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> band4.tif band3.tif band2.tif <span class="at">-combine</span> <span class="at">-auto-level</span> <span class="at">-gamma</span> 1.15 <span class="at">-sigmoidal-contrast</span> 3x50% output_enhanced.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

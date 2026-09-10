@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick HEIC and HEIF Decoding via libheif - magick</title>
+    <meta name="description" content="ImageMagick processes High Efficiency Image Format (HEIF) and High Efficiency Image Coding (HEIC) files by integrating with libheif as an external delegate library. Because HEIF is a complex container format enclosing compressed media streams, ImageMagic">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-heic-and-heif-decoding-via-libheif">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick HEIC and HEIF Decoding via libheif - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-heic-and-heif-decoding-via-libheif" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick processes High Efficiency Image Format (HEIF) and High Efficiency Image Coding (HEIC) files by integrating with libheif as an external delegate library. Because HEIF is a complex container format enclosing compressed media streams, ImageMagic" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-heic-and-heif-decoding-via-libheif">ImageMagick HEIC
+and HEIF Decoding via libheif</h1>
+<p>ImageMagick processes High Efficiency Image Format (HEIF) and High
+Efficiency Image Coding (HEIC) files by integrating with
+<code>libheif</code> as an external delegate library. Because HEIF is a
+complex container format enclosing compressed media streams, ImageMagick
+does not decode the raw bitstreams directly. Instead, it delegates
+container parsing, track demuxing, metadata extraction, and
+hardware/software decompression to <code>libheif</code>, which in turn
+utilizes underlying codec decoders like <code>libde265</code> or
+<code>dav1d</code> to return standard raster pixel data.</p>
+<h3 id="the-delegate-architecture">The Delegate Architecture</h3>
+<p>ImageMagick relies on a modular architecture where specific file
+formats are mapped to coder modules. When ImageMagick encounters a file
+with <code>.heic</code>, <code>.heif</code>, or corresponding MIME
+types, it invokes its internal <code>heic.c</code> coder module.</p>
+<p>This module acts as an abstraction bridge to the C/C++ API of
+<code>libheif</code>. ImageMagick passes the file stream or memory
+buffer to <code>libheif</code>, which manages the ISOBMFF (ISO Base
+Media File Format) box structure used by HEIF containers.</p>
+<h3 id="the-step-by-step-decoding-pipeline">The Step-by-Step Decoding
+Pipeline</h3>
+<ol type="1">
+<li><p><strong>Format Identification and Box Parsing</strong><br />
+<code>libheif</code> inspects the initial bytes to confirm
+compatibility, checking the <code>ftyp</code> (file type) box for brand
+identifiers such as <code>heic</code>, <code>heix</code>,
+<code>mif1</code>, or <code>msf1</code>. It parses the file’s structural
+boxes to identify primary images, secondary image tracks, depth maps,
+and thumbnails.</p></li>
+<li><p><strong>Codec Invocation</strong><br />
+The HEIF container wraps compressed video frame payloads. To decompress
+these payloads, <code>libheif</code> calls dedicated codec plugins:</p>
+<ul>
+<li><strong>HEVC/H.265:</strong> Decompression is handled by
+<code>libde265</code> or <code>x265</code>.</li>
+<li><strong>AV1 (AVIF):</strong> Decompression is passed to
+<code>dav1d</code>, <code>libaom</code>, or <code>svt-av1</code>.</li>
+</ul></li>
+<li><p><strong>Pixel Reconstruction and Color Space
+Conversion</strong><br />
+The underlying codec outputs raw uncompressed image data, typically
+formatted in planar YUV color spaces (such as <code>YUV420p</code>,
+<code>YUV422p</code>, or <code>YUV444p</code>) across varying bit depths
+(8, 10, or 12 bits per channel). <code>libheif</code> handles the
+conversion from YUV to interleaved RGB or RGBA, adjusting for color
+range expansions (full vs. limited range).</p></li>
+<li><p><strong>Transfer to ImageMagick Quantum Structures</strong><br />
+ImageMagick receives the unpacked RGB/RGBA buffers and converts the
+pixel data into its internal <code>Quantum</code> memory arrays,
+matching the compilation depth (Q8, Q16, or Q32) and assigning alpha
+channels if transparency masks or auxiliary tracks exist.</p></li>
+<li><p><strong>Metadata and Profile Preservation</strong><br />
+During container parsing, <code>libheif</code> locates uncompressed
+metadata payloads stored inside the <code>meta</code> box:</p>
+<ul>
+<li><strong>EXIF and XMP Data:</strong> Extracted as raw binary blobs
+and attached as string attributes/profiles to ImageMagick’s internal
+image structure.</li>
+<li><strong>ICC Color Profiles:</strong> Retrieved from the
+<code>colr</code> box and embedded directly into the ImageMagick image
+instance to ensure accurate color management.</li>
+</ul></li>
+</ol>
+<h3 id="multi-frame-and-animation-handling">Multi-Frame and Animation
+Handling</h3>
+<p>HEIF files can store image sequences, bursts, or multi-resolution
+image pyramids. ImageMagick queries <code>libheif</code> for the total
+count of image items:</p>
+<ul>
+<li>For single image requests, it reads only the primary image handle
+(<code>heif_context_get_primary_image_handle</code>).</li>
+<li>For multi-frame requests or sequence conversions, ImageMagick
+iterates over the item IDs
+(<code>heif_context_get_list_of_top_level_image_IDs</code>),
+instantiating a distinct sub-image in its internal image list for each
+item.</li>
+</ul>
+<h3 id="system-verification">System Verification</h3>
+<p>For ImageMagick to successfully decode HEIC/HEIF files, it must be
+compiled with <code>--with-heic</code> support and have
+<code>libheif</code> (along with a decoder like <code>libde265</code>)
+installed on the host system. Support can be verified from the command
+line:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> heic</span></code></pre></div>
+<p>A properly configured environment returns <code>HEIC</code> with
+<code>r</code> (read) and <code>w</code> (write) permissions, confirming
+that the <code>libheif</code> delegate is actively routing decode
+operations.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

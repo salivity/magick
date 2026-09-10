@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Connected Components Mask Syntax - magick</title>
+    <meta name="description" content="ImageMagick's -connected-components operator performs Connected Component Analysis (CCA) to uniquely label and segment discrete regions within an image. This guide outlines the required command-line syntax, configuration defines, and practical examples f">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-connected-components-mask-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Connected Components Mask Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-connected-components-mask-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's -connected-components operator performs Connected Component Analysis (CCA) to uniquely label and segment discrete regions within an image. This guide outlines the required command-line syntax, configuration defines, and practical examples f" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-connected-components-mask-syntax">ImageMagick
+Connected Components Mask Syntax</h1>
+<p>ImageMagick's <code>-connected-components</code> operator performs
+Connected Component Analysis (CCA) to uniquely label and segment
+discrete regions within an image. This guide outlines the required
+command-line syntax, configuration defines, and practical examples for
+generating distinct segmented object masks and filtering noise.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>To generate a segmented mask from an image, the basic ImageMagick v7
+syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-threshold</span> 50% <span class="at">-define</span> connected-components:verbose=true <span class="at">-define</span> connected-components:mean-color=true <span class="at">-connected-components</span> 8 output_mask.png</span></code></pre></div>
+<p>For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="syntax-components-and-options">Syntax Components and
+Options</h2>
+<p>Generating masks relies on binarization, defining CCA parameters, and
+executing the operator:</p>
+<ul>
+<li><strong>Preprocessing (<code>-threshold &lt;value&gt;</code> or
+<code>-negate</code>):</strong> CCA works best on binary (black and
+white) or grayscale images. Objects of interest should ideally be white
+(foreground) on a black background.</li>
+<li><strong>Connectivity
+(<code>-connected-components &lt;4|8&gt;</code>):</strong> Specifies
+neighbor pixel connectivity. Use <code>4</code> for orthogonal neighbors
+(up, down, left, right) or <code>8</code> to include diagonal
+neighbors.</li>
+<li><strong><code>-define connected-components:verbose=true</code>:</strong>
+Outputs component metadata to the terminal, including object ID,
+bounding box dimensions, centroid, pixel area, and color value.</li>
+<li><strong><code>-define connected-components:mean-color=true</code>:</strong>
+Replaces each detected connected component with its average color,
+generating a segmented visual mask where distinct objects receive
+distinct shades.</li>
+<li><strong><code>-define connected-components:area-threshold=&lt;pixels&gt;</code>:</strong>
+Removes objects smaller than the specified pixel count, merging them
+into the surrounding background to eliminate noise.</li>
+</ul>
+<h2 id="common-mask-generation-examples">Common Mask Generation
+Examples</h2>
+<h3 id="1-distinct-gray-level-segmented-mask">1. Distinct Gray-Level
+Segmented Mask</h3>
+<p>To generate an image where every connected object is labeled with a
+distinct grayscale value:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> gray <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:mean-color=true <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-auto-level</span> <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  segmented_mask.png</span></code></pre></div>
+<p><em>Note: <code>-auto-level</code> stretches the gray values across
+the full 0–100% range to make distinct segments visually
+visible.</em></p>
+<h3 id="2-filtering-small-noise-objects">2. Filtering Small Noise
+Objects</h3>
+<p>To segment foreground objects while ignoring artifacts smaller than
+100 pixels:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:area-threshold=100 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:mean-color=true <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  clean_mask.png</span></code></pre></div>
+<h3 id="3-extracting-a-specific-segment-mask">3. Extracting a Specific
+Segment Mask</h3>
+<p>When verbose mode outputs object IDs, individual components can be
+isolated into a binary mask by matching their specific grayscale
+intensity:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 50% <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:keep-ids=2,4 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  isolated_objects_mask.png</span></code></pre></div>
+<p><em>The <code>keep-ids</code> define keeps only the objects matching
+the provided IDs (available in ImageMagick 7.0.8-68+), rendering
+everything else black.</em></p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

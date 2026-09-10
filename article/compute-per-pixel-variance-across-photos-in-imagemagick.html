@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compute Per-Pixel Variance Across Photos in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to calculate the per-pixel variance across a burst or sequence of photographs using ImageMagick. Because variance measures the spread of pixel intensity values over time, it is frequently used to detect motion, analyze sensor">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compute-per-pixel-variance-across-photos-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compute Per-Pixel Variance Across Photos in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compute-per-pixel-variance-across-photos-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to calculate the per-pixel variance across a burst or sequence of photographs using ImageMagick. Because variance measures the spread of pixel intensity values over time, it is frequently used to detect motion, analyze sensor" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compute-per-pixel-variance-across-photos-in-imagemagick">Compute
+Per-Pixel Variance Across Photos in ImageMagick</h1>
+<p>This guide demonstrates how to calculate the per-pixel variance
+across a burst or sequence of photographs using ImageMagick. Because
+variance measures the spread of pixel intensity values over time, it is
+frequently used to detect motion, analyze sensor noise, and isolate
+transient objects. Below, you will find the single-line command required
+to perform this calculation, a breakdown of the mathematical process,
+and practical considerations for handling dynamic range.</p>
+<h2 id="the-imagemagick-command">The ImageMagick Command</h2>
+<p>To compute per-pixel variance across an image burst, use the
+following ImageMagick 7 command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_<span class="pp">*</span>.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0--1 <span class="at">-evaluate</span> Pow 2 <span class="at">-evaluate-sequence</span> Mean <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0--2 <span class="at">-evaluate-sequence</span> Mean <span class="at">-evaluate</span> Pow 2 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0--3 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Subtract <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  variance.tiff</span></code></pre></div>
+<p>If you are running ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="how-the-command-works">How the Command Works</h2>
+<p>ImageMagick does not have a dedicated single-word sequence operator
+for variance, but it computes variance using the algebraic
+definition:</p>
+<p><span class="math display">\[\text{Var}(X) = E[X^2] -
+(E[X])^2\]</span></p>
+<p>In this formula, <span class="math inline">\(E[X^2]\)</span>
+represents the mean of the squared pixel values, and <span
+class="math inline">\((E[X])^2\)</span> represents the square of the
+mean pixel values.</p>
+<ol type="1">
+<li><strong><code>input_*.jpg</code></strong>: Loads the burst of images
+into the image stack (indices <code>0</code> through
+<code>N-1</code>).</li>
+<li><strong><code>\( -clone 0--1 -evaluate Pow 2 -evaluate-sequence Mean \)</code></strong>:
+Clones all input images, squares every pixel's value (<span
+class="math inline">\(X^2\)</span>), and calculates the average across
+the sequence to produce <span
+class="math inline">\(E[X^2]\)</span>.</li>
+<li><strong><code>\( -clone 0--2 -evaluate-sequence Mean -evaluate Pow 2 \)</code></strong>:
+Clones the original input images again, computes their average (<span
+class="math inline">\(E[X]\)</span>), and squares that average to
+produce <span class="math inline">\((E[X])^2\)</span>.</li>
+<li><strong><code>-delete 0--3</code></strong>: Removes the original
+input images from memory, leaving only the two processed images: <span
+class="math inline">\(E[X^2]\)</span> and <span
+class="math inline">\((E[X])^2\)</span>.</li>
+<li><strong><code>-compose Subtract -composite</code></strong>:
+Subtracts the squared mean from the mean of the squares, resulting in
+the per-pixel variance.</li>
+<li><strong><code>variance.tiff</code></strong>: Saves the resulting
+image. Using a format like 16-bit or 32-bit TIFF preserves low-magnitude
+variance values that standard 8-bit formats (like JPEG or standard PNG)
+might truncate or crush to black.</li>
+</ol>
+<h2 id="considerations-for-accuracy">Considerations for Accuracy</h2>
+<ul>
+<li><strong>HDRI Support</strong>: Modern ImageMagick installations have
+HDRI (High Dynamic Range Imaging) enabled by default. This ensures
+intermediate operations—such as squaring values—do not clip at maximum
+intensity.</li>
+<li><strong>Standard Deviation</strong>: If you need the standard
+deviation instead of variance, append <code>-evaluate Pow 0.5</code>
+directly after <code>-composite</code> to compute the square root of the
+variance image.</li>
+<li><strong>Normalization</strong>: The output variance values are
+relative to ImageMagick's internal quantum range (<span
+class="math inline">\([0, 1]\)</span> in HDRI). If the variance values
+are small and appear nearly black, you can stretch the contrast for
+visual inspection by adding <code>-auto-level</code> before saving the
+output.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

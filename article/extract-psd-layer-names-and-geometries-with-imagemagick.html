@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract PSD Layer Names and Geometries with ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick provides robust command-line tools to inspect Adobe Photoshop (PSD) files and retrieve their internal metadata. By utilizing the identify tool with custom -format strings, you can parse a PSD file to extract every layer's name, dimensions, an">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-psd-layer-names-and-geometries-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract PSD Layer Names and Geometries with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-psd-layer-names-and-geometries-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides robust command-line tools to inspect Adobe Photoshop (PSD) files and retrieve their internal metadata. By utilizing the identify tool with custom -format strings, you can parse a PSD file to extract every layer's name, dimensions, an" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-psd-layer-names-and-geometries-with-imagemagick">Extract
+PSD Layer Names and Geometries with ImageMagick</h1>
+<p>ImageMagick provides robust command-line tools to inspect Adobe
+Photoshop (PSD) files and retrieve their internal metadata. By utilizing
+the <code>identify</code> tool with custom <code>-format</code> strings,
+you can parse a PSD file to extract every layer's name, dimensions, and
+canvas offset coordinates without needing to open Photoshop or manually
+export each asset.</p>
+<h2 id="the-core-command">The Core Command</h2>
+<p>In ImageMagick v7, use the <code>magick identify</code> command (or
+just <code>identify</code> in ImageMagick v6) paired with the
+<code>-format</code> parameter to read layer properties:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Layer %[scene]: Name=&#39;%[label]&#39; Geometry=%g\n&quot;</span> example.psd</span></code></pre></div>
+<h3 id="understanding-the-format-specifiers">Understanding the Format
+Specifiers</h3>
+<p>ImageMagick uses specific format properties to expose layer
+metadata:</p>
+<ul>
+<li><strong><code>%[scene]</code> or <code>%s</code></strong>: Returns
+the index number of the layer.</li>
+<li><strong><code>%[label]</code></strong>: Extracts the user-defined
+name of the PSD layer.</li>
+<li><strong><code>%[psd:layer.name]</code></strong>: An explicit
+property name used in certain ImageMagick releases to read PSD layer
+metadata if <code>%[label]</code> returns empty.</li>
+<li><strong><code>%g</code></strong>: Returns the complete geometry
+string in the format <code>WidthxHeight+X+Y</code> (e.g.,
+<code>400x300+50+120</code>), showing both layer size and offset
+relative to the canvas.</li>
+<li><strong><code>%w</code> and <code>%h</code></strong>: Return the
+individual width and height of the layer.</li>
+<li><strong><code>%X</code> and <code>%Y</code></strong> (or
+<code>%O</code>): Return the horizontal and vertical offset coordinates
+of the layer.</li>
+</ul>
+<h2 id="advanced-usage-and-filtering">Advanced Usage and Filtering</h2>
+<h3 id="1-skipping-the-flattened-composite">1. Skipping the Flattened
+Composite</h3>
+<p>The first image in a PSD (<code>index 0</code>) is usually the
+pre-rendered, flattened composite image generated by Photoshop. To
+inspect only the actual individual layers, specify sub-image
+indexing:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Name: %[label] | Bounds: %wx%h at %X,%Y\n&quot;</span> <span class="st">&quot;example.psd[1--1]&quot;</span></span></code></pre></div>
+<p>The <code>[1--1]</code> index tells ImageMagick to read from the
+first true layer to the last layer, ignoring layer <code>0</code>.</p>
+<h3 id="2-outputting-to-json">2. Outputting to JSON</h3>
+<p>For automated scripts and pipelines, you can format the output
+directly into structured JSON:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;{</span><span class="dt">\&quot;</span><span class="st">index</span><span class="dt">\&quot;</span><span class="st">: %[scene], </span><span class="dt">\&quot;</span><span class="st">name</span><span class="dt">\&quot;</span><span class="st">: </span><span class="dt">\&quot;</span><span class="st">%[label]</span><span class="dt">\&quot;</span><span class="st">, </span><span class="dt">\&quot;</span><span class="st">width</span><span class="dt">\&quot;</span><span class="st">: %w, </span><span class="dt">\&quot;</span><span class="st">height</span><span class="dt">\&quot;</span><span class="st">: %h, </span><span class="dt">\&quot;</span><span class="st">x</span><span class="dt">\&quot;</span><span class="st">: %X, </span><span class="dt">\&quot;</span><span class="st">y</span><span class="dt">\&quot;</span><span class="st">: %Y},\n&quot;</span> <span class="st">&quot;example.psd[1--1]&quot;</span></span></code></pre></div>
+<h3 id="3-handling-fallback-metadata">3. Handling Fallback Metadata</h3>
+<p>If a layer has no designated name, <code>%[label]</code> may be
+blank. You can query the verbose PSD artifact property as an
+alternative:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;Layer: %[psd:layer.name] (%g)\n&quot;</span> example.psd</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

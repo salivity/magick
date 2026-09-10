@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Geometry and Gravity Positioning - magick</title>
+    <meta name="description" content="In ImageMagick, overlay placement depends on the relationship between the -gravity and -geometry operators. While -gravity sets the reference anchor point on the base image, -geometry provides the coordinate offsets and optional scaling relative to that">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-geometry-and-gravity-positioning">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Geometry and Gravity Positioning - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-geometry-and-gravity-positioning" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, overlay placement depends on the relationship between the -gravity and -geometry operators. While -gravity sets the reference anchor point on the base image, -geometry provides the coordinate offsets and optional scaling relative to that" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-geometry-and-gravity-positioning">ImageMagick
+Geometry and Gravity Positioning</h1>
+<p>In ImageMagick, overlay placement depends on the relationship between
+the <code>-gravity</code> and <code>-geometry</code> operators. While
+<code>-gravity</code> sets the reference anchor point on the base image,
+<code>-geometry</code> provides the coordinate offsets and optional
+scaling relative to that anchor. Together, they dictate both the
+starting alignment of an overlay and the direction in which positional
+offsets shift the image across the canvas.</p>
+<h2 id="the-role-of-the--gravity-operator">The Role of the
+<code>-gravity</code> Operator</h2>
+<p>The <code>-gravity</code> operator establishes an anchor point on the
+base canvas as well as the corresponding anchor point on the overlay
+image. Standard gravity settings correspond to compass directions and
+canvas zones:</p>
+<ul>
+<li><strong>NorthWest, North, NorthEast</strong>: Anchors along the top
+edge.</li>
+<li><strong>West, Center, East</strong>: Anchors along the vertical
+midpoint.</li>
+<li><strong>SouthWest, South, SouthEast</strong>: Anchors along the
+bottom edge.</li>
+</ul>
+<p>By default, ImageMagick uses <code>NorthWest</code> gravity. When you
+set a gravity value without specifying any offset coordinates, the
+overlay aligns directly with that designated zone (for example,
+<code>-gravity Center</code> places the center of the overlay precisely
+at the center of the base image).</p>
+<h2 id="how--geometry-offsets-interact-with-gravity">How
+<code>-geometry</code> Offsets Interact with Gravity</h2>
+<p>The <code>-geometry</code> operator typically takes the format
+<code>[width][xheight][+x+y]</code>. When used during image composition,
+the <code>+x+y</code> parameters represent horizontal and vertical pixel
+offsets.</p>
+<p>Instead of operating on a fixed global coordinate plane where
+<code>(0,0)</code> is always the top-left corner, the offsets measure
+outward from the anchor point established by <code>-gravity</code>.
+Furthermore, positive offset values generally push the overlay toward
+the interior of the canvas:</p>
+<ul>
+<li><strong>NorthWest</strong>: A positive <code>+X</code> moves the
+overlay to the right; a positive <code>+Y</code> moves it down.</li>
+<li><strong>NorthEast</strong>: A positive <code>+X</code> moves the
+overlay to the left; a positive <code>+Y</code> moves it down.</li>
+<li><strong>SouthWest</strong>: A positive <code>+X</code> moves the
+overlay to the right; a positive <code>+Y</code> moves it up.</li>
+<li><strong>SouthEast</strong>: A positive <code>+X</code> moves the
+overlay to the left; a positive <code>+Y</code> moves it up.</li>
+<li><strong>Center</strong>: A positive <code>+X</code> shifts right; a
+positive <code>+Y</code> shifts down. Negative offsets move in the
+opposite directions (<code>-X</code> moves left, <code>-Y</code> moves
+up).</li>
+<li><strong>North / South</strong>: Horizontal offsets (<code>+X</code>)
+shift right, while <code>+Y</code> shifts toward the center (down for
+North, up for South).</li>
+<li><strong>East / West</strong>: Vertical offsets (<code>+Y</code>)
+shift down, while <code>+X</code> shifts toward the center (left for
+East, right for West).</li>
+</ul>
+<h2 id="sizing-and-ordering">Sizing and Ordering</h2>
+<p>If dimensions are supplied in the <code>-geometry</code> string (such
+as <code>100x100+10+10</code>), the overlay image is resized to fit
+those constraints before the gravity alignment and positional offsets
+are applied.</p>
+<p>For the positioning to resolve correctly in ImageMagick commands,
+<code>-gravity</code> must be declared before or alongside the
+<code>-geometry</code> and composite operations. If
+<code>-gravity</code> is defined after <code>-geometry</code>, the
+offsets default to evaluating from the standard <code>NorthWest</code>
+origin.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

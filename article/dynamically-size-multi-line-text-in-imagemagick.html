@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamically Size Multi-Line Text in ImageMagick - magick</title>
+    <meta name="description" content="Rendering multi-line text dynamically to fit an exact box in ImageMagick is achieved using the built-in caption: input protocol. Unlike standard text-rendering options that require manual line breaks and fixed font sizes, caption: automatically calculate">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/dynamically-size-multi-line-text-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dynamically Size Multi-Line Text in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/dynamically-size-multi-line-text-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rendering multi-line text dynamically to fit an exact box in ImageMagick is achieved using the built-in caption: input protocol. Unlike standard text-rendering options that require manual line breaks and fixed font sizes, caption: automatically calculate" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="dynamically-size-multi-line-text-in-imagemagick">Dynamically
+Size Multi-Line Text in ImageMagick</h1>
+<p>Rendering multi-line text dynamically to fit an exact box in
+ImageMagick is achieved using the built-in <code>caption:</code> input
+protocol. Unlike standard text-rendering options that require manual
+line breaks and fixed font sizes, <code>caption:</code> automatically
+calculates word wrapping and scales the font size up or down to maximize
+the text coverage within predefined dimensions.</p>
+<h3 id="the-solution-using-the-caption-protocol">The Solution: Using the
+<code>caption:</code> Protocol</h3>
+<p>To dynamically scale and wrap text into an exact bounding box, define
+the target width and height using the <code>-size</code> option and pass
+your text using <code>caption:</code>. Leave the <code>-pointsize</code>
+option unset (or explicitly set it to <code>0</code>) so ImageMagick can
+automatically compute the optimal font size.</p>
+<p>Here is the standard command for ImageMagick v7:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x300 <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-background</span> lightblue <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">-font</span> Arial <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>       caption:<span class="st">&quot;This is a block of dynamic multi-line text that will automatically wrap and scale to completely fill the specified box.&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>       output.png</span></code></pre></div>
+<p><em>(Note: For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h3 id="overlaying-dynamic-text-onto-an-existing-image">Overlaying
+Dynamic Text onto an Existing Image</h3>
+<p>To place the auto-sized text box over a specific region of an
+existing image, render the caption with a transparent background and
+composite it onto the base canvas.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base_image.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>       <span class="dt">\(</span> <span class="at">-size</span> 500x200 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">-background</span> none <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">-fill</span> white <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">-font</span> Helvetica-Bold <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">-gravity</span> center <span class="dt">\</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>          caption:<span class="st">&quot;Dynamic headline sized perfectly to the region.&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">-geometry</span> +50+100 <span class="dt">\</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>       final_output.jpg</span></code></pre></div>
+<h3 id="key-parameters-explained">Key Parameters Explained</h3>
+<ul>
+<li><strong><code>-size WIDTHxHEIGHT</code></strong>: Defines the strict
+boundary box. ImageMagick will continuously adjust the font size until
+the multi-line string fills this exact area without overflowing.</li>
+<li><strong><code>caption:"..."</code></strong>: Instructs ImageMagick
+to perform automatic word wrapping and dynamic point size calculation.
+Do not use <code>label:</code>, as <code>label:</code> does not perform
+automatic line breaks.</li>
+<li><strong><code>-gravity</code></strong>: Controls the alignment of
+the text inside the bounding box. Options like <code>center</code>,
+<code>northwest</code>, or <code>south</code> determine horizontal
+alignment as well as vertical positioning if the text does not perfectly
+fill the height.</li>
+<li><strong><code>-background none</code></strong>: Makes the bounding
+box background transparent, ideal when compositing text over other
+graphics.</li>
+<li><strong>Avoid <code>-pointsize</code></strong>: Defining a fixed
+<code>-pointsize</code> disables the dynamic sizing algorithm, which
+will cause the text to overflow if the box is too small.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

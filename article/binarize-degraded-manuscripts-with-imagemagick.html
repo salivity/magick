@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binarize Degraded Manuscripts with ImageMagick - magick</title>
+    <meta name="description" content="Binarizing degraded historical manuscripts requires specialized image processing to separate faded or damaged ink from uneven, discolored parchment. Standard global thresholding frequently fails on historical documents due to bleed-through, stains, and n">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/binarize-degraded-manuscripts-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Binarize Degraded Manuscripts with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/binarize-degraded-manuscripts-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Binarizing degraded historical manuscripts requires specialized image processing to separate faded or damaged ink from uneven, discolored parchment. Standard global thresholding frequently fails on historical documents due to bleed-through, stains, and n" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="binarize-degraded-manuscripts-with-imagemagick">Binarize
+Degraded Manuscripts with ImageMagick</h1>
+<p>Binarizing degraded historical manuscripts requires specialized image
+processing to separate faded or damaged ink from uneven, discolored
+parchment. Standard global thresholding frequently fails on historical
+documents due to bleed-through, stains, and non-uniform lighting. This
+guide outlines the most effective ImageMagick methods—specifically Local
+Adaptive Thresholding and Background Division Normalization—to produce
+high-contrast, clean binary text images from degraded sources.</p>
+<h2 id="the-local-adaptive-thresholding-method">The Local Adaptive
+Thresholding Method</h2>
+<p>The simplest native ImageMagick approach to handle varying lighting
+and background stains across a manuscript is Local Adaptive Thresholding
+(<code>-lat</code>). Unlike standard thresholding, which uses a single
+global cutoff value for the entire image, <code>-lat</code> calculates a
+local threshold for each pixel based on the average intensity of the
+surrounding neighborhood.</p>
+<p>The syntax for <code>-lat</code> is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-negate</span> <span class="at">-lat</span> WIDTHxHEIGHT+OFFSET% <span class="at">-negate</span> output.png</span></code></pre></div>
+<ul>
+<li><strong><code>WIDTHxHEIGHT</code></strong>: Defines the pixel size
+of the local analysis window. This should be significantly larger than
+the stroke width of the text (typically between <code>25x25</code> and
+<code>50x50</code>).</li>
+<li><strong><code>OFFSET%</code></strong>: Sets the sensitivity offset
+from the local mean. A typical value ranges between <code>5%</code> and
+<code>15%</code>.</li>
+<li><strong><code>-negate</code></strong>: Used before and after because
+<code>-lat</code> identifies light objects on dark backgrounds by
+default; negating ensures dark text on light parchment is extracted
+properly.</li>
+</ul>
+<h2 id="the-background-division-normalization-method">The Background
+Division Normalization Method</h2>
+<p>For heavily degraded documents with severe aging, foxing, or ink
+bleed-through, Background Division Normalization produces superior
+results. This method estimates the manuscript's uneven background
+illumination, divides the original image by that background model to
+flatten the lighting, and then applies a standard threshold.</p>
+<p>Execute the process using the following command pipeline:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x25 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Divide_Src <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-auto-level</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 80% <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<h3 id="how-the-pipeline-works">How the Pipeline Works:</h3>
+<ol type="1">
+<li><strong><code>-colorspace Gray</code></strong>: Converts the
+manuscript into a single grayscale channel to prepare for tonal
+adjustments.</li>
+<li><strong><code>\( +clone -blur 0x25 \)</code></strong>: Creates an
+in-memory duplicate and applies a heavy Gaussian blur. The large blur
+radius eliminates the text strokes while preserving the macro-level
+illumination gradients, shadows, and stains.</li>
+<li><strong><code>-compose Divide_Src -composite</code></strong>:
+Divides the original image by the blurred background. This normalizes
+the background to near-white across the entire document while keeping
+the text dark.</li>
+<li><strong><code>-auto-level</code></strong>: Stretches the tonal range
+of the normalized image from pure black to pure white to maximize
+contrast.</li>
+<li><strong><code>-threshold 80%</code></strong>: Applies a final binary
+cutoff. Pixels darker than the specified percentage become solid black
+text, while the rest turn pure white.</li>
+</ol>
+<h2 id="noise-reduction-and-text-enhancement">Noise Reduction and Text
+Enhancement</h2>
+<p>Historical manuscripts often retain small background speckles or
+broken character strokes after binarization. You can refine the output
+by adding morphological cleanup steps directly into the processing
+pipeline:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-blur</span> 0x30 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Divide_Src <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-auto-level</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 75% <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-morphology</span> Open Disk:1 <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<ul>
+<li><strong><code>-morphology Open Disk:1</code></strong>: Performs an
+erosion followed by a dilation, which removes isolated single-pixel
+noise (salt-and-pepper artifacts) without altering overall text
+legibility.</li>
+<li><strong><code>-morphology Close Disk:1</code></strong>: If the ink
+is broken or faint, closing can bridge small micro-gaps within
+individual letter strokes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

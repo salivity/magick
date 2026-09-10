@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Sharpen: Best Radius and Sigma Settings - magick</title>
+    <meta name="description" content="ImageMagick’s -sharpen operator enhances edge contrast using two primary values: radius and sigma. Configuring these parameters properly is essential for producing crisp, professional images while preventing high-frequency noise, halos, and excessive g">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-sharpen-best-radius-and-sigma-settings">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Sharpen: Best Radius and Sigma Settings - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-sharpen-best-radius-and-sigma-settings" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s -sharpen operator enhances edge contrast using two primary values: radius and sigma. Configuring these parameters properly is essential for producing crisp, professional images while preventing high-frequency noise, halos, and excessive g" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-sharpen-best-radius-and-sigma-settings">ImageMagick
+Sharpen: Best Radius and Sigma Settings</h1>
+<p>ImageMagick’s <code>-sharpen</code> operator enhances edge contrast
+using two primary values: radius and sigma. Configuring these parameters
+properly is essential for producing crisp, professional images while
+preventing high-frequency noise, halos, and excessive grain from
+degrading the final output.</p>
+<p>The <code>-sharpen</code> operator uses the syntax
+<code>-sharpen {radius}x{sigma}</code>. Although both values dictate how
+the sharpening convolution matrix is constructed, they serve distinct
+mathematical functions in filtering your image.</p>
+<h3 id="the-role-of-radius">The Role of Radius</h3>
+<p>The radius defines the maximum size of the Gaussian convolution
+kernel in pixels. It determines how far outward from each target pixel
+the sharpening algorithm searches for contrast differences.</p>
+<p>In almost all cases, the best practice is to set the radius to
+<code>0</code> (for example, <code>0x1.0</code>). When the radius is set
+to <code>0</code>, ImageMagick automatically calculates an optimal,
+mathematically sound radius based on your chosen sigma (typically <span
+class="math inline">\(3 \times \text{sigma}\)</span>). Manually setting
+an arbitrary, large radius does not increase sharpness; it merely
+increases processing time and can introduce ringing artifacts around
+high-contrast edges.</p>
+<h3 id="the-role-of-sigma">The Role of Sigma</h3>
+<p>Sigma (<span class="math inline">\(\sigma\)</span>) is the standard
+deviation of the Gaussian distribution and represents the true driver of
+the sharpening effect. It controls the bandwidth of the edge-detection
+filter:</p>
+<ul>
+<li><strong>Low Sigma (0.2 to 0.7):</strong> Targets high-frequency,
+fine details. Setting sigma too low often accentuates single-pixel
+variations, leading directly to sharp, amplified image noise and visible
+grain.</li>
+<li><strong>Balanced Sigma (0.8 to 1.5):</strong> Targets mid-frequency
+edges, sharpening recognizable object boundaries without amplifying
+sensor noise or surface texture into grain.</li>
+<li><strong>High Sigma (2.0 and above):</strong> Creates broad, thick
+edges and noticeable light/dark halos around subjects, leading to an
+over-processed appearance.</li>
+</ul>
+<h3 id="recommended-values-to-prevent-grain">Recommended Values to
+Prevent Grain</h3>
+<p>To sharpen an image cleanly without introducing heavy grain, use a
+zero radius paired with a moderate sigma:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-sharpen</span> 0x1.0 output.jpg</span></code></pre></div>
+<ul>
+<li>For subtle web sharpening: <code>-sharpen 0x0.75</code></li>
+<li>For standard photo enhancement: <code>-sharpen 0x1.0</code></li>
+<li>For slightly softer source images: <code>-sharpen 0x1.2</code></li>
+</ul>
+<h3 id="avoiding-grain-limitations-with--unsharp">Avoiding Grain
+Limitations with <code>-unsharp</code></h3>
+<p>The standard <code>-sharpen</code> command applies contrast
+enhancement indiscriminately across every pixel. If an image contains
+flat areas—such as a clear sky or smooth skin—even moderate
+<code>-sharpen</code> values can elevate baseline sensor noise into
+noticeable grain.</p>
+<p>When grain remains an issue regardless of your radius and sigma
+configuration, switch to the <code>-unsharp</code> operator
+(<code>-unsharp {radius}x{sigma}+{amount}+{threshold}</code>). The
+addition of the <code>threshold</code> parameter allows you to specify a
+minimum contrast difference required before sharpening is applied,
+completely protecting flat, noisy regions from being sharpened while
+allowing real edges to be enhanced.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

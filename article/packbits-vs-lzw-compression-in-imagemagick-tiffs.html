@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PackBits vs LZW Compression in ImageMagick TIFFs - magick</title>
+    <meta name="description" content="When generating TIFF files using ImageMagick, choosing the right compression method is critical for balancing file size, processing speed, and compatibility. PackBits and LZW (Lempel-Ziv-Welch) are two standard, lossless compression algorithms supported">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/packbits-vs-lzw-compression-in-imagemagick-tiffs">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="PackBits vs LZW Compression in ImageMagick TIFFs - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/packbits-vs-lzw-compression-in-imagemagick-tiffs" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When generating TIFF files using ImageMagick, choosing the right compression method is critical for balancing file size, processing speed, and compatibility. PackBits and LZW (Lempel-Ziv-Welch) are two standard, lossless compression algorithms supported" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="packbits-vs-lzw-compression-in-imagemagick-tiffs">PackBits vs
+LZW Compression in ImageMagick TIFFs</h1>
+<p>When generating TIFF files using ImageMagick, choosing the right
+compression method is critical for balancing file size, processing
+speed, and compatibility. PackBits and LZW (Lempel-Ziv-Welch) are two
+standard, lossless compression algorithms supported by ImageMagick via
+the <code>-compress</code> flag. This article explains the technical
+differences between PackBits and LZW, evaluates their performance
+regarding compression ratio and processing speed, and outlines when to
+use each format in your ImageMagick workflows.</p>
+<h3 id="algorithmic-differences">Algorithmic Differences</h3>
+<ul>
+<li><strong>PackBits (<code>-compress PackBits</code>):</strong>
+PackBits is a simple byte-level Run-Length Encoding (RLE) scheme
+introduced by Apple for Macintosh TIFF files. It identifies repeated
+sequences of identical bytes and stores them as a count followed by the
+byte value. Because it only looks for consecutive repeating bytes, it is
+extremely basic and computationally inexpensive.</li>
+<li><strong>LZW (<code>-compress LZW</code>):</strong> LZW is a
+dictionary-based compression algorithm. Instead of only looking for
+repeated single bytes, it builds a table of repeating strings and
+patterns as it reads the data, replacing frequent patterns with shorter
+codes. This allows LZW to compress more complex image data far more
+effectively than basic run-length encoding.</li>
+</ul>
+<h3 id="compression-efficiency-and-file-size">Compression Efficiency and
+File Size</h3>
+<ul>
+<li><strong>Continuous-Tone Imagery (Photographs):</strong> PackBits
+performs poorly on photographic images, scanned gradients, or noisy data
+because adjacent bytes rarely have identical values. In some cases,
+PackBits can even slightly increase the file size of continuous-tone
+images due to run-length metadata overhead. LZW, while not as aggressive
+as ZIP (Deflate), handles continuous-tone imagery significantly better
+by identifying recurring bit patterns.</li>
+<li><strong>Simple Graphics and Line Art:</strong> For bilevel (1-bit
+black and white) images, simple line art, or screenshots with vast areas
+of solid color, PackBits can achieve adequate compression. However, LZW
+generally matches or exceeds PackBits even on these asset types.</li>
+</ul>
+<h3 id="processing-speed-and-resource-usage">Processing Speed and
+Resource Usage</h3>
+<ul>
+<li><strong>PackBits:</strong> Because the algorithm requires virtually
+no memory structures and relies on simple loop checks, it encodes and
+decodes at near-instantaneous speeds with negligible CPU overhead.</li>
+<li><strong>LZW:</strong> Maintaining and parsing the pattern dictionary
+requires more memory and CPU cycles. While still fast on modern
+hardware, LZW is noticeably slower than PackBits during large
+batch-processing tasks in ImageMagick.</li>
+</ul>
+<h3 id="compatibility">Compatibility</h3>
+<p>Both algorithms are part of the baseline TIFF specification and enjoy
+universal support across legacy imaging systems, modern software,
+desktop operating systems, and commercial printing RIP (Raster Image
+Processor) software. The historical patent issues surrounding LZW
+expired in the early 2000s, making both formats entirely free of
+licensing restrictions.</p>
+<h3 id="imagemagick-usage-and-recommendations">ImageMagick Usage and
+Recommendations</h3>
+<p>To specify either compression type in ImageMagick, use the
+<code>-compress</code> option before defining your output file:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using PackBits</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-compress</span> PackBits output_packbits.tif</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Using LZW</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-compress</span> LZW output_lzw.tif</span></code></pre></div>
+<p><strong>When to choose PackBits:</strong></p>
+<ul>
+<li>You are generating simple images or line art where encoding speed is
+the absolute highest priority.</li>
+<li>You are targeting legacy workflows or microcontrollers with severe
+CPU and memory limitations.</li>
+</ul>
+<p><strong>When to choose LZW:</strong></p>
+<ul>
+<li>You want a reliable, universally supported lossless compression
+method that delivers significantly smaller file sizes on diverse image
+types without sacrificing compatibility.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

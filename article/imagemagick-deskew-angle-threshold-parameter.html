@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Deskew Angle Threshold Parameter - magick</title>
+    <meta name="description" content="This guide explains how to control the deskew angle threshold during document cleanup in ImageMagick. You will learn the exact command-line parameter used for straightening scanned documents, how the threshold value affects angle detection sensitivity, a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-deskew-angle-threshold-parameter">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Deskew Angle Threshold Parameter - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-deskew-angle-threshold-parameter" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to control the deskew angle threshold during document cleanup in ImageMagick. You will learn the exact command-line parameter used for straightening scanned documents, how the threshold value affects angle detection sensitivity, a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-deskew-angle-threshold-parameter">ImageMagick Deskew
+Angle Threshold Parameter</h1>
+<p>This guide explains how to control the deskew angle threshold during
+document cleanup in ImageMagick. You will learn the exact command-line
+parameter used for straightening scanned documents, how the threshold
+value affects angle detection sensitivity, and how to implement it
+effectively in your image processing workflows.</p>
+<hr />
+<h3 id="the--deskew-parameter">The <code>-deskew</code> Parameter</h3>
+<p>The parameter that controls the deskew threshold in ImageMagick is
+<code>-deskew</code>.</p>
+<p>The general syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-deskew</span> <span class="op">&lt;</span>threshold<span class="op">&gt;</span>% output.png</span></code></pre></div>
+<p>For legacy versions (ImageMagick 6), use <code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-deskew</span> <span class="op">&lt;</span>threshold<span class="op">&gt;</span>% output.png</span></code></pre></div>
+<hr />
+<h3 id="how-the-deskew-threshold-works">How the Deskew Threshold
+Works</h3>
+<p>The <code>-deskew</code> operator straightens scanned text documents
+by analyzing projection profiles along various rotation angles. The
+threshold value represents the peak-to-valley ratio or correlation
+required to consider a detected angle valid:</p>
+<ul>
+<li><strong>Standard Default (<code>40%</code>):</strong> A threshold of
+<code>40%</code> is recommended for most typical text documents. It
+provides a balanced sensitivity that detects document tilt while
+minimizing false rotations on non-text elements.</li>
+<li><strong>Lower Values (e.g.,
+<code>20%</code>–<code>30%</code>):</strong> Lower percentages make the
+algorithm more sensitive, allowing it to detect smaller, subtler skews.
+However, lower values increase the risk of miscalculating the angle if
+the page contains large images, diagrams, or heavy noise.</li>
+<li><strong>Higher Values (e.g.,
+<code>60%</code>–<code>80%</code>):</strong> Higher percentages require
+stronger, more distinct lines of text before applying rotation. Use
+higher thresholds if your documents contain mixed media or illustrations
+to prevent erroneous tilting.</li>
+</ul>
+<hr />
+<h3 id="practical-usage-examples">Practical Usage Examples</h3>
+<h4 id="standard-deskew-operation">Standard Deskew Operation</h4>
+<p>To straighten a standard scanned page with the default threshold:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.tif <span class="at">-deskew</span> 40% output.tif</span></code></pre></div>
+<h4 id="deskewing-with-custom-background-color">Deskewing with Custom
+Background Color</h4>
+<p>When ImageMagick rotates an image to deskew it, the newly exposed
+corner areas are filled with the background color. Set
+<code>-background</code> before <code>-deskew</code> to ensure clean
+borders:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.tif <span class="at">-background</span> white <span class="at">-deskew</span> 40% output.tif</span></code></pre></div>
+<h4 id="pre-processing-for-improved-accuracy">Pre-Processing for
+Improved Accuracy</h4>
+<p>For low-contrast or noisy scans, converting the image to grayscale or
+binarizing it before computing the deskew angle can significantly
+improve detection accuracy:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scan.tif <span class="at">-background</span> white <span class="at">-deskew</span> 40% <span class="at">-trim</span> +repage cleaned.tif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prevent Clipping in ImageMagick Perspective Distortion - magick</title>
+    <meta name="description" content="Applying perspective transformations in ImageMagick often results in clipped or cropped edges when distorted pixels fall outside the original image boundaries. This guide explains how to prevent canvas clipping entirely by replacing the standard -distort">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/prevent-clipping-in-imagemagick-perspective-distortion">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Prevent Clipping in ImageMagick Perspective Distortion - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/prevent-clipping-in-imagemagick-perspective-distortion" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying perspective transformations in ImageMagick often results in clipped or cropped edges when distorted pixels fall outside the original image boundaries. This guide explains how to prevent canvas clipping entirely by replacing the standard -distort" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="prevent-clipping-in-imagemagick-perspective-distortion">Prevent
+Clipping in ImageMagick Perspective Distortion</h1>
+<p>Applying perspective transformations in ImageMagick often results in
+clipped or cropped edges when distorted pixels fall outside the original
+image boundaries. This guide explains how to prevent canvas clipping
+entirely by replacing the standard <code>-distort</code> operator with
+<code>+distort</code>, allowing ImageMagick to automatically calculate
+an expanded bounding box that fits the entire transformed image.</p>
+<h3 id="understanding--distort-vs-distort">Understanding
+<code>-distort</code> vs. <code>+distort</code></h3>
+<p>By default, ImageMagick provides two variants for distortion
+operations:</p>
+<ul>
+<li><strong><code>-distort</code> (with a minus sign):</strong>
+Constrains the output image to the original dimensions and canvas
+offset. Any part of the distorted image that extends beyond the original
+coordinates is clipped and lost.</li>
+<li><strong><code>+distort</code> (with a plus sign):</strong>
+Automatically recalculates the output canvas size and virtual offset to
+encompass the entire distorted result, preventing any visual data from
+being clipped.</li>
+</ul>
+<h3 id="the-solution-using-distort-perspective">The Solution: Using
+<code>+distort Perspective</code></h3>
+<p>To prevent clipping, replace <code>-distort</code> with
+<code>+distort</code> in your command line execution.</p>
+<h4 id="basic-syntax-imagemagick-v7">Basic Syntax (ImageMagick v7)</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +distort Perspective <span class="st">&quot;sx0,sy0,dx0,dy0  sx1,sy1,dx1,dy1  sx2,sy2,dx2,dy2  sx3,sy3,dx3,dy3&quot;</span> output.png</span></code></pre></div>
+<p><em>(For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<p>The coordinate mapping pairs represent:</p>
+<ul>
+<li><code>sx,sy</code>: Source coordinates (original image).</li>
+<li><code>dx,dy</code>: Destination coordinates (target
+perspective).</li>
+</ul>
+<h3 id="important-considerations">Important Considerations</h3>
+<h4 id="1-resetting-the-virtual-canvas-with-repage">1. Resetting the
+Virtual Canvas with <code>+repage</code></h4>
+<p>When <code>+distort</code> expands the image, it sets a virtual
+canvas offset (page geometry) so the transformed image knows its
+position relative to the origin <code>0,0</code>. If you save to formats
+like PNG or TIFF, some image viewers might misinterpret this metadata,
+causing the image to appear misplaced or cropped.</p>
+<p>Append <code>+repage</code> immediately after the distortion to
+discard the offset metadata and reset the canvas origin:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +distort Perspective <span class="st">&quot;0,0,20,10  100,0,90,15  100,100,95,85  0,100,10,90&quot;</span> +repage output.png</span></code></pre></div>
+<h4 id="2-managing-background-transparency-and-color">2. Managing
+Background Transparency and Color</h4>
+<p>Expanding the canvas naturally exposes empty areas around the
+transformed image. You can define what fills this space using the
+<code>-background</code> setting:</p>
+<ul>
+<li><strong>Transparent background (ideal for PNG):</strong>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> none +distort Perspective <span class="st">&quot;...&quot;</span> +repage output.png</span></code></pre></div></li>
+<li><strong>Solid color background (ideal for JPEG):</strong>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-background</span> white <span class="at">-alpha</span> remove +distort Perspective <span class="st">&quot;...&quot;</span> +repage output.jpg</span></code></pre></div></li>
+</ul>
+<p>By swapping <code>-distort</code> for <code>+distort</code> and
+pairing it with <code>+repage</code>, you ensure your
+perspective-shifted images retain 100% of their visual content
+regardless of how drastically the perspective points are angled.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Tritanopia in ImageMagick with Color Matrix - magick</title>
+    <meta name="description" content="This article explains how to simulate tritanopia (blue-yellow color blindness) on digital images using ImageMagick. By applying a 3×3 color transformation matrix via the -color-matrix operator, you can accurately recalculate standard sRGB values to repr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/simulate-tritanopia-in-imagemagick-with-color-matrix">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Simulate Tritanopia in ImageMagick with Color Matrix - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/simulate-tritanopia-in-imagemagick-with-color-matrix" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to simulate tritanopia (blue-yellow color blindness) on digital images using ImageMagick. By applying a 3×3 color transformation matrix via the -color-matrix operator, you can accurately recalculate standard sRGB values to repr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="simulate-tritanopia-in-imagemagick-with-color-matrix">Simulate
+Tritanopia in ImageMagick with Color Matrix</h1>
+<p>This article explains how to simulate tritanopia (blue-yellow color
+blindness) on digital images using ImageMagick. By applying a 3×3 color
+transformation matrix via the <code>-color-matrix</code> operator, you
+can accurately recalculate standard sRGB values to represent how colors
+appear to individuals lacking functional S-cones (blue-sensitive
+cones).</p>
+<h2 id="the-tritanopia-color-transformation-matrix">The Tritanopia Color
+Transformation Matrix</h2>
+<p>To simulate tritanopia, the standard linear RGB transformation matrix
+derived from physiological color vision deficiency models (such as the
+Brettel, Viénot, and Mollon model) is:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Channel</th>
+<th style="text-align: left;">Red (Input)</th>
+<th style="text-align: left;">Green (Input)</th>
+<th style="text-align: left;">Blue (Input)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Red (Output)</strong></td>
+<td style="text-align: left;">0.950</td>
+<td style="text-align: left;">0.050</td>
+<td style="text-align: left;">0.000</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Green (Output)</strong></td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: left;">0.433</td>
+<td style="text-align: left;">0.567</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Blue (Output)</strong></td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: left;">0.475</td>
+<td style="text-align: left;">0.525</td>
+</tr>
+</tbody>
+</table>
+<p>In this transformation:</p>
+<ul>
+<li>The <strong>Red channel</strong> is composed of 95% original red and
+5% green.</li>
+<li>The <strong>Green channel</strong> is composed of 43.3% original
+green and 56.7% original blue.</li>
+<li>The <strong>Blue channel</strong> is composed of 47.5% original
+green and 52.5% original blue.</li>
+</ul>
+<h2 id="imagemagick-command-syntax">ImageMagick Command Syntax</h2>
+<p>ImageMagick processes the <code>-color-matrix</code> operator using a
+flattened, row-major order string of coefficients.</p>
+<h3 id="imagemagick-v7">ImageMagick v7</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">    0.950  0.050  0.000 </span><span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.000  0.433  0.567 </span><span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.000  0.475  0.525 </span><span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span> output_tritanopia.png</span></code></pre></div>
+<h3 id="imagemagick-v6">ImageMagick v6</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">    0.950  0.050  0.000 </span><span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">    0.000  0.433  0.567 </span><span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">    0.000  0.475  0.525 </span><span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span> output_tritanopia.png</span></code></pre></div>
+<h3 id="single-line-execution">Single-Line Execution</h3>
+<p>You can also pass the matrix as a single comma- or space-separated
+string:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot;0.95 0.05 0 0 0.433 0.567 0 0.475 0.525&quot;</span> output_tritanopia.png</span></code></pre></div>
+<h2 id="considerations-for-accuracy">Considerations for Accuracy</h2>
+<ul>
+<li><strong>Color Space:</strong> The matrix is calibrated for standard
+linear RGB color spaces. For strict scientific accuracy, convert the
+image to linear RGB before applying the matrix, then convert back to
+sRGB:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> RGB <span class="at">-color-matrix</span> <span class="st">&quot;0.95 0.05 0 0 0.433 0.567 0 0.475 0.525&quot;</span> <span class="at">-colorspace</span> sRGB output_tritanopia.png</span></code></pre></div></li>
+<li><strong>Alpha Channels:</strong> If your input image includes
+transparency, ImageMagick preserves alpha channels automatically unless
+a 4×4 or 5×5 matrix is explicitly defined.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

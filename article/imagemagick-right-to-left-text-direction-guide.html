@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Right to Left Text Direction Guide - magick</title>
+    <meta name="description" content="Rendering scripts such as Arabic, Hebrew, Persian, and Urdu requires a non-standard text flow that progresses horizontally from right to left. This article explains how ImageMagick’s -direction right-to-left setting manages text placement, adjusts char">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-right-to-left-text-direction-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Right to Left Text Direction Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-right-to-left-text-direction-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rendering scripts such as Arabic, Hebrew, Persian, and Urdu requires a non-standard text flow that progresses horizontally from right to left. This article explains how ImageMagick’s -direction right-to-left setting manages text placement, adjusts char" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-right-to-left-text-direction-guide">ImageMagick
+Right to Left Text Direction Guide</h1>
+<p>Rendering scripts such as Arabic, Hebrew, Persian, and Urdu requires
+a non-standard text flow that progresses horizontally from right to
+left. This article explains how ImageMagick’s
+<code>-direction right-to-left</code> setting manages text placement,
+adjusts character progression vectors, and interacts with font rendering
+engines to correctly display Middle Eastern languages.</p>
+<h3 id="understanding-horizontal-text-progression">Understanding
+Horizontal Text Progression</h3>
+<p>By default, ImageMagick processes text using a left-to-right (LTR)
+vector, standard for Latin, Cyrillic, and Greek alphabets. Under this
+standard behavior, the rendering engine positions the initial glyph at
+an anchor coordinate and advances subsequent glyphs incrementally along
+the positive X-axis.</p>
+<p>When the <code>-direction right-to-left</code> flag is specified,
+ImageMagick reverses this progression vector. Instead of advancing to
+the right, the rendering engine advances along the negative X-axis. The
+base coordinate origin for the text string shifts, anchoring the first
+character on the right side of the bounding box and laying down each
+subsequent character to its left.</p>
+<h3 id="interaction-with-text-shaping-engines">Interaction with Text
+Shaping Engines</h3>
+<p>Middle Eastern languages—particularly Arabic and Persian—require more
+than just reversing the order of characters. They require complex text
+layout (CTL), which involves:</p>
+<ol type="1">
+<li><strong>Contextual Shaping:</strong> Arabic glyphs change their
+visual form depending on whether they appear in an isolated, initial,
+medial, or final position within a word.</li>
+<li><strong>Ligature Substitution:</strong> Specific character pairs
+merge into distinct, single glyphs.</li>
+<li><strong>Bidirectional (BiDi) Ordering:</strong> Strings containing a
+mix of Latin numbers/words and RTL script must properly alternate
+directions according to the Unicode Bidirectional Algorithm.</li>
+</ol>
+<p>ImageMagick delegates this complex shaping to libraries such as
+FreeType, HarfBuzz, and Raqm. When <code>-direction right-to-left</code>
+is declared in an environment compiled with Raqm and HarfBuzz support,
+ImageMagick passes the direction flag directly to the text shaper. This
+ensures that:</p>
+<ul>
+<li>Glyphs are shaped according to their correct logical reading order
+rather than visual insertion order.</li>
+<li>Kerning and mark positioning (such as Arabic <em>tashkeel</em> or
+Hebrew <em>niqqud</em>) are calculated relative to the right-to-left
+progression.</li>
+<li>Numbers within the text maintain standard left-to-right digit
+progression within the overall right-to-left sentence flow.</li>
+</ul>
+<h3 id="syntax-and-implementation">Syntax and Implementation</h3>
+<p>To render RTL text using standard ImageMagick tools, the
+<code>-direction</code> parameter must precede the text definition (such
+as <code>label:</code> or <code>annotate:</code>).</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white <span class="at">-fill</span> black <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-font</span> <span class="st">&quot;Amiri-Regular.ttf&quot;</span> <span class="at">-pointsize</span> 48 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-direction</span> right-to-left <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>       label:<span class="st">&quot;مرحبا بالعالم&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>       output.png</span></code></pre></div>
+<p>When using <code>-annotate</code> or <code>-draw</code>, the
+coordinate supplied represents the right-hand starting point of the
+baseline when <code>-direction right-to-left</code> is active.</p>
+<h3 id="alignment-and-gravity-adjustments">Alignment and Gravity
+Adjustments</h3>
+<p>The <code>-direction</code> setting directly affects how ImageMagick
+interprets text alignment via the <code>-gravity</code> option.</p>
+<ul>
+<li>In default LTR rendering, left-aligned text
+(<code>-gravity West</code>) anchors the start of the line.</li>
+<li>In RTL rendering, the start of the line corresponds to the right
+margin. Therefore, pairing <code>-direction right-to-left</code> with
+<code>-gravity East</code> or <code>-gravity NorthEast</code> aligns the
+start of the text block against the right edge of the canvas, mirroring
+the standard layout expected by readers of Middle Eastern scripts.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

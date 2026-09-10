@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWA Resampling vs Orthogonal Scaling in ImageMagick - magick</title>
+    <meta name="description" content="Generalized Elliptical Weighted Average (EWA) resampling in ImageMagick provides superior anisotropic filtering and eliminates moiré artifacts during image transformation, but it introduces a substantial computational penalty compared to traditional ort">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/ewa-resampling-vs-orthogonal-scaling-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="EWA Resampling vs Orthogonal Scaling in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/ewa-resampling-vs-orthogonal-scaling-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Generalized Elliptical Weighted Average (EWA) resampling in ImageMagick provides superior anisotropic filtering and eliminates moiré artifacts during image transformation, but it introduces a substantial computational penalty compared to traditional ort" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="ewa-resampling-vs-orthogonal-scaling-in-imagemagick">EWA
+Resampling vs Orthogonal Scaling in ImageMagick</h1>
+<p>Generalized Elliptical Weighted Average (EWA) resampling in
+ImageMagick provides superior anisotropic filtering and eliminates moiré
+artifacts during image transformation, but it introduces a substantial
+computational penalty compared to traditional orthogonal scaling. While
+standard orthogonal scaling applies two fast, separable 1D passes across
+image axes, generalized EWA evaluates an unconstrained 2D elliptical
+footprint for every destination pixel. Understanding the exact
+computational trade-offs between these two methods requires analyzing
+algorithmic complexity, per-pixel matrix operations, and the dramatic
+performance divergence that occurs during downscaling.</p>
+<h3
+id="algorithmic-complexity-separable-vs-non-separable-filtering">Algorithmic
+Complexity: Separable vs. Non-Separable Filtering</h3>
+<p>The primary source of the performance difference lies in filter
+dimensionality:</p>
+<ul>
+<li><strong>Orthogonal Scaling (<span
+class="math inline">\(O(2R)\)</span>):</strong> Standard resizing
+operations (such as <code>-resize</code>) use separable filters. Scaling
+is split into two independent 1D passes: first horizontally along the
+rows, then vertically down the columns. If a reconstruction filter has a
+support radius of <span class="math inline">\(R\)</span>, computing an
+output pixel requires sampling <span class="math inline">\(R\)</span>
+source pixels in the horizontal pass and <span
+class="math inline">\(R\)</span> source pixels in the vertical pass,
+leading to an algorithmic complexity of <span class="math inline">\(O(R
++ R) = O(2R)\)</span> operations per pixel.</li>
+<li><strong>Generalized EWA Resampling (<span
+class="math inline">\(O(R^2)\)</span>):</strong> Generalized EWA (used
+in operations like <code>-distort</code>) is a true 2D, non-separable
+filter. Instead of separate linear passes, ImageMagick reconstructs each
+output pixel by integrating an arbitrary elliptical area in source
+space. Evaluating this ellipse requires probing a 2D bounding box,
+resulting in a complexity of <span class="math inline">\(O(R_x \times
+R_y) \approx O(R^2)\)</span> operations per pixel.</li>
+</ul>
+<p>As filter support radius increases, the <span
+class="math inline">\(O(R^2)\)</span> complexity of EWA scales
+quadratically, whereas orthogonal filtering scales linearly.</p>
+<h3 id="per-pixel-computational-overhead">Per-Pixel Computational
+Overhead</h3>
+<p>Beyond the raw sample count, EWA imposes significantly higher
+mathematical overhead for every sample evaluated:</p>
+<ol type="1">
+<li><strong>Mapping Derivatives:</strong> EWA must calculate partial
+derivatives (the Jacobian matrix) at every destination pixel to
+determine local scaling, shearing, and rotation in source space.</li>
+<li><strong>Ellipse Geometry Formulation:</strong> The Jacobian matrix
+is combined with the filter's covariance matrix to establish the
+coefficients of an implicit bivariate quadratic equation: <span
+class="math inline">\(Ax^2 + Bxy + Cy^2 = F\)</span>.</li>
+<li><strong>Weight Computation:</strong> For every candidate pixel
+within the bounding box, ImageMagick evaluates this quadratic form to
+determine whether the point lies inside the ellipse and to compute its
+radial distance for weight lookup. Orthogonal scaling bypasses these
+matrix evaluations entirely, relying on simple 1D coordinate offsets and
+pre-calculated weight tables.</li>
+</ol>
+<h3 id="the-impact-of-downscaling">The Impact of Downscaling</h3>
+<p>The performance gap between orthogonal scaling and generalized EWA is
+most pronounced during heavy minification (downscaling):</p>
+<ul>
+<li>In <strong>orthogonal downscaling</strong>, the 1D filter radius
+expands proportionally to the reduction factor <span
+class="math inline">\(S\)</span>. The number of samples evaluated per
+pixel grows linearly: <span class="math inline">\(2 \times (R \cdot
+S)\)</span>.</li>
+<li>In <strong>generalized EWA downscaling</strong>, both axes of the
+elliptical footprint expand proportionally to <span
+class="math inline">\(S\)</span>. The area of the ellipse—and
+consequently the number of pixel lookups required—grows quadratically:
+<span class="math inline">\(\pi \times (R_x \cdot S) \times (R_y \cdot
+S) \propto S^2\)</span>.</li>
+</ul>
+<p>Downscaling an image by a factor of 4 increases the orthogonal sample
+footprint by approximately <span class="math inline">\(4\times\)</span>,
+whereas the EWA sample footprint expands by approximately <span
+class="math inline">\(16\times\)</span>.</p>
+<h3 id="practical-performance-cost">Practical Performance Cost</h3>
+<p>In real-world ImageMagick implementations, generalized EWA resampling
+via <code>-distort</code> is typically <strong>5 to 30 times
+slower</strong> than orthogonal scaling via <code>-resize</code>. When
+performing 1:1 affine mappings or subtle scaling, EWA often runs 3x to
+8x slower due to matrix overhead and cache locality limits. Under severe
+downsampling or extreme perspective transformations where the projected
+ellipse encompasses large swaths of the source image, the processing
+time of EWA can exceed that of orthogonal scaling by two orders of
+magnitude unless clamped by limiting parameters (such as
+<code>filter:blur</code> or bounding maximum support).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

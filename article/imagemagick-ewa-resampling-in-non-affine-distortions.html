@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick EWA Resampling in Non-Affine Distortions - magick</title>
+    <meta name="description" content="This article explains how ImageMagick applies Elliptical Weighted Average (EWA) resampling to produce sharp, alias-free results during non-affine image distortions. When executing non-linear transformations such as perspective, polar, barrel, or polynomi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-ewa-resampling-in-non-affine-distortions">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick EWA Resampling in Non-Affine Distortions - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-ewa-resampling-in-non-affine-distortions" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick applies Elliptical Weighted Average (EWA) resampling to produce sharp, alias-free results during non-affine image distortions. When executing non-linear transformations such as perspective, polar, barrel, or polynomi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-ewa-resampling-in-non-affine-distortions">ImageMagick
+EWA Resampling in Non-Affine Distortions</h1>
+<p>This article explains how ImageMagick applies Elliptical Weighted
+Average (EWA) resampling to produce sharp, alias-free results during
+non-affine image distortions. When executing non-linear transformations
+such as perspective, polar, barrel, or polynomial mappings, the pixel
+footprint deforms dynamically across the surface. ImageMagick handles
+this by calculating local derivative matrices for each pixel, mapping
+circular output footprints into source ellipses, and performing weighted
+integration through specialized radial filter lookups.</p>
+<h2 id="the-challenge-of-non-affine-mapping">The Challenge of Non-Affine
+Mapping</h2>
+<p>In affine transformations, the scaling, rotation, and shearing
+factors remain uniform across the entire image, meaning a single
+transformation matrix applies to all pixels. Non-affine distortions—such
+as perspective projections, bilinear grids, and lens corrections—feature
+continuously varying scales and orientations across the plane. A uniform
+filter size would cause severe blurring in stretched regions or harsh
+aliasing (moiré patterns) in compressed regions. EWA resampling solves
+this by adapting the reconstruction filter's size, shape, and
+orientation on a per-pixel basis.</p>
+<h2 id="step-1-inverse-mapping-and-local-linearization">Step 1: Inverse
+Mapping and Local Linearization</h2>
+<p>ImageMagick processes distortions using an inverse mapping approach.
+Instead of pushing source pixels onto the target grid, it iterates
+through each destination pixel <span class="math inline">\((x,
+y)\)</span> and determines the corresponding coordinate <span
+class="math inline">\((u, v)\)</span> in the source image.</p>
+<p>Because the mapping function <span class="math inline">\(f(x, y) =
+(u, v)\)</span> is non-linear in non-affine distortions, ImageMagick
+linearizes the transformation locally at each destination pixel
+coordinate using partial derivatives:</p>
+<p><span class="math display">\[J = \begin{bmatrix} \frac{\partial
+u}{\partial x} &amp; \frac{\partial u}{\partial y} \\ \frac{\partial
+v}{\partial x} &amp; \frac{\partial v}{\partial y}
+\end{bmatrix}\]</span></p>
+<p>Depending on the distortion type:</p>
+<ul>
+<li><strong>Analytic Derivatives:</strong> For well-defined geometric
+functions (such as perspective or affine), ImageMagick evaluates exact
+mathematical formulas for the partial derivatives at <span
+class="math inline">\((x, y)\)</span>.</li>
+<li><strong>Numerical Approximation:</strong> For complex or free-form
+mappings, ImageMagick approximates the partial derivatives using finite
+differences by sampling adjacent pixel offsets: <span
+class="math inline">\((x + \delta, y)\)</span> and <span
+class="math inline">\((x, y + \delta)\)</span>.</li>
+</ul>
+<h2 id="step-2-formulating-the-resampling-ellipse">Step 2: Formulating
+the Resampling Ellipse</h2>
+<p>In the destination space, a single pixel's sampling area is typically
+treated as a unit circle. When mapped backward through the Jacobian
+matrix <span class="math inline">\(J\)</span>, this circular footprint
+transforms into an ellipse in the source image space.</p>
+<p>ImageMagick constructs the quadratic form of the ellipse
+equation:</p>
+<p><span class="math display">\[Q(u&#39;, v&#39;) = A u&#39;^2 + 2B
+u&#39;v&#39; + C v&#39;^2\]</span></p>
+<p>Where <span class="math inline">\((u&#39;, v&#39;)\)</span> are
+coordinates relative to the central mapped point <span
+class="math inline">\((u_0, v_0)\)</span>. The coefficients <span
+class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>, and <span
+class="math inline">\(C\)</span> define the shape, eccentricity, and
+orientation of the ellipse:</p>
+<ul>
+<li>If the image is contracted (minification), the ellipse expands in
+source space to gather more pixels, preventing aliasing.</li>
+<li>If the image is enlarged (magnification), the ellipse shrinks. To
+prevent the ellipse from collapsing into a zero-radius singularity—which
+would cause interpolation artifacts—ImageMagick imposes a minimum filter
+radius (often clamping to standard reconstruction filters like Robidoux,
+Mitchell, or Gaussian).</li>
+</ul>
+<h2 id="step-3-determining-the-bounding-box">Step 3: Determining the
+Bounding Box</h2>
+<p>Evaluating every source pixel for every destination pixel is
+computationally prohibitive. ImageMagick limits processing by computing
+an axis-aligned bounding box around the source ellipse.</p>
+<p>Using the coefficients <span class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>, and <span
+class="math inline">\(C\)</span>, the algorithm determines the maximum
+extents:</p>
+<p><span class="math display">\[u_{max} = \sqrt{\frac{C \cdot F^2}{AC -
+B^2}}, \quad v_{max} = \sqrt{\frac{A \cdot F^2}{AC - B^2}}\]</span></p>
+<p>Here, <span class="math inline">\(F\)</span> represents the cutoff
+radius of the chosen filtering kernel (such as the support radius of a
+Gaussian or cylindrical Lanczos function). ImageMagick then loops
+exclusively over integer source coordinates within the range:</p>
+<p><span class="math display">\[[u_0 - u_{max}, u_0 + u_{max}] \times
+[v_0 - v_{max}, v_0 + v_{max}]\]</span></p>
+<h2 id="step-4-radial-weight-calculation-and-accumulation">Step 4:
+Radial Weight Calculation and Accumulation</h2>
+<p>For every integer coordinate <span class="math inline">\((u,
+v)\)</span> inside the bounding box, ImageMagick computes the elliptical
+distance metric:</p>
+<p><span class="math display">\[r^2 = A(u - u_0)^2 + 2B(u - u_0)(v -
+v_0) + C(v - v_0)^2\]</span></p>
+<p>If <span class="math inline">\(r^2 \le F^2\)</span>, the point lies
+within the footprint of the filter:</p>
+<ol type="1">
+<li><strong>Weight Lookup:</strong> The value <span
+class="math inline">\(r^2\)</span> is scaled to index into a precomputed
+one-dimensional lookup table containing the radial weighting filter
+values (often a windowed Jinc/Bessel or Gaussian function).</li>
+<li><strong>Value Accumulation:</strong> Color channels (and alpha
+channel values) are multiplied by the retrieved weight and added to a
+running sum.</li>
+<li><strong>Weight Normalization:</strong> The total accumulated color
+values are divided by the total accumulated weight, ensuring energy
+conservation and preventing unintended brightness shifts.</li>
+</ol>
+<p>Through this combination of local Jacobian approximation, ellipse
+projection, and normalized radial weighting, ImageMagick provides
+seamless anti-aliasing across surfaces with severe perspective
+compression and non-linear stretching.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

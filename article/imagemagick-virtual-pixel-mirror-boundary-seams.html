@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Virtual-Pixel Mirror Boundary Seams - magick</title>
+    <meta name="description" content="When applying geometric distortions or warping transformations in ImageMagick, sampling algorithms frequently reference coordinates extending beyond the original image bounds. This article explains how setting the -virtual-pixel mirror attribute mathemat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-mirror-boundary-seams">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Virtual-Pixel Mirror Boundary Seams - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-virtual-pixel-mirror-boundary-seams" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When applying geometric distortions or warping transformations in ImageMagick, sampling algorithms frequently reference coordinates extending beyond the original image bounds. This article explains how setting the -virtual-pixel mirror attribute mathemat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-virtual-pixel-mirror-boundary-seams">ImageMagick
+Virtual-Pixel Mirror Boundary Seams</h1>
+<p>When applying geometric distortions or warping transformations in
+ImageMagick, sampling algorithms frequently reference coordinates
+extending beyond the original image bounds. This article explains how
+setting the <code>-virtual-pixel mirror</code> attribute mathematically
+reflects edge pixels to create smooth visual continuities, effectively
+eliminating the harsh seams, artifacts, and edge clamping lines
+typically introduced during coordinate transformations.</p>
+<h3 id="the-cause-of-boundary-seams-during-warping">The Cause of
+Boundary Seams During Warping</h3>
+<p>During image distortion operations—such as perspective, barrel,
+polar, or rotational mapping using the <code>-distort</code>
+operator—ImageMagick uses reverse mapping. For every pixel in the target
+canvas, the algorithm calculates the corresponding coordinate in the
+source image. Non-linear distortions often cause these lookup
+coordinates to fall outside the native boundaries (0 to width, 0 to
+height) of the input image.</p>
+<p>When coordinates exceed bounds, ImageMagick consults the
+<code>-virtual-pixel</code> setting to determine what color value to
+sample. Default or mismatched settings cause distinct artifacts:</p>
+<ul>
+<li><strong>Edge:</strong> Clamps out-of-bounds coordinates to the
+outermost single row or column of pixels, producing artificial streaks
+or banding.</li>
+<li><strong>Transparent / Black / Background:</strong> Assigns a flat
+color or transparency, creating sharp, contrasting borders along the
+transition.</li>
+<li><strong>Tile:</strong> Repeats the image periodically, which
+introduces visible boundary seams unless the source image is already
+perfectly seamless.</li>
+</ul>
+<p>These abrupt color changes are intensified when Elliptical Weighted
+Average (EWA) resampling or multi-tap interpolation filters process the
+edge, smearing the contrasting non-image data into the visible
+frame.</p>
+<h3 id="how-the-mirror-option-solves-the-issue">How the Mirror Option
+Solves the Issue</h3>
+<p>The <code>-virtual-pixel mirror</code> setting creates a mirrored
+reflection of the source pixels across every boundary line. When a
+distortion algorithm requests a coordinate that sits outside the image
+frame, the coordinate is mathematically mapped back inside by reversing
+its vector relative to the nearest edge:</p>
+<p><span class="math display">\[x_{\text{virtual}} = 2 \cdot
+x_{\text{boundary}} - x_{\text{requested}}\]</span></p>
+<p>This symmetry directly addresses boundary seams in several critical
+ways:</p>
+<h4 id="1-first-order-derivative-and-color-continuity">1. First-Order
+Derivative and Color Continuity</h4>
+<p>Because the pixel data immediately outside the boundary mirrors the
+pixel data immediately inside, there is no sudden jump in color,
+luminance, or pattern frequency. The mathematical derivative of color
+across the border remains continuous.</p>
+<h4 id="2-resampling-filter-consistency">2. Resampling Filter
+Consistency</h4>
+<p>Modern ImageMagick warping relies heavily on EWA filtering, which
+uses an elliptical footprint that gathers multiple surrounding pixels to
+calculate each output pixel. When an ellipse overlaps an edge,
+<code>mirror</code> supplies real image data from the immediate vicinity
+rather than a generic background color or a clamped single-pixel line.
+This prevents filter weights from averaging with foreign colors,
+ensuring the edge blends naturally into itself.</p>
+<h4 id="3-seamless-periodic-distortions">3. Seamless Periodic
+Distortions</h4>
+<p>For complex mappings like <code>Polar</code> or <code>DePolar</code>
+transforms (commonly used in panoramic stitching or circular textures),
+the top and bottom borders frequently wrap into the center or exterior
+edge of the output. The <code>mirror</code> setting prevents artificial
+pinch points or radial halos by maintaining texture consistency at the
+poles.</p>
+<p>By reflecting local visual context across source boundaries,
+<code>-virtual-pixel mirror</code> ensures that resampling filters
+always receive smooth, mathematically sound input, leaving warped images
+free of visible edge seams.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

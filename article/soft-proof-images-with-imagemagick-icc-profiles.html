@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soft-Proof Images with ImageMagick ICC Profiles - magick</title>
+    <meta name="description" content="Soft-proofing allows you to preview how a digital image will look when printed by simulating the physical characteristics of a specific printer, ink, and paper combination on an RGB display. This guide explains how to perform soft-proofing using ImageMag">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/soft-proof-images-with-imagemagick-icc-profiles">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Soft-Proof Images with ImageMagick ICC Profiles - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/soft-proof-images-with-imagemagick-icc-profiles" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Soft-proofing allows you to preview how a digital image will look when printed by simulating the physical characteristics of a specific printer, ink, and paper combination on an RGB display. This guide explains how to perform soft-proofing using ImageMag" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="soft-proof-images-with-imagemagick-icc-profiles">Soft-Proof
+Images with ImageMagick ICC Profiles</h1>
+<p>Soft-proofing allows you to preview how a digital image will look
+when printed by simulating the physical characteristics of a specific
+printer, ink, and paper combination on an RGB display. This guide
+explains how to perform soft-proofing using ImageMagick's color
+management features powered by LittleCMS (lcms). By applying sequential
+ICC profile conversions, you can accurately evaluate gamut clipping,
+contrast loss, and color shifts from the command line before sending an
+image to print.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To perform soft-proofing in ImageMagick, ensure your installation
+includes LittleCMS delegate support. Verify this by running:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>lcms</code> in the <code>Delegates</code> list. You
+will also need:</p>
+<ol type="1">
+<li>The <strong>source image</strong> (typically in sRGB or Adobe
+RGB).</li>
+<li>The <strong>printer ICC profile</strong> (e.g.,
+<code>printer_paper.icc</code> or standard CMYK profiles like
+<code>GRACoL2006_Coated1v2.icc</code>).</li>
+<li>The <strong>display profile</strong> (e.g., <code>sRGB.icc</code> or
+your custom calibrated monitor profile).</li>
+</ol>
+<hr />
+<h3 id="the-soft-proofing-command">The Soft-Proofing Command</h3>
+<p>Soft-proofing in ImageMagick is achieved by chaining profile
+conversions: converting from the source profile to the printer's color
+space, and then converting back to the monitor's RGB space so the output
+file accurately represents the printed result on a digital display.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Relative <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> printer_paper.icc <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  softproof_preview.jpg</span></code></pre></div>
+<hr />
+<h3 id="command-breakdown">Command Breakdown</h3>
+<ol type="1">
+<li><p><strong><code>-profile sRGB.icc</code> (First
+Call):</strong><br />
+Assigns or embeds the source color space. If your image already contains
+an embedded profile, this confirms the initial color
+interpretation.</p></li>
+<li><p><strong><code>-intent &lt;Intent&gt;</code>:</strong><br />
+Specifies the rendering intent used to map out-of-gamut colors to the
+destination space. Common options include:</p>
+<ul>
+<li><code>Perceptual</code>: Compresses the overall gamut to maintain
+visual relationships between colors.</li>
+<li><code>Relative</code>: Maps out-of-gamut colors to the nearest
+reproducible shade while preserving in-gamut colors and adjusting the
+white point.</li>
+<li><code>Absolute</code>: Preserves exact color coordinates and
+simulates paper white/tint without white point adaptation.</li>
+<li><code>Saturation</code>: Maximizes vividness, ideal for business
+graphics rather than photographic work.</li>
+</ul></li>
+<li><p><strong><code>-profile printer_paper.icc</code> (Second
+Call):</strong><br />
+Transforms the image data into the printer's device profile space using
+the specified rendering intent.</p></li>
+<li><p><strong><code>-profile sRGB.icc</code> (Third
+Call):</strong><br />
+Transforms the simulated print data back into an RGB display profile (or
+your monitor profile), producing an image file that visually mimics the
+printed output on your screen.</p></li>
+</ol>
+<hr />
+<h3 id="simulating-paper-white-and-black-point">Simulating Paper White
+and Black Point</h3>
+<p>To simulate paper color and dynamic range (Absolute Colorimetric
+intent), use the <code>-intent Absolute</code> flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Absolute <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> printer_paper.icc <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> sRGB.icc <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  softproof_paper_sim.jpg</span></code></pre></div>
+<p>This output will reflect paper tint and compressed shadow detail,
+giving a realistic preview of the final print medium.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

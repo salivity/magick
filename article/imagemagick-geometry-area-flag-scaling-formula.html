@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Geometry Area Flag Scaling Formula - magick</title>
+    <meta name="description" content="When resizing an image in ImageMagick using the @ geometry flag, the software scales the image to match a specified total pixel area rather than explicit width and height boundaries. This article explains the exact mathematical formula ImageMagick uses t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-geometry-area-flag-scaling-formula">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Geometry Area Flag Scaling Formula - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-geometry-area-flag-scaling-formula" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When resizing an image in ImageMagick using the @ geometry flag, the software scales the image to match a specified total pixel area rather than explicit width and height boundaries. This article explains the exact mathematical formula ImageMagick uses t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-geometry-area-flag-scaling-formula">ImageMagick
+Geometry Area Flag Scaling Formula</h1>
+<p>When resizing an image in ImageMagick using the <code>@</code>
+geometry flag, the software scales the image to match a specified total
+pixel area rather than explicit width and height boundaries. This
+article explains the exact mathematical formula ImageMagick uses to
+derive the scale factor and compute the resulting image dimensions while
+preserving the original aspect ratio.</p>
+<h3 id="the-target-area-calculation">The Target Area Calculation</h3>
+<p>In ImageMagick, the geometry specification for area can be provided
+as a single number representing total pixels (e.g.,
+<code>1000000@</code>) or as width and height dimensions (e.g.,
+<code>1000x1000@</code>).</p>
+<p>When specified as <code>widthxheight@</code>, ImageMagick first
+calculates the target area (<span
+class="math inline">\(A_{\text{target}}\)</span>):</p>
+<p><span class="math display">\[A_{\text{target}} = \text{Target Width}
+\times \text{Target Height}\]</span></p>
+<p>If a single value is provided (such as <code>1000000@</code>), that
+value is directly assigned as <span
+class="math inline">\(A_{\text{target}}\)</span>.</p>
+<h3 id="the-original-area-calculation">The Original Area
+Calculation</h3>
+<p>The original area (<span
+class="math inline">\(A_{\text{orig}}\)</span>) of the source image is
+calculated by multiplying its native width (<span
+class="math inline">\(W_{\text{orig}}\)</span>) by its native height
+(<span class="math inline">\(H_{\text{orig}}\)</span>):</p>
+<p><span class="math display">\[A_{\text{orig}} = W_{\text{orig}} \times
+H_{\text{orig}}\]</span></p>
+<h3 id="the-scale-factor-formula">The Scale Factor Formula</h3>
+<p>Because area scales quadratically relative to linear dimensions
+(<span class="math inline">\(A \propto \text{dimension}^2\)</span>), the
+linear scaling factor (<span class="math inline">\(s\)</span>) is
+derived using the square root of the ratio between the target area and
+the original area:</p>
+<p><span class="math display">\[s =
+\sqrt{\frac{A_{\text{target}}}{A_{\text{orig}}}}\]</span></p>
+<h3 id="computing-the-final-dimensions">Computing the Final
+Dimensions</h3>
+<p>Once the scale factor <span class="math inline">\(s\)</span> is
+determined, ImageMagick computes the new width (<span
+class="math inline">\(W_{\text{new}}\)</span>) and new height (<span
+class="math inline">\(H_{\text{new}}\)</span>) by multiplying the
+original dimensions by <span class="math inline">\(s\)</span> and
+rounding to the nearest integer:</p>
+<p><span class="math display">\[W_{\text{new}} =
+\text{round}(W_{\text{orig}} \times s)\]</span></p>
+<p><span class="math display">\[H_{\text{new}} =
+\text{round}(H_{\text{orig}} \times s)\]</span></p>
+<p>Due to integer pixel rounding, the final pixel count (<span
+class="math inline">\(W_{\text{new}} \times H_{\text{new}}\)</span>) may
+vary slightly from the exact requested <span
+class="math inline">\(A_{\text{target}}\)</span>, but it remains as
+close as mathematically possible while maintaining the image's original
+aspect ratio.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

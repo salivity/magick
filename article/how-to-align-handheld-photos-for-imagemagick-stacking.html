@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Align Handheld Photos for ImageMagick Stacking - magick</title>
+    <meta name="description" content="Stacking handheld photos is an effective way to reduce noise, remove moving objects, or increase dynamic range, but slight camera movements between frames introduce translation and rotation errors. Because ImageMagick excels at image processing but lacks">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-align-handheld-photos-for-imagemagick-stacking">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Align Handheld Photos for ImageMagick Stacking - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-align-handheld-photos-for-imagemagick-stacking" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Stacking handheld photos is an effective way to reduce noise, remove moving objects, or increase dynamic range, but slight camera movements between frames introduce translation and rotation errors. Because ImageMagick excels at image processing but lacks" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-align-handheld-photos-for-imagemagick-stacking">How to
+Align Handheld Photos for ImageMagick Stacking</h1>
+<p>Stacking handheld photos is an effective way to reduce noise, remove
+moving objects, or increase dynamic range, but slight camera movements
+between frames introduce translation and rotation errors. Because
+ImageMagick excels at image processing but lacks built-in automatic
+feature-point matching for perspective correction, the standard and most
+reliable workflow involves registering the images with an alignment
+utility such as <code>align_image_stack</code> (part of the open-source
+Hugin suite) and then performing the statistical stacking inside
+ImageMagick.</p>
+<h3 id="step-1-align-the-frames-using-align_image_stack">Step 1: Align
+the Frames Using <code>align_image_stack</code></h3>
+<p>Handheld shots require correction for roll, pitch, yaw, and
+translation. The command-line tool <code>align_image_stack</code> uses
+control-point detection to warp and crop frames so they match a
+reference image perfectly.</p>
+<p>Run the following command in your terminal or command prompt within
+the directory containing your source photos:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">align_image_stack</span> <span class="at">-m</span> <span class="at">-a</span> aligned_ frame1.jpg frame2.jpg frame3.jpg frame4.jpg</span></code></pre></div>
+<ul>
+<li><strong><code>-a aligned_</code></strong>: Sets the output filename
+prefix (e.g., <code>aligned_0000.tif</code>,
+<code>aligned_0001.tif</code>).</li>
+<li><strong><code>-m</code></strong>: Optimizes the field of view to
+account for minor focal changes or lens breathing.</li>
+<li><strong><code>-c 8</code></strong> <em>(Optional)</em>: Increases
+the number of control points per grid cell if the alignment needs more
+precision.</li>
+</ul>
+<p>This generates a set of aligned TIFF files that share the exact same
+pixel coordinates.</p>
+<h3 id="step-2-stack-the-aligned-images-in-imagemagick">Step 2: Stack
+the Aligned Images in ImageMagick</h3>
+<p>Once the aligned images are created, use ImageMagick to blend them
+together using statistical evaluation methods.</p>
+<h4 id="for-noise-reduction-mean-average">For Noise Reduction (Mean
+Average)</h4>
+<p>To blend images together for noise reduction in low-light scenarios,
+use the mean operator:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> aligned_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> mean stacked_mean.png</span></code></pre></div>
+<h4 id="for-object-removal-or-clean-exposure-median-filter">For Object
+Removal or Clean Exposure (Median Filter)</h4>
+<p>To remove random moving elements (like tourists, moving cars, or
+transient objects) while retaining sharp details, use the median
+operator:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> aligned_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> median stacked_median.png</span></code></pre></div>
+<h3 id="step-3-crop-edge-artifacts">Step 3: Crop Edge Artifacts</h3>
+<p>Because aligning handheld frames rotates and shifts the image
+boundaries, the resulting stacked output often has uneven or transparent
+border edges. You can automatically trim or manually crop the final
+result:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> stacked_median.png <span class="at">-trim</span> +repage final_output.png</span></code></pre></div>
+<p>This ensures a clean, properly framed final photograph with optimal
+alignment and reduced noise.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

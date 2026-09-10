@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick 4-Point Perspective Correction Syntax - magick</title>
+    <meta name="description" content="Perspective correction in ImageMagick allows you to straighten angled or skewed photos by mapping four distorted source corners to four rectangular destination corners. Using the built-in distortion operators, you can precisely define coordinate pairs to">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-4-point-perspective-correction-syntax">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick 4-Point Perspective Correction Syntax - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-4-point-perspective-correction-syntax" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Perspective correction in ImageMagick allows you to straighten angled or skewed photos by mapping four distorted source corners to four rectangular destination corners. Using the built-in distortion operators, you can precisely define coordinate pairs to" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-4-point-perspective-correction-syntax">ImageMagick
+4-Point Perspective Correction Syntax</h1>
+<p>Perspective correction in ImageMagick allows you to straighten angled
+or skewed photos by mapping four distorted source corners to four
+rectangular destination corners. Using the built-in distortion
+operators, you can precisely define coordinate pairs to remove
+perspective distortion from documents, signs, and photographs.</p>
+<h2 id="basic-syntax">Basic Syntax</h2>
+<p>In ImageMagick (version 7 and later), 4-point perspective correction
+is executed using the <code>-distort Perspective</code> operator. The
+general syntax is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Perspective <span class="st">&#39;sx1,sy1 dx1,dy1  sx2,sy2 dx2,dy2  sx3,sy3 dx3,dy3  sx4,sy4 dx4,dy4&#39;</span> output.jpg</span></code></pre></div>
+<p>For ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h2 id="understanding-the-coordinate-pairs">Understanding the Coordinate
+Pairs</h2>
+<p>The argument string requires eight pairs of <span
+class="math inline">\((X, Y)\)</span> coordinates, alternating between
+source points (<span class="math inline">\(sx, sy\)</span>) and
+destination points (<span class="math inline">\(dx, dy\)</span>):</p>
+<ul>
+<li><strong><span class="math inline">\(sx1,sy1\)</span>:</strong>
+Top-left corner of the skewed object in the original image.</li>
+<li><strong><span class="math inline">\(dx1,dy1\)</span>:</strong>
+Target top-left corner in the output image (typically
+<code>0,0</code>).</li>
+<li><strong><span class="math inline">\(sx2,sy2\)</span>:</strong>
+Top-right corner of the skewed object.</li>
+<li><strong><span class="math inline">\(dx2,dy2\)</span>:</strong>
+Target top-right corner (<code>width,0</code>).</li>
+<li><strong><span class="math inline">\(sx3,sy3\)</span>:</strong>
+Bottom-right corner of the skewed object.</li>
+<li><strong><span class="math inline">\(dx3,dy3\)</span>:</strong>
+Target bottom-right corner (<code>width,height</code>).</li>
+<li><strong><span class="math inline">\(sx4,sy4\)</span>:</strong>
+Bottom-left corner of the skewed object.</li>
+<li><strong><span class="math inline">\(dx4,dy4\)</span>:</strong>
+Target bottom-left corner (<code>0,height</code>).</li>
+</ul>
+<h2 id="concrete-example">Concrete Example</h2>
+<p>If you want to extract and flatten a rectangular document from an
+image to a final resolution of <span class="math inline">\(800 \times
+600\)</span> pixels, locate the four corners of the document in your
+source image and run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Perspective <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;120,85 0,0 \</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">   740,110 800,0 \</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">   700,550 800,600 \</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">   90,490 0,600&#39;</span> <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<h2 id="useful-options">Useful Options</h2>
+<ul>
+<li><strong>Auto-Cropping to Target Boundaries:</strong> By default,
+<code>-distort Perspective</code> attempts to keep the entire original
+canvas. To automatically crop the output to just the destination
+bounding box, use the <code>+distort</code> variant:</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +distort Perspective <span class="st">&#39;sx1,sy1 dx1,dy1 sx2,sy2 dx2,dy2 sx3,sy3 dx3,dy3 sx4,sy4 dx4,dy4&#39;</span> output.jpg</span></code></pre></div>
+<ul>
+<li><strong>Handling Blank Edges:</strong> Use
+<code>-virtual-pixel</code> to control what color or pattern fills areas
+outside the source bounds (e.g., <code>-virtual-pixel white</code> or
+<code>-virtual-pixel transparent</code>).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

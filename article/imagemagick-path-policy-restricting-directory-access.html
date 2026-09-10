@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Path Policy: Restricting Directory Access - magick</title>
+    <meta name="description" content="The domain="path" directive in ImageMagick's policy.xml configuration establishes file-system-level access controls, enabling administrators to explicitly permit or deny read, write, and execute privileges across specific directories and files. By restri">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-path-policy-restricting-directory-access">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Path Policy: Restricting Directory Access - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-path-policy-restricting-directory-access" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The domain="path" directive in ImageMagick's policy.xml configuration establishes file-system-level access controls, enabling administrators to explicitly permit or deny read, write, and execute privileges across specific directories and files. By restri" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-path-policy-restricting-directory-access">ImageMagick
+Path Policy: Restricting Directory Access</h1>
+<p>The <code>domain="path"</code> directive in ImageMagick's
+<code>policy.xml</code> configuration establishes file-system-level
+access controls, enabling administrators to explicitly permit or deny
+read, write, and execute privileges across specific directories and
+files. By restricting file paths, this policy mitigates critical
+vulnerabilities—such as arbitrary file disclosure and remote code
+execution—by preventing ImageMagick from accessing sensitive areas of
+the underlying operating system during image processing operations.</p>
+<h3 id="purpose-of-the-domainpath-policy">Purpose of the
+<code>domain="path"</code> Policy</h3>
+<p>ImageMagick processes many complex and nested file formats that can
+reference external files or system resources (such as SVG, MVG, or
+PostScript). Without explicit constraints, an attacker could exploit
+these formats to read sensitive system files (e.g.,
+<code>/etc/passwd</code>) or write malicious payloads to executable
+directories.</p>
+<p>Setting a <code>domain="path"</code> rule restricts the utility to
+designated safe zones, achieving the following security objectives:</p>
+<ul>
+<li><strong>Preventing Arbitrary File Read (LFI/SSRF):</strong>
+Prohibits ImageMagick from reading files outside allowed storage,
+preventing attackers from exfiltrating system files or private
+keys.</li>
+<li><strong>Preventing Unauthorized File Creation or Overwrite:</strong>
+Blocks write operations to sensitive directories, such as web roots,
+<code>/bin</code>, or <code>/etc</code>, ensuring the engine cannot
+overwrite system files or upload backdoors.</li>
+<li><strong>Directory Sandboxing:</strong> Limits processing strictly to
+designated temporary or upload folders (such as <code>/tmp</code> or
+<code>/var/app/uploads</code>), isolating the image processor from the
+rest of the file system.</li>
+</ul>
+<h3 id="how-the-policy-operates">How the Policy Operates</h3>
+<p>The policy evaluates file paths requested during command execution
+against predefined rules in the <code>policy.xml</code> file. The rule
+uses three primary attributes:</p>
+<ul>
+<li><strong><code>domain="path"</code></strong>: Specifies that the rule
+applies to file system paths.</li>
+<li><strong><code>rights</code></strong>: Defines the permissions
+granted or revoked. Values include <code>none</code>, <code>read</code>,
+<code>write</code>, or <code>execute</code>. Multiple rights can be
+combined using the pipe (<code>|</code>) symbol (e.g.,
+<code>read|write</code>).</li>
+<li><strong><code>pattern</code></strong>: Defines the target directory
+or file using glob syntax.</li>
+</ul>
+<h3 id="configuration-examples">Configuration Examples</h3>
+<h4 id="denying-access-to-sensitive-directories">Denying Access to
+Sensitive Directories</h4>
+<p>To block access entirely to system configuration directories, you can
+set the rights to <code>none</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/etc/*&quot;</span>/&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/root/*&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/home/*&quot;</span>/&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h4 id="whitelisting-safe-directories">Whitelisting Safe
+Directories</h4>
+<p>A more secure implementation involves a default-deny approach, where
+all paths are restricted except for dedicated operational folders:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Deny access to the entire file system by default --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/*&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Explicitly allow reading and writing only in designated directories --&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read|write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/tmp/*&quot;</span>/&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;path&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read|write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;/var/www/uploads/*&quot;</span>/&gt;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h3 id="key-considerations">Key Considerations</h3>
+<ul>
+<li><strong>Rule Precedence:</strong> ImageMagick reads policies
+sequentially from top to bottom. If broader rules precede specific
+exceptions without proper ordering, the stricter rule may take
+precedence and block legitimate workflows.</li>
+<li><strong>Relative Paths and Symlinks:</strong> Path policies evaluate
+the resolved canonical path. When defining patterns, ensure absolute
+paths are used to prevent bypasses utilizing path traversal
+(<code>../</code>) or symbolic links.</li>
+<li><strong>Combined Defenses:</strong> While <code>domain="path"</code>
+secures the file system, it should be combined with
+<code>domain="coder"</code> rules to disable high-risk formats and
+delegate commands for defense-in-depth protection.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

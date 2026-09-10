@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draw Text Along a Curved Path in ImageMagick - magick</title>
+    <meta name="description" content="This article provides the syntax and practical commands for rendering text along curved and arched trajectories in ImageMagick. It covers the primary methods used to achieve this effect: the built-in -distort Arc operator for uniform circular curves and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/draw-text-along-a-curved-path-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Draw Text Along a Curved Path in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/draw-text-along-a-curved-path-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides the syntax and practical commands for rendering text along curved and arched trajectories in ImageMagick. It covers the primary methods used to achieve this effect: the built-in -distort Arc operator for uniform circular curves and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="draw-text-along-a-curved-path-in-imagemagick">Draw Text Along a
+Curved Path in ImageMagick</h1>
+<p>This article provides the syntax and practical commands for rendering
+text along curved and arched trajectories in ImageMagick. It covers the
+primary methods used to achieve this effect: the built-in
+<code>-distort Arc</code> operator for uniform circular curves and the
+Scalable Vector Graphics (SVG) <code>&lt;textPath&gt;</code> method for
+complex, arbitrary curves.</p>
+<hr />
+<h2 id="method-1-using-the--distort-arc-operator">Method 1: Using the
+<code>-distort Arc</code> Operator</h2>
+<p>The most common and direct way to curve text in ImageMagick is by
+generating a text label and applying a circular arc distortion.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> none <span class="at">-fill</span> <span class="st">&quot;&lt;color&gt;&quot;</span> <span class="at">-font</span> <span class="st">&quot;&lt;font-name&gt;&quot;</span> <span class="at">-pointsize</span> <span class="op">&lt;</span>size<span class="op">&gt;</span> label:<span class="st">&quot;&lt;your text&gt;&quot;</span> <span class="at">-virtual-pixel</span> None <span class="at">-distort</span> Arc <span class="st">&quot;&lt;angle&gt; [rotation] [outer_radius] [inner_radius]&quot;</span> output.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>&lt;angle&gt;</code></strong>: The arc angle in
+degrees (e.g., <code>120</code> spreads the text over a 120-degree
+sweep; <code>360</code> wraps the text into a full circle).</li>
+<li><strong><code>[rotation]</code></strong> <em>(optional)</em>:
+Rotates the curved text around the center point (default is
+<code>0</code>, which centers the text at the top).</li>
+<li><strong><code>[outer_radius]</code></strong> <em>(optional)</em>:
+The radius from the center point to the outer edge of the text.</li>
+<li><strong><code>[inner_radius]</code></strong> <em>(optional)</em>:
+The radius to the inner edge of the text.</li>
+</ul>
+<h3 id="example-upward-arched-text">Example: Upward Arched Text</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> transparent <span class="at">-fill</span> <span class="st">&quot;#1E293B&quot;</span> <span class="at">-font</span> Arial <span class="at">-pointsize</span> 40 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  label:<span class="st">&quot;Curved Text with ImageMagick&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-virtual-pixel</span> None <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-distort</span> Arc 100 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  arched_text.png</span></code></pre></div>
+<h3 id="example-inverted-downward-arc">Example: Inverted (Downward)
+Arc</h3>
+<p>To bend text downwards (like a smile rather than a rainbow), rotate
+the text by 180 degrees using the rotation argument:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> transparent <span class="at">-fill</span> <span class="st">&quot;#1E293B&quot;</span> <span class="at">-font</span> Arial <span class="at">-pointsize</span> 40 <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  label:<span class="st">&quot;Downward Curved Text&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-virtual-pixel</span> None <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-distort</span> Arc <span class="st">&quot;100 180&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  downward_text.png</span></code></pre></div>
+<hr />
+<h2 id="method-2-using-svg-textpath-for-arbitrary-curves">Method 2:
+Using SVG <code>textPath</code> for Arbitrary Curves</h2>
+<p>For non-circular, custom paths (such as Bezier curves or S-curves),
+use ImageMagick’s built-in SVG vector rendering engine.</p>
+<h3 id="basic-syntax-1">Basic Syntax</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> <span class="op">&lt;</span>width<span class="op">&gt;</span>x<span class="op">&lt;</span>height<span class="op">&gt;</span> xc:none <span class="at">-draw</span> <span class="st">&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">  path &quot;M &lt;x1&gt;,&lt;y1&gt; Q &lt;cx&gt;,&lt;cy&gt; &lt;x2&gt;,&lt;y2&gt;&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> text_on_curve.png</span></code></pre></div>
+<p>To bind text directly along the curve, embed an inline SVG text
+path:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> inline:<span class="st">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; width=&quot;600&quot; height=&quot;300&quot;&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;defs&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;path id=&quot;curve&quot; d=&quot;M 50,200 Q 300,50 550,200&quot; fill=&quot;none&quot; /&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;/defs&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;text font-family=&quot;Arial&quot; font-size=&quot;32&quot; fill=&quot;#1E293B&quot;&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;textPath xlink:href=&quot;#curve&quot;&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">      Text following an arbitrary Bezier curve</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">    &lt;/textPath&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">  &lt;/text&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;/svg&gt;&#39;</span> custom_curve.png</span></code></pre></div>
+<h3 id="svg-path-syntax-overview">SVG Path Syntax Overview</h3>
+<ul>
+<li><code>M x,y</code>: Move to starting coordinate
+<code>(x, y)</code>.</li>
+<li><code>Q cx,cy x,y</code>: Quadratic Bezier curve using control point
+<code>(cx, cy)</code> ending at <code>(x, y)</code>.</li>
+<li><code>C cx1,cy1 cx2,cy2 x,y</code>: Cubic Bezier curve with two
+control points.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

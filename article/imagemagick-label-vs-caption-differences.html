@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick label vs caption Differences - magick</title>
+    <meta name="description" content="In ImageMagick, both the label: and caption: input protocols generate images from text strings, but they differ fundamentally in how they handle dimensions, line breaking, and text scaling. The primary distinction is that label: renders text on a single">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-label-vs-caption-differences">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick label vs caption Differences - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-label-vs-caption-differences" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, both the label: and caption: input protocols generate images from text strings, but they differ fundamentally in how they handle dimensions, line breaking, and text scaling. The primary distinction is that label: renders text on a single" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-label-vs-caption-differences">ImageMagick label vs
+caption Differences</h1>
+<p>In ImageMagick, both the <code>label:</code> and
+<code>caption:</code> input protocols generate images from text strings,
+but they differ fundamentally in how they handle dimensions, line
+breaking, and text scaling. The primary distinction is that
+<code>label:</code> renders text on a single line by default and scales
+the font size to fit the specified dimensions, while
+<code>caption:</code> automatically wraps words across multiple lines to
+fit within a bounded width and height.</p>
+<h2 id="automatic-word-wrapping">Automatic Word Wrapping</h2>
+<ul>
+<li><strong><code>label:</code></strong> does not perform automatic word
+wrapping. Any text provided to <code>label:</code> is rendered as a
+continuous single line unless you manually insert explicit newline
+characters (<code>\n</code>) into the string.</li>
+<li><strong><code>caption:</code></strong> includes built-in word
+wrapping. It evaluates the available canvas width and automatically
+breaks lines between words to ensure the text fits within the
+boundaries.</li>
+</ul>
+<h2 id="handling-of-dimensions-and-font-sizing">Handling of Dimensions
+and Font Sizing</h2>
+<p>The behavior of both protocols depends heavily on whether you define
+the <code>-size</code> property, the <code>-pointsize</code> property,
+or both:</p>
+<h3 id="with-a-defined-width-and-height--size-widthxheight">With a
+Defined Width and Height (<code>-size WidthxHeight</code>)</h3>
+<ul>
+<li><strong><code>label:</code></strong> calculates the largest possible
+font size that allows the entire text line (or explicitly broken lines)
+to fit inside the specified width and height. If the text is very long,
+the font size will shrink significantly to keep the line intact on a
+single line.</li>
+<li><strong><code>caption:</code></strong> wraps the text to the
+specified width and automatically reduces the font size until all
+wrapped lines fit entirely within the specified height.</li>
+</ul>
+<h3 id="with-a-defined-width-only--size-widthx">With a Defined Width
+Only (<code>-size Widthx</code>)</h3>
+<ul>
+<li><strong><code>label:</code></strong> sets the image width to the
+requested size and scales the font size to fill that exact width,
+adjusting the resulting image height dynamically.</li>
+<li><strong><code>caption:</code></strong> uses the specified width to
+determine where lines should wrap. It maintains the defined
+<code>-pointsize</code> (or the default size) and expands the image
+vertically to whatever height is necessary to contain all wrapped
+lines.</li>
+</ul>
+<h3 id="with-a-defined--pointsize-and-no--size">With a Defined
+<code>-pointsize</code> and No <code>-size</code></h3>
+<ul>
+<li><strong><code>label:</code></strong> creates an image canvas sized
+precisely to fit the text at the requested point size on a single
+line.</li>
+<li><strong><code>caption:</code></strong> cannot automatically wrap
+text without a defined width boundary, so it behaves similarly to
+<code>label:</code>, generating an image wide enough to hold the text on
+a single line at the chosen point size.</li>
+</ul>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="using-label-for-titles-and-badges">Using <code>label:</code> for
+Titles and Badges</h3>
+<p><code>label:</code> is best suited for titles, watermarks, buttons,
+and short labels where the text must scale dynamically to fill a fixed
+area without breaking onto multiple lines:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x100 <span class="at">-background</span> lightblue <span class="at">-fill</span> black label:<span class="st">&quot;Single Line Title&quot;</span> output_label.png</span></code></pre></div>
+<h3 id="using-caption-for-paragraphs-and-dynamic-content">Using
+<code>caption:</code> for Paragraphs and Dynamic Content</h3>
+<p><code>caption:</code> is ideal for descriptions, quotes, subtitles,
+and user-generated text of unpredictable length where readability
+requires multi-line paragraph flow:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x100 <span class="at">-background</span> lightgray <span class="at">-fill</span> black caption:<span class="st">&quot;This is a longer text string that will automatically wrap across multiple lines to fit inside the box.&quot;</span> output_caption.png</span></code></pre></div>
+<h2 id="summary-comparison">Summary Comparison</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>label:</code></th>
+<th style="text-align: left;"><code>caption:</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Auto Word Wrap</strong></td>
+<td style="text-align: left;">No (requires explicit
+<code>\n</code>)</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Use Case</strong></td>
+<td style="text-align: left;">Titles, buttons, single-line text</td>
+<td style="text-align: left;">Paragraphs, dynamic-length
+descriptions</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Fixed Size
+(<code>WxH</code>)</strong></td>
+<td style="text-align: left;">Scales text to fit bounds on one line</td>
+<td style="text-align: left;">Wraps text and adjusts font size to fit
+bounds</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Width Only
+(<code>Wx</code>)</strong></td>
+<td style="text-align: left;">Scales text to fill the exact width</td>
+<td style="text-align: left;">Wraps text at width, expands height as
+needed</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

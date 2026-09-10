@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Kirsch Compass Kernel Edge Detection - magick</title>
+    <meta name="description" content="The Kirsch compass kernel in ImageMagick is a first-order derivative edge detection operator that determines gradient magnitude and orientation by convolving an image with eight separate directional filters. By rotating a single 3x3 spatial mask through">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-kirsch-compass-kernel-edge-detection">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Kirsch Compass Kernel Edge Detection - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-kirsch-compass-kernel-edge-detection" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Kirsch compass kernel in ImageMagick is a first-order derivative edge detection operator that determines gradient magnitude and orientation by convolving an image with eight separate directional filters. By rotating a single 3x3 spatial mask through" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-kirsch-compass-kernel-edge-detection">ImageMagick
+Kirsch Compass Kernel Edge Detection</h1>
+<p>The Kirsch compass kernel in ImageMagick is a first-order derivative
+edge detection operator that determines gradient magnitude and
+orientation by convolving an image with eight separate directional
+filters. By rotating a single 3x3 spatial mask through 45-degree
+increments, ImageMagick measures the local rate of intensity change
+along eight compass directions (North, Northwest, West, Southwest,
+South, Southeast, East, and Northeast). This article explains the
+mathematical structure of the Kirsch masks, how ImageMagick applies
+these convolutions, and how the maximum directional response identifies
+precise edge boundaries.</p>
+<h3 id="the-kirsch-kernel-structure">The Kirsch Kernel Structure</h3>
+<p>The Kirsch operator relies on a fixed 3x3 matrix where the
+coefficients sum to zero, ensuring that uniform image regions produce an
+output of zero. The base directional filter concentrates positive
+weights in one direction and negative weights in the opposite direction,
+surrounding a central zero-weighted pixel.</p>
+<p>A standard Kirsch kernel for the North direction is defined as:</p>
+<pre class="text"><code>[-3, -3, -3]
+[-3,  0, -3]
+[ 5,  5,  5]</code></pre>
+<p>To form the remaining seven directional kernels, this configuration
+is cyclically rotated around the center pixel in 45-degree steps:</p>
+<ul>
+<li><strong>Northwest (NW):</strong>
+<pre class="text"><code>[-3, -3, -3]
+[ 5,  0, -3]
+[ 5,  5, -3]</code></pre></li>
+<li><strong>West (W):</strong>
+<pre class="text"><code>[ 5, -3, -3]
+[ 5,  0, -3]
+[ 5, -3, -3]</code></pre></li>
+<li><strong>Southwest (SW):</strong>
+<pre class="text"><code>[ 5,  5, -3]
+[ 5,  0, -3]
+[-3, -3, -3]</code></pre></li>
+<li><strong>South (S):</strong>
+<pre class="text"><code>[ 5,  5,  5]
+[-3,  0, -3]
+[-3, -3, -3]</code></pre></li>
+<li><strong>Southeast (SE):</strong>
+<pre class="text"><code>[-3,  5,  5]
+[-3,  0,  5]
+[-3, -3, -3]</code></pre></li>
+<li><strong>East (E):</strong>
+<pre class="text"><code>[-3, -3,  5]
+[-3,  0,  5]
+[-3, -3,  5]</code></pre></li>
+<li><strong>Northeast (NE):</strong>
+<pre class="text"><code>[-3, -3, -3]
+[-3,  0,  5]
+[-3,  5,  5]</code></pre></li>
+</ul>
+<h3 id="convolution-process-in-imagemagick">Convolution Process in
+ImageMagick</h3>
+<p>ImageMagick implements the Kirsch compass operator through its
+Morphology Convolution framework. When executed, ImageMagick passes each
+of the eight 3x3 kernels over every pixel in the source image.</p>
+<p>During the convolution of a single kernel, the kernel's weights are
+multiplied by the corresponding intensity values of the neighboring
+pixels, and the products are summed:</p>
+<p><span class="math display">\[\text{Response}_k(x, y) =
+\sum_{i=-1}^{1} \sum_{j=-1}^{1} K_k(i, j) \cdot I(x + i, y +
+j)\]</span></p>
+<p>where <span class="math inline">\(I(x, y)\)</span> represents pixel
+intensity and <span class="math inline">\(K_k\)</span> represents the
+<span class="math inline">\(k\)</span>-th directional kernel. This
+yields eight distinct intermediate response values for each pixel.</p>
+<h3 id="determining-directional-gradients">Determining Directional
+Gradients</h3>
+<p>The Kirsch operator identifies directional edges by selecting the
+maximum positive response among all eight compass points:</p>
+<p><span class="math display">\[\text{Gradient Magnitude}(x, y) = \max
+\left( 0, \max_{k=0..7} \left( \text{Response}_k(x, y) \right)
+\right)\]</span></p>
+<ol type="1">
+<li><strong>Gradient Magnitude (Edge Strength):</strong> The largest
+output value across the eight calculations dictates the pixel intensity
+in the final edge map. Stronger transitions in brightness yield larger
+sums, marking pronounced structural boundaries.</li>
+<li><strong>Gradient Direction (Edge Orientation):</strong> The specific
+kernel (<span class="math inline">\(k\)</span>) that generates the
+maximum value defines the direction of the gradient. Because the kernels
+are oriented at <span class="math inline">\(0^\circ, 45^\circ, 90^\circ,
+135^\circ, 180^\circ, 225^\circ, 270^\circ,\)</span> and <span
+class="math inline">\(315^\circ\)</span>, the orientation of the edge is
+quantized directly into one of the eight principal compass
+headings.</li>
+</ol>
+<p>By evaluating all eight directions independently rather than relying
+on only horizontal and vertical vectors, ImageMagick’s Kirsch operator
+captures diagonal transitions with minimal angular distortion, producing
+well-defined boundaries even in noisy image environments.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

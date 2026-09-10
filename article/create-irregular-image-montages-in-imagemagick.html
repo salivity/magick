@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Irregular Image Montages in ImageMagick - magick</title>
+    <meta name="description" content="Creating irregular image montages in ImageMagick allows you to combine images with varying sizes, asymmetrical grids, or custom coordinates. This guide explains how to construct irregular image layouts using nested appends, absolute canvas positioning, a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-irregular-image-montages-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Irregular Image Montages in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-irregular-image-montages-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating irregular image montages in ImageMagick allows you to combine images with varying sizes, asymmetrical grids, or custom coordinates. This guide explains how to construct irregular image layouts using nested appends, absolute canvas positioning, a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-irregular-image-montages-in-imagemagick">Create Irregular
+Image Montages in ImageMagick</h1>
+<p>Creating irregular image montages in ImageMagick allows you to
+combine images with varying sizes, asymmetrical grids, or custom
+coordinates. This guide explains how to construct irregular image
+layouts using nested appends, absolute canvas positioning, and empty
+grid cells with ImageMagick's command-line tools.</p>
+<h2 id="method-1-nested-appending-rows-and-columns">Method 1: Nested
+Appending (Rows and Columns)</h2>
+<p>The most efficient way to create irregular layouts with varying
+numbers of images per row or column is by combining horizontal
+(<code>+append</code>) and vertical (<code>-append</code>) operations
+using nested parentheses.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\(</span> image1.jpg image2.jpg +append <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>       <span class="dt">\(</span> image3.jpg image4.jpg image5.jpg +append <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-append</span> irregular_montage.jpg</span></code></pre></div>
+<ul>
+<li><code>+append</code> joins images horizontally side-by-side.</li>
+<li><code>-append</code> joins the resulting composite rows
+vertically.</li>
+<li><code>\( ... \)</code> isolates each row, allowing rows with
+different image counts or dimensions.</li>
+</ul>
+<p>If the images have different heights within a row, resize or align
+them using <code>-resize</code> or <code>-gravity</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\(</span> image1.jpg <span class="at">-resize</span> x300 image2.jpg <span class="at">-resize</span> x300 +append <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>       <span class="dt">\(</span> image3.jpg <span class="at">-resize</span> x300 image4.jpg <span class="at">-resize</span> x300 image5.jpg <span class="at">-resize</span> x300 +append <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-append</span> irregular_montage.jpg</span></code></pre></div>
+<h2 id="method-2-absolute-positioning-via-canvas-composition">Method 2:
+Absolute Positioning via Canvas Composition</h2>
+<p>For completely freeform or overlapping irregular layouts, create a
+base canvas and composite images onto specific X/Y coordinates.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1200x800 xc:white <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>       image1.jpg <span class="at">-geometry</span> 600x400+0+0 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>       image2.jpg <span class="at">-geometry</span> 600x800+600+0 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>       image3.jpg <span class="at">-geometry</span> 300x400+0+400 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>       image4.jpg <span class="at">-geometry</span> 300x400+300+400 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>       irregular_layout.jpg</span></code></pre></div>
+<ul>
+<li><code>-size 1200x800 xc:white</code> initializes a blank canvas of
+defined dimensions.</li>
+<li><code>-geometry WIDTHxHEIGHT+X+Y</code> sets the target size and
+offset for each image.</li>
+<li><code>-composite</code> places each image onto the base canvas.</li>
+</ul>
+<h2 id="method-3-the-montage-command-with-null-placeholders">Method 3:
+The <code>montage</code> Command with <code>null:</code>
+Placeholders</h2>
+<p>If you want to use the dedicated <code>montage</code> tool but
+require an asymmetrical or irregular grid pattern, use the
+<code>null:</code> pseudo-image to leave specific cells empty.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> montage image1.jpg null: image2.jpg <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>               image3.jpg image4.jpg null: <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">-tile</span> 3x2 <span class="at">-geometry</span> 200x200+5+5 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>               irregular_grid.jpg</span></code></pre></div>
+<ul>
+<li><code>null:</code> acts as a blank spacer within the grid
+layout.</li>
+<li><code>-tile 3x2</code> specifies a grid of 3 columns and 2
+rows.</li>
+<li><code>-geometry 200x200+5+5</code> defines the bounding box for each
+cell along with outer margins.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

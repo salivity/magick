@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draw Open and Closed Polygons in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains the exact command-line syntax for drawing both open and closed polygons using the -draw operator in ImageMagick. You will learn how to implement the polyline primitive for open paths and the polygon primitive for closed shapes, along">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/draw-open-and-closed-polygons-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Draw Open and Closed Polygons in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/draw-open-and-closed-polygons-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains the exact command-line syntax for drawing both open and closed polygons using the -draw operator in ImageMagick. You will learn how to implement the polyline primitive for open paths and the polygon primitive for closed shapes, along" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="draw-open-and-closed-polygons-in-imagemagick">Draw Open and
+Closed Polygons in ImageMagick</h1>
+<p>This guide explains the exact command-line syntax for drawing both
+open and closed polygons using the <code>-draw</code> operator in
+ImageMagick. You will learn how to implement the <code>polyline</code>
+primitive for open paths and the <code>polygon</code> primitive for
+closed shapes, along with configuring essential styling parameters such
+as fill, stroke color, and stroke width.</p>
+<h2 id="drawing-closed-polygons">Drawing Closed Polygons</h2>
+<p>To draw a closed polygon, ImageMagick provides the
+<code>polygon</code> primitive. This primitive automatically connects
+the last coordinate pair back to the first coordinate pair, forming a
+sealed boundary that can be filled with color.</p>
+<h3 id="syntax">Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> <span class="op">&lt;</span>fill_color<span class="op">&gt;</span> -stroke <span class="op">&lt;</span>stroke_color<span class="op">&gt;</span> -strokewidth <span class="op">&lt;</span>width<span class="op">&gt;</span> -draw <span class="st">&quot;polygon x1,y1 x2,y2 x3,y3 ... xN,yN&quot;</span> output.png</span></code></pre></div>
+<h3 id="example-closed-triangle">Example: Closed Triangle</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> skyblue <span class="at">-stroke</span> blue <span class="at">-strokewidth</span> 3 <span class="at">-draw</span> <span class="st">&quot;polygon 50,250 150,50 250,250&quot;</span> closed_polygon.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>polygon 50,250 150,50 250,250</code> defines three vertices.
+ImageMagick automatically draws an edge connecting
+<code>(250,250)</code> back to <code>(50,250)</code>.</li>
+<li><code>-fill skyblue</code> colors the interior of the polygon.</li>
+<li><code>-stroke blue</code> colors the perimeter.</li>
+</ul>
+<hr />
+<h2 id="drawing-open-polygons">Drawing Open Polygons</h2>
+<p>To draw an open polygon (a sequence of connected line segments
+without closing the final gap), use the <code>polyline</code> primitive.
+When creating open paths, set <code>-fill none</code> to prevent
+ImageMagick from attempting to fill the area between vertices.</p>
+<h3 id="syntax-1">Syntax</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fill</span> none <span class="at">-stroke</span> <span class="op">&lt;</span>stroke_color<span class="op">&gt;</span> -strokewidth <span class="op">&lt;</span>width<span class="op">&gt;</span> -draw <span class="st">&quot;polyline x1,y1 x2,y2 x3,y3 ... xN,yN&quot;</span> output.png</span></code></pre></div>
+<h3 id="example-open-zig-zag-path">Example: Open Zig-Zag Path</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x300 xc:white <span class="at">-fill</span> none <span class="at">-stroke</span> red <span class="at">-strokewidth</span> 4 <span class="at">-draw</span> <span class="st">&quot;polyline 30,270 90,50 180,250 270,30&quot;</span> open_polygon.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>polyline</code> connects each sequential coordinate pair
+without drawing a closing line from <code>(270,30)</code> to
+<code>(30,270)</code>.</li>
+<li><code>-fill none</code> ensures only the line segments are
+rendered.</li>
+</ul>
+<hr />
+<h2 id="coordinate-formatting-rules">Coordinate Formatting Rules</h2>
+<p>ImageMagick accepts several coordinate formatting conventions inside
+the <code>-draw</code> string:</p>
+<ul>
+<li><strong>Comma-separated coordinate pairs:</strong>
+<code>x1,y1 x2,y2 x3,y3</code></li>
+<li><strong>Space-separated coordinates:</strong>
+<code>x1 y1 x2 y2 x3 y3</code></li>
+<li><strong>Floating-point values:</strong> Subpixel rendering is
+supported (e.g., <code>50.5,120.25 150.75,30.5</code>).</li>
+</ul>
+<h2 id="essential-styling-properties">Essential Styling Properties</h2>
+<p>Configure these options before the <code>-draw</code> operator to
+control polygon rendering:</p>
+<ul>
+<li><code>-stroke &lt;color&gt;</code>: Defines the line color (e.g.,
+<code>black</code>, <code>#ff0000</code>,
+<code>rgba(0,0,0,0.5)</code>).</li>
+<li><code>-strokewidth &lt;pixels&gt;</code>: Sets line thickness in
+pixels.</li>
+<li><code>-fill &lt;color&gt;</code>: Sets the interior fill color (use
+<code>none</code> to disable filling).</li>
+<li><code>-stroke-linejoin &lt;type&gt;</code>: Controls how corners
+connect (<code>miter</code>, <code>round</code>, or
+<code>bevel</code>).</li>
+<li><code>-stroke-linecap &lt;type&gt;</code>: Controls the end caps of
+open polylines (<code>butt</code>, <code>round</code>, or
+<code>square</code>).</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

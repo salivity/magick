@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Linear RGB vs sRGB Conversions - magick</title>
+    <meta name="description" content="ImageMagick distinguishes between physically linear RGB and gamma-corrected sRGB to ensure accurate color rendering and image processing. While standard digital images are stored in the non-linear sRGB color space for display compatibility, mathematical">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-linear-rgb-vs-srgb-conversions">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Linear RGB vs sRGB Conversions - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-linear-rgb-vs-srgb-conversions" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick distinguishes between physically linear RGB and gamma-corrected sRGB to ensure accurate color rendering and image processing. While standard digital images are stored in the non-linear sRGB color space for display compatibility, mathematical" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-linear-rgb-vs-srgb-conversions">ImageMagick Linear
+RGB vs sRGB Conversions</h1>
+<p>ImageMagick distinguishes between physically linear RGB and
+gamma-corrected sRGB to ensure accurate color rendering and image
+processing. While standard digital images are stored in the non-linear
+sRGB color space for display compatibility, mathematical operations like
+resizing and blending produce more accurate results when executed in
+linear RGB. Understanding how ImageMagick manages colorspace flags,
+handles the conversion pipeline, and applies gamma transformations
+allows users to avoid common processing artifacts like dark halos or
+incorrect brightness levels.</p>
+<h2 id="the-difference-between-srgb-and-linear-rgb">The Difference
+Between sRGB and Linear RGB</h2>
+<p>Digital cameras and computer monitors use the non-linear
+<strong>sRGB</strong> color space. Because human vision is more
+sensitive to differences in dark tones than in bright tones, sRGB
+applies a non-linear gamma curve (approximately gamma 2.2) to allocate
+more data bits to darker shades.</p>
+<p><strong>Linear RGB</strong>, by contrast, maps pixel values directly
+to physical light intensity (gamma 1.0). If a linear pixel value
+doubles, the actual amount of simulated light doubles.</p>
+<p>Performing arithmetic operations such as resizing, blurring, or
+compositing on non-linear sRGB values leads to incorrect light
+calculations. Converting to linear RGB before applying these operations
+preserves energy conservation and prevents optical artifacts.</p>
+<h2 id="imagemagick-color-space-definitions">ImageMagick Color Space
+Definitions</h2>
+<p>In modern versions of ImageMagick (ImageMagick 7 and late ImageMagick
+6):</p>
+<ul>
+<li><strong><code>sRGB</code></strong>: Represents standard non-linear
+gamma-corrected image data. This is the default color space for common
+formats like JPEG, PNG, and WebP.</li>
+<li><strong><code>RGB</code></strong>: Represents linear RGB data with a
+linear gamma curve (1.0).</li>
+<li><strong><code>ScRGB</code></strong>: Represents wide-gamut linear
+RGB, typically used with high bit-depth workflows.</li>
+</ul>
+<p><em>(Note: In versions of ImageMagick prior to 6.7.7, the terms
+<code>RGB</code> and <code>sRGB</code> were often reversed or used
+inconsistently. Modern workflows strictly treat <code>sRGB</code> as
+gamma-corrected and <code>RGB</code> as linear.)</em></p>
+<h2 id="how-conversion-works">How Conversion Works</h2>
+<p>ImageMagick handles conversions between these two spaces using the
+<code>-colorspace</code> operator.</p>
+<h3 id="1-converting-srgb-to-linear-rgb">1. Converting sRGB to Linear
+RGB</h3>
+<p>When you convert an image to linear space using
+<code>-colorspace RGB</code>, ImageMagick removes the non-linear gamma
+curve:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_srgb.png <span class="at">-colorspace</span> RGB linear_output.png</span></code></pre></div>
+<p>During this step, the pixel values are transformed mathematically
+using the standard sRGB transfer function, mapping non-linear values to
+proportional physical light intensities.</p>
+<h3 id="2-converting-linear-rgb-back-to-srgb">2. Converting Linear RGB
+back to sRGB</h3>
+<p>Before saving an image for display on monitors or for web use, it
+must be returned to the sRGB color space using
+<code>-colorspace sRGB</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> linear_input.png <span class="at">-colorspace</span> sRGB output_display.png</span></code></pre></div>
+<p>ImageMagick reapplies the sRGB gamma transfer function, re-encoding
+the linear intensities into the non-linear format expected by standard
+image viewers.</p>
+<h2 id="practical-application-accurate-image-resizing">Practical
+Application: Accurate Image Resizing</h2>
+<p>When an image is resized directly in sRGB space, dark fringes often
+appear around high-contrast edges (such as white text on a black
+background) because the interpolation math operates on non-linear
+values.</p>
+<p>To achieve gamma-correct resizing, the image should be converted to
+linear RGB before resizing, then converted back to sRGB:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> RGB <span class="at">-resize</span> 50% <span class="at">-colorspace</span> sRGB output.jpg</span></code></pre></div>
+<p>In this sequence:</p>
+<ol type="1">
+<li>The input JPEG is read as standard non-linear
+<code>sRGB</code>.</li>
+<li><code>-colorspace RGB</code> transforms the pixel data into linear
+light values.</li>
+<li><code>-resize 50%</code> computes pixel averages linearly,
+accurately reflecting physical light blending.</li>
+<li><code>-colorspace sRGB</code> re-encodes the image with the standard
+sRGB gamma curve for display.</li>
+</ol>
+<h2 id="gamma-flag-vs-colorspace-transformations">Gamma Flag vs.
+Colorspace Transformations</h2>
+<p>ImageMagick provides two distinct operators for managing color
+profiles and gamma:</p>
+<ul>
+<li><strong><code>-colorspace</code></strong>: Recalculates pixel values
+and updates metadata so the image appears visually unchanged while
+changing its internal mathematical representation (e.g., converting sRGB
+to RGB).</li>
+<li><strong><code>-gamma</code></strong> or
+<strong><code>-set colorspace</code></strong>: Changes the internal
+metadata or directly modifies values without performing standard color
+space matrix transformations. This should only be used when correcting
+mislabeled images, rather than standard colorspace conversion
+workflows.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

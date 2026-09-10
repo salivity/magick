@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick DstAtop Compositing Math Explained - magick</title>
+    <meta name="description" content="The DstAtop (Destination Atop) compositing operation in ImageMagick is a Porter-Duff alpha blending mode that places the destination image over the source image, but restricts the visible output strictly to the shape and boundaries of the source. Mathema">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-dstatop-compositing-math-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick DstAtop Compositing Math Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-dstatop-compositing-math-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The DstAtop (Destination Atop) compositing operation in ImageMagick is a Porter-Duff alpha blending mode that places the destination image over the source image, but restricts the visible output strictly to the shape and boundaries of the source. Mathema" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-dstatop-compositing-math-explained">ImageMagick
+DstAtop Compositing Math Explained</h1>
+<p>The <code>DstAtop</code> (Destination Atop) compositing operation in
+ImageMagick is a Porter-Duff alpha blending mode that places the
+destination image over the source image, but restricts the visible
+output strictly to the shape and boundaries of the source.
+Mathematically, this operation determines the final color and opacity of
+each pixel by scaling the destination by the source's alpha value and
+filling any remaining background areas with the source image. As a
+result, the output image inherits the exact alpha profile of the source
+image while displaying destination content wherever the two layers
+overlap.</p>
+<h2 id="core-variables-and-normalized-values">Core Variables and
+Normalized Values</h2>
+<p>For every individual pixel, the color channels (Red, Green, Blue) and
+Alpha channel are evaluated after normalizing their values to the range
+<span class="math inline">\([0.0, 1.0]\)</span>:</p>
+<ul>
+<li><strong>Source Color and Alpha:</strong> <span
+class="math inline">\(C_s\)</span> and <span
+class="math inline">\(\alpha_s\)</span></li>
+<li><strong>Destination Color and Alpha:</strong> <span
+class="math inline">\(C_d\)</span> and <span
+class="math inline">\(\alpha_d\)</span></li>
+<li><strong>Resulting Color and Alpha:</strong> <span
+class="math inline">\(C_r\)</span> and <span
+class="math inline">\(\alpha_r\)</span></li>
+</ul>
+<h2 id="porter-duff-weighting-factors">Porter-Duff Weighting
+Factors</h2>
+<p>Porter-Duff compositing determines how much of the source and
+destination contribute to the final pixel using blending factors (<span
+class="math inline">\(F_s\)</span> and <span
+class="math inline">\(F_d\)</span>). For <code>DstAtop</code>, these
+factors are defined as:</p>
+<ul>
+<li><span class="math inline">\(F_d = \alpha_s\)</span> (Destination is
+kept only where the Source is opaque)</li>
+<li><span class="math inline">\(F_s = 1 - \alpha_d\)</span> (Source is
+kept only where the Destination is transparent)</li>
+</ul>
+<h2 id="alpha-channel-calculation">Alpha Channel Calculation</h2>
+<p>The output alpha (<span class="math inline">\(\alpha_r\)</span>) is
+calculated by combining each layer multiplied by its respective
+factor:</p>
+<p><span class="math display">\[\alpha_r = (\alpha_d \times F_d) +
+(\alpha_s \times F_s)\]</span></p>
+<p>Substituting the weighting factors into the equation:</p>
+<p><span class="math display">\[\alpha_r = (\alpha_d \times \alpha_s) +
+(\alpha_s \times (1 - \alpha_d))\]</span> <span
+class="math display">\[\alpha_r = \alpha_d \alpha_s + \alpha_s -
+\alpha_d \alpha_s\]</span> <span class="math display">\[\alpha_r =
+\alpha_s\]</span></p>
+<p>Mathematically, the output alpha channel is always identical to the
+source alpha channel (<span class="math inline">\(\alpha_r =
+\alpha_s\)</span>). If the source pixel is completely transparent, the
+resulting pixel will always be transparent, regardless of the
+destination's opacity.</p>
+<h2 id="color-channel-calculation">Color Channel Calculation</h2>
+<p>ImageMagick processes color channels depending on whether colors are
+premultiplied by their alpha values.</p>
+<h3 id="premultiplied-color-space">Premultiplied Color Space</h3>
+<p>In premultiplied representation, where color values are stored as
+<span class="math inline">\(c&#39; = C \times \alpha\)</span>:</p>
+<p><span class="math display">\[c&#39;_r = (c&#39;_d \times \alpha_s) +
+(c&#39;_s \times (1 - \alpha_d))\]</span></p>
+<h3 id="non-premultiplied-standard-color-space">Non-Premultiplied
+(Standard) Color Space</h3>
+<p>When evaluating standard, non-premultiplied RGB values, the
+premultiplied result is divided by the resulting alpha (<span
+class="math inline">\(\alpha_r\)</span>):</p>
+<p><span class="math display">\[C_r = \frac{(C_d \times \alpha_d \times
+\alpha_s) + (C_s \times \alpha_s \times (1 -
+\alpha_d))}{\alpha_r}\]</span></p>
+<p>Because <span class="math inline">\(\alpha_r = \alpha_s\)</span>, the
+source alpha cancels out (for any non-zero <span
+class="math inline">\(\alpha_s\)</span>):</p>
+<p><span class="math display">\[C_r = (C_d \times \alpha_d) + (C_s
+\times (1 - \alpha_d)) \quad \text{for } \alpha_s &gt; 0\]</span></p>
+<p>If <span class="math inline">\(\alpha_s = 0\)</span>, the pixel is
+entirely empty, and <span class="math inline">\(C_r = 0\)</span>.</p>
+<h2 id="practical-mathematical-outcomes">Practical Mathematical
+Outcomes</h2>
+<ol type="1">
+<li><strong>Where Source is Fully Transparent (<span
+class="math inline">\(\alpha_s = 0\)</span>):</strong> The output is
+completely cleared to transparent black (<span
+class="math inline">\(\alpha_r = 0\)</span>, <span
+class="math inline">\(C_r = 0\)</span>). Destination content outside the
+source mask is entirely clipped out.</li>
+<li><strong>Where Destination is Fully Opaque (<span
+class="math inline">\(\alpha_d = 1\)</span>) and Source Exists (<span
+class="math inline">\(\alpha_s &gt; 0\)</span>):</strong> The term <span
+class="math inline">\((1 - \alpha_d)\)</span> becomes zero, eliminating
+source color and leaving only destination color: <span
+class="math inline">\(C_r = C_d\)</span>, with <span
+class="math inline">\(\alpha_r = \alpha_s\)</span>.</li>
+<li><strong>Where Destination is Fully Transparent (<span
+class="math inline">\(\alpha_d = 0\)</span>) and Source Exists (<span
+class="math inline">\(\alpha_s &gt; 0\)</span>):</strong> The
+destination contributes nothing, allowing the source color to show
+through: <span class="math inline">\(C_r = C_s\)</span>, with <span
+class="math inline">\(\alpha_r = \alpha_s\)</span>.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Trim Computes Coordinates with Fuzz - magick</title>
+    <meta name="description" content="The -trim operator in ImageMagick removes outer borders that share a uniform color, and applying a nonzero -fuzz factor expands this process by treating near-matching colors as background. When calculating the resulting crop geometry, ImageMagick establi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-trim-computes-coordinates-with-fuzz">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Trim Computes Coordinates with Fuzz - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-trim-computes-coordinates-with-fuzz" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The -trim operator in ImageMagick removes outer borders that share a uniform color, and applying a nonzero -fuzz factor expands this process by treating near-matching colors as background. When calculating the resulting crop geometry, ImageMagick establi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-trim-computes-coordinates-with-fuzz">How
+ImageMagick Trim Computes Coordinates with Fuzz</h1>
+<p>The <code>-trim</code> operator in ImageMagick removes outer borders
+that share a uniform color, and applying a nonzero <code>-fuzz</code>
+factor expands this process by treating near-matching colors as
+background. When calculating the resulting crop geometry, ImageMagick
+establishes a baseline background color, calculates a Euclidean distance
+threshold based on the fuzz percentage, scans the image matrix inward
+from each of the four edges, and marks the bounding coordinates at the
+first row and column containing pixels that exceed that threshold.</p>
+<h3 id="1-determining-the-target-background-color">1. Determining the
+Target Background Color</h3>
+<p>Before ImageMagick scans the image, it must determine which color
+represents the border:</p>
+<ul>
+<li><strong>Corner Sampling:</strong> ImageMagick by default inspects
+the corner pixels of the image (starting at <code>0,0</code>) to define
+the reference background color.</li>
+<li><strong>Virtual Pixel / Background Settings:</strong> If defined,
+specific background color settings or alpha channels are incorporated to
+determine what constitutes the baseline color values (Red, Green, Blue,
+and optionally Alpha/Opacity).</li>
+</ul>
+<h3 id="2-converting-fuzz-to-a-distance-threshold">2. Converting Fuzz to
+a Distance Threshold</h3>
+<p>The <code>-fuzz</code> parameter specifies how much color drift is
+permitted before a pixel is considered foreground:</p>
+<ul>
+<li><strong>Quantum Normalization:</strong> ImageMagick operates
+internally on quantum values (such as 8-bit <code>0–255</code> or 16-bit
+<code>0–65535</code>). If the fuzz factor is provided as a percentage
+(e.g., <code>-fuzz 5%</code>), it is converted to an absolute quantum
+distance: <span class="math display">\[\text{Threshold} =
+\frac{\text{fuzz percentage}}{100} \times
+\text{QuantumRange}\]</span></li>
+<li><strong>Color Distance Equation:</strong> When comparing a pixel to
+the reference background color, ImageMagick computes the Euclidean color
+distance across all active channels: <span
+class="math display">\[\text{Distance} = \sqrt{(R_{\text{pixel}} -
+R_{\text{ref}})^2 + (G_{\text{pixel}} - G_{\text{ref}})^2 +
+(B_{\text{pixel}} - B_{\text{ref}})^2}\]</span> <em>(Alpha channels are
+factored in similarly if the image possesses transparency.)</em></li>
+<li>A pixel is categorized as background if <span
+class="math inline">\(\text{Distance} \le
+\text{Threshold}\)</span>.</li>
+</ul>
+<h3 id="3-edge-scanning-algorithm">3. Edge-Scanning Algorithm</h3>
+<p>ImageMagick evaluates rows and columns inward from the perimeter to
+locate the content boundaries:</p>
+<ul>
+<li><strong>Top Boundary (<span
+class="math inline">\(Y_{\min}\)</span>):</strong> ImageMagick inspects
+pixels horizontally across row <span class="math inline">\(y =
+0\)</span>. If every pixel in the row is within the fuzz distance of the
+reference color, the entire row is classified as background, and the
+scanner increments to <span class="math inline">\(y = 1\)</span>. It
+continues downward until it hits a row with at least one pixel where
+<span class="math inline">\(\text{Distance} &gt;
+\text{Threshold}\)</span>. That row becomes <span
+class="math inline">\(Y_{\min}\)</span>.</li>
+<li><strong>Bottom Boundary (<span
+class="math inline">\(Y_{\max}\)</span>):</strong> The same evaluation
+begins at the bottom row (<span class="math inline">\(y = \text{Height}
+- 1\)</span>) and proceeds upward. The scan halts at the first row
+containing an out-of-tolerance pixel, establishing <span
+class="math inline">\(Y_{\max}\)</span>.</li>
+<li><strong>Left Boundary (<span
+class="math inline">\(X_{\min}\)</span>):</strong> ImageMagick scans
+vertical columns starting at <span class="math inline">\(x = 0\)</span>
+moving rightward across the entire height of the image. The first column
+containing at least one pixel that exceeds the fuzz distance becomes
+<span class="math inline">\(X_{\min}\)</span>.</li>
+<li><strong>Right Boundary (<span
+class="math inline">\(X_{\max}\)</span>):</strong> The scanner starts at
+<span class="math inline">\(x = \text{Width} - 1\)</span> and moves
+leftward until encountering a column with a non-matching pixel, setting
+<span class="math inline">\(X_{\max}\)</span>.</li>
+</ul>
+<h3 id="4-constructing-the-bounding-geometry">4. Constructing the
+Bounding Geometry</h3>
+<p>Once the scans from all four cardinal directions stop, ImageMagick
+constructs the final crop geometry:</p>
+<ul>
+<li><strong>Offset X:</strong> <span
+class="math inline">\(X_{\min}\)</span></li>
+<li><strong>Offset Y:</strong> <span
+class="math inline">\(Y_{\min}\)</span></li>
+<li><strong>Cropped Width:</strong> <span
+class="math inline">\((X_{\max} - X_{\min}) + 1\)</span></li>
+<li><strong>Cropped Height:</strong> <span
+class="math inline">\((Y_{\max} - Y_{\min}) + 1\)</span></li>
+</ul>
+<p>If all pixels across the entire canvas fall within the defined fuzz
+threshold of the target color, the trim evaluates to a <span
+class="math inline">\(0\times0\)</span> canvas (or returns an
+error/warning depending on the ImageMagick version and CLI
+configuration). Otherwise, the bounding coordinates are returned as
+standard geometry (<code>WidthxHeight+X+Y</code>), and the canvas is
+cropped to that exact perimeter.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

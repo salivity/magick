@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick 7 Dynamic Output File Routing - magick</title>
+    <meta name="description" content="ImageMagick 7 uses the -set filename: directive to assign formatted metadata to an image in memory, enabling automated, dynamic destination paths for batch operations. By defining a custom property such as filename:output using percent-escape parameters">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-7-dynamic-output-file-routing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick 7 Dynamic Output File Routing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-7-dynamic-output-file-routing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick 7 uses the -set filename: directive to assign formatted metadata to an image in memory, enabling automated, dynamic destination paths for batch operations. By defining a custom property such as filename:output using percent-escape parameters" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-7-dynamic-output-file-routing">ImageMagick 7 Dynamic
+Output File Routing</h1>
+<p>ImageMagick 7 uses the <code>-set filename:</code> directive to
+assign formatted metadata to an image in memory, enabling automated,
+dynamic destination paths for batch operations. By defining a custom
+property such as <code>filename:output</code> using percent-escape
+parameters like <code>%[t]</code>, users can extract base filenames,
+append custom tags, and route processed images to unique filenames or
+directories in a single command sequence.</p>
+<h2 id="the-mechanism-of--set-filenameoutput">The Mechanism of
+<code>-set filename:output</code></h2>
+<p>The <code>-set filename:property</code> setting creates an
+image-level artifact specifically designated for filename resolution. In
+ImageMagick 7, string formatting and percent escapes are evaluated on a
+per-image basis. When processing multiple inputs, this ensures that each
+file in the sequence calculates its own distinct output path rather than
+overwriting a static file.</p>
+<p>The parameter string <code>'%[t]_processed'</code> relies on
+percent-escape formatting:</p>
+<ul>
+<li><strong><code>%[t]</code></strong>: Expands to the input image's
+base filename (its "title"), stripped of directory paths and file
+extensions.</li>
+<li><strong><code>_processed</code></strong>: A literal string appended
+directly to the base name.</li>
+</ul>
+<p>Once defined, this string does not alter the image data itself;
+instead, it assigns the resulting text to a temporary key named
+<code>filename:output</code>.</p>
+<h2 id="referencing-the-dynamic-property-at-output">Referencing the
+Dynamic Property at Output</h2>
+<p>Setting the variable does not automatically write the file. The
+property must be explicitly referenced in the final output argument
+using the <code>%[filename:key]</code> syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-set</span> filename:output <span class="st">&quot;%[t]_processed&quot;</span> <span class="st">&quot;%[filename:output].png&quot;</span></span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li><code>magick</code> reads <code>input.jpg</code>.</li>
+<li>The <code>-set filename:output "%[t]_processed"</code> evaluates
+<code>input.jpg</code> into the string
+<code>"input_processed"</code>.</li>
+<li>The output destination string <code>"%[filename:output].png"</code>
+reads the key, producing <code>input_processed.png</code>.</li>
+</ol>
+<h2 id="batch-processing-and-path-redirection">Batch Processing and Path
+Redirection</h2>
+<p>This technique is most powerful during multi-file operations. Because
+ImageMagick 7 processes sequence lists iteratively, wildcard inputs can
+be transformed and renamed uniquely in a single execution:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="pp">*</span>.png <span class="at">-resize</span> 50% <span class="at">-set</span> filename:output <span class="st">&quot;converted/%[t]_processed&quot;</span> <span class="st">&quot;%[filename:output].jpg&quot;</span></span></code></pre></div>
+<p>In this scenario, each matching file has its basename extracted, is
+scaled by 50%, appended with <code>_processed</code>, routed into the
+<code>converted/</code> subdirectory, and converted to the JPEG format.
+The dynamic expansion handles path creation (provided the target
+directory exists) and extension changes simultaneously without requiring
+external shell loops.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

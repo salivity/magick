@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert 12-Bit Raw Camera Frames with ImageMagick - magick</title>
+    <meta name="description" content="Converting 12-bit raw industrial camera frames into standard formats like PNG or TIFF requires defining specific raw stream parameters such as pixel dimensions, bit depth, byte order, and dynamic range scaling. ImageMagick provides robust command-line to">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-12-bit-raw-camera-frames-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert 12-Bit Raw Camera Frames with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-12-bit-raw-camera-frames-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting 12-bit raw industrial camera frames into standard formats like PNG or TIFF requires defining specific raw stream parameters such as pixel dimensions, bit depth, byte order, and dynamic range scaling. ImageMagick provides robust command-line to" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-12-bit-raw-camera-frames-with-imagemagick">Convert
+12-Bit Raw Camera Frames with ImageMagick</h1>
+<p>Converting 12-bit raw industrial camera frames into standard formats
+like PNG or TIFF requires defining specific raw stream parameters such
+as pixel dimensions, bit depth, byte order, and dynamic range scaling.
+ImageMagick provides robust command-line tools to interpret these
+uncompressed data streams accurately and map the 12-bit sensor data to
+viewable 16-bit or 8-bit output files.</p>
+<h3 id="the-basic-conversion-command">The Basic Conversion Command</h3>
+<p>Industrial cameras typically output 12-bit data in an unpacked format
+stored within 16-bit words (little-endian by default). To convert a
+single-channel (monochrome) raw image to a 16-bit PNG, use the following
+ImageMagick command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 16 <span class="at">-endian</span> lsb gray:frame.raw <span class="at">-auto-level</span> output.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-size WIDTHxHEIGHT</code></strong>: Specifies the
+exact pixel dimensions of the frame (e.g., <code>1920x1080</code> or
+<code>2048x2048</code>). Raw files contain no metadata headers, so
+dimensions must be explicitly provided.</li>
+<li><strong><code>-depth 16</code></strong>: Instructs ImageMagick to
+read 2 bytes per pixel. Because standard 12-bit raw files are generally
+unpacked into 16-bit integer containers, reading at 16-bit depth
+captures the entire word.</li>
+<li><strong><code>-endian lsb</code></strong>: Defines the byte order.
+Most machine vision interfaces (GigE Vision, USB3 Vision, Camera Link)
+deliver little-endian (<code>lsb</code>) data. If the output appears
+noisy or scrambled, switch to big-endian
+(<code>-endian msb</code>).</li>
+<li><strong><code>gray:frame.raw</code></strong>: Tells the decoder to
+interpret the binary file <code>frame.raw</code> as raw grayscale pixel
+values.</li>
+<li><strong><code>-auto-level</code></strong>: Normalizes the dynamic
+range. A 12-bit sensor has a maximum value of 4095. When placed in a
+16-bit container (max 65535), the image will look extremely dark without
+scaling the values to fill the dynamic range.</li>
+<li><strong><code>output.png</code></strong>: The target file name and
+format (PNG and TIFF natively support 16-bit grayscale).</li>
+</ul>
+<h3 id="converting-bayer-raw-color-sensors">Converting Bayer Raw (Color
+Sensors)</h3>
+<p>If the 12-bit raw frame is from a color camera utilizing a Bayer
+color filter array (e.g., RGGB):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 16 <span class="at">-endian</span> lsb gray:frame.raw <span class="at">-auto-level</span> <span class="at">-define</span> colorspace:auto-grayscale=false <span class="at">-demosaic</span> RGGB output.png</span></code></pre></div>
+<p>Replace <code>RGGB</code> with the specific Bayer pattern used by
+your sensor (such as <code>BGGR</code>, <code>GRBG</code>, or
+<code>GBRG</code>).</p>
+<h3 id="converting-packed-12-bit-formats">Converting Packed 12-Bit
+Formats</h3>
+<p>If the camera outputs packed 12-bit data (where two pixels share 3
+consecutive bytes, commonly labeled as <code>Mono12p</code> or
+<code>Mono12Packed</code>), ImageMagick cannot natively unpack the
+non-byte-aligned bits directly. In this scenario, use a preprocessing
+utility or Python script to unpack the 12-bit values into 16-bit aligned
+integers prior to running the ImageMagick pipeline.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set White Balance Multipliers for ARW in ImageMagick - magick</title>
+    <meta name="description" content="Processing Sony ARW raw files with specific white balance multipliers in ImageMagick requires controlling how the underlying raw decoder demosaics the image. ImageMagick delegates raw file decoding to tools like dcraw or LibRaw. This guide explains how t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-white-balance-multipliers-for-arw-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set White Balance Multipliers for ARW in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-white-balance-multipliers-for-arw-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing Sony ARW raw files with specific white balance multipliers in ImageMagick requires controlling how the underlying raw decoder demosaics the image. ImageMagick delegates raw file decoding to tools like dcraw or LibRaw. This guide explains how t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-white-balance-multipliers-for-arw-in-imagemagick">Set White
+Balance Multipliers for ARW in ImageMagick</h1>
+<p>Processing Sony ARW raw files with specific white balance multipliers
+in ImageMagick requires controlling how the underlying raw decoder
+demosaics the image. ImageMagick delegates raw file decoding to tools
+like <code>dcraw</code> or <code>LibRaw</code>. This guide explains how
+to apply custom red, green, and blue white balance multipliers by piping
+raw output from <code>dcraw</code> into ImageMagick, editing
+ImageMagick's delegate configuration, or modifying color channels
+directly within the command line.</p>
+<hr />
+<h3 id="method-1-pipe-decoded-arw-data-from-dcraw-to-imagemagick">Method
+1: Pipe Decoded ARW Data from dcraw to ImageMagick</h3>
+<p>The most direct and flexible way to process an ARW file with custom
+white balance multipliers is piping output directly from
+<code>dcraw</code> into ImageMagick. The <code>dcraw</code> utility uses
+the <code>-r</code> flag followed by four multipliers (Red, Green 1,
+Blue, Green 2).</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dcraw</span> <span class="at">-c</span> <span class="at">-6</span> <span class="at">-w</span> <span class="at">-r</span> 2.25 1.0 1.65 1.0 input.ARW <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-</span> output.png</span></code></pre></div>
+<h4 id="parameter-breakdown">Parameter Breakdown:</h4>
+<ul>
+<li><strong><code>-c</code></strong>: Writes the decoded image data to
+standard output.</li>
+<li><strong><code>-6</code></strong>: Outputs 16-bit linear PPM data to
+preserve dynamic range.</li>
+<li><strong><code>-r 2.25 1.0 1.65 1.0</code></strong>: Applies custom
+white balance multipliers (Red = 2.25, Green = 1.0, Blue = 1.65). Green
+values are typically normalized to 1.0.</li>
+<li><strong><code>magick - output.png</code></strong>: Reads standard
+input (<code>-</code>) and converts it to the final format.</li>
+</ul>
+<hr />
+<h3 id="method-2-configure-imagemagicks-delegatesxml">Method 2:
+Configure ImageMagick's <code>delegates.xml</code></h3>
+<p>If your workflow requires reading ARW files directly via
+<code>magick input.ARW output.png</code>, you can modify ImageMagick's
+<code>delegates.xml</code> configuration file to permanently inject
+custom multipliers into the raw decoding step.</p>
+<ol type="1">
+<li><p>Locate your <code>delegates.xml</code> file:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> delegate <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> arw</span></code></pre></div>
+<p>Or find the file path directly:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> / <span class="at">-name</span> <span class="st">&quot;delegates.xml&quot;</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span></code></pre></div></li>
+<li><p>Open <code>delegates.xml</code> and locate the line handling
+<code>dng:decode</code> or <code>arw</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">delegate</span> <span class="ot">decode=</span><span class="st">&quot;dng:decode&quot;</span> <span class="ot">command=</span><span class="st">&quot;</span><span class="dv">&amp;quot;</span><span class="st">dcraw</span><span class="dv">&amp;quot;</span><span class="st"> -6 -W -O </span><span class="dv">&amp;quot;</span><span class="st">%u.ppm</span><span class="dv">&amp;quot;</span><span class="st"> </span><span class="dv">&amp;quot;</span><span class="st">%i</span><span class="dv">&amp;quot;</span><span class="st">&quot;</span>/&gt;</span></code></pre></div></li>
+<li><p>Insert the <code>-r</code> multipliers into the command
+string:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">delegate</span> <span class="ot">decode=</span><span class="st">&quot;dng:decode&quot;</span> <span class="ot">command=</span><span class="st">&quot;</span><span class="dv">&amp;quot;</span><span class="st">dcraw</span><span class="dv">&amp;quot;</span><span class="st"> -6 -W -r 2.25 1.0 1.65 1.0 -O </span><span class="dv">&amp;quot;</span><span class="st">%u.ppm</span><span class="dv">&amp;quot;</span><span class="st"> </span><span class="dv">&amp;quot;</span><span class="st">%i</span><span class="dv">&amp;quot;</span><span class="st">&quot;</span>/&gt;</span></code></pre></div></li>
+<li><p>Save the file. Any subsequent native execution of
+<code>magick input.ARW output.jpg</code> will use these raw multipliers
+during demosaicing.</p></li>
+</ol>
+<hr />
+<h3
+id="method-3-apply-channel-multipliers-in-imagemagick-post-demosaic">Method
+3: Apply Channel Multipliers in ImageMagick Post-Demosaic</h3>
+<p>If you are using the built-in LibRaw delegate and cannot pipe from
+<code>dcraw</code>, you can disable camera white balance and manually
+apply multipliers across individual color channels in a 16-bit
+workspace.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.ARW <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dng:use-camera-wb=false <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dng:use-auto-wb=false <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> R <span class="at">-evaluate</span> multiply 2.25 <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> B <span class="at">-evaluate</span> multiply 1.65 <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  +channel <span class="dt">\</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> sRGB <span class="dt">\</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  output.jpg</span></code></pre></div>
+<h4 id="parameter-breakdown-1">Parameter Breakdown:</h4>
+<ul>
+<li><strong><code>-define dng:use-camera-wb=false</code></strong>:
+Prevents the embedded camera metadata white balance from applying.</li>
+<li><strong><code>-define dng:use-auto-wb=false</code></strong>:
+Prevents automated scene analysis white balance.</li>
+<li><strong><code>-channel R -evaluate multiply 2.25</code></strong>:
+Scales the red channel by your desired multiplier.</li>
+<li><strong><code>-channel B -evaluate multiply 1.65</code></strong>:
+Scales the blue channel by your desired multiplier.</li>
+<li><strong><code>+channel</code></strong>: Resets the channel focus to
+all channels for remaining operations.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

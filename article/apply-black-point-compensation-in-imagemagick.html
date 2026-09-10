@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Black Point Compensation in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how to enable and apply Black Point Compensation (BPC) during ICC profile conversions in ImageMagick. Black Point Compensation adjusts for dynamic range differences between color spaces, preventing dark shadow details from clipping">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-black-point-compensation-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply Black Point Compensation in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-black-point-compensation-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to enable and apply Black Point Compensation (BPC) during ICC profile conversions in ImageMagick. Black Point Compensation adjusts for dynamic range differences between color spaces, preventing dark shadow details from clipping" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-black-point-compensation-in-imagemagick">Apply Black Point
+Compensation in ImageMagick</h1>
+<p>This article explains how to enable and apply Black Point
+Compensation (BPC) during ICC profile conversions in ImageMagick. Black
+Point Compensation adjusts for dynamic range differences between color
+spaces, preventing dark shadow details from clipping to solid black. You
+will learn the exact command-line syntax, flags, and configuration
+settings required to ensure accurate color mapping with LittleCMS
+integration.</p>
+<hr />
+<h3 id="what-is-black-point-compensation">What is Black Point
+Compensation?</h3>
+<p>Black Point Compensation (BPC) is a color management feature defined
+by the International Color Consortium (ICC). When transforming an image
+between different color profiles (such as sRGB to a CMYK print profile),
+the darkest achievable black of the source profile may not match the
+destination profile. BPC scales the source color space's dynamic range
+to fit the destination space, ensuring that shadow details are preserved
+rather than clipped.</p>
+<hr />
+<h3 id="enabling-bpc-in-imagemagick">Enabling BPC in ImageMagick</h3>
+<p>ImageMagick relies on the LittleCMS (LCMS2) library to handle ICC
+color profile conversions. To apply Black Point Compensation, you must
+specify the BPC configuration before applying the target profile.</p>
+<h4 id="1-using-the--define-lcmsbpctrue-flag-recommended">1. Using the
+<code>-define lcms:bpc=true</code> Flag (Recommended)</h4>
+<p>The most reliable cross-version method to enable BPC is using the
+LCMS definition:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> lcms:bpc=true <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> USWebCoatedSWOP.icc output.jpg</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-define</span> lcms:bpc=true <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> USWebCoatedSWOP.icc output.jpg</span></code></pre></div>
+<h4 id="2-using-the-direct-option-flag">2. Using the Direct Option
+Flag</h4>
+<p>In recent versions of ImageMagick 7, you can use the direct
+command-line option:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-black-point-compensation</span> <span class="at">-profile</span> target_profile.icc output.jpg</span></code></pre></div>
+<hr />
+<h3 id="standard-workflow-and-command-ordering">Standard Workflow and
+Command Ordering</h3>
+<p>Command-line order matters in ImageMagick. Settings like rendering
+intent and BPC must be declared before the output <code>-profile</code>
+switch is executed.</p>
+<h4 id="step-by-step-conversion-example">Step-by-Step Conversion
+Example:</h4>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/source_profile.icc <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-intent</span> Relative <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> lcms:bpc=true <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-profile</span> /path/to/destination_profile.icc <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  output.tif</span></code></pre></div>
+<ul>
+<li><strong><code>-profile source_profile.icc</code></strong>: Assigns
+the source profile if the image does not already contain an embedded
+one.</li>
+<li><strong><code>-intent Relative</code></strong>: Sets the rendering
+intent to Relative Colorimetric. BPC is most commonly paired with
+Relative Colorimetric intent.</li>
+<li><strong><code>-define lcms:bpc=true</code></strong>: Tells LCMS to
+calculate and match black points across profiles.</li>
+<li><strong><code>-profile destination_profile.icc</code></strong>:
+Performs the transformation into the destination color space.</li>
+</ul>
+<hr />
+<h3 id="verification-and-requirements">Verification and
+Requirements</h3>
+<ol type="1">
+<li><p><strong>LCMS Delegate Support:</strong> BPC requires ImageMagick
+to be compiled with LittleCMS support. Verify your installation by
+running:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Check the <code>Delegates</code> output to ensure <code>lcms</code>
+is listed.</p></li>
+<li><p><strong>Embedded Profiles:</strong> If the input image already
+contains an embedded ICC profile, you do not need to specify the first
+<code>-profile</code> argument; ImageMagick will use the embedded
+profile as the source.</p></li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

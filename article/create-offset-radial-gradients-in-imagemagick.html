@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Offset Radial Gradients in ImageMagick - magick</title>
+    <meta name="description" content="Creating a radial gradient with an offset center in ImageMagick allows you to produce dynamic lighting effects, custom vignettes, and asymmetrical backgrounds. This guide demonstrates how to reposition the focal point of a radial gradient using ImageMagi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-offset-radial-gradients-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Offset Radial Gradients in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-offset-radial-gradients-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating a radial gradient with an offset center in ImageMagick allows you to produce dynamic lighting effects, custom vignettes, and asymmetrical backgrounds. This guide demonstrates how to reposition the focal point of a radial gradient using ImageMagi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-offset-radial-gradients-in-imagemagick">Create Offset
+Radial Gradients in ImageMagick</h1>
+<p>Creating a radial gradient with an offset center in ImageMagick
+allows you to produce dynamic lighting effects, custom vignettes, and
+asymmetrical backgrounds. This guide demonstrates how to reposition the
+focal point of a radial gradient using ImageMagick's built-in gradient
+definitions and command-line options.</p>
+<h2 id="using--define-gradientcenter">Using
+<code>-define gradient:center</code></h2>
+<p>The most direct way to offset the center of a radial gradient in
+ImageMagick (version 6.9.2-5 and newer, including ImageMagick 7) is by
+using the <code>-define gradient:center</code> setting.</p>
+<h3 id="basic-command-syntax">Basic Command Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 <span class="at">-define</span> gradient:center=150,100 radial-gradient:white-black offset_gradient.png</span></code></pre></div>
+<p><em>(Note: For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-size 600x400</code></strong>: Defines the canvas
+width and height in pixels.</li>
+<li><strong><code>-define gradient:center=150,100</code></strong>: Sets
+the origin (center point) of the gradient at coordinates X=150, Y=100
+rather than the default canvas center (300, 200).</li>
+<li><strong><code>radial-gradient:white-black</code></strong>: Specifies
+the start and end colors. The gradient begins at the offset center point
+with the first color (<code>white</code>) and radiates outward to the
+second color (<code>black</code>).</li>
+<li><strong><code>offset_gradient.png</code></strong>: The name of the
+output image file.</li>
+</ul>
+<h2 id="controlling-gradient-extent-and-shape">Controlling Gradient
+Extent and Shape</h2>
+<p>By default, the gradient radius expands to the furthest corner of the
+canvas. You can constrain or reshape the gradient using
+<code>-define gradient:radii</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x400 <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> gradient:center=200,150 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> gradient:radii=150,150 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  radial-gradient:#ffcc00-#003366 <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  custom_radius.png</span></code></pre></div>
+<ul>
+<li><strong><code>gradient:radii=150,150</code></strong>: Forces the
+gradient to reach its ending color at an explicit horizontal and
+vertical radius of 150 pixels from the offset center, creating a
+circular fade.</li>
+<li>Different X and Y values (e.g., <code>gradient:radii=300,150</code>)
+will produce an elliptical offset gradient.</li>
+</ul>
+<h2 id="using-percentage-coordinates">Using Percentage Coordinates</h2>
+<p>You can also define coordinates as percentages instead of absolute
+pixels to make scripts responsive to different canvas sizes:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 800x600 <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> gradient:center=25%,25% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  radial-gradient:rgba<span class="er">(</span><span class="ex">255,255,255,1</span><span class="kw">)</span><span class="ex">-rgba</span><span class="er">(</span><span class="ex">0,0,0,0</span><span class="kw">)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">offset_spotlight.png</span></span></code></pre></div>
+<p>This places the center 25% from the left and 25% from the top, fading
+from an opaque white center into full transparency at the edges.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

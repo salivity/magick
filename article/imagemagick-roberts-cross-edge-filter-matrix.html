@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Roberts Cross Edge Filter Matrix - magick</title>
+    <meta name="description" content="This article provides an overview of the mathematical matrix structure used by the Roberts cross-gradient edge detection filter within ImageMagick. It details the underlying convolution kernels, their spatial orientation, how ImageMagick represents these">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-roberts-cross-edge-filter-matrix">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Roberts Cross Edge Filter Matrix - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-roberts-cross-edge-filter-matrix" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the mathematical matrix structure used by the Roberts cross-gradient edge detection filter within ImageMagick. It details the underlying convolution kernels, their spatial orientation, how ImageMagick represents these" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-roberts-cross-edge-filter-matrix">ImageMagick
+Roberts Cross Edge Filter Matrix</h1>
+<p>This article provides an overview of the mathematical matrix
+structure used by the Roberts cross-gradient edge detection filter
+within ImageMagick. It details the underlying convolution kernels, their
+spatial orientation, how ImageMagick represents these 2×2 discrete
+differentiation operators, and the calculation used to compute gradient
+magnitude across an image.</p>
+<h2
+id="mathematical-formulation-of-the-roberts-cross-operator">Mathematical
+Formulation of the Roberts Cross Operator</h2>
+<p>The Roberts Cross operator performs a simple, 2-D spatial gradient
+measurement on an image. It highlights regions of high spatial frequency
+that correspond to edges by calculating the difference between
+diagonally adjacent pixels.</p>
+<p>To approximate the gradient vector of an image function <span
+class="math inline">\(I(x, y)\)</span>, the operator uses two orthogonal
+convolution matrices: one calculating changes along the primary diagonal
+(<span class="math inline">\(G_x\)</span>), and the other along the
+secondary diagonal (<span class="math inline">\(G_y\)</span>).</p>
+<h3 id="the-22-kernel-matrices">The 2×2 Kernel Matrices</h3>
+<p>The continuous gradient approximation relies on the following two 2×2
+convolution masks:</p>
+<p><span class="math display">\[G_x = \begin{bmatrix} +1 &amp; 0 \\ 0
+&amp; -1 \end{bmatrix}\]</span></p>
+<p><span class="math display">\[G_y = \begin{bmatrix} 0 &amp; +1 \\ -1
+&amp; 0 \end{bmatrix}\]</span></p>
+<p>Applied to an image neighborhood defined as:</p>
+<p><span class="math display">\[\begin{bmatrix} I(x, y) &amp; I(x+1, y)
+\\ I(x, y+1) &amp; I(x+1, y+1) \end{bmatrix}\]</span></p>
+<p>The resulting directional gradients are computed as:</p>
+<p><span class="math display">\[G_x = I(x, y) - I(x+1, y+1)\]</span></p>
+<p><span class="math display">\[G_y = I(x+1, y) - I(x, y+1)\]</span></p>
+<h2 id="imagemagick-morphology-kernel-representation">ImageMagick
+Morphology Kernel Representation</h2>
+<p>In ImageMagick, custom and pre-defined edge-detection filters are
+often applied via convolution using the
+<code>-morphology Convolve</code> method. Because standard digital image
+convolution frequently relies on odd-dimension matrices to establish a
+well-defined center pixel, 2×2 kernels are either evaluated directly
+with defined pixel origins or embedded within a 3×3 structure.</p>
+<p>When defined directly using ImageMagick kernel syntax, the individual
+directional matrices are specified as follows:</p>
+<h3 id="primary-diagonal-kernel-roberts-0">Primary Diagonal Kernel
+(Roberts 0°)</h3>
+<pre class="text"><code>2x2:
+ 1,  0
+ 0, -1</code></pre>
+<h3 id="secondary-diagonal-kernel-roberts-90">Secondary Diagonal Kernel
+(Roberts 90°)</h3>
+<pre class="text"><code>2x2:
+ 0,  1
+-1,  0</code></pre>
+<h3 id="embedded-33-representation">Embedded 3×3 Representation</h3>
+<p>When aligned within an odd-sized 3×3 matrix to anchor the current
+target pixel at the center coordinate <code>(1, 1)</code>, the matrices
+are represented with inactive outer elements (using zeroes or blanks
+depending on normalization):</p>
+<p><span class="math display">\[K_x = \begin{bmatrix} 0 &amp; 0 &amp; 0
+\\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; -1 \end{bmatrix}\]</span></p>
+<p><span class="math display">\[K_y = \begin{bmatrix} 0 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 1 \\ 0 &amp; -1 &amp; 0 \end{bmatrix}\]</span></p>
+<h2 id="gradient-magnitude-calculation">Gradient Magnitude
+Calculation</h2>
+<p>Once the directional components <span
+class="math inline">\(G_x\)</span> and <span
+class="math inline">\(G_y\)</span> are calculated via convolution with
+their respective matrices, ImageMagick combines them to produce the
+final edge response. The absolute gradient magnitude <span
+class="math inline">\(|G|\)</span> can be calculated in one of two
+ways:</p>
+<ol type="1">
+<li><p><strong>Euclidean Norm (Accurate):</strong> <span
+class="math display">\[|G| = \sqrt{G_x^2 + G_y^2}\]</span></p></li>
+<li><p><strong>Manhattan Distance (Computationally Fast
+Approximation):</strong> <span class="math display">\[|G| \approx |G_x|
++ |G_y|\]</span></p></li>
+</ol>
+<p>ImageMagick implements these calculations using 16-bit or 32-bit
+floating-point precision (depending on the Q-depth compilation: Q8, Q16,
+or HDRI) to prevent premature pixel clipping before mapping the final
+gradient intensities back into the displayable dynamic range.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

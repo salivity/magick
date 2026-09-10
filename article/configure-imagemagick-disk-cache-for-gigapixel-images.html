@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure ImageMagick Disk Cache for Gigapixel Images - magick</title>
+    <meta name="description" content="Processing gigapixel graphics in ImageMagick requires offloading pixel data from physical RAM to high-speed disk storage to prevent out-of-memory errors and system instability. When an image exceeds the available memory, ImageMagick can manage pixels thr">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-imagemagick-disk-cache-for-gigapixel-images">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure ImageMagick Disk Cache for Gigapixel Images - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-imagemagick-disk-cache-for-gigapixel-images" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Processing gigapixel graphics in ImageMagick requires offloading pixel data from physical RAM to high-speed disk storage to prevent out-of-memory errors and system instability. When an image exceeds the available memory, ImageMagick can manage pixels thr" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-imagemagick-disk-cache-for-gigapixel-images">Configure
+ImageMagick Disk Cache for Gigapixel Images</h1>
+<p>Processing gigapixel graphics in ImageMagick requires offloading
+pixel data from physical RAM to high-speed disk storage to prevent
+out-of-memory errors and system instability. When an image exceeds the
+available memory, ImageMagick can manage pixels through a designated
+disk-backed pixel cache. This guide covers how to set resource limits,
+configure fast scratch disk paths, and adjust <code>policy.xml</code>
+settings to enable smooth processing of ultra-high-resolution
+graphics.</p>
+<h3 id="understanding-imagemagick-resource-limits">Understanding
+ImageMagick Resource Limits</h3>
+<p>ImageMagick utilizes a hierarchical memory architecture governed by
+specific resource policies:</p>
+<ul>
+<li><strong>Memory (<code>memory</code>):</strong> The maximum amount of
+physical RAM allocated to store uncompressed pixels.</li>
+<li><strong>Map (<code>map</code>):</strong> The maximum memory-mapped
+file space used before spilling to temporary files.</li>
+<li><strong>Disk (<code>disk</code>):</strong> The maximum storage space
+allocated on a local drive when RAM and memory mapping are
+exhausted.</li>
+<li><strong>Area (<code>area</code>):</strong> The maximum pixel
+dimensions (width × height) an image can have before ImageMagick
+automatically forces pixel caching directly to disk.</li>
+</ul>
+<p>For gigapixel processing, the system must constrain
+<code>memory</code> and <code>map</code> while dramatically increasing
+<code>disk</code> and configuring a designated fast scratch
+directory.</p>
+<hr />
+<h3 id="step-1-locate-and-edit-policyxml">Step 1: Locate and Edit
+<code>policy.xml</code></h3>
+<p>Global resource allocations are governed by the
+<code>policy.xml</code> configuration file. Locate your configuration
+path using the command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> configure <span class="kw">|</span> <span class="fu">grep</span> POLICY_PATH</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Or for ImageMagick 6:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-list</span> configure <span class="kw">|</span> <span class="fu">grep</span> POLICY_PATH</span></code></pre></div>
+<p>Common locations include <code>/etc/ImageMagick-7/policy.xml</code>
+on Linux or <code>/usr/local/etc/ImageMagick-7/policy.xml</code> on
+macOS.</p>
+<p>Open the file in a text editor with administrative privileges and
+modify or insert the following resource lines inside the
+<code>&lt;policymap&gt;</code> block:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit RAM to avoid system freeze (adjust to your machine&#39;s specs) --&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;memory&quot;</span> <span class="ot">value=</span><span class="st">&quot;4GiB&quot;</span>/&gt;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit memory mapping --&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;map&quot;</span> <span class="ot">value=</span><span class="st">&quot;8GiB&quot;</span>/&gt;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Force disk caching for images exceeding a specific pixel threshold --&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;area&quot;</span> <span class="ot">value=</span><span class="st">&quot;128MP&quot;</span>/&gt;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Allocate sufficient scratch space on disk for intermediate files --&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;1TiB&quot;</span>/&gt;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Ensure width/height limits do not reject gigapixel dimensions --&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;width&quot;</span> <span class="ot">value=</span><span class="st">&quot;1GP&quot;</span>/&gt;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;height&quot;</span> <span class="ot">value=</span><span class="st">&quot;1GP&quot;</span>/&gt;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<hr />
+<h3 id="step-2-configure-a-fast-temporary-disk-path">Step 2: Configure a
+Fast Temporary Disk Path</h3>
+<p>Pixel disk caching involves high input/output operations (I/O).
+Storing temporary files on slow hard drives can bottleneck processing
+speeds. Assign ImageMagick's temporary cache directory to an NVMe SSD or
+high-speed striped volume.</p>
+<p>Set the directory path using the <code>MAGICK_TEMPORARY_PATH</code>
+environment variable in your shell profile (e.g., <code>~/.bashrc</code>
+or <code>~/.zshrc</code>):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_TEMPORARY_PATH</span><span class="op">=</span><span class="st">&quot;/mnt/fast_nvme/magick_tmp&quot;</span></span></code></pre></div>
+<p>Ensure the destination directory exists and has write
+permissions:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /mnt/fast_nvme/magick_tmp</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 700 /mnt/fast_nvme/magick_tmp</span></code></pre></div>
+<p>Alternatively, define the path globally inside
+<code>policy.xml</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;temporary-path&quot;</span> <span class="ot">value=</span><span class="st">&quot;/mnt/fast_nvme/magick_tmp&quot;</span>/&gt;</span></code></pre></div>
+<hr />
+<h3 id="step-3-use-command-line-overrides-for-specific-tasks">Step 3:
+Use Command-Line Overrides for Specific Tasks</h3>
+<p>If you want to configure the disk cache per execution rather than
+globally, pass the <code>-limit</code> flags directly to the command
+line:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-limit</span> memory 2GiB <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">-limit</span> map 4GiB <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">-limit</span> area 64MP <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">-limit</span> disk 500GiB <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">-define</span> registry:temporary-path=/mnt/fast_nvme/magick_tmp <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>       input_gigapixel.tif <span class="at">-resize</span> 50% output.tif</span></code></pre></div>
+<hr />
+<h3 id="step-4-verify-cache-allocation">Step 4: Verify Cache
+Allocation</h3>
+<p>To verify that the disk cache settings and paths are registered
+correctly, run:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> resource</span></code></pre></div>
+<p>The output will display the active resource thresholds:</p>
+<pre class="text"><code>Resource limits:
+  Width: 1GP
+  Height: 1GP
+  Area: 128MP
+  Memory: 4GiB
+  Map: 8GiB
+  Disk: 1TiB
+  File: 768
+  Thread: 8
+  Throttle: 0
+  Time: unlimited</code></pre>
+<p>When processing images larger than the configured <code>memory</code>
+and <code>area</code> thresholds, ImageMagick will generate temporary
+<code>.cache</code> files within your designated temporary directory,
+allowing gigapixel operations to proceed without exhausting system
+memory.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

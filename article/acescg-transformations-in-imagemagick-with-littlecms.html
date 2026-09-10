@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACEScg Transformations in ImageMagick with LittleCMS - magick</title>
+    <meta name="description" content="When compiled with LittleCMS (lcms2) support, ImageMagick manages wide-gamut ACEScg transformations by delegating International Color Consortium (ICC) profile operations to the LittleCMS color management engine. This integration allows ImageMagick to tra">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/acescg-transformations-in-imagemagick-with-littlecms">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ACEScg Transformations in ImageMagick with LittleCMS - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/acescg-transformations-in-imagemagick-with-littlecms" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When compiled with LittleCMS (lcms2) support, ImageMagick manages wide-gamut ACEScg transformations by delegating International Color Consortium (ICC) profile operations to the LittleCMS color management engine. This integration allows ImageMagick to tra" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="acescg-transformations-in-imagemagick-with-littlecms">ACEScg
+Transformations in ImageMagick with LittleCMS</h1>
+<p>When compiled with LittleCMS (lcms2) support, ImageMagick manages
+wide-gamut ACEScg transformations by delegating International Color
+Consortium (ICC) profile operations to the LittleCMS color management
+engine. This integration allows ImageMagick to translate pixel data
+between standard spaces (such as sRGB, Display P3, or Adobe RGB) and the
+scene-linear, wide-gamut ACEScg (AP1) color space. By coupling LittleCMS
+with ImageMagick's High Dynamic Range Imaging (HDRI) architecture, the
+software preserves extended dynamic range values, handles chromatic
+adaptation between distinct white points, and ensures accurate color
+conversions across visual effects and rendering pipelines.</p>
+<h3 id="the-role-of-littlecms-delegation">The Role of LittleCMS
+Delegation</h3>
+<p>ImageMagick's native color capabilities are primarily restricted to
+basic colorspace flags, simple matrices, and gamma shifts. By compiling
+ImageMagick with the <code>--with-lcms2</code> flag, color-management
+tasks are delegated directly to the LittleCMS library. LittleCMS is an
+open-source, C-based color engine that calculates exact mathematical
+conversions through standard ICC profiles, ensuring that wide-gamut
+definitions are evaluated with mathematical rigor rather than simple
+approximations.</p>
+<h3 id="hdri-requirement-for-linear-acescg-data">HDRI Requirement for
+Linear ACEScg Data</h3>
+<p>ACEScg is an encoding standard under the Academy Color Encoding
+System tailored for computer graphics, utilizing AP1 primaries and a
+linear (gamma 1.0) transfer curve. Because ACEScg is scene-referred,
+pixel values are not bounded between 0.0 and 1.0; specular highlights,
+light sources, and reflections routinely exceed 1.0, while camera noise
+or gamut conversion artifacts can fall below 0.0.</p>
+<p>To maintain integrity during an ACEScg transformation, ImageMagick
+must be compiled in an HDRI-enabled build (such as Q16HDRI or Q32HDRI).
+Without HDRI, LittleCMS would receive and return clamped integer pixel
+buffers, clipping negative values to pure black and values above 1.0 to
+maximum white, fundamentally destroying the high-dynamic-range data. In
+an HDRI build, ImageMagick feeds LittleCMS floating-point buffers,
+enabling calculations across the entire exposure range.</p>
+<h3 id="managing-acescg-via-icc-profiles">Managing ACEScg via ICC
+Profiles</h3>
+<p>While many visual effects pipelines utilize OpenColorIO (OCIO) for
+ACES handling, ImageMagick operates via ICC-based management.
+Transforming to or from ACEScg requires an ICC profile that accurately
+encodes:</p>
+<ol type="1">
+<li><strong>The AP1 Primaries:</strong> The wide color gamut coordinates
+defining the red, green, and blue corners of ACEScg.</li>
+<li><strong>The White Point:</strong> The standard ACES white point,
+which approximates D60 (x: 0.32168, y: 0.33767).</li>
+<li><strong>The Linear Transfer Characteristic:</strong> An uncurved
+gamma of 1.0 (<code>TRC</code> tags set to linear).</li>
+</ol>
+<p>In an ImageMagick command pipeline, the <code>-profile</code>
+operator orchestrates the execution. For an image lacking an embedded
+profile, the first <code>-profile</code> call assigns the source profile
+(e.g., standard sRGB). A secondary <code>-profile</code> call dictates
+the destination profile (e.g., an ACEScg profile):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_srgb.png <span class="at">-profile</span> sRGB.icc <span class="at">-profile</span> ACEScg.icc output_acescg.exr</span></code></pre></div>
+<h3 id="profile-connection-space-and-chromatic-adaptation">Profile
+Connection Space and Chromatic Adaptation</h3>
+<p>When the transformation is triggered, LittleCMS constructs a
+multi-stage transform pipeline (<code>cmsCreateTransform</code>):</p>
+<ul>
+<li><strong>Decoding:</strong> LittleCMS parses the source profile,
+applying inverse tone response curves (TRCs) to convert non-linear input
+(such as an sRGB gamma curve) into linear color metrics.</li>
+<li><strong>PCS Translation:</strong> Pixels are projected into the
+Profile Connection Space (PCS), typically CIEXYZ or CIELAB.</li>
+<li><strong>Chromatic Adaptation:</strong> ACEScg uses a ~D60 white
+point, whereas common gamuts like sRGB or Rec.709 are calibrated to D65.
+LittleCMS automatically detects this discrepancy via the
+<code>chromaticAdaptationTag</code> embedded in the ICC profiles. It
+executes a chromatic adaptation matrix transformation—typically using
+the Bradford or CIECAM02 model—to align the source white point to the
+ACEScg target.</li>
+<li><strong>Gamut Matrixing:</strong> The linear, adapted XYZ
+coordinates are mapped against the AP1 primary matrix defined in the
+ACEScg ICC profile.</li>
+</ul>
+<h3 id="rendering-intents-and-gamut-mapping">Rendering Intents and Gamut
+Mapping</h3>
+<p>ImageMagick exposes LittleCMS rendering intents via the
+<code>-intent</code> flag. During ACEScg transformations:</p>
+<ul>
+<li><strong>Relative Colorimetric
+(<code>-intent Relative</code>):</strong> The standard choice for
+scene-referred imagery. It aligns the white points via the adaptation
+matrix and scales color data into the destination primaries without
+applying artificial gamut compression curves.</li>
+<li><strong>Perceptual (<code>-intent Perceptual</code>):</strong> Often
+avoided when converting to ACEScg, as it attempts to compress dynamic
+range into a target gamut based on vendor-specific lookup tables, which
+disrupts linear calculations.</li>
+</ul>
+<p>Through this sequence—pairing floating-point HDRI memory storage with
+LittleCMS-driven ICC profile mathematics—ImageMagick translates imagery
+into and out of the ACEScg color space without dynamic range clipping,
+unexpected color clipping, or tonal distortion.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

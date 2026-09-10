@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Combine Operator for Merging Channels - magick</title>
+    <meta name="description" content="The ImageMagick -combine operator merges multiple individual grayscale images into a single multi-channel color image. It reads the input sequence of single-channel images and assigns each one to a corresponding color channel based on the specified color">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-combine-operator-for-merging-channels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Combine Operator for Merging Channels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-combine-operator-for-merging-channels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -combine operator merges multiple individual grayscale images into a single multi-channel color image. It reads the input sequence of single-channel images and assigns each one to a corresponding color channel based on the specified color" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-combine-operator-for-merging-channels">ImageMagick
+Combine Operator for Merging Channels</h1>
+<p>The ImageMagick <code>-combine</code> operator merges multiple
+individual grayscale images into a single multi-channel color image. It
+reads the input sequence of single-channel images and assigns each one
+to a corresponding color channel based on the specified colorspace, such
+as RGB or CMYK. This article covers how the <code>-combine</code>
+operator functions, how it interacts with colorspaces, and its common
+practical applications.</p>
+<h2 id="core-functionality">Core Functionality</h2>
+<p>The primary purpose of the <code>-combine</code> operator is channel
+reconstruction. In digital imaging, full-color images consist of
+separate channels representing different color components (such as red,
+green, and blue). When these channels are separated or generated
+individually as grayscale images, <code>-combine</code> takes those
+individual files and binds them back together into a single cohesive
+output.</p>
+<p>The order of the input images strictly determines channel
+assignment:</p>
+<ul>
+<li><strong>Two Images:</strong> Merged into an image with an Alpha
+channel or combined into specific two-channel spaces.</li>
+<li><strong>Three Images:</strong> Typically mapped to Red, Green, and
+Blue (RGB) or Hue, Saturation, and Lightness (HSL).</li>
+<li><strong>Four Images:</strong> Typically mapped to Cyan, Magenta,
+Yellow, and Black (CMYK) or Red, Green, Blue, and Alpha (RGBA).</li>
+</ul>
+<h2 id="colorspace-association">Colorspace Association</h2>
+<p>The <code>-combine</code> operator relies on the active colorspace
+setting to determine how channels are mapped. By default, ImageMagick
+assumes an RGB/sRGB colorspace when combining three images.</p>
+<p>If you are working with alternative color models, you must define the
+colorspace using the <code>-colorspace</code> or
+<code>-set colorspace</code> option before applying
+<code>-combine</code>. For example, setting the colorspace to
+<code>CMYK</code> instructs the operator to treat four input channels as
+Cyan, Magenta, Yellow, and Key (Black) rather than RGBA.</p>
+<h2 id="common-workflows">Common Workflows</h2>
+<p>The <code>-combine</code> operator is typically used in the following
+scenarios:</p>
+<ul>
+<li><strong>Channel-by-Channel Editing:</strong> An image is split using
+<code>-separate</code>, modifications are applied to one specific
+channel (such as sharpening only the luminance channel), and the
+channels are reconstructed using <code>-combine</code>.</li>
+<li><strong>Channel Swapping:</strong> Input channels can be rearranged
+in the command sequence to swap color values, such as mapping the blue
+channel to red and vice versa.</li>
+<li><strong>Astrophotography and Remote Sensing:</strong> Combining
+separate narrowband grayscale exposures (such as Hydrogen-alpha,
+Oxygen-III, and Sulfur-II) into a single false-color or composite color
+image.</li>
+</ul>
+<h2 id="basic-syntax-example">Basic Syntax Example</h2>
+<p>In standard ImageMagick syntax, combining three separate grayscale
+images into an sRGB output is structured as follows:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> red.png green.png blue.png <span class="at">-combine</span> output.png</span></code></pre></div>
+<p>For advanced inline operations where an image is separated, modified,
+and combined within a single command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-separate</span> <span class="at">-channel</span> R <span class="at">-negate</span> +channel <span class="at">-combine</span> output.png</span></code></pre></div>
+<p>In this workflow, <code>-combine</code> evaluates all images
+currently in the image sequence stack and consolidates them into the
+final output format.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

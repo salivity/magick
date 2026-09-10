@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Trim an AVIF Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Trimming an AVIF image with ImageMagick allows you to automatically remove solid backgrounds, borders, or excess whitespace from modern high-compression image files directly from the command line. This guide walks through the required ImageMagick command">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-trim-an-avif-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Trim an AVIF Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-trim-an-avif-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Trimming an AVIF image with ImageMagick allows you to automatically remove solid backgrounds, borders, or excess whitespace from modern high-compression image files directly from the command line. This guide walks through the required ImageMagick command" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-trim-an-avif-image-using-imagemagick">How to Trim an AVIF
+Image Using ImageMagick?</h1>
+<p>Trimming an AVIF image with ImageMagick allows you to automatically
+remove solid backgrounds, borders, or excess whitespace from modern
+high-compression image files directly from the command line. This guide
+walks through the required ImageMagick commands, syntax adjustments for
+fuzzy background colors, and how to preserve AVIF canvas geometry and
+quality during processing.</p>
+<h2 id="prerequisites-and-avif-support">Prerequisites and AVIF
+Support</h2>
+<p>Before processing AVIF files, ensure your ImageMagick build includes
+AVIF delegate support (typically <code>libheif</code> or
+<code>libavif</code>).</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> in the
+<code>Delegates</code> list. If AVIF support is missing, update
+ImageMagick or install the <code>libheif</code> delegate via your
+system's package manager.</p>
+<h2 id="basic-automatic-trim">Basic Automatic Trim</h2>
+<p>The <code>-trim</code> operator removes edges that are the exact same
+color as the outer corners of the image.</p>
+<p>To perform a basic trim on an AVIF file:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-trim</span> +repage output.avif</span></code></pre></div>
+<h3 id="why-use-repage">Why Use <code>+repage</code>?</h3>
+<p>When ImageMagick trims an image, it retains the original canvas
+dimensions and offsets in the image metadata by default. The
+<code>+repage</code> operator completely removes this virtual canvas,
+resetting the new image dimensions to match the trimmed bounds and
+preventing display issues in web browsers.</p>
+<h2 id="handling-inexact-backgrounds-with-fuzz">Handling Inexact
+Backgrounds with Fuzz</h2>
+<p>If the background is not completely uniform—such as an image with
+subtle gradients, compression artifacts, or slight noise—a strict trim
+will not remove all excess borders. Use the <code>-fuzz</code> option to
+define a tolerance threshold.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-fuzz</span> 5% <span class="at">-trim</span> +repage output.avif</span></code></pre></div>
+<p>A fuzz value between <code>1%</code> and <code>10%</code> usually
+removes compression noise without clipping into the main content.</p>
+<h2 id="controlling-output-quality-and-compression">Controlling Output
+Quality and Compression</h2>
+<p>Re-encoding into AVIF can alter the file's visual fidelity and
+compression level if not specified. Use <code>-quality</code> to control
+output compression:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-fuzz</span> 5% <span class="at">-trim</span> +repage <span class="at">-quality</span> 80 output.avif</span></code></pre></div>
+<p>A quality setting between <code>75</code> and <code>85</code>
+typically provides an optimal balance between low file size and visual
+clarity.</p>
+<h2 id="batch-trimming-multiple-avif-files">Batch Trimming Multiple AVIF
+Files</h2>
+<p>To trim all AVIF files in a single directory, use ImageMagick's
+<code>mogrify</code> command:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-fuzz</span> 5% <span class="at">-trim</span> +repage <span class="at">-path</span> ./trimmed_output <span class="pp">*</span>.avif</span></code></pre></div>
+<p>This command processes every <code>.avif</code> file in the current
+directory and saves the trimmed versions into the
+<code>trimmed_output</code> folder without overwriting the
+originals.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Remap Custom Color Palette Guide - magick</title>
+    <meta name="description" content="ImageMagick allows you to restrict and transform an image's color space to a specific set of colors using the -remap option. This guide explains how to generate a custom color palette image, apply it to target images using the ImageMagick command line, a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-remap-custom-color-palette-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Remap Custom Color Palette Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-remap-custom-color-palette-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick allows you to restrict and transform an image's color space to a specific set of colors using the -remap option. This guide explains how to generate a custom color palette image, apply it to target images using the ImageMagick command line, a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-remap-custom-color-palette-guide">ImageMagick Remap
+Custom Color Palette Guide</h1>
+<p>ImageMagick allows you to restrict and transform an image's color
+space to a specific set of colors using the <code>-remap</code> option.
+This guide explains how to generate a custom color palette image, apply
+it to target images using the ImageMagick command line, and control
+color dithering for precise visual results.</p>
+<h3 id="understanding-the--remap-option">Understanding the
+<code>-remap</code> Option</h3>
+<p>The <code>-remap</code> option replaces the colors in an image with
+the closest matching colors present in a reference palette image. To use
+<code>-remap</code>, you must first have a palette image containing only
+your target colors, which can either be extracted from an existing
+graphic or built manually from specific color values.</p>
+<h3 id="step-1-generating-the-custom-palette">Step 1: Generating the
+Custom Palette</h3>
+<p>Before remapping an image, create the reference palette. You can
+generate this reference file using either of the following methods:</p>
+<p><strong>Method A: Extracting a Palette from an Image</strong> To
+extract a reduced, unique color palette from an existing source image,
+use the <code>-colors</code> and <code>-unique-colors</code>
+operators:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +dither <span class="at">-colors</span> 16 <span class="at">-unique-colors</span> palette.png</span></code></pre></div>
+<p>This command reduces <code>input.jpg</code> to 16 dominant colors,
+strips duplicate pixels, and outputs a 1-pixel-high strip
+(<code>palette.png</code>) containing only the extracted color
+swatches.</p>
+<p><strong>Method B: Creating a Custom Palette from Specific
+Colors</strong> To build a palette containing exact hex codes or color
+names, combine single-pixel canvases using <code>+append</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> xc:<span class="st">&quot;#0f380f&quot;</span> xc:<span class="st">&quot;#306230&quot;</span> xc:<span class="st">&quot;#8bac0f&quot;</span> xc:<span class="st">&quot;#9bbc0f&quot;</span> +append palette.png</span></code></pre></div>
+<p>This creates a palette containing only the four specified color
+values.</p>
+<h3 id="step-2-applying-the-palette-using--remap">Step 2: Applying the
+Palette Using <code>-remap</code></h3>
+<p>Once your <code>palette.png</code> file is ready, apply it to your
+target image using <code>-remap</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-remap</span> palette.png output.png</span></code></pre></div>
+<p>ImageMagick evaluates each pixel in <code>input.jpg</code> and
+replaces it with the nearest mathematical color match found in
+<code>palette.png</code>.</p>
+<h3 id="step-3-managing-dithering-settings">Step 3: Managing Dithering
+Settings</h3>
+<p>By default, ImageMagick applies dithering to simulate missing colors
+and smooth out transitions. You can modify this behavior depending on
+your desired output style:</p>
+<ul>
+<li><p><strong>Disable Dithering:</strong> For flat, posterized, or
+pixel-art graphics, place <code>+dither</code> before
+<code>-remap</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg +dither <span class="at">-remap</span> palette.png output.png</span></code></pre></div></li>
+<li><p><strong>Custom Dithering Algorithm:</strong> To use a specific
+dithering method, specify <code>-dither</code> followed by the algorithm
+name (such as <code>FloydSteinberg</code> or
+<code>Riemersma</code>):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-dither</span> FloydSteinberg <span class="at">-remap</span> palette.png output.png</span></code></pre></div></li>
+</ul>
+<h3 id="step-4-generating-and-remapping-in-a-single-command">Step 4:
+Generating and Remapping in a Single Command</h3>
+<p>You can combine the palette creation and remapping into a single
+command without saving an intermediate palette file to disk. The
+following command extracts 8 colors from the input and immediately
+applies them back:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\(</span> +clone +dither <span class="at">-colors</span> 8 <span class="at">-unique-colors</span> <span class="dt">\)</span> <span class="at">-remap</span> <span class="at">-</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

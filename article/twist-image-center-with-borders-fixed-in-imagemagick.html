@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twist Image Center with Borders Fixed in ImageMagick - magick</title>
+    <meta name="description" content="Twisting the center of an image while keeping its outer boundaries stationary is achieved in ImageMagick using the native -swirl operator. This article explains how the -swirl argument applies a radial deformation that rotates pixels at the center of an">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/twist-image-center-with-borders-fixed-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Twist Image Center with Borders Fixed in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/twist-image-center-with-borders-fixed-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Twisting the center of an image while keeping its outer boundaries stationary is achieved in ImageMagick using the native -swirl operator. This article explains how the -swirl argument applies a radial deformation that rotates pixels at the center of an" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="twist-image-center-with-borders-fixed-in-imagemagick">Twist
+Image Center with Borders Fixed in ImageMagick</h1>
+<p>Twisting the center of an image while keeping its outer boundaries
+stationary is achieved in ImageMagick using the native
+<code>-swirl</code> operator. This article explains how the
+<code>-swirl</code> argument applies a radial deformation that rotates
+pixels at the center of an image and gradually decreases the rotation
+angle toward the outer edges, leaving the borders completely
+untouched.</p>
+<h2 id="the-basic-swirl-command">The Basic Swirl Command</h2>
+<p>ImageMagick provides the <code>-swirl</code> option, which rotates
+the pixels around the center of the image. The strength of the twist is
+determined by an angle parameter specified in degrees. Because the
+mathematical transformation attenuates to zero as it approaches the
+image boundary, the borders of the image remain fixed.</p>
+<h3 id="imagemagick-7-syntax">ImageMagick 7 Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-swirl</span> 180 output.jpg</span></code></pre></div>
+<h3 id="imagemagick-6-syntax">ImageMagick 6 Syntax</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-swirl</span> 180 output.jpg</span></code></pre></div>
+<h2 id="controlling-twist-direction-and-intensity">Controlling Twist
+Direction and Intensity</h2>
+<p>The parameter passed to <code>-swirl</code> dictates both the
+direction and the tightness of the twist:</p>
+<ul>
+<li><strong>Clockwise Twist:</strong> Use a positive degree value (e.g.,
+<code>-swirl 360</code> creates a full single rotation at the
+center).</li>
+<li><strong>Counter-Clockwise Twist:</strong> Use a negative degree
+value (e.g., <code>-swirl -360</code>).</li>
+<li><strong>Subtle Adjustments:</strong> Smaller values like
+<code>45</code> or <code>90</code> produce a gentle distortion.</li>
+<li><strong>Extreme Distortion:</strong> Large values such as
+<code>720</code> or <code>1080</code> create an intense vortex effect in
+the middle while maintaining the anchored edges.</li>
+</ul>
+<h2 id="constraining-the-twist-to-a-specific-central-area">Constraining
+the Twist to a Specific Central Area</h2>
+<p>If you need the distortion confined strictly to an arbitrary central
+radius rather than letting it taper off to the full image frame, you can
+crop the target area, apply the swirl, and composite it back onto the
+original image.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-crop</span> 400x400+100+100 <span class="at">-swirl</span> 180 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-geometry</span> +100+100 <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>In this command:</p>
+<ol type="1">
+<li><code>+clone -crop 400x400+100+100</code> defines the specific
+central region to be modified.</li>
+<li><code>-swirl 180</code> twists that cropped section.</li>
+<li><code>-geometry +100+100 -composite</code> layers the twisted region
+back onto the original canvas, ensuring the surrounding canvas and
+borders remain completely unaltered.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

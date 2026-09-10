@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Calculates Perspective Projection - magick</title>
+    <meta name="description" content="This article provides a technical breakdown of how ImageMagick maps four source coordinate pairs to four destination coordinate pairs using perspective projection. It covers the underlying mathematical formulation of the 3x3 homography matrix, the setup">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-calculates-perspective-projection">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Calculates Perspective Projection - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-calculates-perspective-projection" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a technical breakdown of how ImageMagick maps four source coordinate pairs to four destination coordinate pairs using perspective projection. It covers the underlying mathematical formulation of the 3x3 homography matrix, the setup" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-calculates-perspective-projection">How
+ImageMagick Calculates Perspective Projection</h1>
+<p>This article provides a technical breakdown of how ImageMagick maps
+four source coordinate pairs to four destination coordinate pairs using
+perspective projection. It covers the underlying mathematical
+formulation of the 3x3 homography matrix, the setup and solution of the
+resulting eight-equation linear system, and ImageMagick’s use of reverse
+mapping combined with resampling filters to generate smooth,
+artifact-free output images.</p>
+<h3 id="the-2d-perspective-projection-model">The 2D Perspective
+Projection Model</h3>
+<p>In computer graphics, a perspective distortion maps straight lines to
+straight lines on a two-dimensional plane while simulating depth. This
+geometric relationship is mathematically represented as a projective
+transformation, or <strong>homography</strong>, using homogeneous
+coordinates.</p>
+<p>The relationship between an input point <span
+class="math inline">\((u, v)\)</span> and an output point <span
+class="math inline">\((x, y)\)</span> is governed by a <span
+class="math inline">\(3 \times 3\)</span> matrix:</p>
+<h1 id="-beginbmatrix-x--y--w-endbmatrix">$$ \begin{bmatrix} x' \ y' \
+w' \end{bmatrix}</h1>
+<p>\begin{bmatrix} c_{00} &amp; c_{01} &amp; c_{02} \ c_{10} &amp;
+c_{11} &amp; c_{12} \ c_{20} &amp; c_{21} &amp; c_{22} \end{bmatrix}
+\begin{bmatrix} u \ v \ 1 \end{bmatrix} $$</p>
+<p>Converting back from homogeneous coordinates to Cartesian coordinates
+involves dividing by the scaling component <span
+class="math inline">\(w&#39;\)</span>:</p>
+<p><span class="math display">\[x = \frac{x&#39;}{w&#39;} =
+\frac{c_{00}u + c_{01}v + c_{02}}{c_{20}u + c_{21}v +
+c_{22}}\]</span></p>
+<p><span class="math display">\[y = \frac{y&#39;}{w&#39;} =
+\frac{c_{10}u + c_{11}v + c_{12}}{c_{20}u + c_{21}v +
+c_{22}}\]</span></p>
+<p>Because multiplying the entire matrix by an arbitrary scalar factor
+yields the exact same coordinate results, the system has only 8 degrees
+of freedom. ImageMagick normalizes the matrix by setting <span
+class="math inline">\(c_{22} = 1\)</span>.</p>
+<h3 id="constructing-the-system-of-equations">Constructing the System of
+Equations</h3>
+<p>Each pair of corresponding coordinates provides two independent
+linear equations: one for the horizontal axis and one for the vertical
+axis. By rearranging the projection formulas to eliminate the fraction
+and assuming <span class="math inline">\(c_{22} = 1\)</span>, we
+get:</p>
+<p><span class="math display">\[c_{00}u + c_{01}v + c_{02} - c_{20}ux -
+c_{21}vx = x\]</span></p>
+<p><span class="math display">\[c_{10}u + c_{11}v + c_{12} - c_{20}uy -
+c_{21}vy = y\]</span></p>
+<p>Because there are 8 unknown coefficients (<span
+class="math inline">\(c_{00}, c_{01}, c_{02}, c_{10}, c_{11}, c_{12},
+c_{20}, c_{21}\)</span>), exactly 4 coordinate pairs are required:</p>
+<p><span class="math display">\[(u_0, v_0) \rightarrow (x_0,
+y_0)\]</span> <span class="math display">\[(u_1, v_1) \rightarrow (x_1,
+y_1)\]</span> <span class="math display">\[(u_2, v_2) \rightarrow (x_2,
+y_2)\]</span> <span class="math display">\[(u_3, v_3) \rightarrow (x_3,
+y_3)\]</span></p>
+<p>These 4 points generate an <span class="math inline">\(8 \times
+8\)</span> matrix equation of the form <span
+class="math inline">\(\mathbf{A} \mathbf{c} = \mathbf{b}\)</span>,
+where:</p>
+<ul>
+<li><span class="math inline">\(\mathbf{A}\)</span> is the <span
+class="math inline">\(8 \times 8\)</span> coefficient matrix derived
+from the source coordinates and cross-terms.</li>
+<li><span class="math inline">\(\mathbf{c}\)</span> is the <span
+class="math inline">\(8 \times 1\)</span> vector of unknown
+coefficients.</li>
+<li><span class="math inline">\(\mathbf{b}\)</span> is the <span
+class="math inline">\(8 \times 1\)</span> vector containing the
+destination coordinate values.</li>
+</ul>
+<h3 id="solving-the-system">Solving the System</h3>
+<p>ImageMagick sets up this <span class="math inline">\(8 \times
+8\)</span> linear system and solves it numerically using Gaussian
+elimination with partial pivoting (or LU decomposition).</p>
+<p>For the solution to exist and be physically valid, no three points in
+the source or destination sets may be collinear. If the points are
+degenerate, the matrix becomes singular (determinant equals zero), and
+ImageMagick returns an error indicating that the transformation cannot
+be computed.</p>
+<h3 id="inverse-mapping-and-image-sampling">Inverse Mapping and Image
+Sampling</h3>
+<p>Rather than projecting pixels from the source image forward onto the
+destination plane—which leaves uncolored holes and interpolation
+gaps—ImageMagick uses <strong>inverse (reverse) mapping</strong>.</p>
+<ol type="1">
+<li><strong>Matrix Inversion:</strong> ImageMagick calculates the
+inverse of the <span class="math inline">\(3 \times 3\)</span>
+transformation matrix, mapping destination coordinates <span
+class="math inline">\((x, y)\)</span> back to source coordinates <span
+class="math inline">\((u, v)\)</span>.</li>
+<li><strong>Raster Scan:</strong> The engine iterates through each
+integer pixel location <span class="math inline">\((x, y)\)</span>
+within the bounding box of the output image.</li>
+<li><strong>Source Lookup:</strong> For each destination pixel, the
+inverse matrix computes the precise floating-point coordinate <span
+class="math inline">\((u, v)\)</span> in the source image.</li>
+<li><strong>Filtering and Reconstruction:</strong> Because <span
+class="math inline">\((u, v)\)</span> rarely lands on an integer pixel
+center, ImageMagick reconstructs the color value using an
+area-resampling algorithm (by default, Elliptical Weighted Average (EWA)
+resampling, or a specified filter such as Bilinear, Bicubic, or
+Lanczos). This prevents aliasing and moiré patterns in areas under heavy
+perspective compression.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

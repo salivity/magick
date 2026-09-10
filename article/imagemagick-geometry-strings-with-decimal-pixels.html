@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Geometry Strings with Decimal Pixels - magick</title>
+    <meta name="description" content="In ImageMagick, geometry strings define dimensions, offsets, and scaling factors for image operations such as resizing, cropping, and positioning. While digital raster images consist of discrete, whole-pixel grids, ImageMagick accepts decimal (floating-p">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-geometry-strings-with-decimal-pixels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Geometry Strings with Decimal Pixels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-geometry-strings-with-decimal-pixels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In ImageMagick, geometry strings define dimensions, offsets, and scaling factors for image operations such as resizing, cropping, and positioning. While digital raster images consist of discrete, whole-pixel grids, ImageMagick accepts decimal (floating-p" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-geometry-strings-with-decimal-pixels">ImageMagick
+Geometry Strings with Decimal Pixels</h1>
+<p>In ImageMagick, geometry strings define dimensions, offsets, and
+scaling factors for image operations such as resizing, cropping, and
+positioning. While digital raster images consist of discrete,
+whole-pixel grids, ImageMagick accepts decimal (floating-point) values
+within its geometry arguments. This article explains how ImageMagick
+parses decimal geometry values, how different operators handle
+fractional pixels, and the practical effects on the final rendered
+output.</p>
+<h2 id="how-imagemagick-parses-decimal-values">How ImageMagick Parses
+Decimal Values</h2>
+<p>ImageMagick's internal geometry parser reads input values as standard
+double-precision floating-point numbers. When you supply a string such
+as <code>150.5x100.25+10.75+20.2</code>, the parser reads the entire
+floating-point number rather than truncating it at the decimal point
+during the initial parsing phase.</p>
+<p>The interpretation of those decimals depends entirely on the operator
+processing the geometry.</p>
+<h2 id="behavior-in-resizing-operations">Behavior in Resizing
+Operations</h2>
+<p>When applied to scaling operators like <code>-resize</code>,
+<code>-thumbnail</code>, or <code>-adaptive-resize</code>, decimal
+values influence the mathematical calculation of the target size:</p>
+<ul>
+<li><strong>Percentage Scaling:</strong> A geometry string like
+<code>-resize 33.333%</code> evaluates the fractional scale directly
+against the source dimensions.</li>
+<li><strong>Explicit Dimensions:</strong> Using fractional target
+dimensions (such as <code>-resize 400.6x300.2</code>) causes ImageMagick
+to calculate the target bounding box using the decimal numbers.</li>
+</ul>
+<p>Because raster output cannot have a fractional width or height, the
+final dimensions are rounded to the nearest whole integer pixel
+(typically using standard rounding: values with fractional parts equal
+to or greater than 0.5 round up).</p>
+<h2 id="behavior-in-cropping-and-offsets">Behavior in Cropping and
+Offsets</h2>
+<p>When used with <code>-crop</code>, <code>-extent</code>, or canvas
+offsets, fractional values interact with the discrete pixel grid:</p>
+<ul>
+<li><strong>Dimensions:</strong> A crop size like
+<code>-crop 100.5x100.5</code> rounds to integer dimensions
+(<code>101x101</code>) before cutting the image, because standard raster
+buffers cannot hold half a pixel.</li>
+<li><strong>Offsets:</strong> Offsets like <code>+12.4+15.8</code> are
+converted to integer offsets (rounding to <code>+12+16</code>). Standard
+cropping operations snap strictly to the nearest integer coordinate on
+the pixel grid.</li>
+</ul>
+<p>Decimal offsets in standard geometry strings do not trigger subpixel
+sampling, interpolation, or anti-aliasing.</p>
+<h2 id="true-subpixel-operations-vs-geometry-rounding">True Subpixel
+Operations vs. Geometry Rounding</h2>
+<p>It is important to distinguish between geometry string rounding and
+true subpixel manipulation:</p>
+<ul>
+<li><strong>Standard Geometry Operators (<code>-crop</code>,
+<code>-extent</code>):</strong> These operate strictly on integer
+boundaries. Decimal inputs are rounded before execution, meaning
+fractional precision is effectively discarded at the grid level.</li>
+<li><strong>Distortion Operators (<code>-distort</code>,
+<code>-affine</code>):</strong> These operators do not use standard
+geometry strings in the same manner; they evaluate floating-point
+coordinates with interpolation filters (such as bilinear, bicubic, or
+Lanczos), calculating weighted pixel averages to produce anti-aliased,
+fractional-offset results.</li>
+</ul>
+<h2 id="summary-of-practical-effects">Summary of Practical Effects</h2>
+<ol type="1">
+<li><strong>Calculations Maintain Precision Before
+Rasterization:</strong> Decimals in percentage-based scaling strings
+allow for precise ratio calculations before final rounding.</li>
+<li><strong>Output Snaps to Whole Pixels:</strong> Raster dimensions
+always round to the nearest whole integer.</li>
+<li><strong>No Automatic Anti-Aliasing for Offsets:</strong> Fractional
+offsets in <code>-crop</code> or <code>-page</code> will not shift the
+image by a fraction of a pixel with interpolation; they simply round to
+the nearest whole pixel offset.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

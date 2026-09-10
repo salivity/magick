@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day to Night Photo Conversion in ImageMagick - magick</title>
+    <meta name="description" content="Converting daytime photography into a convincing twilight or night scene—often called the "day-for-night" effect—is easily accomplished using ImageMagick. This article explains the exact commands and image processing techniques required to reduce day">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/day-to-night-photo-conversion-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Day to Night Photo Conversion in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/day-to-night-photo-conversion-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting daytime photography into a convincing twilight or night scene—often called the "day-for-night" effect—is easily accomplished using ImageMagick. This article explains the exact commands and image processing techniques required to reduce day" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="day-to-night-photo-conversion-in-imagemagick">Day to Night Photo
+Conversion in ImageMagick</h1>
+<p>Converting daytime photography into a convincing twilight or night
+scene—often called the "day-for-night" effect—is easily accomplished
+using ImageMagick. This article explains the exact commands and image
+processing techniques required to reduce daylight exposure, introduce
+cool blue and indigo ambient tones, deepen shadows, and apply subtle
+vignette effects using the ImageMagick command-line interface.</p>
+<h2 id="the-core-command">The Core Command</h2>
+<p>To transform a daytime image into a twilight scene, you need to
+decrease brightness, desaturate warm daylight colors, shift the overall
+hue toward cool blue tones, and deepen the contrast.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-modulate</span> 60,60,100 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-fill</span> <span class="st">&quot;#0b1d3a&quot;</span> <span class="at">-tint</span> 55% <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-sigmoidal-contrast</span> 4,40% <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-background</span> black <span class="at">-vignette</span> 0x20 <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  output_twilight.jpg</span></code></pre></div>
+<p><em>(Note: If using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h2 id="parameter-breakdown">Parameter Breakdown</h2>
+<p>Each parameter targets a specific aspect of the daylight-to-night
+transformation:</p>
+<h3 id="1-exposure-and-saturation--modulate">1. Exposure and Saturation
+(<code>-modulate</code>)</h3>
+<ul>
+<li><strong><code>-modulate 60,60,100</code></strong>: Modifies the
+Brightness, Saturation, and Hue (in that order).
+<ul>
+<li>Setting brightness to <code>60</code> reduces exposure to simulate
+low-light conditions.</li>
+<li>Setting saturation to <code>60</code> removes excess daylight
+vibrancy, mimicking the human eye's reduced color perception in the dark
+(the Purkinje effect).</li>
+</ul></li>
+</ul>
+<h3 id="2-twilight-color-tint--fill-and--tint">2. Twilight Color Tint
+(<code>-fill</code> and <code>-tint</code>)</h3>
+<ul>
+<li><strong><code>-fill "#0b1d3a" -tint 55%</code></strong>: Blends a
+dark navy-blue color across the midtones and highlights.
+<ul>
+<li>The hex color <code>#0b1d3a</code> represents deep evening
+twilight.</li>
+<li>The <code>55%</code> strength applies enough cool tone to override
+the sunlight without completely washing out foreground details.</li>
+</ul></li>
+</ul>
+<h3 id="3-shadow-and-contrast-adjustment--sigmoidal-contrast">3. Shadow
+and Contrast Adjustment (<code>-sigmoidal-contrast</code>)</h3>
+<ul>
+<li><strong><code>-sigmoidal-contrast 4,40%</code></strong>: Applies an
+S-curve to the tonal range.
+<ul>
+<li>The first value (<code>4</code>) controls the strength of the
+contrast.</li>
+<li>The second value (<code>40%</code>) shifts the midpoint, pushing
+darker midtones into deep shadows while preserving faint highlight
+details on reflective surfaces or skies.</li>
+</ul></li>
+</ul>
+<h3 id="4-twilight-vignette--background-and--vignette">4. Twilight
+Vignette (<code>-background</code> and <code>-vignette</code>)</h3>
+<ul>
+<li><strong><code>-background black -vignette 0x20</code></strong>:
+Naturally darkens the outer edges of the frame to replicate standard
+low-light photography optics and draw focus to the center.</li>
+</ul>
+<h2 id="advanced-adjustments-for-golden-hour-to-deep-night">Advanced
+Adjustments for Golden Hour to Deep Night</h2>
+<p>You can modify the values depending on the specific time of night you
+want to emulate:</p>
+<ul>
+<li><strong>Civil Twilight (Just after sunset):</strong> Use a slightly
+lighter blue fill (<code>#1a2d5a</code>), set
+<code>-modulate 75,70,100</code>, and lower tint to
+<code>40%</code>.</li>
+<li><strong>Deep Midnight:</strong> Use a darker tone
+(<code>#050d1a</code>), set <code>-modulate 40,40,100</code>, and
+increase tint to <code>70%</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

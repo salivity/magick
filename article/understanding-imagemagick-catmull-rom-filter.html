@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding ImageMagick Catmull-Rom Filter - magick</title>
+    <meta name="description" content="The Catmull-Rom filter (-filter Catrom) in ImageMagick is a high-performance cubic interpolation algorithm used for image resizing and resampling. This article explores the mathematical design of the Catmull-Rom filter, its functional purpose in digital">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/understanding-imagemagick-catmull-rom-filter">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding ImageMagick Catmull-Rom Filter - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/understanding-imagemagick-catmull-rom-filter" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The Catmull-Rom filter (-filter Catrom) in ImageMagick is a high-performance cubic interpolation algorithm used for image resizing and resampling. This article explores the mathematical design of the Catmull-Rom filter, its functional purpose in digital" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="understanding-imagemagick-catmull-rom-filter">Understanding
+ImageMagick Catmull-Rom Filter</h1>
+<p>The Catmull-Rom filter (<code>-filter Catrom</code>) in ImageMagick
+is a high-performance cubic interpolation algorithm used for image
+resizing and resampling. This article explores the mathematical design
+of the Catmull-Rom filter, its functional purpose in digital image
+processing, its visual characteristics, and the practical scenarios
+where it provides better scaling results than other standard
+filters.</p>
+<h2 id="what-is-the-catmull-rom-filter">What is the Catmull-Rom
+Filter?</h2>
+<p>The Catmull-Rom filter is a specific member of the bicubic filter
+family, categorized under generalized Keys cubic filters. In
+ImageMagick, cubic filters are parameterized by two variables, <span
+class="math inline">\(B\)</span> (blur) and <span
+class="math inline">\(C\)</span> (ringing/cardinal spline parameter).
+For the Catmull-Rom filter, these parameters are explicitly defined
+as:</p>
+<ul>
+<li><strong>B = 0</strong></li>
+<li><strong>C = 0.5</strong></li>
+</ul>
+<p>Because <span class="math inline">\(B = 0\)</span>, Catmull-Rom is a
+pure cardinal interpolating spline. This means that when reconstructing
+an image at its original pixel grid points, the filter passes exactly
+through the original sample values without introducing artificial
+blurring.</p>
+<h2 id="purpose-and-function-in-imagemagick">Purpose and Function in
+ImageMagick</h2>
+<p>The primary purpose of <code>-filter Catrom</code> is to deliver
+sharp image scaling while maintaining a continuous first derivative
+across pixels, which prevents hard, blocky artifacts.</p>
+<h3 id="1-superior-edge-definition-and-sharpness">1. Superior Edge
+Definition and Sharpness</h3>
+<p>Because it applies negative lobes in its weighting function without
+added blurring (<span class="math inline">\(B=0\)</span>), Catmull-Rom
+produces noticeably sharper results compared to balanced filters like
+Mitchell-Netravali (<code>-filter Mitchell</code>, where <span
+class="math inline">\(B=1/3, C=1/3\)</span>). It reconstructs steep
+gradients across borders, making it ideal for images that need crisp
+detail retention.</p>
+<h3 id="2-reduced-ringing-compared-to-sinclanczos">2. Reduced Ringing
+Compared to Sinc/Lanczos</h3>
+<p>While windowed sinc filters like Lanczos provide extreme sharpness,
+they often introduce severe "ringing" (halo artifacts around
+high-contrast edges). Catmull-Rom provides a middle ground: it produces
+sharper transitions than standard cubic filters while exhibiting a
+narrower support radius, thereby limiting the distance and visibility of
+halo artifacts.</p>
+<h3 id="3-interpolation-accuracy">3. Interpolation Accuracy</h3>
+<p>As a true interpolator, Catmull-Rom does not soften pixel
+intensities. When used in scaling or geometric transformation tasks
+(<code>-resize</code>, <code>-distort</code>, or <code>-affine</code>),
+it reconstructs intermediate color and luma curves with high spatial
+accuracy.</p>
+<h2 id="comparison-with-other-common-filters">Comparison with Other
+Common Filters</h2>
+<ul>
+<li><strong>Box / Nearest Neighbor:</strong> Fastest, but produces heavy
+pixelation and aliasing.</li>
+<li><strong>Triangle (Bilinear):</strong> Fast and smooth, but causes
+noticeable blurring and loss of high-frequency details.</li>
+<li><strong>Mitchell-Netravali:</strong> A smoother cubic filter that
+balances blurring and ringing. Better for noisy photographic
+content.</li>
+<li><strong>Catmull-Rom (<code>Catrom</code>):</strong> A sharp cubic
+filter that favors sharpness over blur suppression.</li>
+<li><strong>Lanczos:</strong> Highly detailed windowed sinc filter, but
+prone to higher computational overhead and pronounced ringing halos
+around stark edges.</li>
+</ul>
+<h2 id="how-to-use-catrom-in-imagemagick">How to Use Catrom in
+ImageMagick</h2>
+<p>To use the Catmull-Rom filter in an ImageMagick command, specify the
+<code>-filter Catrom</code> argument before your scaling operation:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-filter</span> Catrom <span class="at">-resize</span> 1920x1080 output.jpg</span></code></pre></div>
+<p>For advanced geometric distortions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-filter</span> Catrom <span class="at">-distort</span> Affine <span class="st">&quot;...&quot;</span> output.png</span></code></pre></div>
+<h2 id="best-use-cases">Best Use Cases</h2>
+<ul>
+<li><strong>Downscaling High-Contrast Artwork:</strong> Preserves fine
+lines, typography, and vector-like graphics during downsampling without
+washing out contrast.</li>
+<li><strong>Upscaling Pixel Art or Sharp Illustrations:</strong> Yields
+smooth curves while maintaining high visual crispness along hard
+outlines.</li>
+<li><strong>Affine and Perspective Distortions:</strong> Keeps textures
+and edge details defined across transformed surfaces without excessive
+smoothing.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

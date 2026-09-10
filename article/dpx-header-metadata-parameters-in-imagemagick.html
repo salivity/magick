@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPX Header Metadata Parameters in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a concise overview of the parameters and properties used to read, preserve, and encode Digital Picture Exchange (DPX) motion picture header metadata in ImageMagick. ImageMagick adheres to the SMPTE 268M standard for DPX files, utili">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/dpx-header-metadata-parameters-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DPX Header Metadata Parameters in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/dpx-header-metadata-parameters-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise overview of the parameters and properties used to read, preserve, and encode Digital Picture Exchange (DPX) motion picture header metadata in ImageMagick. ImageMagick adheres to the SMPTE 268M standard for DPX files, utili" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="dpx-header-metadata-parameters-in-imagemagick">DPX Header
+Metadata Parameters in ImageMagick</h1>
+<p>This article provides a concise overview of the parameters and
+properties used to read, preserve, and encode Digital Picture Exchange
+(DPX) motion picture header metadata in ImageMagick. ImageMagick adheres
+to the SMPTE 268M standard for DPX files, utilizing specific
+command-line defines and artifact properties prefixed with
+<code>dpx:</code> to read and encode detailed camera, production, and
+film stock metadata.</p>
+<h3 id="understanding-dpx-headers-in-imagemagick">Understanding DPX
+Headers in ImageMagick</h3>
+<p>The DPX specification contains multiple header sections: Generic
+Header, Industry Specific Header (Motion Picture Film Information),
+Television Specific Information, and User Defined Data. In ImageMagick,
+these metadata fields are treated as image properties. You can modify,
+inject, or preserve these headers during image processing using the
+<code>-set</code> or <code>-define</code> options.</p>
+<h3 id="motion-picture-film-information-dpxmp">Motion Picture Film
+Information (<code>dpx:mp.*</code>)</h3>
+<p>The Motion Picture Information header stores physical film and
+production-specific details. ImageMagick maps these to key-value
+attributes starting with <code>dpx:mp.</code>:</p>
+<ul>
+<li><strong><code>dpx:mp.film.manufacturer.id</code></strong>: A
+two-digit code representing the film manufacturer.</li>
+<li><strong><code>dpx:mp.film.type</code></strong>: A two-digit code
+identifying the film stock type.</li>
+<li><strong><code>dpx:mp.perfs.per.frame</code></strong>: Specifies the
+film perforation count per frame (e.g., 2, 3, 4).</li>
+<li><strong><code>dpx:mp.format</code></strong>: Defines the film gauge
+or recording format (e.g., <code>35mm</code>, <code>16mm</code>).</li>
+<li><strong><code>dpx:mp.frame.rate</code></strong>: Defines the camera
+capture frame rate in frames per second (e.g., <code>24</code>,
+<code>23.976</code>, <code>48</code>).</li>
+<li><strong><code>dpx:mp.shutter.angle</code></strong>: The camera
+shutter angle during capture, defined in degrees.</li>
+<li><strong><code>dpx:mp.frame.position</code></strong>: Specifies the
+current frame's position within the overall sequence.</li>
+<li><strong><code>dpx:mp.sequence.length</code></strong>: The total
+length of the sequence in frames.</li>
+<li><strong><code>dpx:mp.held.count</code></strong>: Denotes how many
+consecutive frames display this identical image.</li>
+<li><strong><code>dpx:mp.frame.id</code></strong>: A unique alphanumeric
+identifier or label assigned to the frame.</li>
+<li><strong><code>dpx:mp.slate.info</code></strong>: Production slate
+information, typically capturing scene, shot, take, and roll
+numbers.</li>
+</ul>
+<h3 id="television-information-header-dpxtv">Television Information
+Header (<code>dpx:tv.*</code>)</h3>
+<p>When video cameras or telecine systems generate DPX files, broadcast
+and timecode information is routed through the Television Information
+Header:</p>
+<ul>
+<li><strong><code>dpx:tv.time.code</code></strong>: The SMPTE timecode
+encoded as an 8-character hex string representing hours, minutes,
+seconds, and frames (e.g., <code>01:23:45:12</code>).</li>
+<li><strong><code>dpx:tv.user.bits</code></strong>: User-defined
+timecode bits for custom indexing.</li>
+<li><strong><code>dpx:tv.frame.rate</code></strong>: The playback or
+temporal video sampling rate in frames per second.</li>
+<li><strong><code>dpx:tv.video.signal</code></strong>: Encodes the video
+signal standard (e.g., NTSC, PAL, SMPTE 274M).</li>
+</ul>
+<h3 id="dpx-encoding-defines--define-dpx">DPX Encoding Defines
+(<code>-define dpx:*</code>)</h3>
+<p>In addition to property-level tags, ImageMagick provides operational
+defines that control how the underlying DPX file structure and
+bit-packing are written to disk:</p>
+<ul>
+<li><strong><code>-define dpx:bits-per-sample=&lt;value&gt;</code></strong>:
+Controls the bit depth per channel (commonly <code>8</code>,
+<code>10</code>, <code>12</code>, or <code>16</code>). 10-bit is
+standard for motion picture workflows.</li>
+<li><strong><code>-define dpx:storage-format=&lt;value&gt;</code></strong>:
+Configures the pixel data storage orientation, accepting either
+<code>packed</code> or <code>padded</code>.</li>
+<li><strong><code>-define dpx:packing-method=&lt;value&gt;</code></strong>:
+Defines whether 10-bit data packing aligns according to SMPTE Method A
+(<code>a</code>) or Method B (<code>b</code>).</li>
+<li><strong><code>-define dpx:swap-samples=&lt;true|false&gt;</code></strong>:
+Toggles sample byte ordering to accommodate specific hardware or vendor
+requirements.</li>
+</ul>
+<h3 id="applying-metadata-via-the-command-line">Applying Metadata via
+the Command Line</h3>
+<p>To set or modify these parameters during conversion, use
+<code>-set</code> followed by the target property name:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-depth</span> 10 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> dpx:packing-method=a <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> dpx:mp.frame.rate 24 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> dpx:mp.slate.info <span class="st">&quot;Scene 12 Take 4&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-set</span> dpx:tv.time.code <span class="st">&quot;01:00:15:08&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  output.dpx</span></code></pre></div>
+<p>To view all existing DPX metadata from an image, run:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> input.dpx <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;dpx:&quot;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

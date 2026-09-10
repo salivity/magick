@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Horizontal Lines with ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to extract horizontal ruling lines from scanned forms using ImageMagick without capturing or destroying intersecting text. By applying morphological operations with a custom directional kernel, you can isolate continuous horiz">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/extract-horizontal-lines-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Extract Horizontal Lines with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/extract-horizontal-lines-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to extract horizontal ruling lines from scanned forms using ImageMagick without capturing or destroying intersecting text. By applying morphological operations with a custom directional kernel, you can isolate continuous horiz" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="extract-horizontal-lines-with-imagemagick">Extract Horizontal
+Lines with ImageMagick</h1>
+<p>This guide demonstrates how to extract horizontal ruling lines from
+scanned forms using ImageMagick without capturing or destroying
+intersecting text. By applying morphological operations with a custom
+directional kernel, you can isolate continuous horizontal rules based
+purely on geometry, filtering out letters, serifs, and vertical
+boundaries.</p>
+<h3 id="the-command">The Command</h3>
+<p>To isolate horizontal lines from a black-and-white scanned document,
+run the following ImageMagick command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> scanned_form.png <span class="at">-threshold</span> 60% <span class="at">-negate</span> <span class="at">-morphology</span> Open <span class="st">&quot;Rectangle:50x1&quot;</span> <span class="at">-negate</span> horizontal_lines.png</span></code></pre></div>
+<p>If using ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.</p>
+<h3 id="how-the-command-works">How the Command Works</h3>
+<ol type="1">
+<li><strong><code>-threshold 60%</code></strong>: Binarizes the document
+into pure black and white. Adjust this percentage depending on paper
+discoloration or scan brightness to ensure lines and text are
+crisp.</li>
+<li><strong><code>-negate</code></strong>: Inverts the image colors.
+ImageMagick's morphological operations treat white pixels as foreground
+and black pixels as background. Negation ensures the black ink becomes
+the active foreground target.</li>
+<li><strong><code>-morphology Open "Rectangle:50x1"</code></strong>:
+Executes an opening operation (an erosion followed by a dilation).
+<ul>
+<li>The kernel <code>Rectangle:50x1</code> is 50 pixels wide and 1 pixel
+high.</li>
+<li>Any feature narrower than 50 continuous horizontal pixels—such as
+character strokes, the crossbars of "t" or "H", dots, and vertical
+borders—is erased during erosion.</li>
+<li>Only continuous horizontal lines equal to or wider than 50 pixels
+survive and are restored to their original width during dilation.</li>
+</ul></li>
+<li><strong><code>-negate</code></strong>: Flips the colors back so that
+the extracted lines are black on a white background.</li>
+</ol>
+<h3 id="fine-tuning-kernel-dimensions">Fine-Tuning Kernel
+Dimensions</h3>
+<p>The width defined in the kernel (<code>50x1</code>) controls the
+sensitivity:</p>
+<ul>
+<li><strong>If portions of text are still appearing:</strong> Increase
+the width (e.g., <code>Rectangle:80x1</code> or
+<code>Rectangle:100x1</code>). This ensures wide letters (like "w" or
+"m") or consecutive touching characters are completely discarded.</li>
+<li><strong>If form lines have gaps or breaks:</strong> If poor scan
+quality causes broken ruling lines, use a smaller width (e.g.,
+<code>Rectangle:30x1</code>), or close minor gaps prior to extraction by
+chaining an initial close operation:
+<code>-morphology Close "Rectangle:5x1"</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

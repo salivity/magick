@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick DivideDst Visual Tone Separation - magick</title>
+    <meta name="description" content="The DivideDst compose mode in ImageMagick separates visual tones by mathematically dividing the source image pixels by the destination image pixels ($Source / Destination$). This operation creates an aggressive, high-key tonal separation that aggressivel">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-dividedst-visual-tone-separation">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick DivideDst Visual Tone Separation - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-dividedst-visual-tone-separation" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The DivideDst compose mode in ImageMagick separates visual tones by mathematically dividing the source image pixels by the destination image pixels ($Source / Destination$). This operation creates an aggressive, high-key tonal separation that aggressivel" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-dividedst-visual-tone-separation">ImageMagick
+DivideDst Visual Tone Separation</h1>
+<p>The <code>DivideDst</code> compose mode in ImageMagick separates
+visual tones by mathematically dividing the source image pixels by the
+destination image pixels (<span class="math inline">\(Source /
+Destination\)</span>). This operation creates an aggressive, high-key
+tonal separation that aggressively blows out shadows and midtones into
+pure clipped highlights while preserving or subtly adjusting areas where
+the destination values are bright. The result is a sharp, non-linear
+tonal split that isolates textures and high-frequency luminance
+differences from low-frequency tonal backdrops.</p>
+<h3 id="the-underlying-mathematics">The Underlying Mathematics</h3>
+<p>In ImageMagick, colors are calculated on a normalized scale from
+<span class="math inline">\(0.0\)</span> (black) to <span
+class="math inline">\(1.0\)</span> (white). The formula executed by
+<code>DivideDst</code> is:</p>
+<p><span class="math display">\[\text{Output} =
+\frac{\text{Source}}{\text{Destination}}\]</span></p>
+<p>Because division by small fractions dramatically scales up the
+numerator, any region where the destination layer is dark (approaching
+<span class="math inline">\(0.0\)</span>) forces the result to exceed
+<span class="math inline">\(1.0\)</span>, which is immediately clipped
+to maximum brightness. Conversely, where the destination layer is pure
+white (<span class="math inline">\(1.0\)</span>), the output simply
+retains the exact value of the source layer.</p>
+<h3 id="visual-tonal-characteristics">Visual Tonal Characteristics</h3>
+<p>The visual tone separation produced by <code>DivideDst</code>
+exhibits distinct characteristics across different tonal ranges:</p>
+<ul>
+<li><strong>Shadow Clipping into High-Key Tones:</strong> Dark values in
+the destination layer act as strong multipliers. Deep shadows and lower
+midtones are forced into stark, clipped white blocks. This completely
+separates dark elements from their surroundings, turning them into
+bright silhouettes or flares.</li>
+<li><strong>Highlight Preservation:</strong> Where the destination is
+near white, the source layer passes through virtually unchanged. This
+creates an anchor zone where highlights retain their original contrast
+and fidelity, establishing an asymmetric tonal curve.</li>
+<li><strong>Aggressive Edge Isolation:</strong> When applied using two
+slightly offset versions of an image, or an image divided by a blurred
+copy of itself, <code>DivideDst</code> performs an exaggerated form of
+high-pass edge detection. Edges transition abruptly from baseline tones
+to harsh white borders, segmenting local contrast boundaries
+clearly.</li>
+</ul>
+<h3 id="practical-impact-on-image-tones">Practical Impact on Image
+Tones</h3>
+<p>This mode creates a visual separation often described as "bleached"
+or "solarized" in the darker registers, while maintaining standard
+exposure in the highlights. Unlike standard linear contrast adjustments,
+<code>DivideDst</code> compresses the dynamic range of the mid-to-bright
+regions while expanding and discarding the shadow spectrum entirely,
+yielding a graphic, high-contrast separation ideal for texture
+extraction, flat-field correction, and technical mask generation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

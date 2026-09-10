@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick PerspectiveProjection Equations - magick</title>
+    <meta name="description" content="This article details the mathematical equations and matrix formulation governing the -distort PerspectiveProjection operator in ImageMagick when configured with an eight-element coefficient matrix. It explains the relationship between 2D source coordinat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-perspectiveprojection-equations">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick PerspectiveProjection Equations - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-perspectiveprojection-equations" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article details the mathematical equations and matrix formulation governing the -distort PerspectiveProjection operator in ImageMagick when configured with an eight-element coefficient matrix. It explains the relationship between 2D source coordinat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-perspectiveprojection-equations">ImageMagick
+PerspectiveProjection Equations</h1>
+<p>This article details the mathematical equations and matrix
+formulation governing the <code>-distort PerspectiveProjection</code>
+operator in ImageMagick when configured with an eight-element
+coefficient matrix. It explains the relationship between 2D source
+coordinates and transformed destination coordinates, outlines the
+projective matrix structure, presents the forward projection formulas,
+and provides the inverse mapping equations used for pixel
+resampling.</p>
+<h2 id="matrix-formulation">Matrix Formulation</h2>
+<p>In ImageMagick, the eight-element
+<code>-distort PerspectiveProjection</code> operator defines a planar
+homography using a <span class="math inline">\(3 \times 3\)</span>
+projective transformation matrix where the ninth element is normalized
+to <span class="math inline">\(1\)</span>.</p>
+<p>The eight arguments are supplied in row-major order:</p>
+<p><code>-distort PerspectiveProjection "c0, c1, c2, c3, c4, c5, c6, c7"</code></p>
+<p>These coefficients populate the transformation matrix <span
+class="math inline">\(\mathbf{H}\)</span>:</p>
+<p><span class="math display">\[\mathbf{H} = \begin{bmatrix} c_0 &amp;
+c_1 &amp; c_2 \\ c_3 &amp; c_4 &amp; c_5 \\ c_6 &amp; c_7 &amp; 1
+\end{bmatrix}\]</span></p>
+<p>The parameters represent the following geometric operations:</p>
+<ul>
+<li><span class="math inline">\(c_0\)</span>: Horizontal scale
+factor</li>
+<li><span class="math inline">\(c_1\)</span>: Horizontal shear
+factor</li>
+<li><span class="math inline">\(c_2\)</span>: Horizontal translation
+(<span class="math inline">\(t_x\)</span>)</li>
+<li><span class="math inline">\(c_3\)</span>: Vertical shear factor</li>
+<li><span class="math inline">\(c_4\)</span>: Vertical scale factor</li>
+<li><span class="math inline">\(c_5\)</span>: Vertical translation
+(<span class="math inline">\(t_y\)</span>)</li>
+<li><span class="math inline">\(c_6\)</span>: Perspective distortion
+component along the x-axis (<span
+class="math inline">\(p_x\)</span>)</li>
+<li><span class="math inline">\(c_7\)</span>: Perspective distortion
+component along the y-axis (<span
+class="math inline">\(p_y\)</span>)</li>
+</ul>
+<h2 id="forward-mapping-equations">Forward Mapping Equations</h2>
+<p>The transformation maps source coordinates <span
+class="math inline">\((x, y)\)</span> to destination coordinates <span
+class="math inline">\((x&#39;, y&#39;)\)</span> through homogeneous
+coordinates:</p>
+<p><span class="math display">\[\begin{bmatrix} w \cdot x&#39; \\ w
+\cdot y&#39; \\ w \end{bmatrix} = \begin{bmatrix} c_0 &amp; c_1 &amp;
+c_2 \\ c_3 &amp; c_4 &amp; c_5 \\ c_6 &amp; c_7 &amp; 1 \end{bmatrix}
+\begin{bmatrix} x \\ y \\ 1 \end{bmatrix}\]</span></p>
+<p>Expanding the matrix multiplication produces the homogeneous scale
+factor <span class="math inline">\(w\)</span>:</p>
+<p><span class="math display">\[w = c_6 x + c_7 y + 1\]</span></p>
+<p>Projecting back into Cartesian coordinates by dividing by <span
+class="math inline">\(w\)</span> yields the forward mapping
+equations:</p>
+<p><span class="math display">\[x&#39; = \frac{c_0 x + c_1 y + c_2}{c_6
+x + c_7 y + 1}\]</span></p>
+<p><span class="math display">\[y&#39; = \frac{c_3 x + c_4 y + c_5}{c_6
+x + c_7 y + 1}\]</span></p>
+<h2 id="inverse-mapping-equations">Inverse Mapping Equations</h2>
+<p>ImageMagick utilizes reverse mapping during rasterization to prevent
+gaps and aliasing. For each destination pixel <span
+class="math inline">\((x&#39;, y&#39;)\)</span>, the algorithm samples
+the source image at <span class="math inline">\((x, y)\)</span> using
+the inverse matrix <span
+class="math inline">\(\mathbf{H}^{-1}\)</span>.</p>
+<p>The adjugate matrix of <span
+class="math inline">\(\mathbf{H}\)</span> yields the coefficients for
+reverse mapping:</p>
+<p><span class="math display">\[\mathbf{H}^{-1} \propto \begin{bmatrix}
+C_0 &amp; C_1 &amp; C_2 \\ C_3 &amp; C_4 &amp; C_5 \\ C_6 &amp; C_7
+&amp; C_8 \end{bmatrix}\]</span></p>
+<p>The cofactors are defined as:</p>
+<ul>
+<li><span class="math inline">\(C_0 = c_4 - c_5 c_7\)</span></li>
+<li><span class="math inline">\(C_1 = c_2 c_7 - c_1\)</span></li>
+<li><span class="math inline">\(C_2 = c_1 c_5 - c_2 c_4\)</span></li>
+<li><span class="math inline">\(C_3 = c_5 c_6 - c_3\)</span></li>
+<li><span class="math inline">\(C_4 = c_0 - c_2 c_6\)</span></li>
+<li><span class="math inline">\(C_5 = c_2 c_3 - c_0 c_5\)</span></li>
+<li><span class="math inline">\(C_6 = c_3 c_7 - c_4 c_6\)</span></li>
+<li><span class="math inline">\(C_7 = c_1 c_6 - c_0 c_7\)</span></li>
+<li><span class="math inline">\(C_8 = c_0 c_4 - c_1 c_3\)</span></li>
+</ul>
+<p>The reverse equations mapping destination coordinates <span
+class="math inline">\((x&#39;, y&#39;)\)</span> back to source
+coordinates <span class="math inline">\((x, y)\)</span> are:</p>
+<p><span class="math display">\[x = \frac{C_0 x&#39; + C_1 y&#39; +
+C_2}{C_6 x&#39; + C_7 y&#39; + C_8}\]</span></p>
+<p><span class="math display">\[y = \frac{C_3 x&#39; + C_4 y&#39; +
+C_5}{C_6 x&#39; + C_7 y&#39; + C_8}\]</span></p>
+<h2 id="mathematical-constraints">Mathematical Constraints</h2>
+<p>For the perspective projection to be solvable and valid:</p>
+<ol type="1">
+<li>The matrix must be invertible, requiring a non-zero determinant:
+<span class="math inline">\(\det(\mathbf{H}) = c_0 C_0 + c_1 C_3 + c_2
+C_6 \neq 0\)</span>.</li>
+<li>The denominator <span class="math inline">\(w = c_6 x + c_7 y +
+1\)</span> must not equal zero within the bounds of the image, as <span
+class="math inline">\(w = 0\)</span> defines the vanishing line
+(horizon) where coordinates diverge to infinity.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

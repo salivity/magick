@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Computes Rotated Bounding Boxes - magick</title>
+    <meta name="description" content="This article explains the algorithmic process ImageMagick uses to determine the minimum area rotated bounding rectangle for irregular objects. It covers the end-to-end pipeline, starting from pixel segmentation and convex hull generation to the geometric">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-computes-rotated-bounding-boxes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Computes Rotated Bounding Boxes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-computes-rotated-bounding-boxes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the algorithmic process ImageMagick uses to determine the minimum area rotated bounding rectangle for irregular objects. It covers the end-to-end pipeline, starting from pixel segmentation and convex hull generation to the geometric" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-computes-rotated-bounding-boxes">How ImageMagick
+Computes Rotated Bounding Boxes</h1>
+<p>This article explains the algorithmic process ImageMagick uses to
+determine the minimum area rotated bounding rectangle for irregular
+objects. It covers the end-to-end pipeline, starting from pixel
+segmentation and convex hull generation to the geometric optimization
+techniques like the rotating calipers algorithm and image moments used
+to calculate precise dimensions, coordinates, and orientation
+angles.</p>
+<h3 id="1-object-isolation-and-binarization">1. Object Isolation and
+Binarization</h3>
+<p>Before computing bounding geometry, ImageMagick isolates the target
+object from the background. Using thresholding, edge detection, or
+alpha-channel masking, the irregular shape is converted into a binary
+mask. Through connected-components analysis
+(<code>-connected-components</code>), contiguous regions of
+non-background pixels are grouped into discrete object blobs, each
+defined by its constituent pixel coordinates.</p>
+<h3 id="2-convex-hull-extraction">2. Convex Hull Extraction</h3>
+<p>An irregular object can have complex concavities and thousands of
+boundary pixels. Processing every pixel directly for bounding
+calculations is computationally inefficient. ImageMagick simplifies the
+object's geometry by computing its <strong>Convex Hull</strong>—the
+smallest convex polygon that completely encloses the shape.</p>
+<p>Algorithms such as the Monotone Chain or Graham Scan are used to
+trace the outermost extreme points of the binary shape. This reduces the
+problem from analyzing thousands of interior and perimeter pixels to
+evaluating a small set of ordered vertices.</p>
+<h3 id="3-minimum-area-calculation-via-rotating-calipers">3. Minimum
+Area Calculation via Rotating Calipers</h3>
+<p>To find the oriented (rotated) bounding box that encloses the convex
+hull with the minimal possible surface area, ImageMagick relies on the
+<strong>Rotating Calipers algorithm</strong> (originally established by
+Michael Shamos and Freeman &amp; Shapira).</p>
+<p>The algorithm operates on the mathematical theorem that a
+minimum-area enclosing rectangle must share at least one edge with the
+convex hull:</p>
+<ol type="1">
+<li><strong>Initialization:</strong> Caliper lines (parallel supporting
+lines) are placed around the convex hull at arbitrary angles to form an
+initial bounding rectangle.</li>
+<li><strong>Stepwise Rotation:</strong> The lines are rotated
+incrementally around the vertices of the convex hull until one of the
+caliper lines aligns flush with an edge of the polygon.</li>
+<li><strong>Area Evaluation:</strong> At each edge alignment, the width,
+height, and area of the resulting bounding box are computed.</li>
+<li><strong>Optimization:</strong> The algorithm checks all polygon
+edges in <span class="math inline">\(O(N)\)</span> time (where <span
+class="math inline">\(N\)</span> is the number of hull vertices) and
+tracks the configuration with the lowest total area.</li>
+</ol>
+<h3 id="4-principal-axis-calculation-using-image-moments">4. Principal
+Axis Calculation Using Image Moments</h3>
+<p>In scenarios where the bounding rectangle aligns with the natural
+physical orientation of the shape rather than strictly the minimal
+enclosing area, ImageMagick utilizes <strong>spatial and central image
+moments</strong>:</p>
+<ul>
+<li><strong>Raw Moments (<span class="math inline">\(M_{00}, M_{10},
+M_{01}\)</span>):</strong> Used to determine the exact centroid (center
+of mass) of the irregular object.</li>
+<li><strong>Second-Order Central Moments (<span
+class="math inline">\(\mu_{20}, \mu_{02}, \mu_{11}\)</span>):</strong>
+Used to construct the spatial covariance matrix.</li>
+</ul>
+<p>By calculating the eigenvectors and eigenvalues of this covariance
+matrix, ImageMagick determines the object’s principal axes of inertia.
+The dominant eigenvector defines the primary angle of rotation (<span
+class="math inline">\(\theta\)</span>), around which the extreme
+boundary coordinates are projected to construct the rotated
+rectangle.</p>
+<h3 id="5-final-geometry-output">5. Final Geometry Output</h3>
+<p>Once the optimal orientation angle (<span
+class="math inline">\(\theta\)</span>) and the extreme vertex
+projections along that axis are calculated, ImageMagick derives the
+final geometric parameters:</p>
+<ul>
+<li><strong>Center Coordinate:</strong> <span
+class="math inline">\((X_c, Y_c)\)</span></li>
+<li><strong>Dimensions:</strong> Width (<span
+class="math inline">\(W\)</span>) and Height (<span
+class="math inline">\(H\)</span>) along the rotated axes</li>
+<li><strong>Rotation Angle:</strong> <span
+class="math inline">\(\theta\)</span> (in degrees relative to the
+horizontal axis)</li>
+<li><strong>Corner Coordinates:</strong> Four points representing the
+bounding polygon in standard image space</li>
+</ul>
+<p>These metrics allow ImageMagick to crop, un-rotate (deskew), or draw
+precise overlays around irregular objects programmatically.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

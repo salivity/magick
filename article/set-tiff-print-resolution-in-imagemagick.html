@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set TIFF Print Resolution in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide on how to define the physical print resolution (DPI or PPI) when exporting TIFF images using ImageMagick. You will learn the exact command-line syntax to embed print metadata without altering the pixel dimensions, as">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/set-tiff-print-resolution-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Set TIFF Print Resolution in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/set-tiff-print-resolution-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide on how to define the physical print resolution (DPI or PPI) when exporting TIFF images using ImageMagick. You will learn the exact command-line syntax to embed print metadata without altering the pixel dimensions, as" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="set-tiff-print-resolution-in-imagemagick">Set TIFF Print
+Resolution in ImageMagick</h1>
+<p>This article provides a direct guide on how to define the physical
+print resolution (DPI or PPI) when exporting TIFF images using
+ImageMagick. You will learn the exact command-line syntax to embed print
+metadata without altering the pixel dimensions, as well as the method
+for resampling images to match a specific physical output size.</p>
+<h2 id="basic-syntax-for-setting-resolution-metadata">Basic Syntax for
+Setting Resolution Metadata</h2>
+<p>To set the print resolution metadata (DPI) without modifying the
+actual pixel dimensions of the image, use the <code>-units</code> and
+<code>-density</code> flags.</p>
+<p><strong>ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 300 output.tif</span></code></pre></div>
+<p><strong>ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.jpg <span class="at">-units</span> PixelsPerInch <span class="at">-density</span> 300 output.tif</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><code>-units PixelsPerInch</code>: Defines the measurement unit for
+the resolution. You can also specify <code>PixelsPerCentimeter</code> if
+you work in metric units.</li>
+<li><code>-density 300</code>: Sets the horizontal and vertical
+resolution to 300 DPI. For asymmetric resolutions, you can specify
+<code>X_RESxY_RES</code> (e.g., <code>-density 300x600</code>).</li>
+</ul>
+<h2 id="resampling-image-pixels">Resampling Image Pixels</h2>
+<p>If you want ImageMagick to scale the pixel dimensions of the image
+proportionally to match a new print density while keeping the original
+physical print size, use the <code>-resample</code> flag instead of
+<code>-density</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-units</span> PixelsPerInch <span class="at">-resample</span> 300 output.tif</span></code></pre></div>
+<h2 id="verifying-the-output-resolution">Verifying the Output
+Resolution</h2>
+<p>To confirm that the TIFF file contains the correct print resolution
+metadata, inspect the file using the <code>identify</code> tool:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-format</span> <span class="st">&quot;%x x %y %U\n&quot;</span> output.tif</span></code></pre></div>
+<p>This command prints the horizontal resolution, vertical resolution,
+and the active unit type (e.g.,
+<code>300 Undefined x 300 Undefined PixelsPerInch</code>).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

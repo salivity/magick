@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check ImageMagick OpenCL Acceleration Status - magick</title>
+    <meta name="description" content="This article explains how to determine whether ImageMagick is actively using OpenCL hardware acceleration for image processing tasks. You will learn about the primary environment variables used to trace acceleration events, how to interpret debugging out">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/check-imagemagick-opencl-acceleration-status">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Check ImageMagick OpenCL Acceleration Status - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/check-imagemagick-opencl-acceleration-status" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to determine whether ImageMagick is actively using OpenCL hardware acceleration for image processing tasks. You will learn about the primary environment variables used to trace acceleration events, how to interpret debugging out" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="check-imagemagick-opencl-acceleration-status">Check ImageMagick
+OpenCL Acceleration Status</h1>
+<p>This article explains how to determine whether ImageMagick is
+actively using OpenCL hardware acceleration for image processing tasks.
+You will learn about the primary environment variables used to trace
+acceleration events, how to interpret debugging output, and how to
+verify OpenCL device support directly from the command line.</p>
+<h2 id="the-environment-variable-magick_debug">The Environment Variable:
+MAGICK_DEBUG</h2>
+<p>The primary environment variable used to check if ImageMagick OpenCL
+acceleration is actively running is <code>MAGICK_DEBUG</code> set to the
+value <code>accelerate</code> (or
+<code>MAGICK_DEBUG=Accelerate</code>).</p>
+<p>When this variable is set, ImageMagick outputs real-time diagnostic
+information to the standard error stream (<code>stderr</code>) whenever
+an OpenCL-accelerated kernel is initialized, compiled, or executed
+during an image operation.</p>
+<h3 id="how-to-use-magick_debug">How to Use MAGICK_DEBUG</h3>
+<p>You can set the environment variable per command or globally in your
+shell environment.</p>
+<p><strong>On Linux and macOS (Bash/Zsh):</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_DEBUG</span><span class="op">=</span>accelerate</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div>
+<p>Or run it inline for a single execution:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">MAGICK_DEBUG</span><span class="op">=</span>accelerate <span class="ex">magick</span> input.jpg <span class="at">-blur</span> 0x8 output.jpg</span></code></pre></div>
+<p><strong>On Windows (Command Prompt):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="va">MAGICK_DEBUG</span>=accelerate</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>magick input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div>
+<p><strong>On Windows (PowerShell):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span><span class="va">MAGICK_DEBUG</span><span class="op">=</span><span class="st">&quot;accelerate&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>magick input<span class="op">.</span><span class="fu">jpg</span> <span class="op">-</span>resize <span class="dv">50</span><span class="op">%</span> output<span class="op">.</span><span class="fu">jpg</span></span></code></pre></div>
+<h3 id="interpreting-the-output">Interpreting the Output</h3>
+<p>If OpenCL acceleration is active, you will see log entries indicating
+that OpenCL kernels are running, such as:</p>
+<ul>
+<li>Detection and selection of the OpenCL device (GPU or CPU).</li>
+<li>Kernel compilation or loading from the OpenCL cache.</li>
+<li>Execution timestamps for accelerated functions like resize, blur, or
+convolve.</li>
+</ul>
+<p>If no acceleration output appears, ImageMagick is falling back to
+standard CPU-based algorithms.</p>
+<h2
+id="controlling-the-opencl-device-with-magick_ocl_device">Controlling
+the OpenCL Device with MAGICK_OCL_DEVICE</h2>
+<p>Another relevant environment variable is
+<code>MAGICK_OCL_DEVICE</code>. While <code>MAGICK_DEBUG</code> monitors
+execution, <code>MAGICK_OCL_DEVICE</code> allows you to select, test, or
+disable OpenCL devices directly.</p>
+<ul>
+<li><strong>Disable OpenCL:</strong> Set
+<code>MAGICK_OCL_DEVICE=OFF</code> to turn off OpenCL acceleration
+entirely to compare performance benchmarks.</li>
+<li><strong>Select a Device:</strong> Set
+<code>MAGICK_OCL_DEVICE=&lt;device_name&gt;</code> or an index number to
+force ImageMagick to use a specific OpenCL-capable GPU or
+accelerator.</li>
+</ul>
+<h2 id="verifying-built-in-opencl-support">Verifying Built-In OpenCL
+Support</h2>
+<p>Before checking runtime acceleration, ensure your ImageMagick build
+includes OpenCL support by running:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look at the <strong>Features</strong> line in the output. If OpenCL
+is supported by your installation, <code>OpenCL</code> will be listed
+among the enabled features (e.g.,
+<code>Features: Cipher DPC HDRI Modules OpenCL</code>).</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Scanner Dust with ImageMagick Area Threshold - magick</title>
+    <meta name="description" content="This article explains how ImageMagick’s -connected-components operator removes single-pixel scanner dust from digital images. It covers the underlying mechanism of connected-component labeling, how the area-threshold parameter isolates isolated micro-a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/remove-scanner-dust-with-imagemagick-area-threshold">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remove Scanner Dust with ImageMagick Area Threshold - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/remove-scanner-dust-with-imagemagick-area-threshold" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick’s -connected-components operator removes single-pixel scanner dust from digital images. It covers the underlying mechanism of connected-component labeling, how the area-threshold parameter isolates isolated micro-a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="remove-scanner-dust-with-imagemagick-area-threshold">Remove
+Scanner Dust with ImageMagick Area Threshold</h1>
+<p>This article explains how ImageMagick’s
+<code>-connected-components</code> operator removes single-pixel scanner
+dust from digital images. It covers the underlying mechanism of
+connected-component labeling, how the <code>area-threshold</code>
+parameter isolates isolated micro-artifacts, and the exact process
+ImageMagick uses to replace those tiny pixel groups with surrounding
+background data without degrading larger image details.</p>
+<h3 id="how-connected-component-labeling-works">How Connected-Component
+Labeling Works</h3>
+<p>Connected-Component Labeling (CCL) is an image processing technique
+that scans an image and groups adjacent pixels that share the same color
+or intensity into distinct objects, called "components." Connectivity is
+typically evaluated using either a 4-neighborhood (adjacent horizontally
+and vertically) or an 8-neighborhood (adjacent horizontally, vertically,
+and diagonally).</p>
+<p>During this scan, ImageMagick analyzes the image geometry and assigns
+a unique identifier, an area count (total number of connected pixels), a
+bounding box, and a mean color value to every discrete group of pixels
+found.</p>
+<h3 id="isolating-single-pixel-dust-with-area-thresholds">Isolating
+Single-Pixel Dust with Area Thresholds</h3>
+<p>Scanner dust typically manifests as tiny, isolated specks caused by
+particulate matter resting on the scanner glass or document. These
+artifacts often span only a single pixel or a tiny cluster of two to
+three pixels that do not physically touch any legitimate text, lines, or
+artwork.</p>
+<p>ImageMagick provides the
+<code>connected-components:area-threshold</code> configuration key to
+target these artifacts by size. When this threshold is defined:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> connected-components:area-threshold=2 <span class="at">-define</span> connected-components:mean-color=true <span class="at">-connected-components</span> 8 output.png</span></code></pre></div>
+<p>The algorithm evaluates the total pixel count of every labeled
+component against the assigned threshold:</p>
+<ol type="1">
+<li><strong>Detection:</strong> Any component whose total surface area
+is strictly less than the specified value (for example, setting the
+threshold to <code>2</code> flags all components with an area of
+<code>1</code>) is marked as negligible.</li>
+<li><strong>Exclusion:</strong> The single-pixel dust speck is flagged
+for elimination because its component area fails to meet the minimum
+pixel requirement.</li>
+<li><strong>Merging:</strong> When combined with the
+<code>-define connected-components:mean-color=true</code> directive,
+ImageMagick removes the flagged component by painting over its
+coordinates using the mean color of the neighboring background pixels
+that surround it.</li>
+</ol>
+<h3
+id="why-area-filtering-outperforms-standard-blur-and-median-filters">Why
+Area Filtering Outperforms Standard Blur and Median Filters</h3>
+<p>Traditional noise reduction methods, such as Gaussian blurs or
+aggressive median filters, apply mathematical smoothing across the
+entire canvas. While effective at hiding noise, these convolutions round
+off sharp corners, soften high-contrast line work, and degrade fine
+typographic details.</p>
+<p>The <code>-connected-components</code> area threshold method acts
+surgically rather than globally. It operates on discrete topological
+objects rather than continuous signal frequencies. Because a
+single-pixel speck has an area of exactly one, the filter eliminates the
+speck entirely while leaving any component with an area greater than or
+equal to the threshold—such as thin lines, punctuation marks, or valid
+text strokes—completely untouched and pixel-sharp.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

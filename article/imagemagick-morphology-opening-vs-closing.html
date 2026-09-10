@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Morphology: Opening vs Closing - magick</title>
+    <meta name="description" content="Morphological operators in ImageMagick are powerful tools for processing binary, grayscale, and color images by modifying structures based on their shapes. The primary difference between morphological opening and closing lies in the sequence of their und">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-morphology-opening-vs-closing">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Morphology: Opening vs Closing - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-morphology-opening-vs-closing" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Morphological operators in ImageMagick are powerful tools for processing binary, grayscale, and color images by modifying structures based on their shapes. The primary difference between morphological opening and closing lies in the sequence of their und" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-morphology-opening-vs-closing">ImageMagick
+Morphology: Opening vs Closing</h1>
+<p>Morphological operators in ImageMagick are powerful tools for
+processing binary, grayscale, and color images by modifying structures
+based on their shapes. The primary difference between morphological
+<strong>opening</strong> and <strong>closing</strong> lies in the
+sequence of their underlying basic operations—dilation and erosion—and
+the specific types of noise or features they target. While opening
+removes small bright artifacts and separates connected objects, closing
+fills small dark holes and bridges broken structures.</p>
+<h2 id="fundamental-operations-dilation-and-erosion">Fundamental
+Operations: Dilation and Erosion</h2>
+<p>To understand opening and closing, it is essential to define the two
+base operations they combine:</p>
+<ul>
+<li><strong>Erosion:</strong> Shrinks foreground (bright) regions and
+enlarges background (dark) regions by replacing pixels with the minimum
+value in the neighborhood defined by a structuring element
+(kernel).</li>
+<li><strong>Dilation:</strong> Expands foreground (bright) regions and
+shrinks background (dark) regions by replacing pixels with the maximum
+value in the kernel neighborhood.</li>
+</ul>
+<h2 id="morphological-opening">Morphological Opening</h2>
+<p>Morphological opening is defined as an <strong>erosion followed by a
+dilation</strong> using the same kernel.</p>
+<h3 id="how-it-works">How It Works</h3>
+<ol type="1">
+<li>Erosion removes thin lines, small bright spots, and sharp outer
+peaks.</li>
+<li>Dilation restores the remaining surviving structures back to
+approximately their original size.</li>
+</ol>
+<h3 id="effects-and-use-cases">Effects and Use Cases</h3>
+<ul>
+<li><strong>Removes Foreground Noise:</strong> Eliminates small,
+isolated bright spots (often referred to as "salt" noise).</li>
+<li><strong>Separates Objects:</strong> Cuts thin bridges or overlaps
+connecting two larger bright objects.</li>
+<li><strong>Smooths Outlines:</strong> Rounds sharp corners and removes
+external protrusions without significantly altering the overall area of
+large objects.</li>
+</ul>
+<h3 id="imagemagick-syntax">ImageMagick Syntax</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Open Disk:3 output.png</span></code></pre></div>
+<h2 id="morphological-closing">Morphological Closing</h2>
+<p>Morphological closing is the exact inverse of opening: it is a
+<strong>dilation followed by an erosion</strong> using the same
+kernel.</p>
+<h3 id="how-it-works-1">How It Works</h3>
+<ol type="1">
+<li>Dilation expands bright areas, filling in small dark gaps, cracks,
+and interior holes.</li>
+<li>Erosion then shrinks the boundaries back to approximately their
+original scale while leaving the newly filled gaps intact.</li>
+</ol>
+<h3 id="effects-and-use-cases-1">Effects and Use Cases</h3>
+<ul>
+<li><strong>Removes Background Noise:</strong> Eliminates small dark
+spots inside bright regions (often referred to as "pepper" noise).</li>
+<li><strong>Bridges Disconnections:</strong> Fills narrow gaps, cracks,
+and holes in segmented text, line drawings, or binary masks.</li>
+<li><strong>Smooths Inner Contours:</strong> Rounds sharp internal
+corners and concave boundaries while maintaining the overall shape
+size.</li>
+</ul>
+<h3 id="imagemagick-syntax-1">ImageMagick Syntax</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> Close Disk:3 output.png</span></code></pre></div>
+<h2 id="key-differences-summary">Key Differences Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Morphological Opening
+(<code>Open</code>)</th>
+<th style="text-align: left;">Morphological Closing
+(<code>Close</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Operation Sequence</strong></td>
+<td style="text-align: left;">Erosion <span
+class="math inline">\(\rightarrow\)</span> Dilation</td>
+<td style="text-align: left;">Dilation <span
+class="math inline">\(\rightarrow\)</span> Erosion</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target Features</strong></td>
+<td style="text-align: left;">Small bright foreground elements</td>
+<td style="text-align: left;">Small dark background gaps/holes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Connectivity</strong></td>
+<td style="text-align: left;">Disconnects weakly joined elements</td>
+<td style="text-align: left;">Connects closely situated elements</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Edge Effect</strong></td>
+<td style="text-align: left;">Smooths external protrusions</td>
+<td style="text-align: left;">Smooths internal indentations</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Noise Filtering</strong></td>
+<td style="text-align: left;">Ideal for "salt" (bright) noise</td>
+<td style="text-align: left;">Ideal for "pepper" (dark) noise</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

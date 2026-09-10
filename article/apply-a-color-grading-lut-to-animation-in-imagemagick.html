@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply a Color Grading LUT to Animation in ImageMagick - magick</title>
+    <meta name="description" content="This guide demonstrates how to apply a 3D color grading Look-Up Table (LUT) across every frame of an animated GIF or image sequence using ImageMagick. By utilizing ImageMagick’s Hald CLUT pipeline and layer composition, you can adjust the color profile">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/apply-a-color-grading-lut-to-animation-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Apply a Color Grading LUT to Animation in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/apply-a-color-grading-lut-to-animation-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide demonstrates how to apply a 3D color grading Look-Up Table (LUT) across every frame of an animated GIF or image sequence using ImageMagick. By utilizing ImageMagick’s Hald CLUT pipeline and layer composition, you can adjust the color profile" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="apply-a-color-grading-lut-to-animation-in-imagemagick">Apply a
+Color Grading LUT to Animation in ImageMagick</h1>
+<p>This guide demonstrates how to apply a 3D color grading Look-Up Table
+(LUT) across every frame of an animated GIF or image sequence using
+ImageMagick. By utilizing ImageMagick’s Hald CLUT pipeline and layer
+composition, you can adjust the color profile of an entire animation in
+a single command while preserving frame timing and visual quality.</p>
+<h3 id="1-understanding-hald-clut-in-imagemagick">1. Understanding Hald
+CLUT in ImageMagick</h3>
+<p>ImageMagick utilizes Hald CLUT images (a 2D matrix representing a 3D
+color space) to perform 3D LUT color grading. Before grading an
+animation, you need a graded Hald image:</p>
+<ol type="1">
+<li>Generate a neutral Hald identity image:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> hald:8 hald_identity.png</span></code></pre></div></li>
+<li>Apply your color adjustments or import your <code>.cube</code> LUT
+onto <code>hald_identity.png</code> using an image editor or LUT
+utility, and save it as <code>lut.png</code>.</li>
+</ol>
+<hr />
+<h3 id="2-apply-the-lut-to-an-animated-gif">2. Apply the LUT to an
+Animated GIF</h3>
+<p>To process all frames of an animated GIF in a single operation, use
+the <code>-compose HaldClut</code> operator combined with
+<code>-layers composite</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> null: lut.png <span class="at">-compose</span> HaldClut <span class="at">-layers</span> composite <span class="at">-layers</span> optimize output.gif</span></code></pre></div>
+<h4 id="command-breakdown">Command Breakdown:</h4>
+<ul>
+<li><strong><code>input.gif -coalesce</code></strong>: Fully
+reconstructs each frame to prevent artifacting from inter-frame
+optimization.</li>
+<li><strong><code>null:</code></strong>: Inserts a special ImageMagick
+separator marking the boundary between the animation frames and the
+LUT.</li>
+<li><strong><code>lut.png</code></strong>: The color-graded Hald
+image.</li>
+<li><strong><code>-compose HaldClut -layers composite</code></strong>:
+Applies the LUT layer-by-layer across every frame in the sequence.</li>
+<li><strong><code>-layers optimize</code></strong>: Re-compresses the
+GIF file size after the color transformation.</li>
+<li><strong><code>output.gif</code></strong>: The final graded
+animation.</li>
+</ul>
+<hr />
+<h3 id="3-processing-image-sequences-via-mogrify">3. Processing Image
+Sequences via Mogrify</h3>
+<p>If you are working with long animations, video frames, or
+high-resolution PNG sequences, running the grading step in a batch using
+<code>mogrify</code> is often faster and uses less memory:</p>
+<ol type="1">
+<li>Extract or place your frames in a directory (e.g.,
+<code>frame_0001.png</code>, <code>frame_0002.png</code>, etc.).</li>
+<li>Apply the LUT across all frames simultaneously:
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-hald-clut</span> lut.png frame_<span class="pp">*</span>.png</span></code></pre></div></li>
+<li>Reassemble the frames into your desired animated format (such as
+APNG, GIF, or video):
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-delay</span> 4 frame_<span class="pp">*</span>.png <span class="at">-loop</span> 0 output.gif</span></code></pre></div></li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

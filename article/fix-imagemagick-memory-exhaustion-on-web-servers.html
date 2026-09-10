@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix ImageMagick Memory Exhaustion on Web Servers - magick</title>
+    <meta name="description" content="ImageMagick can rapidly consume gigabytes of virtual memory when processing large, malformed, or high-resolution images, leading to server instability and Out of Memory (OOM) crashes. This guide provides actionable configurations to constrain ImageMagick">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/fix-imagemagick-memory-exhaustion-on-web-servers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Fix ImageMagick Memory Exhaustion on Web Servers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/fix-imagemagick-memory-exhaustion-on-web-servers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick can rapidly consume gigabytes of virtual memory when processing large, malformed, or high-resolution images, leading to server instability and Out of Memory (OOM) crashes. This guide provides actionable configurations to constrain ImageMagick" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="fix-imagemagick-memory-exhaustion-on-web-servers">Fix
+ImageMagick Memory Exhaustion on Web Servers</h1>
+<p>ImageMagick can rapidly consume gigabytes of virtual memory when
+processing large, malformed, or high-resolution images, leading to
+server instability and Out of Memory (OOM) crashes. This guide provides
+actionable configurations to constrain ImageMagick's resource usage on
+production web servers. By tuning the <code>policy.xml</code> security
+configuration, adjusting the pixel cache, enforcing environment
+variables, and utilizing OS-level limits, you can permanently protect
+your server from memory exhaustion.</p>
+<h3 id="1-configure-the-imagemagick-policyxml-file">1. Configure the
+ImageMagick <code>policy.xml</code> File</h3>
+<p>The most effective way to limit ImageMagick's resource footprint
+globally is by configuring its security policy file. Depending on your
+OS and ImageMagick version, this file is typically located at
+<code>/etc/ImageMagick-6/policy.xml</code> or
+<code>/etc/ImageMagick-7/policy.xml</code>.</p>
+<p>Add or update the <code>&lt;policymap&gt;</code> directives to set
+hard boundaries on resource allocation:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policymap</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit maximum RAM used by ImageMagick --&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;memory&quot;</span> <span class="ot">value=</span><span class="st">&quot;256MiB&quot;</span>/&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit memory-mapped files --&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;map&quot;</span> <span class="ot">value=</span><span class="st">&quot;512MiB&quot;</span>/&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit the maximum width and height of an image --&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;width&quot;</span> <span class="ot">value=</span><span class="st">&quot;16KP&quot;</span>/&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;height&quot;</span> <span class="ot">value=</span><span class="st">&quot;16KP&quot;</span>/&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit the maximum raw image area in memory --&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;area&quot;</span> <span class="ot">value=</span><span class="st">&quot;128MB&quot;</span>/&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit temporary disk space for pixel cache before failing --&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;disk&quot;</span> <span class="ot">value=</span><span class="st">&quot;1GiB&quot;</span>/&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit processing threads to reduce concurrent memory allocation --&gt;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;thread&quot;</span> <span class="ot">value=</span><span class="st">&quot;2&quot;</span>/&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">&lt;!-- Limit total execution time in seconds to prevent hanging jobs --&gt;</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;resource&quot;</span> <span class="ot">name=</span><span class="st">&quot;time&quot;</span> <span class="ot">value=</span><span class="st">&quot;120&quot;</span>/&gt;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">policymap</span>&gt;</span></code></pre></div>
+<h3 id="2-understand-imagemagicks-pixel-cache">2. Understand
+ImageMagick's Pixel Cache</h3>
+<p>ImageMagick expands compressed images (like JPEG or PNG) into
+uncompressed 32-bit or 64-bit raw pixels in memory. A small 2MB JPEG can
+easily decompress to several hundred megabytes in RAM.</p>
+<p>When the <code>memory</code> or <code>area</code> limit is
+reached:</p>
+<ul>
+<li>ImageMagick shifts the pixel cache from RAM to memory-mapped files
+on disk (controlled by the <code>map</code> limit).</li>
+<li>Once the <code>map</code> limit is reached, it falls back to
+standard I/O disk caching using temporary files (governed by the
+<code>disk</code> limit).</li>
+</ul>
+<p>Ensure your temporary directory has sufficient space and is located
+on a fast disk by defining the <code>MAGICK_TMPDIR</code> environment
+variable:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_TMPDIR</span><span class="op">=</span><span class="st">&quot;/tmp/imagemagick&quot;</span></span></code></pre></div>
+<h3 id="3-use-environment-variables-for-dynamic-overrides">3. Use
+Environment Variables for Dynamic Overrides</h3>
+<p>If modifying <code>policy.xml</code> system-wide is not feasible,
+define environment variables directly in your application runtime (e.g.,
+PHP-FPM, Node.js, Python, or systemd service units):</p>
+<ul>
+<li><code>MAGICK_MEMORY_LIMIT=256MB</code></li>
+<li><code>MAGICK_MAP_LIMIT=512MB</code></li>
+<li><code>MAGICK_AREA_LIMIT=128MB</code></li>
+<li><code>MAGICK_DISK_LIMIT=1GB</code></li>
+<li><code>MAGICK_THREAD_LIMIT=2</code></li>
+</ul>
+<h3 id="4-implement-os-level-process-constraints">4. Implement OS-Level
+Process Constraints</h3>
+<p>Application-level limits can fail if an unhandled vulnerability
+occurs. Enforce strict resource boundaries at the operating system
+level:</p>
+<ul>
+<li><strong>Systemd Services</strong>: If using background workers (like
+Celery, Sidekiq, or Laravel Queues), add <code>MemoryMax=1G</code> to
+the service file.</li>
+<li><strong>cgroups (Docker/Containers)</strong>: Explicitly limit
+container memory (e.g.,
+<code>--memory="1g" --memory-swap="1g"</code>).</li>
+<li><strong>ulimit</strong>: Restrict virtual memory
+(<code>ulimit -v</code>) and process memory (<code>ulimit -m</code>)
+inside worker execution scripts.</li>
+</ul>
+<h3 id="5-validate-and-pre-check-input-files">5. Validate and Pre-Check
+Input Files</h3>
+<p>Do not pass untrusted files directly to ImageMagick without
+preliminary checks:</p>
+<ul>
+<li><strong>Validate File Signatures</strong>: Inspect magic bytes to
+confirm the file type rather than relying solely on user-provided
+extensions.</li>
+<li><strong>Inspect Dimensions First</strong>: Use lightweight metadata
+readers to inspect image dimensions before processing. Reject images
+that exceed maximum allowable pixel dimensions to mitigate decompression
+bombs.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

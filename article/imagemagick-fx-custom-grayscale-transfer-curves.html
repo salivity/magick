@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -fx Custom Grayscale Transfer Curves - magick</title>
+    <meta name="description" content="ImageMagick's -fx operator allows you to manipulate pixel values at an individual level using custom mathematical expressions. This guide explains how to construct and apply custom grayscale transfer curves—ranging from simple power-law (gamma) adjustm">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-fx-custom-grayscale-transfer-curves">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -fx Custom Grayscale Transfer Curves - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-fx-custom-grayscale-transfer-curves" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's -fx operator allows you to manipulate pixel values at an individual level using custom mathematical expressions. This guide explains how to construct and apply custom grayscale transfer curves—ranging from simple power-law (gamma) adjustm" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--fx-custom-grayscale-transfer-curves">ImageMagick
+-fx Custom Grayscale Transfer Curves</h1>
+<p>ImageMagick's <code>-fx</code> operator allows you to manipulate
+pixel values at an individual level using custom mathematical
+expressions. This guide explains how to construct and apply custom
+grayscale transfer curves—ranging from simple power-law (gamma)
+adjustments to complex polynomial and sigmoidal functions—across all or
+specific image channels. By utilizing mathematical mapping functions on
+normalized pixel values, you can execute precise tonal shaping and color
+grading directly from the command line.</p>
+<hr />
+<h3 id="understanding-the--fx-coordinate-space">Understanding the
+<code>-fx</code> Coordinate Space</h3>
+<p>When using the <code>-fx</code> operator, ImageMagick evaluates
+mathematical expressions where pixel channel values are normalized to a
+floating-point range between <code>0.0</code> (black/minimum intensity)
+and <code>1.0</code> (white/maximum intensity):</p>
+<ul>
+<li><strong><code>u</code></strong>: Represents the current pixel value
+of the first image in the sequence.</li>
+<li><strong><code>u.r</code>, <code>u.g</code>, <code>u.b</code>,
+<code>u.a</code></strong>: Refer to specific Red, Green, Blue, and Alpha
+channels of the pixel.</li>
+<li><strong>Output</strong>: The evaluated result of your formula must
+produce a value between <code>0.0</code> and <code>1.0</code>. Values
+outside this range are clipped.</li>
+</ul>
+<hr />
+<h3 id="basic-transfer-curves">Basic Transfer Curves</h3>
+<p>To apply a transfer curve globally to an image, pass your
+mathematical function directly to <code>-fx</code>.</p>
+<h4 id="1-power-law-gamma-curve">1. Power-Law (Gamma) Curve</h4>
+<p>A standard gamma curve maps input <span
+class="math inline">\(u\)</span> to <span
+class="math inline">\(u^\gamma\)</span>. Values of <span
+class="math inline">\(\gamma &gt; 1\)</span> darken midtones, while
+<span class="math inline">\(\gamma &lt; 1\)</span> brighten them:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fx</span> <span class="st">&quot;u^2.2&quot;</span> output_darkened.jpg</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fx</span> <span class="st">&quot;u^(1/2.2)&quot;</span> output_brightened.jpg</span></code></pre></div>
+<h4 id="2-smoothstep-cubic-s-curve">2. Smoothstep (Cubic S-Curve)</h4>
+<p>A smoothstep curve adds contrast by compressing shadows and
+highlights while steepening the midtones using the polynomial <span
+class="math inline">\(3u^2 - 2u^3\)</span>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fx</span> <span class="st">&quot;3*u^2 - 2*u^3&quot;</span> output_contrast.jpg</span></code></pre></div>
+<h4 id="3-custom-linear-segments-threshold-curve">3. Custom Linear
+Segments (Threshold Curve)</h4>
+<p>You can use ternary conditional operators
+(<code>condition ? true_val : false_val</code>) to build piecewise
+transfer curves:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fx</span> <span class="st">&quot;u &lt; 0.5 ? 2*u*u : 1 - 2*(1-u)*(1-u)&quot;</span> output_piecewise.jpg</span></code></pre></div>
+<hr />
+<h3 id="applying-curves-to-specific-channels">Applying Curves to
+Specific Channels</h3>
+<p>To apply a curve to a single channel while leaving the other channels
+untouched, use the <code>-channel</code> setting before <code>-fx</code>
+and reset it afterward with <code>+channel</code>.</p>
+<h4 id="example-modifying-the-red-channel-only">Example: Modifying the
+Red Channel Only</h4>
+<p>The following command applies a quadratic curve to the Red channel,
+increasing red saturation in brighter areas while preserving the Green
+and Blue channels:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-channel</span> R <span class="at">-fx</span> <span class="st">&quot;u^1.5&quot;</span> +channel output_red_modified.jpg</span></code></pre></div>
+<h4 id="example-modifying-multiple-specific-channels">Example: Modifying
+Multiple Specific Channels</h4>
+<p>To apply the same curve to both Red and Blue channels
+simultaneously:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-channel</span> RB <span class="at">-fx</span> <span class="st">&quot;3*u^2 - 2*u^3&quot;</span> +channel output_split_toned.jpg</span></code></pre></div>
+<hr />
+<h3
+id="multi-channel-transfer-curves-in-a-single-expression">Multi-Channel
+Transfer Curves in a Single Expression</h3>
+<p>You can also construct complex transfer curves where the mapping of
+one channel depends on the input values of other channels, without using
+<code>-channel</code>.</p>
+<h4 id="example-inverting-blue-based-on-luminance">Example: Inverting
+Blue Based on Luminance</h4>
+<p>This expression selectively darkens the blue channel where the red
+channel intensity is high:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fx</span> <span class="st">&quot;j==0 ? u.r : (j==1 ? u.g : u.b * (1 - u.r))&quot;</span> output_cross_channel.jpg</span></code></pre></div>
+<p><em>(Note: <code>j</code> denotes the channel index: 0 for Red, 1 for
+Green, 2 for Blue).</em></p>
+<hr />
+<h3 id="performance-tip-using-fx-via-1d-lut">Performance Tip: Using FX
+via 1D LUT</h3>
+<p>Because <code>-fx</code> evaluates expressions on a per-pixel basis,
+running it on high-resolution images can be slow. To optimize
+performance:</p>
+<ol type="1">
+<li>Generate a 1-pixel high, 256-pixel wide gradient.</li>
+<li>Apply the custom transfer curve to the gradient using
+<code>-fx</code>.</li>
+<li>Apply the modified gradient to your target image using
+<code>-clut</code>.</li>
+</ol>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Create the transfer curve map</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 256x1 gradient: <span class="at">-fx</span> <span class="st">&quot;3*u^2 - 2*u^3&quot;</span> curve_lut.png</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Apply the transfer curve to high-resolution images instantly</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> large_image.jpg curve_lut.png <span class="at">-clut</span> output_fast.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

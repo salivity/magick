@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign ICC Profile Without Changing Pixels in ImageMagick - magick</title>
+    <meta name="description" content="Assigning an ICC profile to an untagged image allows color-managed applications to interpret its color space correctly without modifying the image's raw pixel values. This guide explains how to use ImageMagick's profile options to embed a color profile a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/assign-icc-profile-without-changing-pixels-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Assign ICC Profile Without Changing Pixels in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/assign-icc-profile-without-changing-pixels-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Assigning an ICC profile to an untagged image allows color-managed applications to interpret its color space correctly without modifying the image's raw pixel values. This guide explains how to use ImageMagick's profile options to embed a color profile a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="assign-icc-profile-without-changing-pixels-in-imagemagick">Assign
+ICC Profile Without Changing Pixels in ImageMagick</h1>
+<p>Assigning an ICC profile to an untagged image allows color-managed
+applications to interpret its color space correctly without modifying
+the image's raw pixel values. This guide explains how to use
+ImageMagick's profile options to embed a color profile as metadata into
+an untagged image without performing color space conversions or pixel
+alterations.</p>
+<h3 id="understanding-assignment-vs-conversion">Understanding Assignment
+vs. Conversion</h3>
+<p>In color management:</p>
+<ul>
+<li><strong>Assigning</strong> a profile simply attaches the ICC
+metadata to the file, defining how existing pixel values should be
+interpreted without changing the underlying numerical RGB or CMYK
+data.</li>
+<li><strong>Converting</strong> transforms the numerical pixel values
+from one color profile to another.</li>
+</ul>
+<p>In ImageMagick, the behavior of the <code>-profile</code> switch
+depends on whether the source file already contains an embedded
+profile.</p>
+<h3 id="the-command-to-assign-an-icc-profile">The Command to Assign an
+ICC Profile</h3>
+<p>When an image contains no embedded profile, applying a single
+<code>-profile</code> operation assigns the specified profile without
+converting or recalculating any pixel values.</p>
+<p><strong>For ImageMagick v7:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_untagged.jpg <span class="at">-profile</span> /path/to/profile.icc output_tagged.jpg</span></code></pre></div>
+<p><strong>For ImageMagick v6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input_untagged.jpg <span class="at">-profile</span> /path/to/profile.icc output_tagged.jpg</span></code></pre></div>
+<h3 id="ensuring-no-prior-profile-exists">Ensuring No Prior Profile
+Exists</h3>
+<p>If you are unsure whether the input image is truly untagged,
+stripping existing metadata before applying the new profile ensures that
+a conversion does not occur:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-strip</span> <span class="at">-profile</span> /path/to/sRGB.icc output.jpg</span></code></pre></div>
+<p>The <code>-strip</code> option removes all embedded profiles and
+metadata first. The subsequent <code>-profile</code> argument then
+strictly assigns the new profile rather than executing a color
+conversion.</p>
+<h3 id="verifying-the-pixel-values">Verifying the Pixel Values</h3>
+<p>To verify that the underlying pixel data has remained unchanged after
+assigning the profile, compare the image checksums before and after with
+profiles stripped:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-strip</span> <span class="at">-format</span> <span class="st">&quot;%#&quot;</span> info:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> output.jpg <span class="at">-strip</span> <span class="at">-format</span> <span class="st">&quot;%#&quot;</span> info:</span></code></pre></div>
+<p>If both signatures match, the raw image data is identical and only
+the ICC color profile metadata was added.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

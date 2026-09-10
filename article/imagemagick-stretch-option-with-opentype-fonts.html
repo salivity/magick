@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -stretch Option with OpenType Fonts - magick</title>
+    <meta name="description" content="The ImageMagick -stretch option controls typographic width characteristics when rendering text, functioning primarily as a font matching filter and variable-axis selector rather than an algorithmic image distortion tool. When applied to modern OpenType f">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-stretch-option-with-opentype-fonts">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -stretch Option with OpenType Fonts - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-stretch-option-with-opentype-fonts" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -stretch option controls typographic width characteristics when rendering text, functioning primarily as a font matching filter and variable-axis selector rather than an algorithmic image distortion tool. When applied to modern OpenType f" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--stretch-option-with-opentype-fonts">ImageMagick
+-stretch Option with OpenType Fonts</h1>
+<p>The ImageMagick <code>-stretch</code> option controls typographic
+width characteristics when rendering text, functioning primarily as a
+font matching filter and variable-axis selector rather than an
+algorithmic image distortion tool. When applied to modern OpenType fonts
+(OTF/TTF), it alters the rendered output by either selecting dedicated
+width variants within a font family or directly manipulating the width
+variation axis in modern OpenType variable fonts.</p>
+<h3 id="font-matching-via-opentype-width-classes">Font Matching via
+OpenType Width Classes</h3>
+<p>Unlike standard graphic transforms that compress or stretch pixel
+data horizontally, <code>-stretch</code> targets typographic width
+designs created by type designers. In static OpenType font families, the
+option queries the font management subsystem (typically Fontconfig and
+FreeType) to match the specified width against the font’s internal
+<code>usWidthClass</code> metric located in its <code>OS/2</code>
+table.</p>
+<p>ImageMagick accepts several predefined width arguments:</p>
+<ul>
+<li><code>Normal</code> (standard width, equivalent to
+<code>usWidthClass</code> 5)</li>
+<li><code>UltraCondensed</code>, <code>ExtraCondensed</code>,
+<code>Condensed</code>, <code>SemiCondensed</code> (narrow designs,
+<code>usWidthClass</code> 1–4)</li>
+<li><code>SemiExpanded</code>, <code>Expanded</code>,
+<code>ExtraExpanded</code>, <code>UltraExpanded</code> (wide designs,
+<code>usWidthClass</code> 6–9)</li>
+<li><code>Any</code> (matches any available width)</li>
+</ul>
+<p>When you specify an option such as <code>-stretch Condensed</code>,
+ImageMagick requests the specific condensed sub-family file of the
+selected OpenType font family. This preserves stroke contrast, vertical
+stem weights, and optical counters, avoiding the distorted, uneven
+stroke weights caused by manual horizontal scaling.</p>
+<h3 id="modulation-of-opentype-variable-font-axes">Modulation of
+OpenType Variable Font Axes</h3>
+<p>In modern OpenType variable fonts, multiple widths are contained
+inside a single font file using continuous variation axes. When
+supported by underlying rendering libraries (such as modern versions of
+FreeType and HarfBuzz), the <code>-stretch</code> argument maps directly
+to the standardized width variation axis tag (<code>wdth</code>).</p>
+<p>Instead of merely switching static files, <code>-stretch</code>
+prompts the renderer to interpolate the glyph outlines to the designated
+point along the width axis. This yields an organically designed narrow
+or wide glyph outline that maintains consistent optical proportions and
+horizontal spacing without geometric warping.</p>
+<h3
+id="fallback-behavior-and-distinction-from-graphic-distortion">Fallback
+Behavior and Distinction from Graphic Distortion</h3>
+<p>The alterations produced by <code>-stretch</code> are strictly
+typographic:</p>
+<ul>
+<li><strong>No Artificial Shearing or Stretching:</strong> If an
+OpenType font family does not contain condensed or expanded variants,
+and lacks a <code>wdth</code> variable axis, ImageMagick does not
+horizontally stretch the glyphs artificially. Instead, it falls back to
+the default <code>Normal</code> width.</li>
+<li><strong>True Metric Scaling:</strong> When an appropriate width
+variant is found, glyph spacing, kerning pairs, and sidebearings defined
+specifically for that width in the OpenType <code>GPOS</code> table are
+applied automatically.</li>
+</ul>
+<p>To achieve non-proportional, artificial geometric distortion on fonts
+lacking native width variants, transforms such as <code>-scale</code>,
+<code>-resize</code>, or affine transformation matrices must be used
+instead of <code>-stretch</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

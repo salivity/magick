@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Average Bracketed Exposures with ImageMagick - magick</title>
+    <meta name="description" content="Combining bracketed exposures is an effective technique for reducing digital noise, increasing dynamic range, and creating a balanced overall exposure. ImageMagick offers a straightforward command-line workflow to blend multiple photos into an average ex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/average-bracketed-exposures-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Average Bracketed Exposures with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/average-bracketed-exposures-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Combining bracketed exposures is an effective technique for reducing digital noise, increasing dynamic range, and creating a balanced overall exposure. ImageMagick offers a straightforward command-line workflow to blend multiple photos into an average ex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="average-bracketed-exposures-with-imagemagick">Average Bracketed
+Exposures with ImageMagick</h1>
+<p>Combining bracketed exposures is an effective technique for reducing
+digital noise, increasing dynamic range, and creating a balanced overall
+exposure. ImageMagick offers a straightforward command-line workflow to
+blend multiple photos into an average exposure without requiring heavy
+graphical editing software. This guide covers how to prepare your files,
+execute the averaging command, and output high-quality blended
+results.</p>
+<h2 id="ensure-images-are-aligned">Ensure Images Are Aligned</h2>
+<p>Before averaging your photos, all exposures must be perfectly
+aligned. If you shot using a sturdy tripod with a remote shutter, your
+source images might already match pixel-for-pixel. If there is even
+slight camera movement between frames, averaging will cause ghosting or
+blur. If hand-held, align the images beforehand using an alignment tool
+such as <code>align_image_stack</code> before passing them to
+ImageMagick.</p>
+<h2 id="the-basic-averaging-command">The Basic Averaging Command</h2>
+<p>In ImageMagick version 7, exposure averaging is achieved using the
+<code>-evaluate-sequence</code> operator set to <code>mean</code>. This
+calculates the arithmetic mean of each pixel across all input files.</p>
+<p>Open your terminal or command prompt and run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> img1.jpg img2.jpg img3.jpg <span class="at">-evaluate-sequence</span> mean output.jpg</span></code></pre></div>
+<p>If you are using ImageMagick version 6, the legacy syntax utilizes
+the <code>convert</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> img1.jpg img2.jpg img3.jpg <span class="at">-evaluate-sequence</span> mean output.jpg</span></code></pre></div>
+<p><em>(Note: Older versions also supported the <code>-average</code>
+flag, but <code>-evaluate-sequence mean</code> is the modern, preferred
+method).</em></p>
+<h2 id="averaging-a-batch-of-images">Averaging a Batch of Images</h2>
+<p>If you have a large sequence of bracketed images in a single folder,
+you can use wildcards rather than listing each file name manually:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> exposure_<span class="pp">*</span>.tif <span class="at">-evaluate-sequence</span> mean blended_result.tif</span></code></pre></div>
+<h2 id="preserving-dynamic-range-with-high-bit-depth">Preserving Dynamic
+Range with High Bit-Depth</h2>
+<p>Bracketed sets are often shot to capture high dynamic range (HDR)
+details. When working with 16-bit TIFF files or linear formats, ensure
+ImageMagick retains the bit depth by explicitly declaring the output
+format settings:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> cap1.tif cap2.tif cap3.tif <span class="at">-depth</span> 16 <span class="at">-evaluate-sequence</span> mean final_average.tif</span></code></pre></div>
+<p>Using 16-bit TIFFs prevents color banding and preserves fine shadow
+and highlight detail during the mathematical averaging process.</p>
+<h2 id="mean-vs-median-for-bracketed-sets">Mean vs. Median for Bracketed
+Sets</h2>
+<p>While <code>-evaluate-sequence mean</code> produces the best
+statistical noise reduction for static scenes,
+<code>-evaluate-sequence median</code> is an alternative worth
+considering if your bracketed shots contain moving elements, such as
+pedestrians, moving cars, or swaying branches.</p>
+<p>To use the median instead:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> img<span class="pp">*</span>.jpg <span class="at">-evaluate-sequence</span> median output_median.jpg</span></code></pre></div>
+<p>The median method discards outliers, helping eliminate moving
+subjects from the blended exposure while still balancing exposure
+consistency across the set.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

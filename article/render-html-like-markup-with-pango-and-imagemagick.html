@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Render HTML-Like Markup with Pango and ImageMagick - magick</title>
+    <meta name="description" content="Rendering text with inline styling such as bold, italics, font sizing, and custom colors is easily accomplished by combining ImageMagick with the Pango markup engine. By leveraging ImageMagick's built-in pango: delegate, you can interpret a lightweight,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/render-html-like-markup-with-pango-and-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Render HTML-Like Markup with Pango and ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/render-html-like-markup-with-pango-and-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Rendering text with inline styling such as bold, italics, font sizing, and custom colors is easily accomplished by combining ImageMagick with the Pango markup engine. By leveraging ImageMagick's built-in pango: delegate, you can interpret a lightweight," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="render-html-like-markup-with-pango-and-imagemagick">Render
+HTML-Like Markup with Pango and ImageMagick</h1>
+<p>Rendering text with inline styling such as bold, italics, font
+sizing, and custom colors is easily accomplished by combining
+ImageMagick with the Pango markup engine. By leveraging ImageMagick's
+built-in <code>pango:</code> delegate, you can interpret a lightweight,
+HTML-like XML syntax directly within your image generation commands.
+This guide explains how the Pango delegate works, details the supported
+markup tags, and provides practical command-line examples for rendering
+rich text into images.</p>
+<h3 id="understanding-pango-markup">Understanding Pango Markup</h3>
+<p>Pango does not parse full HTML or CSS, but instead uses a dedicated,
+XML-based markup language that mimics HTML. All tags must be properly
+nested and closed.</p>
+<p>The primary tags and attributes include:</p>
+<ul>
+<li><code>&lt;b&gt;...&lt;/b&gt;</code>: Bold text.</li>
+<li><code>&lt;i&gt;...&lt;/i&gt;</code>: Italicized text.</li>
+<li><code>&lt;u&gt;...&lt;/u&gt;</code>: Underlined text.</li>
+<li><code>&lt;s&gt;...&lt;/s&gt;</code>: Strikethrough text.</li>
+<li><code>&lt;big&gt;...&lt;/big&gt;</code> and
+<code>&lt;small&gt;...&lt;/small&gt;</code>: Relatively increases or
+decreases font size.</li>
+<li><code>&lt;sup&gt;...&lt;/sup&gt;</code> and
+<code>&lt;sub&gt;...&lt;/sub&gt;</code>: Superscript and subscript
+text.</li>
+<li><code>&lt;tt&gt;...&lt;/tt&gt;</code>: Monospace font.</li>
+<li><code>&lt;span attributes...&gt;...&lt;/span&gt;</code>: A versatile
+container tag supporting attributes like <code>foreground</code> (text
+color), <code>background</code> (highlight color),
+<code>font_family</code>, <code>size</code> (in points or Pango units),
+<code>weight</code> (e.g., "bold", "light"), and <code>style</code>
+(e.g., "italic", "normal").</li>
+</ul>
+<h3 id="basic-command-line-usage">Basic Command Line Usage</h3>
+<p>To render markup directly from the command line, prefix your input
+string with <code>pango:</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> white pango:<span class="st">&quot;&lt;b&gt;Hello&lt;/b&gt; &lt;span foreground=&#39;red&#39;&gt;World&lt;/span&gt;&quot;</span> output.png</span></code></pre></div>
+<p>If you are using ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> <span class="at">-background</span> white pango:<span class="st">&quot;&lt;b&gt;Hello&lt;/b&gt; &lt;span foreground=&#39;red&#39;&gt;World&lt;/span&gt;&quot;</span> output.png</span></code></pre></div>
+<h3 id="specifying-canvas-size-and-word-wrapping">Specifying Canvas Size
+and Word Wrapping</h3>
+<p>Pango automatically handles text layout and line wrapping when
+provided with canvas dimensions. By specifying the <code>-size</code>
+option with a defined width, Pango wraps the text to fit within the
+boundary:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 300x <span class="at">-background</span> lightgray pango:<span class="st">&quot;This is a &lt;i&gt;longer paragraph&lt;/i&gt; designed to demonstrate how &lt;b&gt;Pango&lt;/b&gt; wraps text automatically when given a fixed canvas width.&quot;</span> wrapped_text.png</span></code></pre></div>
+<p>Leaving the height dimension empty (e.g., <code>300x</code>) allows
+the image height to dynamically adjust based on the amount of text.</p>
+<h3 id="rendering-markup-from-a-file">Rendering Markup from a File</h3>
+<p>For long passages or complex templates, writing markup directly on
+the command line can lead to shell-escaping issues. You can store the
+markup inside a text file and reference it using the <code>@</code>
+symbol:</p>
+<ol type="1">
+<li>Create a file named <code>markup.txt</code>:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">span</span> <span class="ot">font=</span><span class="st">&quot;Georgia 16&quot;</span>&gt;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  This text uses &lt;<span class="kw">b</span>&gt;Georgia&lt;/<span class="kw">b</span>&gt; at 16pt.&lt;<span class="kw">br</span>/&gt;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  Here is a &lt;<span class="kw">span</span> <span class="ot">foreground=</span><span class="st">&quot;#007ACC&quot;</span> <span class="ot">underline=</span><span class="st">&quot;single&quot;</span>&gt;blue underlined link style&lt;/<span class="kw">span</span>&gt;.</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">span</span>&gt;</span></code></pre></div>
+<ol start="2" type="1">
+<li>Run the ImageMagick command:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-background</span> transparent <span class="at">-size</span> 400x pango:@markup.txt output.png</span></code></pre></div>
+<h3 id="important-formatting-considerations">Important Formatting
+Considerations</h3>
+<ul>
+<li><strong>XML Escaping:</strong> Special characters such as ampersands
+(<code>&amp;</code>), less-than (<code>&lt;</code>), and greater-than
+(<code>&gt;</code>) must be escaped as <code>&amp;amp;</code>,
+<code>&amp;lt;</code>, and <code>&amp;gt;</code>.</li>
+<li><strong>Font Matching:</strong> If a specified
+<code>font_family</code> is not installed on the host system, Pango
+falls back to the system's default sans-serif font.</li>
+<li><strong>Self-Closing Tags:</strong> Tags like
+<code>&lt;br/&gt;</code> should be written with a self-closing slash to
+ensure strict XML compliance.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

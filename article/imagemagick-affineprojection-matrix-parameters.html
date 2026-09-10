@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick AffineProjection Matrix Parameters - magick</title>
+    <meta name="description" content="The ImageMagick -distort AffineProjection command applies a standard 2D affine transformation to an image using direct matrix coefficients. This article breaks down the exact matrix parameters required by the command, explains how each value alters coord">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-affineprojection-matrix-parameters">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick AffineProjection Matrix Parameters - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-affineprojection-matrix-parameters" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -distort AffineProjection command applies a standard 2D affine transformation to an image using direct matrix coefficients. This article breaks down the exact matrix parameters required by the command, explains how each value alters coord" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-affineprojection-matrix-parameters">ImageMagick
+AffineProjection Matrix Parameters</h1>
+<p>The ImageMagick <code>-distort AffineProjection</code> command
+applies a standard 2D affine transformation to an image using direct
+matrix coefficients. This article breaks down the exact matrix
+parameters required by the command, explains how each value alters
+coordinates, and provides practical syntax examples for scaling,
+rotating, shearing, and translating images.</p>
+<h2 id="required-parameters">Required Parameters</h2>
+<p>The <code>AffineProjection</code> distortion method accepts either
+four or six numerical parameters separated by commas or spaces:</p>
+<pre class="text"><code>sx, rx, ry, sy [, tx, ty]</code></pre>
+<p>These parameters correspond to the standard 2D affine transformation
+matrix:</p>
+<ul>
+<li><strong><code>sx</code> (Scale X):</strong> Scales the image
+horizontally. A value of <code>1.0</code> maintains original width.</li>
+<li><strong><code>rx</code> (Shear/Rotate Y):</strong> Controls the
+vertical shearing or rotation factor derived from the X axis.</li>
+<li><strong><code>ry</code> (Shear/Rotate X):</strong> Controls the
+horizontal shearing or rotation factor derived from the Y axis.</li>
+<li><strong><code>sy</code> (Scale Y):</strong> Scales the image
+vertically. A value of <code>1.0</code> maintains original height.</li>
+<li><strong><code>tx</code> (Translation X - Optional):</strong> Shifts
+the image horizontally along the X axis in pixels. Defaults to
+<code>0</code> if omitted.</li>
+<li><strong><code>ty</code> (Translation Y - Optional):</strong> Shifts
+the image vertically along the Y axis in pixels. Defaults to
+<code>0</code> if omitted.</li>
+</ul>
+<hr />
+<h2 id="coordinate-transformation-formula">Coordinate Transformation
+Formula</h2>
+<p>ImageMagick maps input coordinates <span class="math inline">\((x,
+y)\)</span> to output destination coordinates <span
+class="math inline">\((x&#39;, y&#39;)\)</span> using the following
+linear equations:</p>
+<p><span class="math display">\[x&#39; = (sx \cdot x) + (ry \cdot y) +
+tx\]</span> <span class="math display">\[y&#39; = (rx \cdot x) + (sy
+\cdot y) + ty\]</span></p>
+<p>In standard matrix notation, this is expressed as:</p>
+<pre class="text"><code>[ x&#39; ]   [ sx  ry  tx ]   [ x ]
+[ y&#39; ] = [ rx  sy  ty ] * [ y ]
+[ 1  ]   [  0   0   1 ]   [ 1 ]</code></pre>
+<hr />
+<h2 id="common-transformations">Common Transformations</h2>
+<h3 id="1-identity-no-transformation">1. Identity (No
+Transformation)</h3>
+<p>Keeps the image unchanged:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> AffineProjection <span class="st">&quot;1.0, 0.0, 0.0, 1.0, 0, 0&quot;</span> output.png</span></code></pre></div>
+<h3 id="2-scaling">2. Scaling</h3>
+<p>Doubles the width and triples the height:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> AffineProjection <span class="st">&quot;2.0, 0.0, 0.0, 3.0, 0, 0&quot;</span> output.png</span></code></pre></div>
+<h3 id="3-horizontal-shear">3. Horizontal Shear</h3>
+<p>Shears the image along the X axis:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> AffineProjection <span class="st">&quot;1.0, 0.0, 0.5, 1.0, 0, 0&quot;</span> output.png</span></code></pre></div>
+<h3 id="4-pure-rotation">4. Pure Rotation</h3>
+<p>To rotate an image by an angle <span
+class="math inline">\(\theta\)</span> in degrees:</p>
+<ul>
+<li><span class="math inline">\(sx = \cos(\theta)\)</span></li>
+<li><span class="math inline">\(rx = \sin(\theta)\)</span></li>
+<li><span class="math inline">\(ry = -\sin(\theta)\)</span></li>
+<li><span class="math inline">\(sy = \cos(\theta)\)</span></li>
+</ul>
+<p>For a 45-degree rotation (<span class="math inline">\(\cos(45^\circ)
+\approx 0.7071\)</span>, <span class="math inline">\(\sin(45^\circ)
+\approx 0.7071\)</span>):</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> AffineProjection <span class="st">&quot;0.7071, 0.7071, -0.7071, 0.7071, 0, 0&quot;</span> output.png</span></code></pre></div>
+<h3 id="5-translation">5. Translation</h3>
+<p>Shifts the output image 50 pixels right and 100 pixels down:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> AffineProjection <span class="st">&quot;1.0, 0.0, 0.0, 1.0, 50, 100&quot;</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

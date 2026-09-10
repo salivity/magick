@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set Different Frame Delays in ImageMagick - magick</title>
+    <meta name="description" content="Setting variable frame delays in an animated GIF using ImageMagick allows you to control the exact duration of each frame individually rather than applying a uniform speed across the entire animation. By applying the -delay operator before specific input">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-set-different-frame-delays-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set Different Frame Delays in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-set-different-frame-delays-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Setting variable frame delays in an animated GIF using ImageMagick allows you to control the exact duration of each frame individually rather than applying a uniform speed across the entire animation. By applying the -delay operator before specific input" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-different-frame-delays-in-imagemagick">How to Set
+Different Frame Delays in ImageMagick</h1>
+<p>Setting variable frame delays in an animated GIF using ImageMagick
+allows you to control the exact duration of each frame individually
+rather than applying a uniform speed across the entire animation. By
+applying the <code>-delay</code> operator before specific input files
+during creation, or by using the <code>-set delay</code> attribute on
+specific frame indices for existing GIFs, you can pause on important
+frames, speed through transitions, and optimize overall animation
+timing.</p>
+<hr />
+<h3 id="understanding-the-delay-unit">Understanding the Delay Unit</h3>
+<p>ImageMagick measures animation delays in ticks per second, where the
+default is 100 ticks per second (centiseconds).</p>
+<ul>
+<li><code>-delay 10</code> = 0.10 seconds (100 ms)</li>
+<li><code>-delay 50</code> = 0.50 seconds (500 ms)</li>
+<li><code>-delay 100</code> = 1.00 second (1000 ms)</li>
+<li><code>-delay 200</code> = 2.00 seconds (2000 ms)</li>
+</ul>
+<hr />
+<h3 id="creating-a-new-gif-with-variable-frame-delays">Creating a New
+GIF with Variable Frame Delays</h3>
+<p>To set different delays when generating a GIF from a sequence of
+images, place the <code>-delay</code> parameter directly before each
+frame or set of frames. The delay setting applies to all subsequent
+images until a new <code>-delay</code> value is encountered.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-delay</span> 100 frame1.png <span class="at">-delay</span> 20 frame2.png frame3.png <span class="at">-delay</span> 200 frame4.png <span class="at">-loop</span> 0 output.gif</span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li><code>frame1.png</code> is displayed for 1.00 second
+(<code>-delay 100</code>).</li>
+<li><code>frame2.png</code> and <code>frame3.png</code> are displayed
+for 0.20 seconds each (<code>-delay 20</code>).</li>
+<li><code>frame4.png</code> is displayed for 2.00 seconds
+(<code>-delay 200</code>).</li>
+<li><code>-loop 0</code> ensures the animation loops infinitely.</li>
+</ul>
+<p><em>(Note: If you are using ImageMagick 6, replace
+<code>magick</code> with <code>convert</code>.)</em></p>
+<hr />
+<h3 id="modifying-delays-in-an-existing-gif">Modifying Delays in an
+Existing GIF</h3>
+<p>If you already have a compiled GIF and want to change individual
+frame durations without breaking the file into separate image files
+first, use the <code>-set delay</code> property.</p>
+<h4 id="1-setting-individual-frame-delays-by-index">1. Setting
+Individual Frame Delays by Index</h4>
+<p>In ImageMagick 7, you can modify specific frames directly using their
+zero-based index:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-set</span> delay 20 <span class="at">-set</span> delay<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> 100 <span class="at">-set</span> delay<span class="pp">[</span><span class="ss">3</span><span class="pp">]</span> 300 output.gif</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-set delay 20</code> sets the base speed to 0.20 seconds for
+all frames.</li>
+<li><code>-set delay[0] 100</code> overrides the first frame's duration
+to 1.00 second.</li>
+<li><code>-set delay[3] 300</code> overrides the fourth frame's duration
+to 3.00 seconds.</li>
+</ul>
+<h4 id="2-modifying-specific-frame-ranges-using-parentheses">2.
+Modifying Specific Frame Ranges Using Parentheses</h4>
+<p>You can also isolate frames inside explicit operational blocks:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-set</span> delay 150 <span class="dt">\)</span> <span class="at">-swap</span> 0,-1 +delete <span class="dt">\(</span> <span class="at">-clone</span> 5 <span class="at">-set</span> delay 250 <span class="dt">\)</span> <span class="at">-swap</span> 5,-1 +delete output.gif</span></code></pre></div>
+<p>This method clones the target frame, applies the new delay, swaps it
+into the original position, and deletes the temporary clone.</p>
+<hr />
+<h3 id="pausing-on-the-first-and-last-frames">Pausing on the First and
+Last Frames</h3>
+<p>A common requirement is pausing on the first or final frame of a
+looping animation while keeping the intermediate frames fast:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-delay</span> 200 first_frame.png <span class="at">-delay</span> 5 mid_frame<span class="pp">*</span>.png <span class="at">-delay</span> 300 last_frame.png <span class="at">-loop</span> 0 presentation.gif</span></code></pre></div>
+<p>This ensures a 2-second hold at the start, rapid playback through
+intermediate transitions, and a 3-second hold on the concluding frame
+before the loop restarts.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

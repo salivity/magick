@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Safely Recurse Subdirectories with Mogrify - magick</title>
+    <meta name="description" content="ImageMagick’s mogrify tool is designed for fast batch image processing, but it lacks a built-in recursive flag and overwrites source files by default. This guide covers how to safely pair mogrify with shell utilities like find to traverse nested direct">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-safely-recurse-subdirectories-with-mogrify">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Safely Recurse Subdirectories with Mogrify - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-safely-recurse-subdirectories-with-mogrify" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick’s mogrify tool is designed for fast batch image processing, but it lacks a built-in recursive flag and overwrites source files by default. This guide covers how to safely pair mogrify with shell utilities like find to traverse nested direct" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-safely-recurse-subdirectories-with-mogrify">How to Safely
+Recurse Subdirectories with Mogrify</h1>
+<p>ImageMagick’s <code>mogrify</code> tool is designed for fast batch
+image processing, but it lacks a built-in recursive flag and overwrites
+source files by default. This guide covers how to safely pair
+<code>mogrify</code> with shell utilities like <code>find</code> to
+traverse nested directory trees, apply transformations consistently, and
+prevent accidental data loss.</p>
+<h2 id="understanding-the-risks-of-mogrify">Understanding the Risks of
+Mogrify</h2>
+<p>Unlike the standard <code>magick</code> or <code>convert</code>
+commands, <code>mogrify</code> operates in-place. If an operation is
+executed incorrectly, the original image data is permanently
+overwritten. Furthermore, <code>mogrify</code> does not natively support
+directory recursion (such as a <code>-r</code> flag). Relying on shell
+globbing like <code>**/*.jpg</code> can fail when dealing with large
+directory structures due to command-line argument length limits
+(<code>ARG_MAX</code>) or missing <code>globstar</code>
+configurations.</p>
+<p>To process files across subdirectories safely, you must control file
+discovery using dedicated system tools and implement safeguards against
+file destruction.</p>
+<h2 id="method-1-in-place-recursion-using-find">Method 1: In-Place
+Recursion Using <code>find</code></h2>
+<p>The most reliable way to traverse subdirectories across all Unix-like
+platforms is pairing <code>find</code> with <code>mogrify</code>.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-type</span> f <span class="dt">\(</span> <span class="at">-iname</span> <span class="st">&quot;*.jpg&quot;</span> <span class="at">-o</span> <span class="at">-iname</span> <span class="st">&quot;*.png&quot;</span> <span class="dt">\)</span> <span class="at">-exec</span> mogrify <span class="at">-resize</span> 1920x1080<span class="dt">\&gt;</span> {} +</span></code></pre></div>
+<h3 id="why-this-method-is-safe">Why this method is safe:</h3>
+<ul>
+<li><strong>Argument safety:</strong> The <code>-exec ... +</code>
+syntax batches arguments without exceeding system execution limits.</li>
+<li><strong>Path safety:</strong> It handles filenames with spaces,
+special characters, and arbitrary depth natively.</li>
+<li><strong>Precise filtering:</strong> The <code>-type f</code> flag
+prevents <code>mogrify</code> from attempting to open directories as
+images.</li>
+</ul>
+<p><em>Note: Always create a backup of your root directory before
+running in-place batch modifications.</em></p>
+<h2 id="method-2-non-destructive-conversion-using--format">Method 2:
+Non-Destructive Conversion Using <code>-format</code></h2>
+<p>You can recurse through directories while keeping original files
+completely untouched by altering the file format during the
+<code>mogrify</code> execution. When a new format is declared,
+<code>mogrify</code> writes a new file in the same subdirectory
+alongside the original rather than overwriting it.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-type</span> f <span class="at">-iname</span> <span class="st">&quot;*.png&quot;</span> <span class="at">-exec</span> mogrify <span class="at">-format</span> webp <span class="at">-quality</span> 80 {} +</span></code></pre></div>
+<p>In this example, every <code>.png</code> file found in any
+subdirectory will generate a corresponding <code>.webp</code> file in
+that same folder, leaving the source PNG intact.</p>
+<h2
+id="method-3-mirroring-the-directory-tree-for-isolated-output">Method 3:
+Mirroring the Directory Tree for Isolated Output</h2>
+<p>If you need to resize or modify images without changing formats or
+touching the source files, mirror the directory structure into a target
+directory first, then run <code>mogrify</code> with the
+<code>-path</code> parameter.</p>
+<h3 id="step-1-replicate-the-folder-structure">Step 1: Replicate the
+folder structure</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-type</span> d <span class="at">-exec</span> mkdir <span class="at">-p</span> /path/to/output_dir/{} <span class="dt">\;</span></span></code></pre></div>
+<h3 id="step-2-process-images-into-the-mirrored-structure">Step 2:
+Process images into the mirrored structure</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> . <span class="at">-type</span> d <span class="at">-exec</span> sh <span class="at">-c</span> <span class="st">&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">  for dir do</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">    mogrify -path &quot;/path/to/output_dir/$dir&quot; -resize 50% &quot;$dir&quot;/*.jpg 2&gt;/dev/null</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">  done</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> sh {} +</span></code></pre></div>
+<p>This ensures that the output files are stored in an entirely separate
+location, preserving the source hierarchy and keeping original assets
+safe from corruption or bad parameter adjustments.</p>
+<h2 id="essential-best-practices">Essential Best Practices</h2>
+<ul>
+<li><strong>Test on a small subset:</strong> Run the command with a
+<code>-maxdepth 1</code> flag or on a single test folder before
+targeting thousands of files.</li>
+<li><strong>Quote geometry strings:</strong> Special characters like
+<code>&gt;</code> (resize only if larger) or <code>^</code> (minimum
+dimensions) must be escaped or quoted so the shell does not interpret
+them as redirections.</li>
+<li><strong>Use case-insensitive matching:</strong> Always use
+<code>-iname</code> instead of <code>-name</code> in <code>find</code>
+commands to catch files ending in <code>.JPG</code>, <code>.jpeg</code>,
+and <code>.jpg</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

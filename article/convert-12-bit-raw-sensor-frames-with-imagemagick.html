@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert 12-Bit Raw Sensor Frames with ImageMagick - magick</title>
+    <meta name="description" content="Converting 12-bit raw industrial sensor frames into standard image formats requires ImageMagick to explicitly define missing metadata, such as image dimensions, bit depth, pixel format, and byte ordering. Because raw files contain uncompressed pixel valu">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-12-bit-raw-sensor-frames-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert 12-Bit Raw Sensor Frames with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-12-bit-raw-sensor-frames-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting 12-bit raw industrial sensor frames into standard image formats requires ImageMagick to explicitly define missing metadata, such as image dimensions, bit depth, pixel format, and byte ordering. Because raw files contain uncompressed pixel valu" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-12-bit-raw-sensor-frames-with-imagemagick">Convert
+12-Bit Raw Sensor Frames with ImageMagick</h1>
+<p>Converting 12-bit raw industrial sensor frames into standard image
+formats requires ImageMagick to explicitly define missing metadata, such
+as image dimensions, bit depth, pixel format, and byte ordering. Because
+raw files contain uncompressed pixel values without header metadata, you
+must pass these hardware-specific parameters directly via the command
+line to decode the image correctly.</p>
+<h3 id="the-basic-conversion-command">The Basic Conversion Command</h3>
+<p>To convert an unpacked 12-bit grayscale raw frame into a 16-bit PNG
+or TIFF, use the following <code>magick</code> command (or
+<code>convert</code> in ImageMagick v6):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 12 <span class="at">-endian</span> lsb gray:input_frame.raw <span class="at">-auto-level</span> output.png</span></code></pre></div>
+<h3 id="parameter-breakdown">Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-size &lt;width&gt;x&lt;height&gt;</code></strong>:
+Defines the exact sensor resolution (e.g., <code>1920x1080</code> or
+<code>4096x3072</code>). This is required for ImageMagick to calculate
+line breaks properly.</li>
+<li><strong><code>-depth 12</code></strong>: Specifies the bit depth of
+the sensor data.</li>
+<li><strong><code>-endian lsb</code> (or <code>msb</code>)</strong>:
+Defines the byte order. Most modern industrial cameras (such as USB3
+Vision or GigE Vision) output Little-Endian (<code>lsb</code>) data. If
+the image appears noisy or corrupted, switch to Big-Endian
+(<code>msb</code>).</li>
+<li><strong><code>gray:input_frame.raw</code></strong>: Tells
+ImageMagick to interpret the binary file as raw grayscale data. The
+<code>gray:</code> prefix is necessary because raw files lack file
+headers.</li>
+<li><strong><code>-auto-level</code></strong>: Scales the 12-bit dynamic
+range (values 0–4095) across the full 16-bit output space (0–65535) so
+the resulting image does not appear unnaturally dark in standard image
+viewers.</li>
+<li><strong><code>output.png</code></strong>: The target file name and
+format. PNG and TIFF formats natively support 16-bit depths, preserving
+the dynamic range of the 12-bit source.</li>
+</ul>
+<h3 id="handling-12-bit-data-in-16-bit-containers">Handling 12-Bit Data
+in 16-Bit Containers</h3>
+<p>Many industrial frame grabbers output 12-bit data aligned inside
+16-bit words (often called Mono12 unpacked). In this scenario, read the
+file as 16-bit data and normalize the range:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 16 <span class="at">-endian</span> lsb gray:input_frame.raw <span class="at">-auto-level</span> output.tiff</span></code></pre></div>
+<h3 id="converting-bayer-pattern-raw-frames">Converting Bayer Pattern
+Raw Frames</h3>
+<p>If the sensor outputs 12-bit raw color data using a Bayer filter
+array (e.g., RGGB), read the file in grayscale first, then apply
+demosaicing:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 12 <span class="at">-endian</span> lsb gray:input_bayer.raw <span class="at">-auto-level</span> <span class="at">-demosaic</span> RGGB output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

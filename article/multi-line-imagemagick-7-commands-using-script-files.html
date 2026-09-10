@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Line ImageMagick 7 Commands Using Script Files - magick</title>
+    <meta name="description" content="ImageMagick 7 introduced a dedicated scripting mode that simplifies running complex, multi-line image processing commands without relying on fragile shell-continuation characters like backslashes. This article demonstrates how to create standalone ImageM">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/multi-line-imagemagick-7-commands-using-script-files">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Multi-Line ImageMagick 7 Commands Using Script Files - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/multi-line-imagemagick-7-commands-using-script-files" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick 7 introduced a dedicated scripting mode that simplifies running complex, multi-line image processing commands without relying on fragile shell-continuation characters like backslashes. This article demonstrates how to create standalone ImageM" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="multi-line-imagemagick-7-commands-using-script-files">Multi-Line
+ImageMagick 7 Commands Using Script Files</h1>
+<p>ImageMagick 7 introduced a dedicated scripting mode that simplifies
+running complex, multi-line image processing commands without relying on
+fragile shell-continuation characters like backslashes. This article
+demonstrates how to create standalone ImageMagick 7 script files, format
+multi-line commands cleanly, handle comments, and execute the scripts
+across different environments.</p>
+<hr />
+<h3 id="the-magick--script-facility">The <code>magick -script</code>
+Facility</h3>
+<p>In ImageMagick 6 and earlier, running multi-line operations required
+using the underlying shell's line continuation character (such as
+<code>\</code> in Bash or <code>^</code> in Windows Command Prompt).
+ImageMagick 7 introduces native scripting via the <code>-script</code>
+option.</p>
+<p>When you pass a file to <code>magick -script</code>, ImageMagick
+treats the contents of the file as an execution sequence. It processes
+lines sequentially, ignores standard indentation, and removes the need
+for terminal-specific escape characters.</p>
+<hr />
+<h3 id="creating-a-script-file">Creating a Script File</h3>
+<p>An ImageMagick 7 script file is a standard plain text file containing
+options and arguments separated by whitespace or newlines.</p>
+<h4 id="basic-syntax-and-formatting">Basic Syntax and Formatting</h4>
+<ul>
+<li><strong>Newlines:</strong> Each command argument or operation can be
+placed on its own line without trailing slashes.</li>
+<li><strong>Comments:</strong> Any line starting with a hash symbol
+(<code>#</code>) is treated as a comment.</li>
+<li><strong>Indentation:</strong> Spaces and tabs are treated as general
+whitespace, allowing you to indent operations logically.</li>
+</ul>
+<h4 id="example-process_imagemgk">Example:
+<code>process_image.mgk</code></h4>
+<pre class="text"><code># Load the base image
+input.jpg
+
+# Resize and enhance
+-resize 1200x800^
+-gravity center
+-extent 1200x800
+-unsharp 0x0.75+0.75+0.008
+
+# Adjust colors
+-brightness-contrast 5x10
+
+# Save the result
+-quality 85
+output.jpg</code></pre>
+<hr />
+<h3 id="executing-the-script">Executing the Script</h3>
+<p>There are two primary methods to execute your multi-line script.</p>
+<h4 id="method-1-using-the-magick-command">Method 1: Using the
+<code>magick</code> Command</h4>
+<p>Run the script by passing it as an argument to the
+<code>magick</code> command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-script</span> process_image.mgk</span></code></pre></div>
+<p>This method works consistently across Linux, macOS, and Windows.</p>
+<h4 id="method-2-direct-execution-via-shebang-linuxmacos">Method 2:
+Direct Execution via Shebang (Linux/macOS)</h4>
+<p>On Unix-like systems, you can make the script directly executable by
+adding a shebang pointing to the ImageMagick binary.</p>
+<ol type="1">
+<li>Create a file named <code>optimize.sh</code>:</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/magick -script</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">input.png</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">-strip</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">-resize</span> 50%</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">-colorspace</span> sRGB</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">output.png</span></span></code></pre></div>
+<ol start="2" type="1">
+<li>Make the file executable:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x optimize.sh</span></code></pre></div>
+<ol start="3" type="1">
+<li>Run the script directly:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./optimize.sh</span></span></code></pre></div>
+<hr />
+<h3 id="passing-dynamic-arguments">Passing Dynamic Arguments</h3>
+<p>ImageMagick script files can accept dynamic command-line arguments
+using placeholder references. The argument markers correspond to the
+order in which parameters are passed when invoking the script:</p>
+<ul>
+<li><code>%[1]</code> corresponds to the first passed argument.</li>
+<li><code>%[2]</code> corresponds to the second passed argument.</li>
+</ul>
+<h4 id="script-with-placeholders-convert_dynamicmgk">Script with
+Placeholders (<code>convert_dynamic.mgk</code>)</h4>
+<pre class="text"><code># Read input from first argument
+%[1]
+
+# Apply processing
+-thumbnail 800x600
+-auto-orient
+
+# Write output to second argument
+%[2]</code></pre>
+<h4 id="execution">Execution:</h4>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-script</span> convert_dynamic.mgk photo.raw photo_preview.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Polynomial Distortion and Custom Orders - magick</title>
+    <meta name="description" content="The ImageMagick -distort Polynomial operator provides mathematical mapping for complex, non-linear geometric warping using user-defined coordinate pairs and specified polynomial orders. This article explains how ImageMagick derives transformation coeffic">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-polynomial-distortion-and-custom-orders">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Polynomial Distortion and Custom Orders - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-polynomial-distortion-and-custom-orders" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -distort Polynomial operator provides mathematical mapping for complex, non-linear geometric warping using user-defined coordinate pairs and specified polynomial orders. This article explains how ImageMagick derives transformation coeffic" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-polynomial-distortion-and-custom-orders">ImageMagick
+Polynomial Distortion and Custom Orders</h1>
+<p>The ImageMagick <code>-distort Polynomial</code> operator provides
+mathematical mapping for complex, non-linear geometric warping using
+user-defined coordinate pairs and specified polynomial orders. This
+article explains how ImageMagick derives transformation coefficients
+from control points, how custom polynomial orders determine the degree
+of curvature and degrees of freedom, the minimum control point
+constraints required for calculation, and how over-determined point sets
+are resolved using least-squares fitting.</p>
+<h2 id="mathematical-mapping-mechanics">Mathematical Mapping
+Mechanics</h2>
+<p>The Polynomial distortion operator maps coordinates between the
+source image and the destination canvas using two-dimensional bivariate
+polynomial equations. ImageMagick uses an inverse mapping algorithm to
+prevent sampling holes, meaning it calculates the corresponding source
+coordinates <span class="math inline">\((u, v)\)</span> for every
+destination pixel <span class="math inline">\((x, y)\)</span>:</p>
+<p><span class="math display">\[u(x, y) = \sum_{i} \sum_{j} a_{i,j} x^i
+y^j\]</span> <span class="math display">\[v(x, y) = \sum_{i} \sum_{j}
+b_{i,j} x^i y^j\]</span></p>
+<p>Here, <span class="math inline">\(a_{i,j}\)</span> and <span
+class="math inline">\(b_{i,j}\)</span> represent the polynomial
+coefficients that ImageMagick solves for prior to rendering, where <span
+class="math inline">\(i + j \le \text{order}\)</span>.</p>
+<h2 id="custom-polynomial-orders-and-term-expansion">Custom Polynomial
+Orders and Term Expansion</h2>
+<p>The first argument passed to the <code>-distort Polynomial</code>
+operator defines the order of the polynomial. The selected order
+directly governs the complexity of the geometric deformation by
+expanding the number of terms evaluated in the coordinate equations.</p>
+<h3 id="order-1-affine-mapping">Order 1 (Affine Mapping)</h3>
+<ul>
+<li><strong>Terms:</strong> <span class="math inline">\(1, x,
+y\)</span></li>
+<li><strong>Behavior:</strong> Produces purely linear transformations,
+including translation, rotation, scaling, and shearing. Straight lines
+remain straight, and parallel lines remain parallel.</li>
+<li><strong>Minimum Point Pairs:</strong> 3 pairs (6 equations total: 3
+for <span class="math inline">\(u\)</span>, 3 for <span
+class="math inline">\(v\)</span>).</li>
+</ul>
+<h3 id="order-15-bilinear-like-warping">Order 1.5 (Bilinear-like
+Warping)</h3>
+<ul>
+<li><strong>Terms:</strong> <span class="math inline">\(1, x, y,
+xy\)</span></li>
+<li><strong>Behavior:</strong> Introduces a non-linear cross-term (<span
+class="math inline">\(xy\)</span>) allowing four-corner perspective-like
+or bilinear meshes without full quadratic expansion. Straight lines
+along coordinate axes can bend when mapped across skewed
+quadrilaterals.</li>
+<li><strong>Minimum Point Pairs:</strong> 4 pairs.</li>
+</ul>
+<h3 id="order-2-complete-quadratic-distortion">Order 2 (Complete
+Quadratic Distortion)</h3>
+<ul>
+<li><strong>Terms:</strong> <span class="math inline">\(1, x, y, xy,
+x^2, y^2\)</span></li>
+<li><strong>Behavior:</strong> Introduces full parabolic curvature.
+Useful for correcting or introducing barrel and pincushion lens
+distortion, curved cylindrical surfaces, or parabolic page curls.</li>
+<li><strong>Minimum Point Pairs:</strong> 6 pairs.</li>
+</ul>
+<h3 id="order-3-cubic-distortion">Order 3 (Cubic Distortion)</h3>
+<ul>
+<li><strong>Terms:</strong> <span class="math inline">\(1, x, y, xy,
+x^2, y^2, x^3, x^2y, xy^2, y^3\)</span></li>
+<li><strong>Behavior:</strong> Enables complex inflection points
+(S-curves) and local non-linear correction. It can warp localized
+regions while holding distant edges stable, suitable for complex
+photographic distortion correction.</li>
+<li><strong>Minimum Point Pairs:</strong> 10 pairs.</li>
+</ul>
+<h3 id="higher-orders-n-ge-4">Higher Orders (<span
+class="math inline">\(N \ge 4\)</span>)</h3>
+<p>For any integer order <span class="math inline">\(N\)</span>, the
+number of required terms per dimension is given by:</p>
+<p><span class="math display">\[\text{Terms} = \frac{(N + 1)(N +
+2)}{2}\]</span></p>
+<p>Higher orders provide extreme localized flexibility, but orders
+beyond 4 or 5 are prone to Runge's phenomenon, where severe oscillations
+and uncontrolled edge stretching occur between sparse control
+points.</p>
+<h2 id="control-point-resolution-and-least-squares-fitting">Control
+Point Resolution and Least-Squares Fitting</h2>
+<p>The operator expects control points formatted as groups of four
+values: source coordinates followed by target coordinates
+(<code>sx,sy  dx,dy</code>).</p>
+<ul>
+<li><strong>Exact Determination:</strong> When the number of control
+point pairs exactly matches the minimum term requirement for the
+specified order, ImageMagick constructs a square matrix and computes an
+exact solution using Gaussian elimination. Every source point maps
+directly to its target point.</li>
+<li><strong>Over-Determined Systems:</strong> When more control point
+pairs are provided than the minimum requirement, the system cannot solve
+the equations directly. ImageMagick automatically transitions to a
+Moore-Penrose pseudo-inverse approach to perform a linear least-squares
+regression. This minimizes the Root Mean Square Error (RMSE) across all
+points, reducing the impact of misaligned measurement coordinates or
+noise in the dataset.</li>
+<li><strong>Under-Determined Systems:</strong> If fewer point pairs are
+provided than the order demands, the transformation fails, as there are
+infinite solutions to the under-constrained system.</li>
+</ul>
+<h2 id="command-line-structure">Command-Line Structure</h2>
+<p>The command requires the order followed by the coordinate mapping
+list:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-distort</span> Polynomial <span class="st">&quot;order  sx1,sy1,dx1,dy1  sx2,sy2,dx2,dy2 ... sxN,syN,dxN,dyN&quot;</span> output.png</span></code></pre></div>
+<p>By adjusting the order value, users control whether the distortion
+creates rigid planar shifts, bilinear surfaces, or complex non-linear
+geometric warps.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

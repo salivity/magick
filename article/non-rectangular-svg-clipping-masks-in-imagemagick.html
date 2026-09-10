@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Rectangular SVG Clipping Masks in ImageMagick - magick</title>
+    <meta name="description" content="Applying non-rectangular clipping masks in ImageMagick allows you to mask images into complex vector shapes such as stars, organic curves, or custom logos using Scalable Vector Graphics (SVG). This guide explains how to use external SVG vector paths and">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/non-rectangular-svg-clipping-masks-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Non-Rectangular SVG Clipping Masks in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/non-rectangular-svg-clipping-masks-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Applying non-rectangular clipping masks in ImageMagick allows you to mask images into complex vector shapes such as stars, organic curves, or custom logos using Scalable Vector Graphics (SVG). This guide explains how to use external SVG vector paths and" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="non-rectangular-svg-clipping-masks-in-imagemagick">Non-Rectangular
+SVG Clipping Masks in ImageMagick</h1>
+<p>Applying non-rectangular clipping masks in ImageMagick allows you to
+mask images into complex vector shapes such as stars, organic curves, or
+custom logos using Scalable Vector Graphics (SVG). This guide explains
+how to use external SVG vector paths and inline vector drawing commands
+to clip raster images cleanly using ImageMagick's alpha compositing and
+clipping operators.</p>
+<h3 id="method-1-masking-with-an-external-svg-file">Method 1: Masking
+with an External SVG File</h3>
+<p>The most versatile method for applying a non-rectangular vector mask
+is to use an SVG file as an alpha matte via the <code>DstIn</code>
+composition method. In this approach, ImageMagick renders the SVG path,
+treats its shape as an opacity mask, and retains only the image pixels
+that overlap with the opaque parts of the SVG.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-density</span> 300 mask.svg <span class="at">-alpha</span> set <span class="at">-compose</span> DstIn <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><code>-density 300</code>: Sets the rasterization resolution for the
+vector SVG to ensure crisp, anti-aliased edges. Place this before
+loading the SVG file.</li>
+<li><code>-alpha set</code>: Ensures the base image has an alpha channel
+enabled for transparency.</li>
+<li><code>-compose DstIn</code>: Defines the compositing operator, which
+keeps the destination (the original image) only where the source (the
+SVG mask) is opaque.</li>
+<li><code>-composite</code>: Executes the blending operation.</li>
+</ul>
+<h3 id="method-2-defining-inline-svg-paths-with--draw">Method 2:
+Defining Inline SVG Paths with <code>-draw</code></h3>
+<p>If you do not have a standalone <code>.svg</code> file, you can
+define an SVG vector path directly within the ImageMagick command using
+the <code>path</code> drawing primitive.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-alpha</span> transparent <span class="at">-background</span> none <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-fill</span> white <span class="at">-draw</span> <span class="st">&quot;path &#39;M 100,100 L 300,100 L 200,300 Z&#39;&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> DstIn <span class="at">-composite</span> output.png</span></code></pre></div>
+<ul>
+<li><code>+clone -alpha transparent</code>: Creates an empty,
+transparent canvas matching the exact dimensions of
+<code>input.jpg</code>.</li>
+<li><code>-draw "path '...'"</code>: Uses standard SVG path syntax
+(<code>M</code> for moveto, <code>L</code> for lineto, <code>Z</code>
+for closepath, <code>C</code> for cubic Bézier curves) to render the
+vector mask onto the temporary canvas.</li>
+<li>The resulting shape is then used to clip the underlying image.</li>
+</ul>
+<h3 id="method-3-using-embedded-svg-clipping-paths--clip-path">Method 3:
+Using Embedded SVG Clipping Paths (<code>-clip-path</code>)</h3>
+<p>If your image format (such as TIFF or PSD) contains an embedded named
+vector clipping path, or if you are working with an SVG file that
+contains a defined <code>&lt;clipPath id="myPath"&gt;</code>, you can
+invoke the path directly:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-clip-path</span> <span class="st">&quot;myPath&quot;</span> <span class="at">-alpha</span> transparent output.png</span></code></pre></div>
+<p>To extract and apply the primary embedded clipping path without
+referencing an ID name:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-clip</span> <span class="at">-alpha</span> transparent output.png</span></code></pre></div>
+<h3 id="best-practices-for-svg-vector-masks">Best Practices for SVG
+Vector Masks</h3>
+<ul>
+<li><strong>Output Format</strong>: Always save the resulting image to a
+format that supports transparency, such as PNG, WebP, or TIFF. Saving to
+JPEG will replace transparent areas with the default background
+color.</li>
+<li><strong>Canvas Alignment</strong>: Ensure that the
+<code>viewBox</code> or <code>width</code>/<code>height</code>
+attributes inside your SVG match the dimensions and aspect ratio of the
+raster image you are clipping to prevent misalignment or scaling
+distortion.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Link ImageMagick with Jemalloc - magick</title>
+    <meta name="description" content="This guide details how to compile ImageMagick with the Jemalloc memory allocator to mitigate memory fragmentation and enhance throughput during intensive image processing tasks. You will learn the exact configuration flags required to link Jemalloc at bu">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-link-imagemagick-with-jemalloc">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Link ImageMagick with Jemalloc - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-link-imagemagick-with-jemalloc" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide details how to compile ImageMagick with the Jemalloc memory allocator to mitigate memory fragmentation and enhance throughput during intensive image processing tasks. You will learn the exact configuration flags required to link Jemalloc at bu" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-link-imagemagick-with-jemalloc">How to Link ImageMagick
+with Jemalloc</h1>
+<p>This guide details how to compile ImageMagick with the Jemalloc
+memory allocator to mitigate memory fragmentation and enhance throughput
+during intensive image processing tasks. You will learn the exact
+configuration flags required to link Jemalloc at build time, verify the
+resulting binary, and understand runtime alternatives.</p>
+<h2 id="the-configure-flag-for-jemalloc">The Configure Flag for
+Jemalloc</h2>
+<p>ImageMagick's standard <code>configure</code> script does not feature
+a dedicated <code>--with-jemalloc</code> switch. Instead, you link
+Jemalloc using Autotools library definition flags passed directly to the
+configuration script:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> LIBS=<span class="st">&quot;-ljemalloc&quot;</span></span></code></pre></div>
+<p>Alternatively, you can supply the flag via the linker flags
+variable:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> LDFLAGS=<span class="st">&quot;-ljemalloc&quot;</span></span></code></pre></div>
+<p>If Jemalloc is installed in a non-standard directory (such as
+<code>/usr/local</code> or a custom prefix), provide both the include
+directory and the library search path alongside the flag:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> LDFLAGS=<span class="st">&quot;-L/usr/local/lib -ljemalloc&quot;</span> CFLAGS=<span class="st">&quot;-I/usr/local/include&quot;</span></span></code></pre></div>
+<h2 id="step-by-step-compilation-guide">Step-by-Step Compilation
+Guide</h2>
+<h3 id="1-install-jemalloc-development-headers">1. Install Jemalloc
+Development Headers</h3>
+<p>Ensure the Jemalloc library and development headers are installed on
+your host system:</p>
+<ul>
+<li><strong>Debian / Ubuntu:</strong>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update <span class="kw">&amp;&amp;</span> <span class="fu">sudo</span> apt-get install libjemalloc-dev</span></code></pre></div></li>
+<li><strong>RHEL / CentOS / Rocky Linux:</strong>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install jemalloc-devel</span></code></pre></div></li>
+<li><strong>macOS (Homebrew):</strong>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install jemalloc</span></code></pre></div></li>
+</ul>
+<h3 id="2-configure-imagemagick-source">2. Configure ImageMagick
+Source</h3>
+<p>Navigate to your ImageMagick source directory and execute the
+configure script with <code>LIBS="-ljemalloc"</code>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> LIBS=<span class="st">&quot;-ljemalloc&quot;</span> <span class="at">--prefix</span><span class="op">=</span>/usr/local</span></code></pre></div>
+<h3 id="3-build-and-install">3. Build and Install</h3>
+<p>Compile the binaries across available CPU cores and install them:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> make install</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> ldconfig</span></code></pre></div>
+<h2 id="verifying-the-jemalloc-linkage">Verifying the Jemalloc
+Linkage</h2>
+<p>After installation, verify that the ImageMagick binary is dynamically
+linked against <code>libjemalloc</code>:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ldd</span> <span class="va">$(</span><span class="fu">which</span> magick<span class="va">)</span> <span class="kw">|</span> <span class="fu">grep</span> jemalloc</span></code></pre></div>
+<p>If linked successfully, the terminal will display the path to the
+resolved Jemalloc shared object, for example:</p>
+<pre class="text"><code>libjemalloc.so.2 =&gt; /lib/x86_64-linux-gnu/libjemalloc.so.2 (0x00007f8b9e200000)</code></pre>
+<h2 id="alternative-runtime-linking-via-ld_preload">Alternative: Runtime
+Linking via LD_PRELOAD</h2>
+<p>If you cannot recompile ImageMagick from source, you can achieve the
+same fragmentation reduction benefits by forcing the dynamic linker to
+load Jemalloc at runtime without any configure flags:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="va">LD_PRELOAD</span><span class="op">=</span>/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 <span class="ex">magick</span> input.jpg <span class="at">-resize</span> 50% output.jpg</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Connected Components by Circularity in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to extract round punctuation marks, such as periods, colons, and the dots on "i"s and "j"s, from text images using ImageMagick's connected-components labeling. By binarizing the image, calculating shape properties like circularity">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/filter-connected-components-by-circularity-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Filter Connected Components by Circularity in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/filter-connected-components-by-circularity-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to extract round punctuation marks, such as periods, colons, and the dots on "i"s and "j"s, from text images using ImageMagick's connected-components labeling. By binarizing the image, calculating shape properties like circularity" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="filter-connected-components-by-circularity-in-imagemagick">Filter
+Connected Components by Circularity in ImageMagick</h1>
+<p>This guide explains how to extract round punctuation marks, such as
+periods, colons, and the dots on "i"s and "j"s, from text images using
+ImageMagick's connected-components labeling. By binarizing the image,
+calculating shape properties like circularity and aspect ratio from the
+component statistics, and re-applying those filtered IDs as a mask, you
+can effectively isolate small circular marks from elongated
+letterforms.</p>
+<h3 id="understanding-the-process">Understanding the Process</h3>
+<p>ImageMagick provides the <code>-connected-components</code> operator
+to find and measure distinct blobs of pixels. While ImageMagick outputs
+core metrics such as area, bounding box coordinates, and centroids,
+isolating punctuation requires determining whether a component is
+roughly circular.</p>
+<p>Circularity (<span class="math inline">\(C\)</span>) is traditionally
+calculated as: <span class="math display">\[C = \frac{4 \pi \times
+\text{Area}}{\text{Perimeter}^2}\]</span></p>
+<p>For text extraction, an efficient approximation combines two
+checks:</p>
+<ol type="1">
+<li><strong>Aspect Ratio:</strong> The ratio of width to height (<span
+class="math inline">\(W / H\)</span>) should be close to <span
+class="math inline">\(1.0\)</span>.</li>
+<li><strong>Fill Factor / Area Ratio:</strong> The area of the component
+divided by the area of its bounding box (<span class="math inline">\(A /
+(W \times H)\)</span>) should be close to <span
+class="math inline">\(\pi / 4 \approx 0.785\)</span> for a solid
+circle.</li>
+</ol>
+<h3 id="step-1-preprocess-the-image">Step 1: Preprocess the Image</h3>
+<p>Ensure the input image is converted to high-contrast black-and-white.
+This separates characters from the background clearly.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-negate</span> binary.png</span></code></pre></div>
+<p><em>Note: Negating the image makes the text white on a black
+background, which is standard for connected-component analysis.</em></p>
+<h3 id="step-2-extract-connected-components-data">Step 2: Extract
+Connected Components Data</h3>
+<p>Run the connected-components analysis with verbose output to inspect
+the components:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  null: <span class="op">&gt;</span> components.txt</span></code></pre></div>
+<p>The output contains rows formatted like:
+<code>id: bounding-box centroid area mean-color</code> Example:
+<code>12: 8x8+142+85 145.5,88.5 48 srgb(255,255,255)</code></p>
+<h3 id="step-3-filter-component-ids-by-circularity">Step 3: Filter
+Component IDs by Circularity</h3>
+<p>Using a shell tool like <code>awk</code>, parse the components file
+to filter for punctuation marks based on:</p>
+<ul>
+<li><strong>Area limits:</strong> Exclude tiny noise speckles and large
+letters (e.g., <span class="math inline">\(10 \le \text{Area} \le
+120\)</span>).</li>
+<li><strong>Aspect ratio:</strong> Ensure width and height are nearly
+identical (<span class="math inline">\(0.8 \le W/H \le
+1.25\)</span>).</li>
+<li><strong>Fill factor:</strong> Ensure the pixel area closely matches
+that of a disk inside the bounding box (<span class="math inline">\(0.65
+\le \text{Area} / (W \times H) \le 0.90\)</span>).</li>
+</ul>
+<p>Run the following script to generate a comma-separated list of
+matching IDs:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="va">TARGET_IDS</span><span class="op">=</span><span class="va">$(</span><span class="fu">awk</span> <span class="st">&#39;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">NR &gt; 1 {</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">  # Parse bounding box: WxH+X+Y</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">  split($2, bbox, /[x+]/);</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">  w = bbox[1];</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">  h = bbox[2];</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">  area = $4;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">  color = $5;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="st">  # Only inspect foreground components (white)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">  if (color ~ /255/) {</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="st">    aspect = w / h;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="st">    fill = area / (w * h);</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="st">    # Filter by size, aspect ratio, and circular fill factor</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="st">    if (area &gt;= 10 &amp;&amp; area &lt;= 150 &amp;&amp; aspect &gt;= 0.75 &amp;&amp; aspect &lt;= 1.33 &amp;&amp; fill &gt;= 0.65 &amp;&amp; fill &lt;= 0.90) {</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="st">      # Extract ID (remove trailing colon)</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="st">      sub(/:/, &quot;&quot;, $1);</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="st">      ids = (ids == &quot;&quot; ? $1 : ids &quot;,&quot; $1);</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="st">END { print ids }</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span> components.txt<span class="va">)</span></span></code></pre></div>
+<h3 id="step-4-isolate-the-selected-punctuation">Step 4: Isolate the
+Selected Punctuation</h3>
+<p>Once the IDs are identified, instruct ImageMagick to retain only
+those components using the <code>connected-components:keep-ids</code>
+define.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> connected-components:keep-ids=<span class="st">&quot;</span><span class="va">$TARGET_IDS</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  punctuation_only.png</span></code></pre></div>
+<p>If you need the result inverted back to standard black text on a
+white background:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> punctuation_only.png <span class="at">-negate</span> final_punctuation.png</span></code></pre></div>
+<h3 id="tips-for-better-results">Tips for Better Results</h3>
+<ul>
+<li><strong>Scale Adjustments:</strong> If working with high-resolution
+scans, adjust the area threshold bounds to match the font size of the
+document.</li>
+<li><strong>Handling Semicolons and Exclamation Points:</strong> The dot
+of a semicolon or exclamation mark will be isolated, but the rest of the
+stroke will be discarded because its aspect ratio and fill factor do not
+meet the circularity criteria.</li>
+<li><strong>Alternative for True Circularity:</strong> If characters are
+distorted, morphology operations can be used prior to labeling:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary.png <span class="at">-morphology</span> Hit-and-Miss Disk:2 isolated_centers.png</span></code></pre></div>
+This can serve as a geometric pre-filter before running
+connected-components analysis.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

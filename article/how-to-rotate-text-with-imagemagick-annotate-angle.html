@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Rotate Text with ImageMagick Annotate Angle - magick</title>
+    <meta name="description" content="This guide explains how ImageMagick’s -annotate command handles text rotation and shearing using its angle syntax. You will learn the mechanics behind the single and dual angle arguments, how they manipulate the coordinate axes, and how to control the">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-rotate-text-with-imagemagick-annotate-angle">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Rotate Text with ImageMagick Annotate Angle - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-rotate-text-with-imagemagick-annotate-angle" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how ImageMagick’s -annotate command handles text rotation and shearing using its angle syntax. You will learn the mechanics behind the single and dual angle arguments, how they manipulate the coordinate axes, and how to control the" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-rotate-text-with-imagemagick-annotate-angle">How to
+Rotate Text with ImageMagick Annotate Angle</h1>
+<p>This guide explains how ImageMagick’s <code>-annotate</code> command
+handles text rotation and shearing using its angle syntax. You will
+learn the mechanics behind the single and dual angle arguments, how they
+manipulate the coordinate axes, and how to control the anchor point to
+rotate text around an arbitrary position on an image canvas.</p>
+<h2 id="understanding-the--annotate-geometry-syntax">Understanding the
+<code>-annotate</code> Geometry Syntax</h2>
+<p>In ImageMagick, the standard syntax for <code>-annotate</code>
+accepts a geometry argument formatted as:</p>
+<pre class="text"><code>-annotate [degrees_x]x[degrees_y]+X+Y &quot;Text&quot;</code></pre>
+<p>While many users provide a single numeric value for a basic 2D
+rotation, the full specification accepts two distinct angles separated
+by an <code>x</code>. These two values explicitly define the rotation of
+the local coordinate axes:</p>
+<ul>
+<li><strong><code>degrees_x</code> (X-axis angle):</strong> Rotates the
+text baseline relative to the horizontal axis.</li>
+<li><strong><code>degrees_y</code> (Y-axis angle):</strong> Rotates the
+vertical stroke (upright stems) of the text relative to the vertical
+axis.</li>
+</ul>
+<h2 id="rotating-text-along-an-arbitrary-axis-via-shearing">Rotating
+Text Along an Arbitrary Axis via Shearing</h2>
+<p>When rotating standard 2D text, both axes rotate simultaneously by
+the same amount. Providing a single value like
+<code>-annotate 45+100+100</code> is shorthand for setting both
+<code>degrees_x</code> and <code>degrees_y</code> to
+<code>45</code>.</p>
+<p>To simulate rotation along an arbitrary, non-perpendicular axis (such
+as an isometric projection or perspective skew), you supply different
+values for the X and Y angles:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-annotate</span> 30x0+100+100 <span class="st">&quot;Sheared Text&quot;</span> output.png</span></code></pre></div>
+<p>In this example, the baseline tilts upward by 30 degrees, while the
+letter stems remain strictly vertical (0 degrees), shearing the text
+horizontally. Conversely:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-annotate</span> 0x30+100+100 <span class="st">&quot;Vertical Skew&quot;</span> output.png</span></code></pre></div>
+<p>This keeps the baseline flat while leaning the vertical stems forward
+by 30 degrees. By manipulating both angles independently, you transform
+the orthogonal coordinate system into an affine grid oriented along an
+arbitrary directional vector.</p>
+<h2 id="controlling-the-rotation-pivot-point">Controlling the Rotation
+Pivot Point</h2>
+<p>Text rotates around its origin point. By default, this origin is the
+left-edge baseline of the text string at offset <code>+0+0</code>. To
+rotate along an arbitrary center or pivot point:</p>
+<ol type="1">
+<li><strong>Set <code>-gravity</code>:</strong> The gravity setting
+determines the anchor point of the text box. Using
+<code>-gravity Center</code> places the origin in the exact center of
+the text string, causing rotation to occur around its geometric midpoint
+rather than its bottom-left baseline.</li>
+<li><strong>Apply Offset Coordinates:</strong> The <code>+X+Y</code>
+offset specifies the exact pixel location on the canvas where this pivot
+anchor is placed.</li>
+</ol>
+<p>For example, to rotate text 45 degrees around its exact center at
+canvas coordinates (300, 200):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-gravity</span> Center <span class="at">-annotate</span> 45+300+200 <span class="st">&quot;Centered Rotation&quot;</span> output.png</span></code></pre></div>
+<p>For complex, true 3D rotations where text must rotate around
+arbitrary vectors in three-dimensional space, <code>-annotate</code> is
+paired with <code>-distort Perspective</code> or <code>-affine</code>
+transformation matrices, but for two-dimensional planar transformations
+and skew-based axis adjustments, the dual-angle
+<code>-annotate degrees_x x degrees_y</code> provides direct native
+control.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

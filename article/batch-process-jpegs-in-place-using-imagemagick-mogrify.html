@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Process JPEGs In-Place Using ImageMagick Mogrify - magick</title>
+    <meta name="description" content="This article explains how to batch process an entire directory of JPEG images in-place using ImageMagick’s mogrify command. Unlike the standard convert tool, which produces new files, mogrify modifies the original files directly in their existing direc">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/batch-process-jpegs-in-place-using-imagemagick-mogrify">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Batch Process JPEGs In-Place Using ImageMagick Mogrify - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/batch-process-jpegs-in-place-using-imagemagick-mogrify" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to batch process an entire directory of JPEG images in-place using ImageMagick’s mogrify command. Unlike the standard convert tool, which produces new files, mogrify modifies the original files directly in their existing direc" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="batch-process-jpegs-in-place-using-imagemagick-mogrify">Batch
+Process JPEGs In-Place Using ImageMagick Mogrify</h1>
+<p>This article explains how to batch process an entire directory of
+JPEG images in-place using ImageMagick’s <code>mogrify</code> command.
+Unlike the standard <code>convert</code> tool, which produces new files,
+<code>mogrify</code> modifies the original files directly in their
+existing directory. By using simple command-line arguments, you can
+rapidly resize, compress, strip metadata, or rotate thousands of JPEG
+images simultaneously without writing complex shell scripts.</p>
+<h3 id="understanding-the-mogrify-command">Understanding the Mogrify
+Command</h3>
+<p>The <code>mogrify</code> tool is specifically designed for batch
+operations where modifying the target files directly is desired. Because
+<code>mogrify</code> permanently overwrites the original files, it is
+strongly recommended to create a backup copy of your folder before
+running any commands.</p>
+<p>The basic syntax for processing all JPEG images in the current
+working directory is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span> <span class="pp">*</span>.jpg</span></code></pre></div>
+<p>To include both <code>.jpg</code> and <code>.jpeg</code> extensions,
+you can specify:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span> <span class="pp">*</span>.<span class="pp">[</span><span class="ss">jJ</span><span class="pp">][</span><span class="ss">pP</span><span class="pp">][</span><span class="ss">gG</span><span class="pp">]</span></span></code></pre></div>
+<h3 id="common-batch-processing-operations">Common Batch Processing
+Operations</h3>
+<h4 id="1-batch-resizing-images">1. Batch Resizing Images</h4>
+<p>To resize all JPEGs to a maximum width of 1920 pixels and height of
+1080 pixels while preserving the aspect ratio:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-resize</span> 1920x1080 <span class="pp">*</span>.jpg</span></code></pre></div>
+<p>To scale all images down by a fixed percentage (for example,
+50%):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-resize</span> 50% <span class="pp">*</span>.jpg</span></code></pre></div>
+<h4 id="2-adjusting-jpeg-quality-and-compression">2. Adjusting JPEG
+Quality and Compression</h4>
+<p>To reduce file sizes across an entire folder by setting the JPEG
+compression quality to 80%:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-quality</span> 80% <span class="pp">*</span>.jpg</span></code></pre></div>
+<h4 id="3-stripping-metadata">3. Stripping Metadata</h4>
+<p>Digital cameras and phones embed EXIF profiles, GPS coordinates, and
+thumbnails inside JPEGs. Removing this metadata reduces file size and
+protects privacy:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-strip</span> <span class="pp">*</span>.jpg</span></code></pre></div>
+<h4 id="4-combining-multiple-operations">4. Combining Multiple
+Operations</h4>
+<p>You can chain multiple operations together in a single command. The
+following example resizes images to a maximum width of 1200px, strips
+all metadata, sets the quality to 85%, and auto-orients images based on
+EXIF rotation tags before discarding them:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-auto-orient</span> <span class="at">-resize</span> 1200x<span class="dt">\&gt;</span> <span class="at">-strip</span> <span class="at">-quality</span> 85% <span class="pp">*</span>.jpg</span></code></pre></div>
+<p><em>(Note: The <code>\&gt;</code> operator ensures that images are
+only shrunk if their dimensions exceed the specified limit, preventing
+smaller images from being enlarged.)</em></p>
+<h3 id="recursive-in-place-processing">Recursive In-Place
+Processing</h3>
+<p>If your JPEG images are organized across nested subdirectories,
+standard shell wildcards may not reach every file. You can combine
+<code>find</code> with <code>mogrify</code> to process an entire
+directory tree in-place:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find</span> /path/to/folder <span class="at">-type</span> f <span class="dt">\(</span> <span class="at">-name</span> <span class="st">&quot;*.jpg&quot;</span> <span class="at">-o</span> <span class="at">-name</span> <span class="st">&quot;*.jpeg&quot;</span> <span class="dt">\)</span> <span class="at">-exec</span> mogrify <span class="at">-resize</span> 1920x1080 <span class="at">-quality</span> 85% {} +</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

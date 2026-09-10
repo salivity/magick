@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Polynomial Distortion Explained - magick</title>
+    <meta name="description" content="ImageMagick's polynomial distortion mode is a specialized geometric transformation tool designed for complex, non-linear image warping and coordinate mapping. By defining a set of source-to-destination coordinate pairs, this mode uses polynomial equation">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-polynomial-distortion-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Polynomial Distortion Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-polynomial-distortion-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's polynomial distortion mode is a specialized geometric transformation tool designed for complex, non-linear image warping and coordinate mapping. By defining a set of source-to-destination coordinate pairs, this mode uses polynomial equation" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-polynomial-distortion-explained">ImageMagick
+Polynomial Distortion Explained</h1>
+<p>ImageMagick's polynomial distortion mode is a specialized geometric
+transformation tool designed for complex, non-linear image warping and
+coordinate mapping. By defining a set of source-to-destination
+coordinate pairs, this mode uses polynomial equations and least-squares
+fitting to warp an image to match the designated target coordinates. It
+is primarily used for correcting complex camera lens aberrations,
+georeferencing aerial and satellite imagery, aligning medical scans, and
+executing custom mathematical image warps that standard affine or
+perspective transformations cannot handle.</p>
+<h3 id="how-polynomial-distortion-works">How Polynomial Distortion
+Works</h3>
+<p>In ImageMagick, geometric transformations are applied via the
+<code>-distort</code> operator. While standard transformations like
+Affine or Perspective use fixed linear matrices, the
+<code>Polynomial</code> distortion mode calculates polynomial mapping
+functions for the X and Y axes independently.</p>
+<p>The user supplies an "order" along with a list of control point pairs
+(mapping an input point <code>u,v</code> to an output point
+<code>x,y</code>):</p>
+<ul>
+<li><strong>Order 1 (Linear/Affine):</strong> Requires at least 3 point
+pairs. It handles basic scaling, rotation, translation, and
+shearing.</li>
+<li><strong>Order 2 (Biquadratic):</strong> Requires at least 6 point
+pairs. It introduces parabolic warping, allowing curves and parabolic
+bending.</li>
+<li><strong>Order 3 (Bicubic):</strong> Requires at least 10 point
+pairs. It allows for complex S-curves, localized warping, and
+sophisticated distortion correction.</li>
+</ul>
+<p>When more than the minimum required point pairs are provided,
+ImageMagick applies a least-squares fitting algorithm to minimize the
+overall error across all defined points.</p>
+<h3 id="primary-use-cases">Primary Use Cases</h3>
+<ol type="1">
+<li><p><strong>Complex Lens Distortion Correction</strong> Standard
+fisheye or barrel distortion models assume radial symmetry centered
+around the middle of the sensor. Real-world optics—especially
+wide-angle, anamorphic, or damaged lenses—often exhibit asymmetrical or
+"mustache" distortions. Polynomial distortion allows photographers and
+technicians to map curved grid lines back to straight lines using
+control points placed directly along distorted features.</p></li>
+<li><p><strong>Georeferencing and GIS Mapping</strong> Aerial
+photography and satellite imagery frequently suffer from terrain
+elevation shifts and non-linear sensor drift. In geographic information
+systems (GIS), polynomial distortion is used to "rubber-sheet" raw
+satellite or drone captures, aligning ground control points (GCPs)
+directly to real-world map coordinates.</p></li>
+<li><p><strong>Medical and Scientific Image Registration</strong> In
+biological imaging and medical diagnostics (such as MRI, CT, and
+microscopy), consecutive scans or multi-modal images often require
+non-rigid alignment. Polynomial mapping enables scientists to align
+anatomical structures across different imaging sessions or
+modalities.</p></li>
+<li><p><strong>Multi-Point Perspective Correction</strong> While
+ImageMagick's standard <code>Perspective</code> distortion handles flat
+planes tilted in 3D space using 4 points, it cannot handle curved
+surfaces. Polynomial distortion can approximate perspective mapping
+across warped or uneven surfaces, such as flattening a photograph of a
+curled book page.</p></li>
+</ol>
+<h3 id="command-structure-example">Command Structure Example</h3>
+<p>A typical polynomial distortion command in ImageMagick uses the
+following structure:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-distort</span> Polynomial <span class="st">&quot;order, u1,v1, x1,y1,  u2,v2, x2,y2,  ...&quot;</span> output.jpg</span></code></pre></div>
+<p>By adjusting the polynomial order and refining the control points,
+users can scale the transformation from simple geometric corrections to
+highly customized, high-precision non-linear image warps.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

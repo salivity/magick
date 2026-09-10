@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Demosaicing for Raw Files in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to configure demosaicing algorithms—such as Variable Number of Gradients (VNG) and Patterned Pixel Grouping (PPG)—when decoding camera raw files in ImageMagick. It covers the command-line defines utilized by ImageMagick’s Li">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-demosaicing-for-raw-files-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure Demosaicing for Raw Files in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-demosaicing-for-raw-files-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to configure demosaicing algorithms—such as Variable Number of Gradients (VNG) and Patterned Pixel Grouping (PPG)—when decoding camera raw files in ImageMagick. It covers the command-line defines utilized by ImageMagick’s Li" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-demosaicing-for-raw-files-in-imagemagick">Configure
+Demosaicing for Raw Files in ImageMagick</h1>
+<p>This guide explains how to configure demosaicing algorithms—such as
+Variable Number of Gradients (VNG) and Patterned Pixel Grouping
+(PPG)—when decoding camera raw files in ImageMagick. It covers the
+command-line defines utilized by ImageMagick’s LibRaw delegate, maps the
+numeric quality values to their corresponding demosaicing algorithms,
+and demonstrates practical usage for processing raw image formats.</p>
+<h2 id="how-imagemagick-handles-raw-demosaicing">How ImageMagick Handles
+Raw Demosaicing</h2>
+<p>ImageMagick does not decode camera raw formats (such as
+<code>.CR2</code>, <code>.NEF</code>, <code>.ARW</code>, or
+<code>.DNG</code>) natively. Instead, it delegates raw processing to
+<strong>LibRaw</strong> (or historically, <code>dcraw</code>). LibRaw
+reads the Bayer pattern recorded by the camera sensor and converts it
+into a full RGB image through demosaicing.</p>
+<p>To control which demosaicing algorithm is applied, ImageMagick
+provides the <code>-define</code> option prefixed with
+<code>dng:</code>.</p>
+<hr />
+<h2
+id="configuring-the-demosaicing-algorithm-with-dnguser-qual">Configuring
+the Demosaicing Algorithm with <code>dng:user-qual</code></h2>
+<p>The primary setting for selecting the demosaicing algorithm is
+<code>dng:user-qual</code>. This option directly maps to LibRaw’s
+<code>user_qual</code> parameter (equivalent to the <code>-q</code>
+parameter in <code>dcraw</code>).</p>
+<h3 id="available-algorithm-values">Available Algorithm Values</h3>
+<ul>
+<li><strong><code>0</code> – Linear / Bilinear:</strong> Fast,
+low-resource interpolation, but prone to color fringing and soft
+edges.</li>
+<li><strong><code>1</code> – VNG (Variable Number of
+Gradients):</strong> Effective at reducing color moiré and artifacts in
+high-frequency textured areas.</li>
+<li><strong><code>2</code> – PPG (Patterned Pixel Grouping):</strong> A
+fast, edge-directed interpolation algorithm that produces sharp
+transitions and fine edge clarity.</li>
+<li><strong><code>3</code> – AHD (Adaptive
+Homogeneity-Directed):</strong> LibRaw's typical default algorithm,
+balancing edge preservation and color artifact suppression.</li>
+<li><strong><code>4</code> – DCB:</strong> An advanced algorithm
+designed to preserve high detail while minimizing chromatic
+aberrations.</li>
+<li><strong><code>11</code> – DHT:</strong> High-fidelity demosaicing
+designed for challenging color patterns.</li>
+<li><strong><code>12</code> – Modified AHD:</strong> An updated
+implementation of the AHD algorithm.</li>
+</ul>
+<hr />
+<h2 id="command-line-examples">Command-Line Examples</h2>
+<p>To apply an algorithm correctly, place the <code>-define</code>
+statement <strong>before</strong> the input raw file so ImageMagick
+applies the setting while decoding.</p>
+<h3 id="using-vng-demosaicing">Using VNG Demosaicing</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:user-qual=1 input.CR2 output.png</span></code></pre></div>
+<h3 id="using-ppg-demosaicing">Using PPG Demosaicing</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:user-qual=2 input.NEF output.tiff</span></code></pre></div>
+<h3 id="using-dcb-demosaicing">Using DCB Demosaicing</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:user-qual=4 input.ARW output.jpg</span></code></pre></div>
+<hr />
+<h2 id="related-demosaicing-options">Related Demosaicing Options</h2>
+<p>ImageMagick provides additional <code>-define</code> settings to
+further refine raw decoding:</p>
+<ul>
+<li><strong>Bypass Demosaicing:</strong> If you require raw mosaic
+sensor data without any interpolation applied, disable demosaicing
+entirely:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:demosaic=false input.CR2 raw_sensor.tiff</span></code></pre></div></li>
+<li><strong>Four-Color Interpolation
+(<code>dng:four-color-rgb</code>):</strong> Computes separate green
+values (treating green channels as distinct) to minimize maze artifacts
+with specific sensors:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-define</span> dng:user-qual=1 <span class="at">-define</span> dng:four-color-rgb=true input.CR2 output.png</span></code></pre></div></li>
+</ul>
+<hr />
+<h2 id="configuring-via-delegatesxml-for-standalone-dcraw">Configuring
+via <code>delegates.xml</code> (For Standalone <code>dcraw</code>)</h2>
+<p>If your ImageMagick build uses an external <code>dcraw</code> binary
+instead of the built-in LibRaw delegate:</p>
+<ol type="1">
+<li>Locate your ImageMagick configuration directory and open
+<code>delegates.xml</code>.</li>
+<li>Locate the decode line for raw camera formats:
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">delegate</span> <span class="ot">decode=</span><span class="st">&quot;dng:decode&quot;</span> <span class="ot">command=</span><span class="st">&quot;</span><span class="dv">&amp;quot;</span><span class="st">dcraw</span><span class="dv">&amp;quot;</span><span class="st"> -6 -W -q 3 -O </span><span class="dv">&amp;quot;</span><span class="st">%u.ppm</span><span class="dv">&amp;quot;</span><span class="st"> </span><span class="dv">&amp;quot;</span><span class="st">%i</span><span class="dv">&amp;quot;</span><span class="st">&quot;</span>/&gt;</span></code></pre></div></li>
+<li>Change the <code>-q</code> flag value to select your desired
+algorithm:
+<ul>
+<li><code>-q 1</code> for VNG</li>
+<li><code>-q 2</code> for PPG</li>
+</ul></li>
+<li>Save the file to make the selected algorithm the global default for
+raw decoding.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

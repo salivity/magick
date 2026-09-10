@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Convert WebP to AVIF with ImageMagick? - magick</title>
+    <meta name="description" content="Converting WebP images to AVIF using ImageMagick allows you to take advantage of next-generation compression algorithms, yielding smaller file sizes at comparable or superior visual quality. This guide walks through checking your system prerequisites, ex">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-convert-webp-to-avif-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Convert WebP to AVIF with ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-convert-webp-to-avif-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting WebP images to AVIF using ImageMagick allows you to take advantage of next-generation compression algorithms, yielding smaller file sizes at comparable or superior visual quality. This guide walks through checking your system prerequisites, ex" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-convert-webp-to-avif-with-imagemagick">How to Convert
+WebP to AVIF with ImageMagick?</h1>
+<p>Converting WebP images to AVIF using ImageMagick allows you to take
+advantage of next-generation compression algorithms, yielding smaller
+file sizes at comparable or superior visual quality. This guide walks
+through checking your system prerequisites, executing the core
+conversion command, adjusting compression quality parameters, and
+automating the process across multiple files in batch.</p>
+<h2 id="prerequisites-and-delegate-verification">Prerequisites and
+Delegate Verification</h2>
+<p>ImageMagick relies on external delegate libraries to handle modern
+image formats. Specifically, AVIF support depends on
+<code>libheif</code> compiled with an AV1 encoder such as
+<code>aom</code> or <code>rav1e</code>.</p>
+<p>Before running conversions, verify that your ImageMagick build
+supports both WebP and AVIF. Run the following command in your
+terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>webp</code> and <code>heic</code> (which covers AVIF
+via libheif) in the <strong>Delegates</strong> output string. You can
+also explicitly test format support by querying:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-iE</span> <span class="st">&#39;webp|avif&#39;</span></span></code></pre></div>
+<p>If <code>AVIF</code> shows read and write capabilities
+(<code>rw+</code> or <code>rw-</code>), your installation is ready.</p>
+<h2 id="basic-webp-to-avif-conversion">Basic WebP to AVIF
+Conversion</h2>
+<p>For ImageMagick version 7 and newer, the standard command syntax uses
+the <code>magick</code> binary:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp output.avif</span></code></pre></div>
+<p>If you are using legacy ImageMagick version 6, replace
+<code>magick</code> with <code>convert</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.webp output.avif</span></code></pre></div>
+<p>This single command reads the WebP container, decompresses the raster
+data, and encodes it into an AVIF container using default quality and
+speed profiles.</p>
+<h2 id="optimizing-compression-and-quality">Optimizing Compression and
+Quality</h2>
+<p>AVIF default settings may not always strike the right balance between
+processing time and file size. ImageMagick lets you control visual
+fidelity and encoder behavior using options:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-quality</span> 65 <span class="at">-define</span> heic:speed=6 output.avif</span></code></pre></div>
+<h3 id="quality--quality">Quality (<code>-quality</code>)</h3>
+<p>The <code>-quality</code> parameter ranges from 0 to 100. For AVIF,
+values between 50 and 75 typically match or surpass standard WebP visual
+fidelity while cutting file size considerably. A setting of 60 to 65 is
+widely considered the sweet spot for web assets.</p>
+<h3 id="compression-speed--define-heicspeed">Compression Speed
+(<code>-define heic:speed</code>)</h3>
+<p>The <code>heic:speed</code> definition accepts integer values from 0
+to 9. Lower numbers yield better compression efficiency at the expense
+of slower CPU encoding times. A speed setting between 4 and 6 provides a
+practical tradeoff for production pipelines.</p>
+<h3 id="preserving-color-profiles">Preserving Color Profiles</h3>
+<p>To ensure color accuracy between formats, retain or assign standard
+sRGB profiles:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.webp <span class="at">-colorspace</span> sRGB <span class="at">-quality</span> 65 output.avif</span></code></pre></div>
+<h2 id="batch-converting-webp-files-to-avif">Batch Converting WebP Files
+to AVIF</h2>
+<p>When managing asset directories, converting files one by one is
+inefficient. You can automate conversions across an entire folder using
+shell loops.</p>
+<h3 id="linux-and-macos-bash--zsh">Linux and macOS (Bash / Zsh)</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.webp<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-quality</span> 65 <span class="st">&quot;</span><span class="va">${file</span><span class="op">%</span>.webp<span class="va">}</span><span class="st">.avif&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<h3 id="windows-powershell">Windows (PowerShell)</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">-</span>Filter <span class="op">*.</span><span class="fu">webp</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">$outputName</span> <span class="op">=</span> <span class="op">[</span>System<span class="op">.</span><span class="fu">IO</span><span class="op">.</span><span class="fu">Path</span><span class="op">]::</span>ChangeExtension<span class="op">(</span><span class="va">$_</span><span class="op">.</span><span class="fu">Name</span><span class="op">,</span> <span class="st">&quot;.avif&quot;</span><span class="op">)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  magick <span class="va">$_</span><span class="op">.</span><span class="fu">FullName</span> <span class="op">-</span>quality <span class="dv">65</span> <span class="va">$outputName</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="verifying-conversion-results">Verifying Conversion Results</h2>
+<p>To ensure the newly created AVIF image maintains integrity and
+metadata, inspect it directly using ImageMagick:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify output.avif</span></code></pre></div>
+<p>The output will confirm the resolution, color depth, format
+specification, and container attributes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

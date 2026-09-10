@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Color Adjustments for Color Blind Viewers - magick</title>
+    <meta name="description" content="This guide explains how to use ImageMagick to adapt digital images for viewers with color vision deficiencies, such as protanopia, deuteranopia, and tritanopia. By applying color matrix transformations, selective color replacement, and hue shifts from th">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-color-adjustments-for-color-blind-viewers">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Color Adjustments for Color Blind Viewers - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-color-adjustments-for-color-blind-viewers" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to use ImageMagick to adapt digital images for viewers with color vision deficiencies, such as protanopia, deuteranopia, and tritanopia. By applying color matrix transformations, selective color replacement, and hue shifts from th" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-color-adjustments-for-color-blind-viewers">ImageMagick
+Color Adjustments for Color Blind Viewers</h1>
+<p>This guide explains how to use ImageMagick to adapt digital images
+for viewers with color vision deficiencies, such as protanopia,
+deuteranopia, and tritanopia. By applying color matrix transformations,
+selective color replacement, and hue shifts from the command line, you
+can increase visual contrast and ensure critical details remain
+distinguishable to color-blind audiences.</p>
+<h3 id="1-applying-a-color-matrix-transformation">1. Applying a Color
+Matrix Transformation</h3>
+<p>Color matrix transformations allow you to recalculate RGB values
+mathematically, transferring detail from color channels that are
+difficult to distinguish (such as red and green) into channels that are
+easily perceived (such as blue). This technique, often referred to as
+Daltonization or channel mixing, preserves image information without
+losing critical contrast.</p>
+<p>To apply a 3x3 or 5x5 color correction matrix in ImageMagick, use the
+<code>-color-matrix</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">  0.0 0.0 0.0 </span><span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0.7 1.0 0.0 </span><span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">  0.7 0.0 1.0 &quot;</span> output_adjusted.png</span></code></pre></div>
+<p>In this example, information from the red channel is redistributed
+into the green and blue channels, increasing contrast for individuals
+with red-green color blindness (protanopia and deuteranopia).</p>
+<h3 id="2-selective-color-replacement-for-infographics-and-ui">2.
+Selective Color Replacement for Infographics and UI</h3>
+<p>In data visualizations, maps, and UI elements, problematic color
+pairs (such as pure red and pure green) can be replaced with accessible
+alternatives like blue and orange or magenta and yellow.</p>
+<p>Use the <code>-fuzz</code> and <code>-fill</code> operators to
+replace specific shades:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> chart.png <span class="at">-fuzz</span> 15% <span class="at">-fill</span> <span class="st">&quot;#D55E00&quot;</span> <span class="at">-opaque</span> <span class="st">&quot;red&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">-fuzz</span> 15% <span class="at">-fill</span> <span class="st">&quot;#0072B2&quot;</span> <span class="at">-opaque</span> <span class="st">&quot;green&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                 accessible_chart.png</span></code></pre></div>
+<ul>
+<li><code>-fuzz 15%</code>: Matches variations of the target color
+within a 15% tolerance range.</li>
+<li><code>-fill "#D55E00"</code>: Specifies an accessible color (e.g.,
+vermilion/orange).</li>
+<li><code>-opaque "red"</code>: Targets the color to be replaced.</li>
+</ul>
+<h3 id="3-shifting-hue-and-boosting-saturation">3. Shifting Hue and
+Boosting Saturation</h3>
+<p>When detailed channel matrix tuning is not required, rotating the
+entire hue spectrum can shift conflicting hues into distinguishable
+ranges. Increasing saturation also helps color-deficient viewers
+distinguish between nearby tones.</p>
+<p>Use the <code>-modulate</code> option to alter brightness,
+saturation, and hue simultaneously:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-modulate</span> 100,130,66 output_hue_shift.jpg</span></code></pre></div>
+<ul>
+<li><code>100</code>: Preserves original brightness.</li>
+<li><code>130</code>: Increases saturation by 30%.</li>
+<li><code>66</code>: Shifts the hue by approximately 120 degrees
+counterclockwise, moving red tones closer to yellow or magenta.</li>
+</ul>
+<h3 id="4-enhancing-luminance-and-edge-contrast">4. Enhancing Luminance
+and Edge Contrast</h3>
+<p>Color-blind viewers rely heavily on luminance (light-to-dark
+contrast) and edge boundaries rather than chromatic differences. If two
+adjacent colors share the same lightness, adjusting tone curves or
+applying edge emphasis makes boundaries clear.</p>
+<p>To expand tonal range across the image:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-auto-level</span> <span class="at">-contrast-stretch</span> 1%x1% output_contrast.png</span></code></pre></div>
+<p>To introduce subtle edge definition between adjacent color
+blocks:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\(</span> +clone <span class="at">-edge</span> 1 <span class="at">-negate</span> <span class="dt">\)</span> <span class="at">-compose</span> Multiply <span class="at">-composite</span> output_outlined.png</span></code></pre></div>
+<p>This command duplicates the image, extracts its edges, and blends
+them over the original graphic, ensuring adjacent color fields remain
+distinct regardless of the viewer's color perception.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

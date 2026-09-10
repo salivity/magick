@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick ColorBurn Visual Effect Explained - magick</title>
+    <meta name="description" content="This article explores the visual characteristics, behavior, and practical applications of the ColorBurn compositing operator in ImageMagick. You will learn how this blend mode modifies image pixels to produce intense darkening and high-contrast effects,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-colorburn-visual-effect-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick ColorBurn Visual Effect Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-colorburn-visual-effect-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the visual characteristics, behavior, and practical applications of the ColorBurn compositing operator in ImageMagick. You will learn how this blend mode modifies image pixels to produce intense darkening and high-contrast effects," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-colorburn-visual-effect-explained">ImageMagick
+ColorBurn Visual Effect Explained</h1>
+<p>This article explores the visual characteristics, behavior, and
+practical applications of the <code>ColorBurn</code> compositing
+operator in ImageMagick. You will learn how this blend mode modifies
+image pixels to produce intense darkening and high-contrast effects, how
+different color values interact during the composition, and the typical
+scenarios where applying a color burn produces optimal visual
+results.</p>
+<h2 id="the-visual-appearance-of-colorburn">The Visual Appearance of
+ColorBurn</h2>
+<p>The <code>ColorBurn</code> operator in ImageMagick simulates the
+traditional darkroom photographic technique of "burning" an image, which
+exposes selected areas to more light to deepen their tone. In digital
+image processing, this operator darkens the underlying image (the
+destination) to reflect the color of the overlying image (the source) by
+sharply increasing the contrast between the two layers.</p>
+<p>Visually, <code>ColorBurn</code> produces:</p>
+<ul>
+<li><strong>Intense Darkening:</strong> Midtones and shadows are pushed
+toward black much faster than standard multiplicative blending
+modes.</li>
+<li><strong>High Color Saturation:</strong> Colors become significantly
+richer and more saturated as they darken, preventing the muddy or
+washed-out look of simple darkening filters.</li>
+<li><strong>Dramatic Contrast:</strong> Highlights remain relatively
+bright while midtones drop steeply into deep shadow, creating a punchy,
+gritty aesthetic.</li>
+</ul>
+<h2 id="how-pixel-values-interact">How Pixel Values Interact</h2>
+<p>The mathematical operation behind <code>ColorBurn</code> calculates
+the inversion of the background divided by the foreground, inverted
+again. The resulting visual behavior depends on specific tonal
+values:</p>
+<ul>
+<li><strong>Pure White Source:</strong> Leaves the base image completely
+unchanged. Blending with white introduces no darkening or contrast
+shift.</li>
+<li><strong>Pure Black Source:</strong> Turns the underlying pixels
+completely black.</li>
+<li><strong>Midtone and Saturated Colors:</strong> Dramatically increase
+the contrast of the base image while tinting the deepened midtones with
+the source hue.</li>
+</ul>
+<p>Because the calculation divides by the source channel values, slight
+drops in source brightness cause severe darkening in the destination.
+This non-linear transition is what creates the characteristic harsh,
+high-contrast edge transitions.</p>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<p>In graphic design and automated image processing pipelines,
+<code>ColorBurn</code> is frequently applied for:</p>
+<ul>
+<li><strong>Texturing and Grungy Overlays:</strong> Burning concrete,
+paper, or scratch textures onto illustrations and photographs to add
+tactile, weathered depth.</li>
+<li><strong>Deepening Shadows:</strong> Amplifying dramatic lighting in
+portraits or landscape images without altering highlight regions.</li>
+<li><strong>Stylized Graphic Design:</strong> Creating high-impact
+poster art, vintage print simulations, and comic-book-style ink
+effects.</li>
+</ul>
+<h2 id="imagemagick-usage-example">ImageMagick Usage Example</h2>
+<p>To apply the <code>ColorBurn</code> blend mode in an ImageMagick
+command, use the <code>-compose</code> setting combined with the
+<code>-composite</code> operator:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.jpg texture.png <span class="at">-compose</span> ColorBurn <span class="at">-composite</span> output.jpg</span></code></pre></div>
+<p>In this command, <code>texture.png</code> acts as the source layer
+that darkens and increases the contrast of the underlying
+<code>base.jpg</code> image.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

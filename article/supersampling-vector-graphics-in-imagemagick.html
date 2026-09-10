@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supersampling Vector Graphics in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to use supersampling in ImageMagick to achieve ultra-smooth, professional-grade edge anti-aliasing when converting vector graphics (such as SVG, PDF, or EPS) to raster formats. By instructing ImageMagick to render the vector file">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/supersampling-vector-graphics-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Supersampling Vector Graphics in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/supersampling-vector-graphics-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to use supersampling in ImageMagick to achieve ultra-smooth, professional-grade edge anti-aliasing when converting vector graphics (such as SVG, PDF, or EPS) to raster formats. By instructing ImageMagick to render the vector file" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="supersampling-vector-graphics-in-imagemagick">Supersampling
+Vector Graphics in ImageMagick</h1>
+<p>This guide explains how to use supersampling in ImageMagick to
+achieve ultra-smooth, professional-grade edge anti-aliasing when
+converting vector graphics (such as SVG, PDF, or EPS) to raster formats.
+By instructing ImageMagick to render the vector file at a significantly
+higher pixel density before downscaling it to your target dimensions,
+you can eliminate jagged edges and produce pristine raster images.</p>
+<h2 id="the-supersampling-principle">The Supersampling Principle</h2>
+<p>Vector rasterizers typically render graphics at standard display
+densities (usually 72 or 96 DPI), which can produce visible
+stair-stepping (aliasing) on fine curves and diagonal lines.</p>
+<p>Supersampling anti-aliasing (SSAA) solves this by:</p>
+<ol type="1">
+<li>Rendering the vector graphic at a high multiple of the target
+resolution.</li>
+<li>Downscaling the high-resolution raster image to the desired final
+dimensions using an advanced resampling filter.</li>
+</ol>
+<h2 id="basic-supersampling-command">Basic Supersampling Command</h2>
+<p>To supersample, define a high <code>-density</code> value
+<strong>before</strong> specifying the input file, then use
+<code>-resize</code> to scale down to the target dimension.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 384 input.svg <span class="at">-resize</span> 25% output.png</span></code></pre></div>
+<p>In this example:</p>
+<ul>
+<li><code>-density 384</code> renders the SVG at <span
+class="math inline">\(4\times\)</span> the default 96 DPI
+resolution.</li>
+<li><code>-resize 25%</code> reduces the dimensions back to the original
+intended size, blending the extra pixel data into smooth edges.</li>
+</ul>
+<h2 id="targeting-exact-dimensions">Targeting Exact Dimensions</h2>
+<p>When you need a specific output width and height, set a high density
+first, then resize to your exact target pixel dimensions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 600 <span class="at">-background</span> none input.svg <span class="at">-filter</span> Lanczos <span class="at">-resize</span> 800x800 output.png</span></code></pre></div>
+<h3 id="key-parameter-breakdown">Key Parameter Breakdown</h3>
+<ul>
+<li><strong><code>-density [DPI]</code> (Input setting):</strong> Must
+appear before the input vector file. Setting this to 300–600 DPI ensures
+fine curves are captured with high precision.</li>
+<li><strong><code>-background none</code>:</strong> Ensures transparent
+vector backgrounds remain transparent without creating dark fringing
+around edges.</li>
+<li><strong><code>-filter Lanczos</code>:</strong> Applies a
+high-quality resampling algorithm during the downscaling step.
+<code>Mitchell</code> or <code>Catrom</code> are also effective
+alternatives for softer or sharper edges, respectively.</li>
+<li><strong><code>-resize [geometry]</code> (Output setting):</strong>
+Scales the oversized raster down to your final required resolution.</li>
+</ul>
+<h2
+id="advanced-calculating-density-for-pixel-perfect-outputs">Advanced:
+Calculating Density for Pixel-Perfect Outputs</h2>
+<p>If your source vector file has native dimensions and you want an
+exact <span class="math inline">\(N\times\)</span> supersampling
+factor:</p>
+<ol type="1">
+<li>Multiply the base density (typically 72 for PDF/EPS, 96 for SVG) by
+your supersampling factor (e.g., <span
+class="math inline">\(4\times\)</span> or <span
+class="math inline">\(8\times\)</span>).
+<ul>
+<li>For SVG at <span class="math inline">\(4\times\)</span>: <span
+class="math inline">\(96 \times 4 = 384\text{ DPI}\)</span></li>
+<li>For SVG at <span class="math inline">\(8\times\)</span>: <span
+class="math inline">\(96 \times 8 = 768\text{ DPI}\)</span></li>
+<li>For PDF/EPS at <span class="math inline">\(4\times\)</span>: <span
+class="math inline">\(72 \times 4 = 288\text{ DPI}\)</span></li>
+</ul></li>
+<li>Load the vector with the calculated <code>-density</code>.</li>
+<li>Downsample using <code>-resize</code> with the reciprocal percentage
+(<span class="math inline">\(25\%\)</span> for <span
+class="math inline">\(4\times\)</span>, <span
+class="math inline">\(12.5\%\)</span> for <span
+class="math inline">\(8\times\)</span>).</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 768 <span class="at">-background</span> none graphic.svg <span class="at">-filter</span> Mitchell <span class="at">-resize</span> 12.5% graphic_smooth.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

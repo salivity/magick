@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick -fx Current vs Secondary Image Pixels - magick</title>
+    <meta name="description" content="The ImageMagick -fx operator enables complex, pixel-by-pixel mathematical evaluations across one or more images loaded into the current image sequence. When working with multi-image operations, -fx distinguishes between the primary image and subsequent i">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-fx-current-vs-secondary-image-pixels">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick -fx Current vs Secondary Image Pixels - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-fx-current-vs-secondary-image-pixels" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -fx operator enables complex, pixel-by-pixel mathematical evaluations across one or more images loaded into the current image sequence. When working with multi-image operations, -fx distinguishes between the primary image and subsequent i" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick--fx-current-vs-secondary-image-pixels">ImageMagick
+-fx Current vs Secondary Image Pixels</h1>
+<p>The ImageMagick <code>-fx</code> operator enables complex,
+pixel-by-pixel mathematical evaluations across one or more images loaded
+into the current image sequence. When working with multi-image
+operations, <code>-fx</code> distinguishes between the primary image and
+subsequent images in the stack through predefined variable letters and
+index-based array notation. Understanding how to target these specific
+image layers, coordinates, and color channels is essential for precise
+multi-image synthesis and filtering.</p>
+<h3 id="primary-and-secondary-image-identifiers">Primary and Secondary
+Image Identifiers</h3>
+<p>By default, ImageMagick assigns letters to the first two images in
+the current image stack:</p>
+<ul>
+<li><strong><code>u</code></strong>: Represents the first image in the
+sequence (index 0).</li>
+<li><strong><code>v</code></strong>: Represents the second image in the
+sequence (index 1).</li>
+</ul>
+<p>If you pass two images to ImageMagick, any reference to
+<code>u</code> pulls pixel data from the first image, while
+<code>v</code> pulls data from the second. For example, the expression
+<code>-fx "(u + v) / 2"</code> calculates the average intensity of the
+two images.</p>
+<h3 id="numerical-index-notation-for-larger-stacks">Numerical Index
+Notation for Larger Stacks</h3>
+<p>When working with more than two images in the sequence, letter
+variables become insufficient. ImageMagick uses zero-based array
+indexing to target any image in the stack:</p>
+<ul>
+<li><strong><code>u[0]</code></strong>: The first image (equivalent to
+<code>u</code>).</li>
+<li><strong><code>u[1]</code></strong>: The second image (equivalent to
+<code>v</code>).</li>
+<li><strong><code>u[2]</code></strong>: The third image in the
+stack.</li>
+<li><strong><code>u[n]</code></strong>: The <em>n</em>-th image in the
+sequence.</li>
+</ul>
+<p>Negative indexes can also be used to reference images relative to the
+end of the stack, where <code>u[-1]</code> refers to the last loaded
+image.</p>
+<h3 id="referencing-specific-pixel-coordinates">Referencing Specific
+Pixel Coordinates</h3>
+<p>By default, referencing <code>u</code> or <code>v</code> evaluates
+the pixel at the current execution coordinate <code>(x, y)</code>. To
+query pixels from alternate coordinates across images, append the
+<code>.p[x, y]</code> operator:</p>
+<ul>
+<li><strong><code>u.p[x, y]</code></strong>: The pixel value from the
+current/first image at absolute coordinates <code>x</code> and
+<code>y</code>.</li>
+<li><strong><code>v.p[x, y]</code></strong>: The pixel value from the
+secondary image at absolute coordinates <code>x</code> and
+<code>y</code>.</li>
+<li><strong><code>v.p[0, 0]</code></strong>: The top-left pixel of the
+secondary image, evaluated for every pixel position of the output.</li>
+<li><strong><code>u.p[-1, 0]</code></strong>: A relative offset
+addressing the neighboring pixel to the left within the current
+image.</li>
+</ul>
+<h3 id="targeting-color-channels">Targeting Color Channels</h3>
+<p>Pixel references can be scoped down to individual color channels
+using channel suffixes. This applies to both the primary and secondary
+image references:</p>
+<ul>
+<li><strong><code>u.r</code></strong>,
+<strong><code>u.g</code></strong>, <strong><code>u.b</code></strong>:
+The red, green, and blue channel values of the primary image.</li>
+<li><strong><code>v.r</code></strong>,
+<strong><code>v.g</code></strong>, <strong><code>v.b</code></strong>:
+The red, green, and blue channel values of the secondary image.</li>
+<li><strong><code>v.a</code></strong>: The alpha channel value of the
+secondary image.</li>
+</ul>
+<p>Combining coordinate lookups with channel selection follows the
+format <code>v.p[x, y].r</code> to extract a specific color channel from
+a specific pixel location on the secondary image.</p>
+<h3 id="practical-example">Practical Example</h3>
+<p>To replace the red channel of a base image with the green channel of
+a secondary image:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> base.png overlay.png <span class="at">-fx</span> <span class="st">&quot;channel(v.g, u.g, u.b)&quot;</span> output.png</span></code></pre></div>
+<p>In this command, <code>base.png</code> is assigned to <code>u</code>,
+and <code>overlay.png</code> is assigned to <code>v</code>. The
+expression explicitly routes the green channel of the secondary image
+into the red channel while retaining the primary image's original green
+and blue values.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

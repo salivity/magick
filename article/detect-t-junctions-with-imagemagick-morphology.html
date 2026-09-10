@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect T-Junctions with ImageMagick Morphology - magick</title>
+    <meta name="description" content="Detecting T-junctions in binary line art using ImageMagick requires the Hit-and-Miss morphology method paired with rotational 3x3 kernels representing the intersection geometry. This guide outlines the exact kernel syntax, explains the required values fo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/detect-t-junctions-with-imagemagick-morphology">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Detect T-Junctions with ImageMagick Morphology - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/detect-t-junctions-with-imagemagick-morphology" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Detecting T-junctions in binary line art using ImageMagick requires the Hit-and-Miss morphology method paired with rotational 3x3 kernels representing the intersection geometry. This guide outlines the exact kernel syntax, explains the required values fo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="detect-t-junctions-with-imagemagick-morphology">Detect
+T-Junctions with ImageMagick Morphology</h1>
+<p>Detecting T-junctions in binary line art using ImageMagick requires
+the Hit-and-Miss morphology method paired with rotational 3x3 kernels
+representing the intersection geometry. This guide outlines the exact
+kernel syntax, explains the required values for line and background
+pixels, and demonstrates the command used to isolate orthogonal and
+diagonal T-junctions from skeletonized artwork.</p>
+<h3 id="the-hit-and-miss-morphology-method">The Hit-and-Miss Morphology
+Method</h3>
+<p>To locate specific pixel configurations such as junctions, endpoints,
+or corners, ImageMagick uses the Hit-and-Miss transform
+(<code>HMT</code>). This operation compares a user-defined matrix (the
+kernel) against the image pixels. A match occurs only when the
+foreground pixels ("hits") and background pixels ("misses") correspond
+exactly to the pattern specified by the kernel.</p>
+<p>In ImageMagick syntax, the morphology call is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> HitAndMiss <span class="st">&quot;&lt;kernel_definition&gt;&quot;</span> output.png</span></code></pre></div>
+<h3 id="kernel-syntax-breakdown">Kernel Syntax Breakdown</h3>
+<p>A 3x3 morphology kernel in ImageMagick is written as a geometry
+prefix (<code>3x3:</code>) followed by nine comma-separated or
+space-separated values representing the rows, and optional rotation
+flags:</p>
+<ul>
+<li><strong><code>1</code> (Hit):</strong> Requires a foreground (white)
+pixel.</li>
+<li><strong><code>0</code> (Miss):</strong> Requires a background
+(black) pixel.</li>
+<li><strong><code>-</code> (Don't Care):</strong> Matches any pixel
+value, allowing flexibility in line variations.</li>
+<li><strong><code>&gt;</code> (Rotational Modifier):</strong>
+Automatically rotates the kernel through four 90-degree steps (0°, 90°,
+180°, 270°) to find junctions in all cardinal orientations.</li>
+</ul>
+<h3 id="orthogonal-t-junction-kernel">Orthogonal T-Junction Kernel</h3>
+<p>In a 1-pixel-wide skeletonized image, an orthogonal T-junction
+consists of a central pixel with three orthogonal neighbors and no
+continuation on the fourth side. The corners must remain background
+pixels to avoid matching solid regions or diagonal paths.</p>
+<p>The 3x3 matrix for an upward-pointing T-junction is:</p>
+<pre class="text"><code>0, 1, 0
+1, 1, 1
+0, 0, 0</code></pre>
+<p>Written in ImageMagick syntax with the 90-degree rotation flag:</p>
+<pre class="text"><code>&quot;3x3: 0,1,0 1,1,1 0,0,0&gt;&quot;</code></pre>
+<h3 id="diagonal-t-junction-kernel">Diagonal T-Junction Kernel</h3>
+<p>If the line art contains diagonal lines, a T-junction can occur where
+a straight stem meets a diagonal bar, or vice versa. A common diagonal
+T-junction pattern resembles:</p>
+<pre class="text"><code>1, 0, 1
+0, 1, 0
+0, 1, 0</code></pre>
+<p>In ImageMagick syntax:</p>
+<pre class="text"><code>&quot;3x3: 1,0,1 0,1,0 0,1,0&gt;&quot;</code></pre>
+<h3 id="combining-kernels-into-a-single-command">Combining Kernels into
+a Single Command</h3>
+<p>To detect both orthogonal and diagonal T-junctions in one pass,
+multiple kernels can be concatenated using a semicolon (<code>;</code>).
+ImageMagick executes each kernel and combines the results using a
+boolean OR operation.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> skeleton.png <span class="at">-morphology</span> HitAndMiss <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;3x3: 0,1,0 1,1,1 0,0,0&gt; ; 3x3: 1,0,1 0,1,0 0,1,0&gt;&quot;</span> <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  junctions.png</span></code></pre></div>
+<p>The resulting <code>junctions.png</code> file contains isolated
+single white pixels marking the precise coordinate of each detected
+T-junction across the entire image.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

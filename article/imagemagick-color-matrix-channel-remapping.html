@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Color Matrix Channel Remapping - magick</title>
+    <meta name="description" content="This article provides a concise guide on using the ImageMagick -color-matrix operator to remap, swap, and transform image color channels. It covers the structural rules of color transformation matrices, the command-line syntax for execution, and practica">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-color-matrix-channel-remapping">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Color Matrix Channel Remapping - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-color-matrix-channel-remapping" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a concise guide on using the ImageMagick -color-matrix operator to remap, swap, and transform image color channels. It covers the structural rules of color transformation matrices, the command-line syntax for execution, and practica" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-color-matrix-channel-remapping">ImageMagick Color
+Matrix Channel Remapping</h1>
+<p>This article provides a concise guide on using the ImageMagick
+<code>-color-matrix</code> operator to remap, swap, and transform image
+color channels. It covers the structural rules of color transformation
+matrices, the command-line syntax for execution, and practical examples
+demonstrating standard channel modifications.</p>
+<hr />
+<h3 id="command-syntax">Command Syntax</h3>
+<p>In ImageMagick (version 6 and 7), the <code>-color-matrix</code>
+operator modifies image channels using a linear transformation matrix
+represented as a single space-separated or comma-separated string:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot;matrix_values&quot;</span> output.png</span></code></pre></div>
+<p><em>(For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<hr />
+<h3 id="matrix-structure-and-dimensions">Matrix Structure and
+Dimensions</h3>
+<p>The size of the matrix depends on the color model of the image. The
+matrix must be square (<span class="math inline">\(N \times N\)</span>)
+and typically corresponds to:</p>
+<ul>
+<li><strong><span class="math inline">\(3 \times 3\)</span>
+matrix:</strong> Basic RGB transformations without alpha or offset.</li>
+<li><strong><span class="math inline">\(5 \times 5\)</span>
+matrix:</strong> RGBA images with offset bias (Standard for most
+operations).</li>
+<li><strong><span class="math inline">\(6 \times 6\)</span>
+matrix:</strong> CMYKA images with offset bias.</li>
+</ul>
+<p>For a standard <strong><span class="math inline">\(5 \times
+5\)</span> matrix</strong>, the layout maps inputs (columns) to outputs
+(rows):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Output Channel</th>
+<th style="text-align: left;">Red In</th>
+<th style="text-align: left;">Green In</th>
+<th style="text-align: left;">Blue In</th>
+<th style="text-align: left;">Alpha In</th>
+<th style="text-align: left;">Constant Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Red Out</strong></td>
+<td style="text-align: left;"><span
+class="math inline">\(R_r\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(R_g\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(R_b\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(R_a\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(R_{offset}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Green Out</strong></td>
+<td style="text-align: left;"><span
+class="math inline">\(G_r\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(G_g\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(G_b\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(G_a\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(G_{offset}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Blue Out</strong></td>
+<td style="text-align: left;"><span
+class="math inline">\(B_r\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(B_g\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(B_b\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(B_a\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(B_{offset}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Alpha Out</strong></td>
+<td style="text-align: left;"><span
+class="math inline">\(A_r\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(A_g\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(A_b\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(A_a\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(A_{offset}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Offset Row</strong></td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="practical-examples">Practical Examples</h3>
+<h4 id="1-identity-matrix-no-change">1. Identity Matrix (No Change)</h4>
+<p>The baseline identity matrix passes all channels through without
+alteration:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">  1 0 0 0 0 </span><span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0 1 0 0 0 </span><span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 1 0 0 </span><span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 0 1 &quot;</span> output.png</span></code></pre></div>
+<h4 id="2-swap-red-and-blue-channels-rgb-to-bgr">2. Swap Red and Blue
+Channels (RGB to BGR)</h4>
+<p>Set the Red output to receive 100% of Blue input and the Blue output
+to receive 100% of Red input:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 1 0 0 </span><span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0 1 0 0 0 </span><span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">  1 0 0 0 0 </span><span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 0 1 &quot;</span> output.png</span></code></pre></div>
+<h4 id="3-standard-grayscale-conversion-luminance-remap">3. Standard
+Grayscale Conversion (Luminance Remap)</h4>
+<p>Applies standard ITU-R BT.709 luminance weights (<span
+class="math inline">\(0.2126R + 0.7152G + 0.0722B\)</span>) across all
+color channels:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">  0.2126 0.7152 0.0722 0 0 </span><span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0.2126 0.7152 0.0722 0 0 </span><span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">  0.2126 0.7152 0.0722 0 0 </span><span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">  0      0      0      1 0 </span><span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">  0      0      0      0 1 &quot;</span> output.png</span></code></pre></div>
+<h4 id="4-copy-alpha-channel-to-rgb-channels">4. Copy Alpha Channel to
+RGB Channels</h4>
+<p>Replaces RGB data with the contents of the Alpha channel:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 1 0 </span><span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">  0 0 0 0 1 &quot;</span> output.png</span></code></pre></div>
+<h4 id="5-invert-rgb-channels-using-offsets">5. Invert RGB Channels
+Using Offsets</h4>
+<p>Inverts the color channels by setting input multipliers to <span
+class="math inline">\(-1\)</span> and the offset to <span
+class="math inline">\(+1\)</span>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-color-matrix</span> <span class="st">&quot; </span><span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="st"> -1  0  0  0 1 </span><span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">  0 -1  0  0 1 </span><span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">  0  0 -1  0 1 </span><span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">  0  0  0  1 0 </span><span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">  0  0  0  0 1 &quot;</span> output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

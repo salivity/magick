@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Dst Compositing Operator Explained - magick</title>
+    <meta name="description" content="The ImageMagick Dst (Destination) compositing operator resolves image layering by prioritizing the destination image and discarding the source image. In digital image composition, the operator applies the classic Porter-Duff "Destination" rule, where des">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-dst-compositing-operator-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Dst Compositing Operator Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-dst-compositing-operator-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick Dst (Destination) compositing operator resolves image layering by prioritizing the destination image and discarding the source image. In digital image composition, the operator applies the classic Porter-Duff "Destination" rule, where des" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-dst-compositing-operator-explained">ImageMagick Dst
+Compositing Operator Explained</h1>
+<p>The ImageMagick <code>Dst</code> (Destination) compositing operator
+resolves image layering by prioritizing the destination image and
+discarding the source image. In digital image composition, the operator
+applies the classic Porter-Duff "Destination" rule, where destination
+pixels are preserved unchanged and incoming source pixels are multiplied
+by zero. This article explains the underlying pixel math, the
+distinction between source and destination layers in ImageMagick, and
+how the <code>Dst</code> operator behaves during processing.</p>
+<h3 id="source-vs-destination-in-imagemagick">Source vs. Destination in
+ImageMagick</h3>
+<p>To understand how pixels are evaluated, you must first identify the
+layers:</p>
+<ul>
+<li><strong>Destination (<span
+class="math inline">\(D\)</span>):</strong> The base canvas or
+background image.</li>
+<li><strong>Source (<span class="math inline">\(S\)</span>):</strong>
+The overlay or incoming image being composited onto the canvas.</li>
+</ul>
+<p>When running ImageMagick commands, the order of images dictates which
+is source and which is destination. For example, in the command
+<code>magick canvas.png overlay.png -compose Dst -composite output.png</code>,
+<code>canvas.png</code> serves as the destination and
+<code>overlay.png</code> serves as the source.</p>
+<h3 id="the-porter-duff-formulation">The Porter-Duff Formulation</h3>
+<p>ImageMagick implements standard Porter-Duff alpha compositing
+formulas. The general equation for compositing color and alpha channels
+is:</p>
+<p><span class="math display">\[\text{Color} = S_c \times F_s + D_c
+\times F_d\]</span> <span class="math display">\[\text{Alpha} = S_a
+\times F_s + D_a \times F_d\]</span></p>
+<p>Where <span class="math inline">\(S_c\)</span> and <span
+class="math inline">\(D_c\)</span> represent source and destination
+color values, <span class="math inline">\(S_a\)</span> and <span
+class="math inline">\(D_a\)</span> represent alpha channel values, and
+<span class="math inline">\(F_s\)</span> and <span
+class="math inline">\(F_d\)</span> represent the blending factors.</p>
+<p>For the <code>Dst</code> operator, the blending factors are defined
+strictly as:</p>
+<ul>
+<li><span class="math inline">\(F_s = 0\)</span></li>
+<li><span class="math inline">\(F_d = 1\)</span></li>
+</ul>
+<p>Applying these factors to the equation yields:</p>
+<p><span class="math display">\[\text{Color} = S_c \times 0 + D_c \times
+1 = D_c\]</span> <span class="math display">\[\text{Alpha} = S_a \times
+0 + D_a \times 1 = D_a\]</span></p>
+<h3 id="how-pixels-are-processed">How Pixels Are Processed</h3>
+<p>Because the source factor (<span class="math inline">\(F_s\)</span>)
+is zero, every channel (red, green, blue, and alpha) of the incoming
+source layer is multiplied by zero. The destination canvas pixel values
+are multiplied by one, leaving them completely unaltered.</p>
+<ol type="1">
+<li><strong>Overlapping Regions:</strong> Where the source image
+geometry overlaps the canvas, the destination canvas retains its
+original color and opacity. The source pixels are completely dropped
+from calculation.</li>
+<li><strong>Non-Overlapping Regions:</strong> Outside the bounding box
+of the overlay, the destination canvas remains unchanged.</li>
+<li><strong>Canvas Bounds:</strong> The final output dimensions match
+the destination canvas, preserving its canvas profile, color space, and
+metadata.</li>
+</ol>
+<h3 id="practical-effect-in-workflows">Practical Effect in
+Workflows</h3>
+<p>Because <code>Dst</code> effectively discards the incoming source
+image and leaves the destination untouched, applying it directly on two
+standard images produces an output identical to the destination
+canvas.</p>
+<p>It is primarily used in complex masking chains, multi-step script
+pipelines, or channel-clearing operations where a process requires
+evaluating layer geometry without allowing source pixel data to alter
+the underlying canvas. If you intend for the source image to replace or
+overwrite the destination canvas, the opposite
+operator—<code>Src</code>—is used instead.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

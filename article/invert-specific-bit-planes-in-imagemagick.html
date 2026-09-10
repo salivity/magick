@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invert Specific Bit Planes in ImageMagick - magick</title>
+    <meta name="description" content="This article provides a direct guide on how to invert specific bit planes within an image using ImageMagick's bitwise evaluation tools. By applying an exclusive OR (XOR) operation with targeted binary masks, you can invert individual bit layers—ranging">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/invert-specific-bit-planes-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Invert Specific Bit Planes in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/invert-specific-bit-planes-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a direct guide on how to invert specific bit planes within an image using ImageMagick's bitwise evaluation tools. By applying an exclusive OR (XOR) operation with targeted binary masks, you can invert individual bit layers—ranging" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="invert-specific-bit-planes-in-imagemagick">Invert Specific Bit
+Planes in ImageMagick</h1>
+<p>This article provides a direct guide on how to invert specific bit
+planes within an image using ImageMagick's bitwise evaluation tools. By
+applying an exclusive OR (XOR) operation with targeted binary masks, you
+can invert individual bit layers—ranging from the least significant bit
+(LSB) to the most significant bit (MSB)—across all color channels or
+within a single channel.</p>
+<h3 id="understanding-bit-plane-values">Understanding Bit Plane
+Values</h3>
+<p>In an 8-bit grayscale or color channel, each pixel is represented by
+an integer from 0 to 255 composed of 8 bits. Inverting a bit plane
+requires flipping a specific bit from 0 to 1, or 1 to 0. This is
+achieved using the bitwise XOR operator against a specific integer value
+corresponding to that bit's power of two:</p>
+<ul>
+<li><strong>Bit 0 (LSB):</strong> <span class="math inline">\(2^0 =
+1\)</span></li>
+<li><strong>Bit 1:</strong> <span class="math inline">\(2^1 =
+2\)</span></li>
+<li><strong>Bit 2:</strong> <span class="math inline">\(2^2 =
+4\)</span></li>
+<li><strong>Bit 3:</strong> <span class="math inline">\(2^3 =
+8\)</span></li>
+<li><strong>Bit 4:</strong> <span class="math inline">\(2^4 =
+16\)</span></li>
+<li><strong>Bit 5:</strong> <span class="math inline">\(2^5 =
+32\)</span></li>
+<li><strong>Bit 6:</strong> <span class="math inline">\(2^6 =
+64\)</span></li>
+<li><strong>Bit 7 (MSB):</strong> <span class="math inline">\(2^7 =
+128\)</span></li>
+</ul>
+<h3 id="the-basic-command-structure">The Basic Command Structure</h3>
+<p>ImageMagick uses the <code>-evaluate xor</code> operator to perform
+bitwise XOR operations on pixel values.</p>
+<p>For standard 8-bit installations (Q8):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor <span class="op">&lt;</span>BitValue<span class="op">&gt;</span> output.png</span></code></pre></div>
+<p>For example, to invert the most significant bit (Bit 7), use
+<code>128</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor 128 output.png</span></code></pre></div>
+<p>To invert the least significant bit (Bit 0):</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor 1 output.png</span></code></pre></div>
+<h3 id="handling-imagemagick-q16-builds">Handling ImageMagick Q16
+Builds</h3>
+<p>Most modern ImageMagick installations use a 16-bit quantum depth
+(Q16), meaning pixels are internally processed on a 0 to 65535 scale
+rather than 0 to 255.</p>
+<p>If your build is Q16 (check using <code>magick -version</code>),
+8-bit values are shifted left by 8 bits (multiplied by 256). To target
+an 8-bit plane in a Q16 build, adjust the mask values accordingly:</p>
+<ul>
+<li><strong>Bit 0 (LSB of an 8-bit file):</strong> <span
+class="math inline">\(1 \times 256 = 256\)</span></li>
+<li><strong>Bit 1:</strong> <span class="math inline">\(2 \times 256 =
+512\)</span></li>
+<li><strong>Bit 2:</strong> <span class="math inline">\(4 \times 256 =
+1024\)</span></li>
+<li><strong>Bit 3:</strong> <span class="math inline">\(8 \times 256 =
+2048\)</span></li>
+<li><strong>Bit 4:</strong> <span class="math inline">\(16 \times 256 =
+4096\)</span></li>
+<li><strong>Bit 5:</strong> <span class="math inline">\(32 \times 256 =
+8192\)</span></li>
+<li><strong>Bit 6:</strong> <span class="math inline">\(64 \times 256 =
+16384\)</span></li>
+<li><strong>Bit 7 (MSB of an 8-bit file):</strong> <span
+class="math inline">\(128 \times 256 = 32768\)</span></li>
+</ul>
+<p>To invert the MSB of an 8-bit image using ImageMagick Q16:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor 32768 output.png</span></code></pre></div>
+<h3 id="inverting-multiple-bit-planes">Inverting Multiple Bit
+Planes</h3>
+<p>To invert multiple bit planes at once, calculate the sum of their
+corresponding values.</p>
+<p>For example, to invert both Bit 6 (<span
+class="math inline">\(64\)</span>) and Bit 7 (<span
+class="math inline">\(128\)</span>) on a Q8 build: <span
+class="math inline">\(64 + 128 = 192\)</span></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor 192 output.png</span></code></pre></div>
+<p>For a Q16 build, multiply the total by 256 (<span
+class="math inline">\(192 \times 256 = 49152\)</span>):</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-evaluate</span> xor 49152 output.png</span></code></pre></div>
+<h3 id="inverting-bit-planes-in-specific-channels">Inverting Bit Planes
+in Specific Channels</h3>
+<p>By default, <code>-evaluate</code> applies to all active color
+channels. To isolate the inversion to a specific channel (such as Red,
+Green, or Blue), use the <code>-channel</code> option, and reset it
+afterward with <code>+channel</code>.</p>
+<p>To invert Bit 7 only in the Red channel (Q8 build):</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> R <span class="at">-evaluate</span> xor 128 +channel output.png</span></code></pre></div>
+<p>To invert Bit 7 only in the Red channel (Q16 build):</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> R <span class="at">-evaluate</span> xor 32768 +channel output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

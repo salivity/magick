@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick policy.xml Location on Unix Systems - magick</title>
+    <meta name="description" content="ImageMagick locates its primary security file, policy.xml, through a predefined search hierarchy rather than relying on a single static file path. On Unix-like operating systems, the software traverses environment variables, user configurations, relative">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-policy-xml-location-on-unix-systems">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick policy.xml Location on Unix Systems - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-policy-xml-location-on-unix-systems" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick locates its primary security file, policy.xml, through a predefined search hierarchy rather than relying on a single static file path. On Unix-like operating systems, the software traverses environment variables, user configurations, relative" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-policyxml-location-on-unix-systems">ImageMagick
+policy.xml Location on Unix Systems</h1>
+<p>ImageMagick locates its primary security file,
+<code>policy.xml</code>, through a predefined search hierarchy rather
+than relying on a single static file path. On Unix-like operating
+systems, the software traverses environment variables, user
+configurations, relative application directories, and hardcoded
+compile-time installation paths to discover and load this file.
+Understanding this resolution sequence enables administrators and
+developers to inspect, modify, or override security policies applied to
+image processing workflows.</p>
+<h3 id="the-search-hierarchy">The Search Hierarchy</h3>
+<p>When an ImageMagick command is executed, its internal configuration
+manager searches for <code>policy.xml</code> in the following order:</p>
+<ol type="1">
+<li><strong><code>MAGICK_CONFIGURE_PATH</code> Environment
+Variable:</strong> If this variable is defined, ImageMagick immediately
+checks the specified directory or colon-separated list of directories
+before any standard system locations.</li>
+<li><strong><code>MAGICK_HOME</code> Environment Variable:</strong> If
+<code>MAGICK_HOME</code> is set, ImageMagick checks subdirectories
+relative to that path, specifically looking within
+<code>$MAGICK_HOME/etc/ImageMagick-X/</code> and
+<code>$MAGICK_HOME/share/ImageMagick-X/</code> (where <code>X</code>
+corresponds to the major version, such as 6 or 7).</li>
+<li><strong>User Configuration Directory:</strong> ImageMagick checks
+for local, user-level overrides. On modern Unix systems following the
+XDG base directory specification, it looks in
+<code>$HOME/.config/ImageMagick/</code>. It may also search
+<code>$HOME/.magick/</code>.</li>
+<li><strong>Execution Path Relative Directories:</strong> If the binary
+was installed in an application-specific tree (such as a relocatable
+binary or custom prefix), ImageMagick checks paths relative to the
+current executable's location, such as
+<code>../etc/ImageMagick-X/</code>.</li>
+<li><strong>Compile-Time System Directories:</strong> If no overriding
+files are found in previous steps, ImageMagick falls back to the default
+system paths defined during the source code compilation. These typically
+include:
+<ul>
+<li><code>/etc/ImageMagick-7/</code> or <code>/etc/ImageMagick-6/</code>
+(standard on Debian/Ubuntu)</li>
+<li><code>/etc/ImageMagick/</code> (standard on RHEL/CentOS/Fedora)</li>
+<li><code>/usr/local/etc/ImageMagick-7/</code> (common for default
+source builds)</li>
+<li><code>/opt/local/etc/ImageMagick-7/</code> or custom paths set via
+<code>--sysconfdir</code> during build configuration.</li>
+</ul></li>
+</ol>
+<h3 id="how-to-find-the-active-location">How to Find the Active
+Location</h3>
+<p>Because multiple <code>policy.xml</code> files can exist on a system,
+ImageMagick merges configurations, with higher-precedence files
+overriding settings from lower-precedence ones.</p>
+<p>To determine the exact directories your installation queries,
+run:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> configure <span class="kw">|</span> <span class="fu">grep</span> CONFIGURE_PATH</span></code></pre></div>
+<p><em>(For ImageMagick 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<p>To view the loaded policies along with the active file path from
+which they were sourced, use:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> policy</span></code></pre></div>
+<p>To see the real-time search resolution process, enable configuration
+debugging:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-debug</span> configure logo: null:</span></code></pre></div>
+<p>This debug command outputs every directory ImageMagick inspects while
+attempting to open <code>policy.xml</code>.</p>
+<h3 id="overriding-the-default-policy-location">Overriding the Default
+Policy Location</h3>
+<p>To force ImageMagick to use a custom <code>policy.xml</code> without
+altering system-level files, point the
+<code>MAGICK_CONFIGURE_PATH</code> variable to the directory containing
+your customized file:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">MAGICK_CONFIGURE_PATH</span><span class="op">=</span><span class="st">&quot;/path/to/custom/config&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> convert input.png output.jpg</span></code></pre></div>
+<p>ImageMagick will prioritize this path, applying the policies defined
+in the custom directory ahead of the Unix system defaults.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick %[fx:w/2] Coordinate Evaluation Explained - magick</title>
+    <meta name="description" content="This article explores how ImageMagick 7 processes inline mathematical expressions like %[fx:w/2] to calculate geometric coordinates dynamically. It covers the transition from legacy command-line parsing to ImageMagick 7's integrated execution engine, det">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-fx-w-2-coordinate-evaluation-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick %[fx:w/2] Coordinate Evaluation Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-fx-w-2-coordinate-evaluation-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how ImageMagick 7 processes inline mathematical expressions like %[fx:w/2] to calculate geometric coordinates dynamically. It covers the transition from legacy command-line parsing to ImageMagick 7's integrated execution engine, det" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-fxw2-coordinate-evaluation-explained">ImageMagick
+%[fx:w/2] Coordinate Evaluation Explained</h1>
+<p>This article explores how ImageMagick 7 processes inline mathematical
+expressions like <code>%[fx:w/2]</code> to calculate geometric
+coordinates dynamically. It covers the transition from legacy
+command-line parsing to ImageMagick 7's integrated execution engine,
+detailing how contextual image attributes are read, computed via the
+internal FX interpreter, and expanded into operational geometry
+arguments on the fly.</p>
+<h3 id="the-mechanism-of-dynamic-geometry-in-imagemagick-7">The
+Mechanism of Dynamic Geometry in ImageMagick 7</h3>
+<p>In legacy versions such as ImageMagick 6, geometry arguments (e.g.,
+<code>-crop</code>, <code>-resize</code>, <code>-geometry</code>) were
+static strings evaluated before the input images were loaded into
+memory. Computing a coordinate relative to image size—such as half the
+width—required querying dimensions with <code>identify</code>, assigning
+the values to shell variables, and passing the computed values into a
+secondary command.</p>
+<p>ImageMagick 7 redesigns this pipeline by integrating the command-line
+interface directly with the core image-processing engine via the
+<code>magick</code> utility. When an option accepts a geometry argument
+containing an FX expression, the parser defers evaluation until the
+target image is loaded into memory, allowing the expression to run
+against real-time pixel data and metadata.</p>
+<h3 id="step-by-step-inline-fx-evaluation">Step-by-Step Inline FX
+Evaluation</h3>
+<p>When ImageMagick encounters an expression such as
+<code>%[fx:w/2]</code>, the system processes it through the following
+stages:</p>
+<h4 id="1-token-recognition-and-escape-expansion">1. Token Recognition
+and Escape Expansion</h4>
+<p>ImageMagick's command processor scans arguments for percent-escape
+sequences (<code>%[...]</code>). When it identifies the <code>fx:</code>
+prefix, it routes the enclosed string to the internal FX (FX expression)
+interpreter rather than treating it as a literal string or standard
+metadata key (like <code>%[width]</code>).</p>
+<h4 id="2-contextual-property-binding">2. Contextual Property
+Binding</h4>
+<p>Before running any math, the FX engine establishes the execution
+context from the current image in the image sequence stack:</p>
+<ul>
+<li>The variable <code>w</code> is bound to the pixel width of the
+target image (<code>image-&gt;columns</code>).</li>
+<li>The variable <code>h</code> is bound to the pixel height
+(<code>image-&gt;rows</code>).</li>
+<li>Additional attributes, such as resolution, color channels, or canvas
+offsets, are mapped to their respective variables if referenced.</li>
+</ul>
+<p>If <code>%[fx:w/2]</code> is evaluated against an image that is 1920
+pixels wide, <code>w</code> resolves to <code>1920</code>.</p>
+<h4 id="3-mathematical-parsing-and-execution">3. Mathematical Parsing
+and Execution</h4>
+<p>The FX engine contains a recursive-descent mathematical parser that
+handles arithmetic operations, functions (like <code>floor()</code>,
+<code>ceil()</code>, <code>min()</code>, <code>max()</code>), and
+logical operators.</p>
+<ul>
+<li>In <code>%[fx:w/2]</code>, the division operator <code>/</code>
+divides the integer value of <code>w</code> (1920) by the literal
+<code>2</code>.</li>
+<li>The operation evaluates using double-precision floating-point
+arithmetic, returning <code>960.0</code>.</li>
+</ul>
+<h4 id="4-formatting-and-string-substitution">4. Formatting and String
+Substitution</h4>
+<p>The calculated floating-point result is serialized into a string. By
+default, ImageMagick formats floating-point values into clean numeric
+representations (e.g., stripping unnecessary trailing zeros, yielding
+<code>960</code>). This string replaces the <code>%[fx:...]</code> token
+in the original argument string.</p>
+<p>For example, an input argument formatted as:</p>
+<pre class="text"><code>-crop %[fx:w/2]x%[fx:h]+0+0</code></pre>
+<p>is dynamically expanded in memory to:</p>
+<pre class="text"><code>-crop 960x1080+0+0</code></pre>
+<h4 id="5-passing-to-the-target-operation">5. Passing to the Target
+Operation</h4>
+<p>Once all inline expressions within the argument are resolved, the
+fully constructed string is handed to the specific operation's geometry
+parser (such as <code>ParseGravityGeometry</code> or
+<code>ParsePageGeometry</code>). The operation executes with the newly
+derived coordinates as if they had been hardcoded manually.</p>
+<h3 id="key-advantages-of-in-memory-evaluation">Key Advantages of
+In-Memory Evaluation</h3>
+<ul>
+<li><strong>Single-Pass Execution:</strong> Eliminates external shell
+dependencies and subshells, allowing scripts to remain portable across
+Windows, macOS, and Linux.</li>
+<li><strong>Per-Image Adaptability:</strong> In multi-image operations
+(e.g., <code>magick *.jpg -crop %[fx:w/2]x%[fx:h]+0+0 ...</code>), the
+expression is re-evaluated for every individual image in the sequence,
+allowing varying dimensions to be handled automatically within a single
+command.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

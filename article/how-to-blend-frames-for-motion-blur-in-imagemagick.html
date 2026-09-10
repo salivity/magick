@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Blend Frames for Motion Blur in ImageMagick - magick</title>
+    <meta name="description" content="Simulating temporal motion blur in ImageMagick involves blending adjacent frames across an animation or image sequence to mimic the natural exposure effect of a physical camera shutter. This process smoothens fast movements by averaging a sequence or a s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-blend-frames-for-motion-blur-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Blend Frames for Motion Blur in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-blend-frames-for-motion-blur-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Simulating temporal motion blur in ImageMagick involves blending adjacent frames across an animation or image sequence to mimic the natural exposure effect of a physical camera shutter. This process smoothens fast movements by averaging a sequence or a s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-blend-frames-for-motion-blur-in-imagemagick">How to Blend
+Frames for Motion Blur in ImageMagick</h1>
+<p>Simulating temporal motion blur in ImageMagick involves blending
+adjacent frames across an animation or image sequence to mimic the
+natural exposure effect of a physical camera shutter. This process
+smoothens fast movements by averaging a sequence or a sliding window of
+consecutive frames. Below is a direct guide detailing how to compute
+long-exposure motion blur, build sliding-window blended frames for video
+sequences, and apply weighted blending for realistic shutter
+effects.</p>
+<h2 id="full-sequence-average-long-exposure-effect">Full Sequence
+Average (Long Exposure Effect)</h2>
+<p>To merge an entire series of images into a single static frame that
+captures all motion across the sequence, use the
+<code>-evaluate-sequence mean</code> operation.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input_frame_<span class="pp">*</span>.png <span class="at">-evaluate-sequence</span> mean long_exposure.png</span></code></pre></div>
+<p>This command loads every matching frame into memory and calculates
+the arithmetic mean of their pixel values at each position, producing a
+continuous motion trail.</p>
+<hr />
+<h2 id="sliding-window-blending-sequential-video-motion-blur">Sliding
+Window Blending (Sequential Video Motion Blur)</h2>
+<p>To add temporal motion blur across a sequence of animated frames
+without turning the entire animation into one image, you must average a
+sliding window of adjacent frames (for example, blending frame <span
+class="math inline">\(N-1\)</span>, <span
+class="math inline">\(N\)</span>, and <span
+class="math inline">\(N+1\)</span> for each output frame <span
+class="math inline">\(N\)</span>).</p>
+<h3 id="using-a-bash-loop">Using a Bash Loop</h3>
+<p>A simple shell loop allows you to blend a 3-frame sliding window for
+each frame in your sequence:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">TOTAL_FRAMES</span><span class="op">=</span>100</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="kw">((</span> <span class="va">i</span><span class="op">=</span><span class="dv">2</span><span class="kw">;</span> <span class="va">i</span><span class="op">&lt;</span><span class="va">$TOTAL_FRAMES</span><span class="kw">;</span> <span class="va">i</span><span class="op">++</span> <span class="kw">));</span> <span class="cf">do</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">prev</span><span class="op">=</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;frame_%04d.png&quot;</span> <span class="va">$((i</span> <span class="op">-</span> <span class="dv">1</span><span class="va">)))</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="va">curr</span><span class="op">=</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;frame_%04d.png&quot;</span> <span class="va">$i)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="va">next</span><span class="op">=</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;frame_%04d.png&quot;</span> <span class="va">$((i</span> <span class="op">+</span> <span class="dv">1</span><span class="va">)))</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">out</span><span class="op">=</span><span class="va">$(</span><span class="bu">printf</span> <span class="st">&quot;blurred_%04d.png&quot;</span> <span class="va">$i)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="ex">magick</span> <span class="st">&quot;</span><span class="va">$prev</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$curr</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">$next</span><span class="st">&quot;</span> <span class="at">-evaluate-sequence</span> mean <span class="st">&quot;</span><span class="va">$out</span><span class="st">&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<hr />
+<h2 id="weighted-motion-blur-realistic-camera-shutter">Weighted Motion
+Blur (Realistic Camera Shutter)</h2>
+<p>Equal averaging treats all frames in the window with uniform
+exposure. A more physically accurate camera shutter applies a Gaussian
+or triangular weight, giving the most intensity to the center frame and
+tapering off toward the edges.</p>
+<p>You can use the <code>-poly</code> operator to define custom weights
+for each frame. For a 3-frame blend where the center frame gets 50%
+weight and adjacent frames get 25% weight each:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> frame_01.png frame_02.png frame_03.png <span class="at">-poly</span> <span class="st">&quot;0.25,1 0.5,1 0.25,1&quot;</span> blurred_frame.png</span></code></pre></div>
+<p>The arguments inside <code>-poly</code> follow the format
+<code>"weight,exponent"</code>. Setting the exponent to <code>1</code>
+ensures a linear color calculation that normalizes to a total weight of
+<code>1.0</code> (0.25 + 0.50 + 0.25).</p>
+<hr />
+<h2 id="blending-frames-in-an-animated-gif-directly">Blending Frames in
+an Animated GIF Directly</h2>
+<p>If your input is an animated GIF and you want to reduce frame count
+while smoothing motion, you can extract, duplicate, shift, and blend the
+frame layers directly within a single command:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0--1 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 1--1,0 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 2--1,0-1 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-evaluate-sequence</span> mean <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-loop</span> 0 output_blurred.gif</span></code></pre></div>
+<p>This technique creates offsets of the animation layers and averages
+them together simultaneously to generate a smoother, motion-blurred
+loop.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

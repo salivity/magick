@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select PSD Layers with ImageMagick Indices - magick</title>
+    <meta name="description" content="This guide explains how to extract and manipulate specific layers from Adobe Photoshop (PSD) files using ImageMagick's bracket index notation. You will learn how ImageMagick numbers PSD layers, how to target the composite image versus individual layers,">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/select-psd-layers-with-imagemagick-indices">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Select PSD Layers with ImageMagick Indices - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/select-psd-layers-with-imagemagick-indices" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to extract and manipulate specific layers from Adobe Photoshop (PSD) files using ImageMagick's bracket index notation. You will learn how ImageMagick numbers PSD layers, how to target the composite image versus individual layers," />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="select-psd-layers-with-imagemagick-indices">Select PSD Layers
+with ImageMagick Indices</h1>
+<p>This guide explains how to extract and manipulate specific layers
+from Adobe Photoshop (PSD) files using ImageMagick's bracket index
+notation. You will learn how ImageMagick numbers PSD layers, how to
+target the composite image versus individual layers, and the exact
+syntax required for extracting single layers, ranges, and
+non-consecutive layers.</p>
+<h3 id="understanding-psd-layer-indexing">Understanding PSD Layer
+Indexing</h3>
+<p>ImageMagick treats multi-layer formats like PSD files as a sequence
+of frames, assigning each layer a zero-based index (<code>[0]</code>,
+<code>[1]</code>, <code>[2]</code>, etc.).</p>
+<ul>
+<li><strong>Index <code>[0]</code>:</strong> In standard PSD files saved
+from Photoshop, index <code>0</code> represents the flattened, composite
+preview of the entire image.</li>
+<li><strong>Index <code>[1]</code> and higher:</strong> These indices
+represent the individual layers of the document, ordered from the bottom
+of the layer stack to the top.</li>
+</ul>
+<p>To target a specific layer, append the desired index inside square
+brackets directly after the filename, with no space in between.</p>
+<hr />
+<h3 id="selecting-a-single-layer">Selecting a Single Layer</h3>
+<p>To extract a single layer and save it to a new file, append
+<code>[index]</code> to the input filename.</p>
+<p><strong>Extract the flattened composite image:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output_composite.png</span></code></pre></div>
+<p><strong>Extract the first actual layer:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">1</span><span class="pp">]</span> layer_1.png</span></code></pre></div>
+<p><strong>Extract a specific layer (e.g., layer 4):</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">4</span><span class="pp">]</span> layer_4.png</span></code></pre></div>
+<hr />
+<h3 id="selecting-layer-ranges">Selecting Layer Ranges</h3>
+<p>You can select a sequential range of layers using a hyphen
+(<code>[start-end]</code>).</p>
+<p><strong>Extract layers 1 through 3:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">1</span><span class="pp">-</span><span class="ss">3</span><span class="pp">]</span> layer_%d.png</span></code></pre></div>
+<p><em>Note: Using <code>%d</code> in the output filename will generate
+sequentially numbered output files (e.g., <code>layer_0.png</code>,
+<code>layer_1.png</code>, <code>layer_2.png</code>).</em></p>
+<hr />
+<h3 id="selecting-multiple-non-consecutive-layers">Selecting Multiple
+Non-Consecutive Layers</h3>
+<p>To select multiple specific layers that are not in a direct sequence,
+separate the indices with commas inside the brackets.</p>
+<p><strong>Extract layers 1, 3, and 5:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">1,3,5</span><span class="pp">]</span> extracted_%d.png</span></code></pre></div>
+<hr />
+<h3 id="handling-sub-images-and-canvas-offsets">Handling Sub-images and
+Canvas Offsets</h3>
+<p>Individual PSD layers often retain their original canvas coordinates
+and transparency offsets. If an extracted layer appears clipped or
+misplaced, use the <code>-dispose</code> or <code>+repage</code>
+operators to reset the canvas geometry:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">2</span><span class="pp">]</span> +repage layer_2_cropped.png</span></code></pre></div>
+<p>The <code>+repage</code> operator removes the canvas offset metadata,
+ensuring the output image's boundaries match the actual pixel dimensions
+of the selected layer.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Implosion and Explosion Effect Guide - magick</title>
+    <meta name="description" content="This guide explains how to generate inward (implosion) and outward (explosion) warp effects on images using ImageMagick. By leveraging the built-in -implode operator from the command line, you can dynamically warp pixels toward or away from the center of">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-implosion-and-explosion-effect-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Implosion and Explosion Effect Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-implosion-and-explosion-effect-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to generate inward (implosion) and outward (explosion) warp effects on images using ImageMagick. By leveraging the built-in -implode operator from the command line, you can dynamically warp pixels toward or away from the center of" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-implosion-and-explosion-effect-guide">ImageMagick
+Implosion and Explosion Effect Guide</h1>
+<p>This guide explains how to generate inward (implosion) and outward
+(explosion) warp effects on images using ImageMagick. By leveraging the
+built-in <code>-implode</code> operator from the command line, you can
+dynamically warp pixels toward or away from the center of an image. You
+will learn the exact syntax required for both effects, how adjusting
+numeric values controls the distortion intensity, and how to define
+specific anchor points for the transformation.</p>
+<h2 id="the--implode-operator">The <code>-implode</code> Operator</h2>
+<p>ImageMagick controls both implosion and explosion visual distortions
+using a single operator: <code>-implode</code>. The operator accepts a
+numeric factor that dictates the direction and severity of the warp:</p>
+<ul>
+<li><strong>Positive values</strong> pull pixels inward toward the
+center, creating an <strong>implosion</strong> or "black hole"
+effect.</li>
+<li><strong>Negative values</strong> push pixels outward from the
+center, creating an <strong>explosion</strong> or "fisheye" effect.</li>
+<li>A value of <code>0</code> produces no distortion.</li>
+</ul>
+<hr />
+<h2 id="how-to-create-an-implosion-effect">How to Create an Implosion
+Effect</h2>
+<p>To pull the pixels of an image inward, provide a positive decimal or
+integer to the <code>-implode</code> parameter.</p>
+<h3 id="basic-implosion-command-imagemagick-v7">Basic Implosion Command
+(ImageMagick v7)</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-implode</span> 0.5 imploded_output.jpg</span></code></pre></div>
+<p><em>(For ImageMagick v6, replace <code>magick</code> with
+<code>convert</code>)</em></p>
+<h3 id="adjusting-implosion-intensity">Adjusting Implosion
+Intensity</h3>
+<ul>
+<li><strong>Subtle Pinch:</strong> <code>-implode 0.2</code></li>
+<li><strong>Moderate Implosion:</strong> <code>-implode 0.5</code></li>
+<li><strong>Extreme Pinch/Swirl Center:</strong>
+<code>-implode 1.0</code> or higher</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-implode</span> 1.2 strong_implosion.jpg</span></code></pre></div>
+<hr />
+<h2 id="how-to-create-an-explosion-effect">How to Create an Explosion
+Effect</h2>
+<p>To push pixels outward to simulate an explosion or spherical bulge,
+use a negative value with <code>-implode</code>.</p>
+<h3 id="basic-explosion-command">Basic Explosion Command</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-implode</span> <span class="at">-0.5</span> exploded_output.jpg</span></code></pre></div>
+<h3 id="adjusting-explosion-intensity">Adjusting Explosion
+Intensity</h3>
+<ul>
+<li><strong>Slight Fisheye Bulge:</strong>
+<code>-implode -0.3</code></li>
+<li><strong>Standard Explosion Warp:</strong>
+<code>-implode -0.8</code></li>
+<li><strong>Severe Outward Distortion:</strong>
+<code>-implode -1.5</code></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-implode</span> <span class="at">-1.0</span> strong_explosion.jpg</span></code></pre></div>
+<hr />
+<h2 id="changing-the-distortion-center">Changing the Distortion
+Center</h2>
+<p>By default, ImageMagick applies the implode or explode distortion
+relative to the absolute center of the image. To center the effect on a
+specific subject or region, crop the target area or use virtual canvas
+offsets before applying the filter.</p>
+<p>For a focused distortion without manual cropping, you can define an
+off-center region using <code>-region</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-region</span> 400x400+100+150 <span class="at">-implode</span> 0.6 +region localized_distortion.jpg</span></code></pre></div>
+<ul>
+<li><code>400x400</code> defines the width and height of the affected
+area.</li>
+<li><code>+100+150</code> defines the X and Y coordinates of the
+top-left corner of that area.</li>
+<li><code>+region</code> removes the region boundary so subsequent
+commands apply to the whole image.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

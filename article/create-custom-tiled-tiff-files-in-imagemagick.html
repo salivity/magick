@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Custom Tiled TIFF Files in ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to generate tiled TIFF images with custom tile dimensions using ImageMagick. You will learn the exact -define flag required to configure custom tile widths and heights, examine practical command-line syntax, and review important f">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/create-custom-tiled-tiff-files-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Create Custom Tiled TIFF Files in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/create-custom-tiled-tiff-files-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to generate tiled TIFF images with custom tile dimensions using ImageMagick. You will learn the exact -define flag required to configure custom tile widths and heights, examine practical command-line syntax, and review important f" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="create-custom-tiled-tiff-files-in-imagemagick">Create Custom
+Tiled TIFF Files in ImageMagick</h1>
+<p>This guide explains how to generate tiled TIFF images with custom
+tile dimensions using ImageMagick. You will learn the exact
+<code>-define</code> flag required to configure custom tile widths and
+heights, examine practical command-line syntax, and review important
+formatting constraints defined by the TIFF specification.</p>
+<h2 id="the-tiled-tiff-define-flag">The Tiled TIFF Define Flag</h2>
+<p>To generate a tiled TIFF with custom tile dimensions in ImageMagick,
+use the <code>-define tiff:tile-geometry</code> flag.</p>
+<p>The syntax for this flag is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">-define</span> tiff:tile-geometry=<span class="op">&lt;</span>width<span class="op">&gt;</span>x<span class="op">&lt;</span>height<span class="op">&gt;</span></span></code></pre></div>
+<p>When this flag is passed to ImageMagick, the output TIFF is organized
+into regular rectangular tiles rather than standard horizontal strips.
+This is particularly useful for rapid panning, zooming, and partial
+rendering in large-format graphics, geospatial applications, and digital
+pathology.</p>
+<h2 id="command-line-examples">Command-Line Examples</h2>
+<h3 id="basic-custom-tile-dimensions">Basic Custom Tile Dimensions</h3>
+<p>To convert an image to a tiled TIFF with custom tiles measuring 256
+pixels wide by 256 pixels high:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-define</span> tiff:tile-geometry=256x256 output.tif</span></code></pre></div>
+<p><em>(Note: In ImageMagick version 6, replace <code>magick</code> with
+<code>convert</code>.)</em></p>
+<h3 id="adding-compression">Adding Compression</h3>
+<p>Tiled TIFFs are often large, so applying lossless compression such as
+Deflate (ZIP) or LZW is recommended:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-compress</span> zip <span class="at">-define</span> tiff:tile-geometry=512x512 output.tif</span></code></pre></div>
+<h3 id="pyramidal-tiled-tiff">Pyramidal Tiled TIFF</h3>
+<p>To create a multi-resolution pyramidal tiled TIFF (often used in
+deep-zoom viewers), use the <code>ptif:</code> output format prefix
+alongside the tile geometry flag:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-define</span> tiff:tile-geometry=256x256 ptif:pyramid.tif</span></code></pre></div>
+<h2 id="dimensional-requirements">Dimensional Requirements</h2>
+<p>According to the Baseline TIFF 6.0 specification, both the tile width
+and tile length (height) must be multiples of 16 pixels. If you specify
+values that are not divisible by 16 (for example, <code>100x100</code>),
+ImageMagick may automatically adjust or round the dimensions to the
+nearest valid multiple to maintain compatibility with standard TIFF
+readers. Common dimensions include <code>128x128</code>,
+<code>256x256</code>, and <code>512x512</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

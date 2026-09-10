@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick RemoveDups Removes Duplicate Frames - magick</title>
+    <meta name="description" content="The ImageMagick -layers RemoveDups operator optimizes animated image formats, such as GIFs, by scanning an image sequence, identifying consecutive frames with identical visual content, and deleting the redundancies. Rather than simply dropping the duplic">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-removedups-removes-duplicate-frames">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick RemoveDups Removes Duplicate Frames - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-removedups-removes-duplicate-frames" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -layers RemoveDups operator optimizes animated image formats, such as GIFs, by scanning an image sequence, identifying consecutive frames with identical visual content, and deleting the redundancies. Rather than simply dropping the duplic" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-removedups-removes-duplicate-frames">How
+ImageMagick RemoveDups Removes Duplicate Frames</h1>
+<p>The ImageMagick <code>-layers RemoveDups</code> operator optimizes
+animated image formats, such as GIFs, by scanning an image sequence,
+identifying consecutive frames with identical visual content, and
+deleting the redundancies. Rather than simply dropping the duplicate
+frame and altering the speed of the animation, the operator accumulates
+the display delay of the discarded frame and adds it to the preceding
+frame, preserving the original timing while reducing the overall file
+size.</p>
+<h3 id="the-requirement-for-coalesced-frames">The Requirement for
+Coalesced Frames</h3>
+<p>Before <code>-layers RemoveDups</code> can evaluate duplicates
+accurately, the animation must usually be unpacked using the
+<code>-coalesce</code> operator. GIF files often use frame disposal
+methods and partial-frame updates, where a frame only contains the
+pixels that changed relative to the previous one. Running
+<code>-layers RemoveDups</code> on coalesced frames ensures that each
+frame in the memory sequence represents a fully rendered state of the
+image, allowing for a 1:1 visual comparison.</p>
+<h3 id="pixel-by-pixel-detection">Pixel-by-Pixel Detection</h3>
+<p>The operator evaluates the sequence sequentially, comparing frame
+<em>N</em> with frame <em>N-1</em>:</p>
+<ol type="1">
+<li><strong>Geometry and Offset Verification:</strong> The operator
+checks if the dimensions, virtual canvas size, and canvas offsets match
+between the two frames.</li>
+<li><strong>Pixel Value Comparison:</strong> ImageMagick performs a
+pixel-by-pixel color and alpha channel comparison across the entire
+canvas.</li>
+<li><strong>Threshold and Fuzz Factor:</strong> By default, the
+comparison requires an exact pixel match. However, if the
+<code>-fuzz</code> setting is defined prior to invoking the operator,
+ImageMagick allows for minor color variations within that tolerance
+threshold, treating near-identical frames as duplicates.</li>
+</ol>
+<h3 id="frame-removal-and-delay-merging">Frame Removal and Delay
+Merging</h3>
+<p>Once a consecutive identical frame is detected, ImageMagick performs
+two core actions:</p>
+<ul>
+<li><strong>Delay Adjustment:</strong> Every frame in an animation
+carries a metadata attribute defining its display delay (typically
+measured in hundredths of a second or ticks). ImageMagick reads the
+delay of the duplicate frame (<em>Frame N</em>) and adds that value to
+the delay of the retained frame (<em>Frame N-1</em>).</li>
+<li><strong>Frame Purging:</strong> With the duration preserved in the
+previous frame, <em>Frame N</em> is removed from the image list.
+Subsequent comparisons then treat <em>Frame N-1</em> as the baseline
+when evaluating <em>Frame N+1</em>.</li>
+</ul>
+<h3 id="standard-implementation-in-an-optimization-pipeline">Standard
+Implementation in an Optimization Pipeline</h3>
+<p>Because <code>-layers RemoveDups</code> leaves frames fully realized,
+it is rarely run in isolation. A standard optimization workflow chains
+operators together:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.gif <span class="at">-coalesce</span> <span class="at">-layers</span> RemoveDups <span class="at">-layers</span> Optimize output.gif</span></code></pre></div>
+<p>In this sequence, <code>-coalesce</code> fully expands the GIF,
+<code>-layers RemoveDups</code> merges identical consecutive states, and
+<code>-layers Optimize</code> strips unchanged sub-regions back down to
+minimal bounding boxes to achieve the smallest possible file
+footprint.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

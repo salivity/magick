@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Roll Command: Pixel Wrapping Explained - magick</title>
+    <meta name="description" content="The ImageMagick -roll command provides an offset mechanism that shifts an image's pixel grid along the horizontal and vertical axes without discarding overflowing data. Unlike standard translation or cropping operations that pad edges or clip content, -r">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-roll-command-pixel-wrapping-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Roll Command: Pixel Wrapping Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-roll-command-pixel-wrapping-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The ImageMagick -roll command provides an offset mechanism that shifts an image's pixel grid along the horizontal and vertical axes without discarding overflowing data. Unlike standard translation or cropping operations that pad edges or clip content, -r" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-roll-command-pixel-wrapping-explained">ImageMagick
+Roll Command: Pixel Wrapping Explained</h1>
+<p>The ImageMagick <code>-roll</code> command provides an offset
+mechanism that shifts an image's pixel grid along the horizontal and
+vertical axes without discarding overflowing data. Unlike standard
+translation or cropping operations that pad edges or clip content,
+<code>-roll</code> executes a circular shift, treating the canvas as a
+continuous, closed surface. This article explains the internal mechanics
+of the <code>-roll</code> operator, the mathematical logic behind its
+pixel-wrapping behavior, and how it redirects displaced pixels back onto
+the active canvas area.</p>
+<h3 id="mechanics-of-the--roll-operator">Mechanics of the
+<code>-roll</code> Operator</h3>
+<p>The <code>-roll</code> command takes an offset geometry in the format
+<code>±x±y</code>, where <code>x</code> represents the horizontal shift
+and <code>y</code> represents the vertical shift in pixels. When an
+image is shifted, any pixel pushed outside the physical boundaries
+defined by the image width (<span class="math inline">\(W\)</span>) and
+height (<span class="math inline">\(H\)</span>) is systematically mapped
+to the opposite edge.</p>
+<p>This displacement relies on modular arithmetic (specifically, cyclic
+permutation):</p>
+<ul>
+<li><strong>New Horizontal Position:</strong> <span
+class="math inline">\(X_{new} = (X_{old} + x) \pmod W\)</span></li>
+<li><strong>New Vertical Position:</strong> <span
+class="math inline">\(Y_{new} = (Y_{old} + y) \pmod H\)</span></li>
+</ul>
+<p>If the resulting coordinate is negative (as in negative offsets), the
+dimension size is added prior to the final assignment to preserve valid
+zero-indexed array locations:</p>
+<ul>
+<li><span class="math inline">\(X_{new} = ((X_{old} + x) \pmod W + W)
+\pmod W\)</span></li>
+<li><span class="math inline">\(Y_{new} = ((Y_{old} + y) \pmod H + H)
+\pmod H\)</span></li>
+</ul>
+<h3 id="toroidal-canvas-mapping">Toroidal Canvas Mapping</h3>
+<p>Because both axes wrap independently, the operation conceptually
+projects a flat two-dimensional rectangular raster onto a 2-torus (a
+doughnut-shaped geometric surface):</p>
+<ol type="1">
+<li><strong>Horizontal Axis (Left–Right):</strong> Displacing pixels to
+the right (<code>+x</code>) causes pixels crossing the rightmost
+boundary (<span class="math inline">\(X = W - 1\)</span>) to reappear at
+the leftmost edge (<span class="math inline">\(X = 0\)</span>).
+Conversely, shifting pixels to the left (<code>-x</code>) pushes
+left-boundary pixels over to the far right.</li>
+<li><strong>Vertical Axis (Top–Bottom):</strong> Displacing pixels
+downward (<code>+y</code>) forces pixels crossing the bottom boundary
+(<span class="math inline">\(Y = H - 1\)</span>) to reappear at the top
+(<span class="math inline">\(Y = 0\)</span>). Pushing pixels upward
+(<code>-y</code>) moves them directly to the bottom.</li>
+<li><strong>Corner Traversal:</strong> Pixels displaced diagonally past
+a corner simultaneously wrap across both boundaries. A pixel shifted off
+the bottom-right corner immediately re-enters from the top-left quadrant
+of the canvas.</li>
+</ol>
+<h3 id="data-preservation-and-memory-handling">Data Preservation and
+Memory Handling</h3>
+<p>During a <code>-roll</code> operation, no raster information is
+clipped, discarded, or filled with background colors. ImageMagick
+allocates an internal memory buffer where the source pixel array is
+read, recalculated via the offset coordinates, and written to
+corresponding targets in a destination buffer. Every original pixel
+exists in the final output; only its spatial index within the raster
+array changes.</p>
+<h3 id="common-use-cases">Common Use Cases</h3>
+<ul>
+<li><strong>Seamless Tile Testing:</strong> Rolling an image by half its
+width and half its height (<code>-roll +W/2+H/2</code>) places the outer
+edges directly into the center of the image canvas, allowing creators to
+inspect and paint out visible seams in repeating texture patterns.</li>
+<li><strong>Rotational Canvas Adjustments:</strong> 360-degree panoramas
+or equirectangular maps can be re-centered horizontally without altering
+image dimensions or distorting projections.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

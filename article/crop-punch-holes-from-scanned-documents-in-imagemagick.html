@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Punch Holes from Scanned Documents in ImageMagick - magick</title>
+    <meta name="description" content="Digitized historical documents frequently feature binder hole punches along their margins that interfere with OCR processing, archival formatting, and automated categorization. ImageMagick provides robust command-line tools to remove these artifacts eith">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/crop-punch-holes-from-scanned-documents-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Crop Punch Holes from Scanned Documents in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/crop-punch-holes-from-scanned-documents-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Digitized historical documents frequently feature binder hole punches along their margins that interfere with OCR processing, archival formatting, and automated categorization. ImageMagick provides robust command-line tools to remove these artifacts eith" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="crop-punch-holes-from-scanned-documents-in-imagemagick">Crop
+Punch Holes from Scanned Documents in ImageMagick</h1>
+<p>Digitized historical documents frequently feature binder hole punches
+along their margins that interfere with OCR processing, archival
+formatting, and automated categorization. ImageMagick provides robust
+command-line tools to remove these artifacts either by removing a
+uniform margin where the punches reside or by automatically detecting
+and cropping inward to the document's primary text block. This guide
+details the exact command sequences to eliminate punch-hole margins
+effectively using ImageMagick.</p>
+<h3 id="method-1-fixed-margin-removal-using--chop">Method 1: Fixed
+Margin Removal Using <code>-chop</code></h3>
+<p>If your document scans are consistently aligned and the punch holes
+reside entirely within a predictable margin (typically the left edge),
+the most reliable method is to chop off that specific edge.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-gravity</span> West <span class="at">-chop</span> 180x0 output.tif</span></code></pre></div>
+<ul>
+<li><strong><code>-gravity West</code></strong>: Sets the reference
+anchor to the left edge of the image. For right-side, top, or bottom
+holes, replace <code>West</code> with <code>East</code>,
+<code>North</code>, or <code>South</code>.</li>
+<li><strong><code>-chop 180x0</code></strong>: Cuts a 180-pixel vertical
+strip from the selected edge while leaving the vertical dimension
+intact. Adjust <code>180</code> to match the resolution and pixel depth
+of your hole punches.</li>
+</ul>
+<h3 id="method-2-deskew-and-uniform-crop-sequence">Method 2: Deskew and
+Uniform Crop Sequence</h3>
+<p>Historical scans often suffer from slight rotation, which can cause
+punch holes to slant into the text block. Combining deskewing with a
+directional crop ensures clean margins without cutting into legitimate
+text:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-deskew</span> 40% <span class="at">-gravity</span> West <span class="at">-chop</span> 200x0 +repage output.tif</span></code></pre></div>
+<ul>
+<li><strong><code>-deskew 40%</code></strong>: Automatically straightens
+slightly rotated scans prior to cropping, ensuring the margin boundary
+runs parallel to the page edges.</li>
+<li><strong><code>+repage</code></strong>: Resets the canvas coordinates
+and virtual page offsets to prevent viewer layout issues.</li>
+</ul>
+<h3 id="method-3-automated-content-aware-bounding-box-crop">Method 3:
+Automated Content-Aware Bounding Box Crop</h3>
+<p>When hole punch locations vary across batch scans, you can isolate
+the primary text block by thresholding the image to find the document
+boundaries and cropping inward past the margins:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-deskew</span> 40% <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-threshold</span> 85% <span class="at">-morphology</span> Open Ring:2.5 <span class="at">-fuzz</span> 15% <span class="at">-trim</span> <span class="at">-set</span> option:cropbox <span class="st">&quot;%wx%h+%X+%Y&quot;</span> +delete <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-crop</span> %<span class="pp">[</span><span class="ss">cropbox</span><span class="pp">]</span> +repage output.tif</span></code></pre></div>
+<ul>
+<li><strong><code>+clone</code></strong>: Creates an in-memory copy of
+the scan to detect dimensions without degrading the original image.</li>
+<li><strong><code>-threshold 85%</code></strong>: Converts the document
+to high-contrast monochrome to separate text and hole edges from
+background paper grain.</li>
+<li><strong><code>-morphology Open Ring:2.5</code></strong>: Suppresses
+circular punch-hole edges and noise artifacts along the borders.</li>
+<li><strong><code>-trim -set option:cropbox "%wx%h+%X+%Y"</code></strong>:
+Computes the rectangular bounding box of the remaining text block.</li>
+<li><strong><code>-crop %[cropbox]</code></strong>: Applies the
+calculated coordinates to the original high-resolution scan.</li>
+</ul>
+<h3 id="batch-processing-documents">Batch Processing Documents</h3>
+<p>To process an entire folder of scanned documents containing left-hand
+hole punches, use <code>magick mogrify</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./cleaned_scans/ <span class="at">-deskew</span> 40% <span class="at">-gravity</span> West <span class="at">-chop</span> 180x0 +repage <span class="pp">*</span>.tif</span></code></pre></div>
+<p>This command processes all <code>.tif</code> files in the working
+directory, straightens them, removes the 180-pixel left margin
+containing the punch holes, and saves the output into a designated
+subfolder.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

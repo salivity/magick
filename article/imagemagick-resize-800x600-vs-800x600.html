@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Resize: 800x600 vs 800x600! - magick</title>
+    <meta name="description" content="When resizing images using ImageMagick, the geometry string determines how the output dimensions are calculated and whether original proportions are preserved. The fundamental difference between 800x600 and 800x600! is aspect ratio handling: specifying 8">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-resize-800x600-vs-800x600">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Resize: 800x600 vs 800x600! - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-resize-800x600-vs-800x600" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When resizing images using ImageMagick, the geometry string determines how the output dimensions are calculated and whether original proportions are preserved. The fundamental difference between 800x600 and 800x600! is aspect ratio handling: specifying 8" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-resize-800x600-vs-800x600">ImageMagick Resize:
+800x600 vs 800x600!</h1>
+<p>When resizing images using ImageMagick, the geometry string
+determines how the output dimensions are calculated and whether original
+proportions are preserved. The fundamental difference between
+<code>800x600</code> and <code>800x600!</code> is aspect ratio handling:
+specifying <code>800x600</code> fits the image inside a bounding box
+while maintaining its original proportions, whereas appending the
+exclamation mark (<code>800x600!</code>) forces the image to match the
+exact dimensions, ignoring the aspect ratio and distorting the image if
+necessary.</p>
+<h3 id="standard-geometry-800x600">Standard Geometry:
+<code>800x600</code></h3>
+<p>By default, ImageMagick preserves the original aspect ratio of the
+image. The specified dimensions represent the maximum allowable width
+and height (a bounding box). The software scales the image until either
+the width reaches 800 pixels or the height reaches 600 pixels—whichever
+limit is hit first.</p>
+<ul>
+<li><strong>Behavior:</strong> Proportional fit within the bounds.</li>
+<li><strong>Distortion:</strong> None.</li>
+<li><strong>Example:</strong> If you resize a 1600x800 image (a 2:1
+ratio) with <code>-resize 800x600</code>, the resulting dimensions will
+be 800x400. It scales down to fit within the box without
+stretching.</li>
+</ul>
+<h3 id="forced-geometry-800x600">Forced Geometry:
+<code>800x600!</code></h3>
+<p>The exclamation mark (<code>!</code>) serves as an override flag that
+instructs ImageMagick to ignore aspect ratio constraints completely.</p>
+<ul>
+<li><strong>Behavior:</strong> Exact sizing. The output image will
+always be precisely 800 pixels wide and 600 pixels high.</li>
+<li><strong>Distortion:</strong> High probability. Unless the input
+image already shares a 4:3 aspect ratio, the image will be stretched or
+squashed to fit the target dimensions.</li>
+<li><strong>Example:</strong> If you resize a 1600x800 image with
+<code>-resize 800x600!</code>, the result will be exactly 800x600,
+resulting in vertical stretching.</li>
+</ul>
+<h3 id="command-line-considerations">Command-Line Considerations</h3>
+<p>When executing these commands in Unix-based shells (such as Bash or
+Zsh), the exclamation mark is treated as a special character for history
+expansion. To avoid syntax errors, quote the geometry string or escape
+the exclamation mark:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using single quotes (recommended)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&#39;800x600!&#39;</span> output.jpg</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Escaping the character</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600<span class="dt">\!</span> output.jpg</span></code></pre></div>
+<h3 id="quick-comparison">Quick Comparison</h3>
+<ul>
+<li>Use <code>800x600</code> when preserving image fidelity and natural
+proportions is required.</li>
+<li>Use <code>800x600!</code> when strict dimension compliance is
+required and distortion is acceptable.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

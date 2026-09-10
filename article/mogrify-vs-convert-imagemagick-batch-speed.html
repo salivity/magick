@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mogrify vs Convert: ImageMagick Batch Speed - magick</title>
+    <meta name="description" content="When processing large batches of images, ImageMagick's mogrify is significantly faster than convert when convert is used within standard shell loops. This article examines the execution speed differences between mogrify and convert, breaks down the techn">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/mogrify-vs-convert-imagemagick-batch-speed">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mogrify vs Convert: ImageMagick Batch Speed - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/mogrify-vs-convert-imagemagick-batch-speed" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When processing large batches of images, ImageMagick's mogrify is significantly faster than convert when convert is used within standard shell loops. This article examines the execution speed differences between mogrify and convert, breaks down the techn" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="mogrify-vs-convert-imagemagick-batch-speed">Mogrify vs Convert:
+ImageMagick Batch Speed</h1>
+<p>When processing large batches of images, ImageMagick's
+<code>mogrify</code> is significantly faster than <code>convert</code>
+when <code>convert</code> is used within standard shell loops. This
+article examines the execution speed differences between
+<code>mogrify</code> and <code>convert</code>, breaks down the technical
+reasons behind the performance gap, and explains how process overhead
+impacts batch image workflows.</p>
+<hr />
+<h3 id="the-fundamental-architectural-difference">The Fundamental
+Architectural Difference</h3>
+<p>The primary reason for the execution speed difference lies in how
+operating systems handle process execution:</p>
+<ul>
+<li><strong><code>convert</code> (Individual Process Model):</strong>
+Traditional batch scripts process files using a loop (such as a Bash
+<code>for</code> loop) that invokes <code>convert</code> once per image.
+For a directory of 1,000 images, the operating system must create,
+initialize, execute, and terminate the ImageMagick binary 1,000 separate
+times.</li>
+<li><strong><code>mogrify</code> (Single Process Model):</strong>
+<code>mogrify</code> natively accepts multiple file arguments or
+wildcards (e.g., <code>mogrify -resize 800x600 *.jpg</code>). The
+operating system loads the ImageMagick binary and its associated shared
+libraries into memory only once, processing all specified images
+sequentially within the same process lifecycle.</li>
+</ul>
+<hr />
+<h3 id="process-overhead-and-real-world-impact">Process Overhead and
+Real-World Impact</h3>
+<p>Launching an external binary incurs fixed overhead:</p>
+<ol type="1">
+<li><strong>Dynamic Linker Overhead:</strong> ImageMagick relies on
+numerous shared libraries (e.g., <code>libpng</code>,
+<code>libjpeg</code>, <code>libtiff</code>, <code>libgomp</code>,
+<code>liblcms2</code>). Every invocation of <code>convert</code>
+requires the OS dynamic linker (<code>ld.so</code>) to resolve and map
+these libraries into the process address space.</li>
+<li><strong>Resource Allocation:</strong> Each execution requires memory
+allocation, thread initialization (via OpenMP), and configuration file
+parsing (such as <code>delegates.xml</code> and
+<code>policy.xml</code>).</li>
+</ol>
+<h4 id="impact-on-small-vs-large-images">Impact on Small vs. Large
+Images</h4>
+<ul>
+<li><strong>Small to Medium Images:</strong> For small images (under 2
+megapixels), the setup and teardown overhead of <code>convert</code> can
+constitute up to 50% or more of total execution time. In this scenario,
+<code>mogrify</code> can be <strong>2x to 5x faster</strong> than a
+basic shell loop calling <code>convert</code>.</li>
+<li><strong>Large Images / Complex Operations:</strong> For large files
+(e.g., 50+ megapixel RAW conversions) or compute-heavy filters, pixel
+manipulation dominates execution time. Process overhead becomes
+negligible, narrowing the speed gap between the two commands.</li>
+</ul>
+<hr />
+<h3 id="syntax-comparison">Syntax Comparison</h3>
+<h4 id="batch-processing-with-convert-slower">Batch Processing with
+<code>convert</code> (Slower)</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="pp">*</span>.jpg<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">convert</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="at">-resize</span> 50% <span class="st">&quot;thumbs/</span><span class="va">$file</span><span class="st">&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p><em>Creates a new process for every single file.</em></p>
+<h4 id="batch-processing-with-mogrify-faster">Batch Processing with
+<code>mogrify</code> (Faster)</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-path</span> thumbs/ <span class="at">-resize</span> 50% <span class="pp">*</span>.jpg</span></code></pre></div>
+<p><em>Creates one process that processes all files in a single
+execution.</em></p>
+<hr />
+<h3 id="parallel-processing-considerations">Parallel Processing
+Considerations</h3>
+<p>While <code>mogrify</code> is faster than a standard single-threaded
+<code>convert</code> loop, native <code>mogrify</code> runs
+sequentially. To achieve maximum throughput across multi-core CPUs:</p>
+<ul>
+<li><strong><code>mogrify</code> + GNU Parallel:</strong> Splitting the
+batch into chunks using tools like GNU <code>parallel</code> or
+<code>xargs</code> with <code>mogrify</code> combines the low process
+overhead of <code>mogrify</code> with multi-core utilization.</li>
+<li><strong><code>convert</code> + GNU Parallel:</strong> Running
+<code>convert</code> in parallel mitigates the sequential bottleneck,
+but still incurs per-file process creation overhead.</li>
+</ul>
+<hr />
+<h3 id="summary">Summary</h3>
+<p>For sequential batch operations, <strong><code>mogrify</code> is
+consistently faster than <code>convert</code></strong> due to
+eliminating the operating system overhead of repeated process creation,
+dynamic library loading, and configuration initialization.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

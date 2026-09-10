@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Resize a PNG Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Resizing PNG files using ImageMagick provides full control over resolution, aspect ratios, and compression directly from your terminal. Whether scaling down for web delivery, creating thumbnails, or batch-processing large directories of assets, ImageMagi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-resize-a-png-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Resize a PNG Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-resize-a-png-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Resizing PNG files using ImageMagick provides full control over resolution, aspect ratios, and compression directly from your terminal. Whether scaling down for web delivery, creating thumbnails, or batch-processing large directories of assets, ImageMagi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-resize-a-png-image-using-imagemagick">How to Resize a PNG
+Image Using ImageMagick?</h1>
+<p>Resizing PNG files using ImageMagick provides full control over
+resolution, aspect ratios, and compression directly from your terminal.
+Whether scaling down for web delivery, creating thumbnails, or
+batch-processing large directories of assets, ImageMagick handles these
+operations efficiently through its command-line utilities. This guide
+covers the essential commands for basic scaling, exact dimension
+fitting, percentage adjustments, and batch processing.</p>
+<h2 id="basic-proportional-resizing">Basic Proportional Resizing</h2>
+<p>The most common way to resize an image while preserving its aspect
+ratio is using the <code>magick</code> command (or <code>convert</code>
+on ImageMagick 6).</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 800x600 output.png</span></code></pre></div>
+<p>When given width and height values, ImageMagick fits the image within
+the bounding box of 800 by 600 pixels without distorting proportions. If
+the input image is square, it will scale to 600 by 600 pixels.</p>
+<p>To constrain only by width while letting the height adjust
+automatically, leave the height blank:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 800x output.png</span></code></pre></div>
+<p>Similarly, specifying only height preserves the aspect ratio:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> x600 output.png</span></code></pre></div>
+<h2 id="forcing-exact-dimensions">Forcing Exact Dimensions</h2>
+<p>To ignore the original aspect ratio and force the output to match
+exact dimensions, append an exclamation mark (<code>!</code>) to the
+geometry argument. On Unix-based shells (such as Bash or Zsh), escape
+the exclamation mark with a backslash or wrap the parameter in quotes to
+prevent shell expansion.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> <span class="st">&quot;800x600!&quot;</span> output.png</span></code></pre></div>
+<h2 id="resizing-by-percentage">Resizing by Percentage</h2>
+<p>Scaling by a relative ratio instead of absolute pixel dimensions uses
+a percentage sign:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 50% output.png</span></code></pre></div>
+<p>This reduces both the width and the height to 50% of their original
+values, quartering the overall pixel area.</p>
+<h2 id="cropping-to-fill-exact-dimensions">Cropping to Fill Exact
+Dimensions</h2>
+<p>If an image needs to fill a specific dimension completely without
+stretching, combine <code>-resize</code> with <code>-gravity</code> and
+<code>-extent</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 800x600^ <span class="at">-gravity</span> center <span class="at">-extent</span> 800x600 output.png</span></code></pre></div>
+<ul>
+<li>The caret (<code>^</code>) resizes the image so that it covers the
+entire 800x600 area, meaning one dimension will likely overshoot the
+target.</li>
+<li><code>-gravity center</code> anchors the crop position to the
+middle.</li>
+<li><code>-extent 800x600</code> crops away the excess overflow.</li>
+</ul>
+<h2 id="batch-resizing-multiple-pngs">Batch Resizing Multiple PNGs</h2>
+<p>To process an entire directory of PNG images, use the
+<code>mogrify</code> tool. Unlike <code>magick</code>,
+<code>mogrify</code> modifies files in place unless an output directory
+is specified.</p>
+<p>To safely output resized files into a separate folder:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> resized</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./resized <span class="at">-resize</span> 800x <span class="pp">*</span>.png</span></code></pre></div>
+<p>To overwrite files in place across an entire folder:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mogrify</span> <span class="at">-resize</span> 800x <span class="pp">*</span>.png</span></code></pre></div>
+<h2 id="maintaining-transparency-and-optimizing-output">Maintaining
+Transparency and Optimizing Output</h2>
+<p>PNG files frequently contain alpha transparency. ImageMagick
+preserves alpha channels during resizing operations by default. When
+exporting, you can control PNG compression levels using the
+<code>-quality</code> flag:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-resize</span> 800x <span class="at">-quality</span> 95 output.png</span></code></pre></div>
+<p>For PNG files in ImageMagick, the tens digit sets the zlib
+compression level (0 to 9), while the units digit controls the filter
+type (typically 5 for adaptive filtering). A value of <code>95</code>
+applies maximum compression with adaptive filtering to yield small file
+sizes without affecting image clarity.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

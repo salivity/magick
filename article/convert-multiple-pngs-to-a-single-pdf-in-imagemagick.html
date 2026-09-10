@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Multiple PNGs to a Single PDF in ImageMagick - magick</title>
+    <meta name="description" content="Converting multiple PNG images into a single multi-page PDF is a fast and simple process using ImageMagick's command-line interface. This guide explains the core commands required to merge your images, control page order, adjust output resolution, and re">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/convert-multiple-pngs-to-a-single-pdf-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Convert Multiple PNGs to a Single PDF in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/convert-multiple-pngs-to-a-single-pdf-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Converting multiple PNG images into a single multi-page PDF is a fast and simple process using ImageMagick's command-line interface. This guide explains the core commands required to merge your images, control page order, adjust output resolution, and re" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="convert-multiple-pngs-to-a-single-pdf-in-imagemagick">Convert
+Multiple PNGs to a Single PDF in ImageMagick</h1>
+<p>Converting multiple PNG images into a single multi-page PDF is a fast
+and simple process using ImageMagick's command-line interface. This
+guide explains the core commands required to merge your images, control
+page order, adjust output resolution, and resolve common configuration
+issues.</p>
+<h2 id="basic-conversion-command">Basic Conversion Command</h2>
+<p>To combine multiple PNG files into one PDF document, open your
+terminal or command prompt, navigate to the folder containing your
+images, and run the following command:</p>
+<p>For ImageMagick v7+:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png image2.png image3.png output.pdf</span></code></pre></div>
+<p>For ImageMagick v6:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> image1.png image2.png image3.png output.pdf</span></code></pre></div>
+<p>To merge all PNG files in the current directory, use a wildcard:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="pp">*</span>.png output.pdf</span></code></pre></div>
+<h2 id="controlling-page-order">Controlling Page Order</h2>
+<p>ImageMagick processes files in the order they are provided in the
+command. If you use <code>*.png</code>, the operating system's sorting
+order determines the page sequence.</p>
+<p>To ensure pages are ordered correctly:</p>
+<ul>
+<li>Rename files with zero-padded numbers (for example:
+<code>page-01.png</code>, <code>page-02.png</code>,
+<code>page-10.png</code>).</li>
+<li>Explicitly list files in your desired order if naming is
+irregular:</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> front.png body_01.png body_02.png back.png final_document.pdf</span></code></pre></div>
+<h2 id="adjusting-resolution-and-quality">Adjusting Resolution and
+Quality</h2>
+<p>By default, ImageMagick may use a standard 72 DPI resolution, which
+can result in low-quality or oversized pages in the output PDF. You can
+define the density and compression to optimize the document:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-density</span> 300 <span class="at">-quality</span> 100 <span class="pp">*</span>.png output.pdf</span></code></pre></div>
+<ul>
+<li><code>-density 300</code>: Sets the horizontal and vertical
+resolution to 300 DPI for high-print quality.</li>
+<li><code>-quality 100</code>: Preserves maximum image quality during
+conversion.</li>
+</ul>
+<h2 id="standardizing-page-sizes">Standardizing Page Sizes</h2>
+<p>If your PNG images have varying dimensions, you can fit them to a
+standard page size (such as A4 or Letter) while maintaining their aspect
+ratio:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="pp">*</span>.png <span class="at">-page</span> A4 <span class="at">-gravity</span> center output.pdf</span></code></pre></div>
+<h2 id="resolving-pdf-policy-errors">Resolving PDF Policy Errors</h2>
+<p>On Linux systems, ImageMagick might return an error stating:
+<code>attempt to perform an operation not allowed by the security policy 'PDF'</code>.</p>
+<p>To fix this security restriction:</p>
+<ol type="1">
+<li>Open the policy file (commonly located at
+<code>/etc/ImageMagick-6/policy.xml</code> or
+<code>/etc/ImageMagick-7/policy.xml</code>) using a text editor with
+administrative privileges.</li>
+<li>Find the line:
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;none&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span></code></pre></div></li>
+<li>Change <code>rights="none"</code> to
+<code>rights="read|write"</code>:
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">policy</span> <span class="ot">domain=</span><span class="st">&quot;coder&quot;</span> <span class="ot">rights=</span><span class="st">&quot;read|write&quot;</span> <span class="ot">pattern=</span><span class="st">&quot;PDF&quot;</span> /&gt;</span></code></pre></div></li>
+<li>Save the file and rerun your conversion command.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

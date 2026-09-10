@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Non-Proportional Scaling in ImageMagick - magick</title>
+    <meta name="description" content="This article explains how ImageMagick handles dimensional scaling and how the exclamation mark (!) geometry flag overrides its default behavior to force exact, non-proportional dimensions. By default, ImageMagick preserves an image's aspect ratio when re">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/force-non-proportional-scaling-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Force Non-Proportional Scaling in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/force-non-proportional-scaling-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how ImageMagick handles dimensional scaling and how the exclamation mark (!) geometry flag overrides its default behavior to force exact, non-proportional dimensions. By default, ImageMagick preserves an image's aspect ratio when re" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="force-non-proportional-scaling-in-imagemagick">Force
+Non-Proportional Scaling in ImageMagick</h1>
+<p>This article explains how ImageMagick handles dimensional scaling and
+how the exclamation mark (<code>!</code>) geometry flag overrides its
+default behavior to force exact, non-proportional dimensions. By
+default, ImageMagick preserves an image's aspect ratio when resizing,
+fitting it within a specified bounding box. Adding the exclamation mark
+instructs the internal geometry parser to disregard these proportions
+and independently stretch or compress the width and height to match the
+exact target measurements.</p>
+<h2 id="default-scaling-vs-forced-aspect-ratio">Default Scaling vs.
+Forced Aspect Ratio</h2>
+<p>When executing a standard resize operation, ImageMagick treats the
+provided width and height as a bounding box:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600 output.jpg</span></code></pre></div>
+<p>If <code>input.jpg</code> has an aspect ratio of 16:9 (such as
+1920x1080), ImageMagick calculates a single scaling factor to ensure the
+entire image fits within 800x600 without distortion. The resulting image
+becomes 800x450, leaving the aspect ratio intact and ignoring the
+requested 600-pixel height constraint.</p>
+<p>Appending an exclamation mark (<code>!</code>) to the geometry
+argument changes this behavior:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600<span class="dt">\!</span> output.jpg</span></code></pre></div>
+<p>With the flag applied, the resulting file is forced into precisely
+800 pixels in width and 600 pixels in height, regardless of the original
+image's shape.</p>
+<h2 id="how-the-geometry-parser-interprets-the-flag">How the Geometry
+Parser Interprets the Flag</h2>
+<p>ImageMagick relies on a dedicated geometry parsing engine to
+interpret resize strings. When an argument like <code>800x600!</code> is
+passed:</p>
+<ol type="1">
+<li><strong>Token Identification:</strong> The parser breaks the string
+into width (<code>800</code>), height (<code>600</code>), and modifiers
+(<code>!</code>).</li>
+<li><strong>Flag Assignment:</strong> The exclamation mark sets an
+internal flag (historically mapped to <code>AspectFlag</code> in
+ImageMagick's source code).</li>
+<li><strong>Scale Factor Calculation:</strong>
+<ul>
+<li>Under normal operations, ImageMagick computes horizontal scale
+(<code>scale_x = target_width / original_width</code>) and vertical
+scale (<code>scale_y = target_height / original_height</code>), then
+chooses <code>min(scale_x, scale_y)</code> to apply equally to both
+axes.</li>
+<li>When the <code>AspectFlag</code> is set, ImageMagick bypasses the
+minimum-value comparison. It applies <code>scale_x</code> directly to
+the horizontal axis and <code>scale_y</code> directly to the vertical
+axis.</li>
+</ul></li>
+<li><strong>Resampling:</strong> The image is resampled along both axes
+independently, resulting in an exact dimensional match at the expense of
+geometric distortion.</li>
+</ol>
+<h2 id="handling-shell-escaping">Handling Shell Escaping</h2>
+<p>In Unix-like command-line shells (such as Bash or Zsh), the
+exclamation mark is a reserved character used for command history
+expansion. Entering unescaped exclamation points can cause syntax errors
+or unexpected behavior before ImageMagick even receives the string.</p>
+<p>To ensure the flag reaches ImageMagick correctly, use one of the
+following methods:</p>
+<ul>
+<li><strong>Escape the character with a backslash:</strong>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> 800x600<span class="dt">\!</span> output.jpg</span></code></pre></div></li>
+<li><strong>Wrap the argument in single quotes:</strong>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-resize</span> <span class="st">&#39;800x600!&#39;</span> output.jpg</span></code></pre></div></li>
+</ul>
+<p>In Windows Command Prompt (<code>cmd.exe</code>), the exclamation
+mark is not a history expansion operator, so standard double quotes are
+sufficient:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>magick input.jpg <span class="at">-resize</span> <span class="st">&quot;800x600!&quot;</span> output.jpg</span></code></pre></div>
+<h2 id="when-to-use-non-proportional-scaling">When to Use
+Non-Proportional Scaling</h2>
+<p>Forcing dimensions with the <code>!</code> flag is primarily used
+when output requirements strictly demand fixed pixel grids and visual
+distortion is either acceptable or corrected downstream. Common
+scenarios include preparing textures for 3D rendering pipelines
+requiring power-of-two resolutions, standardizing inputs for machine
+learning models that expect fixed matrix shapes, or generating UI
+placeholders where absolute alignment outweighs proportional
+fidelity.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

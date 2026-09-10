@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Hough Circle Detection Guide - magick</title>
+    <meta name="description" content="This guide explains how to identify and extract circular shapes from images using ImageMagick’s built-in Hough transform algorithm. By combining edge detection filters with the -hough-analyze operator, you can detect circles of specified radii and outp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hough-circle-detection-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Hough Circle Detection Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hough-circle-detection-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to identify and extract circular shapes from images using ImageMagick’s built-in Hough transform algorithm. By combining edge detection filters with the -hough-analyze operator, you can detect circles of specified radii and outp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hough-circle-detection-guide">ImageMagick Hough
+Circle Detection Guide</h1>
+<p>This guide explains how to identify and extract circular shapes from
+images using ImageMagick’s built-in Hough transform algorithm. By
+combining edge detection filters with the <code>-hough-analyze</code>
+operator, you can detect circles of specified radii and output their
+exact coordinates or overlay them visually onto your source image.</p>
+<h2 id="understanding-the-hough-circle-transform">Understanding the
+Hough Circle Transform</h2>
+<p>The Hough transform is a feature extraction technique used in digital
+image processing to detect simple shapes, such as lines and circles. For
+circles, the algorithm maps edge pixels into an accumulator space
+corresponding to the circle equation:</p>
+<p><span class="math display">\[(x - a)^2 + (y - b)^2 = r^2\]</span></p>
+<p>Where <code>(a, b)</code> represents the center coordinate and
+<code>r</code> represents the radius. Peak values within the accumulator
+space represent the most probable circles.</p>
+<h2 id="prerequisites-and-preprocessing">Prerequisites and
+Preprocessing</h2>
+<p>The Hough transform requires a binary edge map to operate accurately.
+Feeding a raw, full-color image directly into the analyzer will cause
+false positives and poor performance.</p>
+<ol type="1">
+<li><strong>Convert to Grayscale</strong>: Removes color data to isolate
+luminance.</li>
+<li><strong>Apply Edge Detection</strong>: ImageMagick’s Canny edge
+detector (<code>-canny</code>) generates clean, single-pixel-wide
+outlines required for the accumulator.</li>
+</ol>
+<h2 id="basic-command-structure">Basic Command Structure</h2>
+<p>ImageMagick utilizes the <code>-hough-analyze</code> operator
+alongside the <code>-define hough-analyze:object=circle</code> setting
+to search for circles rather than lines.</p>
+<p>The geometry string for circle detection uses the following
+format:</p>
+<pre class="text"><code>-hough-analyze &lt;min_radius&gt;x&lt;max_radius&gt;+&lt;threshold&gt;</code></pre>
+<ul>
+<li><strong><code>min_radius</code></strong>: The minimum circle radius
+in pixels to search for.</li>
+<li><strong><code>max_radius</code></strong>: The maximum circle radius
+in pixels to search for.</li>
+<li><strong><code>threshold</code></strong>: The minimum number of
+accumulator votes needed to register a detected circle. Higher values
+prevent false positives; lower values detect fainter or partial
+circles.</li>
+</ul>
+<h2 id="step-by-step-implementation">Step-by-Step Implementation</h2>
+<h3 id="1-detect-and-draw-circles-directly-on-the-image">1. Detect and
+Draw Circles Directly on the Image</h3>
+<p>To visually highlight detected circles on your image:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-canny</span> 0x1+10%+30% <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> hough-analyze:object=circle <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-hough-analyze</span> 20x50+40 <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-canny 0x1+10%+30%</code> isolates the edges.</li>
+<li><code>-hough-analyze 20x50+40</code> searches for circles with a
+radius between 20 and 50 pixels that match or exceed an accumulator
+threshold of 40.</li>
+<li>The output image replaces the canvas with a vector representation
+(drawn red circles) identifying the located features.</li>
+</ul>
+<h3 id="2-overlay-circles-onto-the-original-image">2. Overlay Circles
+onto the Original Image</h3>
+<p>To preserve the original image and draw the detected circles as an
+overlay:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-canny</span> 0x1+10%+30% <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">-define</span> hough-analyze:object=circle <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">-hough-analyze</span> 20x50+40 <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">-transparent</span> black <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Over <span class="at">-composite</span> detected_circles.png</span></code></pre></div>
+<p>This uses image cloning to run edge detection and Hough analysis on a
+secondary layer, makes non-circle areas transparent, and layers the
+resulting circles directly onto the original image.</p>
+<h3 id="3-extracting-numeric-coordinates">3. Extracting Numeric
+Coordinates</h3>
+<p>If you require the coordinates (<code>x</code>, <code>y</code>,
+<code>radius</code>) for downstream automation rather than an image
+output, format the output to a text file:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-canny</span> 0x1+10%+30% <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> hough-analyze:object=circle <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-hough-analyze</span> 20x50+40 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  circles.mvg</span></code></pre></div>
+<p>The resulting <code>.mvg</code> (Magick Vector Graphics) file
+contains plain-text vector draw commands such as:</p>
+<pre class="text"><code>circle 124,156 124,186</code></pre>
+<p>In MVG syntax, <code>circle x1,y1 x2,y2</code> defines a circle
+centered at <code>(x1, y1)</code> where the perimeter passes through
+<code>(x2, y2)</code>. The radius is the Euclidean distance between
+these two points:</p>
+<p><span class="math display">\[r = \sqrt{(x_2 - x_1)^2 + (y_2 -
+y_1)^2}\]</span></p>
+<h2 id="fine-tuning-detection">Fine-Tuning Detection</h2>
+<ul>
+<li><strong>Reduce Noise</strong>: If the algorithm detects too many
+false circles, increase the <code>threshold</code> value (e.g., from
+<code>+40</code> to <code>+60</code>) or raise the lower percentage
+bound in the <code>-canny</code> operator.</li>
+<li><strong>Narrow the Radius Range</strong>: Broad search windows
+(e.g., <code>10x200</code>) require significant computational time and
+memory. Narrow the radius range as closely as possible to the expected
+circle sizes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ImageMagick Determines Caption Pointsize - magick</title>
+    <meta name="description" content="When rendering text using the caption: protocol without an explicitly defined font size, ImageMagick dynamically calculates the optimal pointsize to fill a specified geometry. Rather than applying a fixed mathematical formula, ImageMagick employs an iter">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-imagemagick-determines-caption-pointsize">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How ImageMagick Determines Caption Pointsize - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-imagemagick-determines-caption-pointsize" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When rendering text using the caption: protocol without an explicitly defined font size, ImageMagick dynamically calculates the optimal pointsize to fill a specified geometry. Rather than applying a fixed mathematical formula, ImageMagick employs an iter" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-imagemagick-determines-caption-pointsize">How ImageMagick
+Determines Caption Pointsize</h1>
+<p>When rendering text using the <code>caption:</code> protocol without
+an explicitly defined font size, ImageMagick dynamically calculates the
+optimal pointsize to fill a specified geometry. Rather than applying a
+fixed mathematical formula, ImageMagick employs an iterative binary
+search algorithm that measures font metrics and simulates line breaks.
+By testing candidate pointsizes against the requested width and height,
+the engine converges on the largest possible pointsize that displays the
+complete text without clipping.</p>
+<h3 id="the-initial-setup-and-bounds">The Initial Setup and Bounds</h3>
+<p>When you define a target area (for example,
+<code>-size 300x200</code>) and call <code>caption:"Your text"</code>,
+ImageMagick initializes a search range for the font pointsize. If no
+minimum or maximum pointsize constraints are supplied, it sets a
+theoretical lower bound (typically 1 point or less) and an upper bound
+determined either by the full height of the target box or an internal
+ceiling value.</p>
+<h3 id="the-iterative-bisection-search">The Iterative Bisection
+Search</h3>
+<p>To locate the best fit efficiently, ImageMagick uses a bisection
+(binary search) algorithm rather than testing every single integer
+size:</p>
+<ol type="1">
+<li><strong>Midpoint Selection:</strong> The algorithm selects a
+midpoint pointsize between the current low and high bounds.</li>
+<li><strong>Word Wrapping Simulation:</strong> Using the underlying font
+rendering library (typically FreeType), ImageMagick calculates the
+word-wrapped layout of the text at that trial pointsize. It breaks lines
+at whitespace boundaries so that no single line exceeds the target width
+<span class="math inline">\(W\)</span>.</li>
+<li><strong>Bounding Box Measurement:</strong> The engine computes the
+total dimensions of the resulting text block, calculating the maximum
+line width and the cumulative height (which includes font ascenders,
+descenders, and line-spacing metrics).</li>
+<li><strong>Boundary Adjustment:</strong>
+<ul>
+<li><strong>If the text overflows:</strong> If the total height exceeds
+the target height <span class="math inline">\(H\)</span>, or if an
+unbreakable word exceeds width <span class="math inline">\(W\)</span>,
+the pointsize is too large. The upper bound is adjusted downward to the
+current midpoint.</li>
+<li><strong>If the text fits:</strong> If the rendered block fits
+completely inside the <span class="math inline">\(W \times H\)</span>
+box, the pointsize is viable. The lower bound is adjusted upward to the
+current midpoint to test if a larger size can fit.</li>
+</ul></li>
+</ol>
+<h3 id="termination-and-convergence">Termination and Convergence</h3>
+<p>The bisection loop repeats until the difference between the lower
+bound and the upper bound falls below a defined tolerance threshold.
+ImageMagick then chooses the highest successful pointsize identified
+during the search. Once selected, the text is formally typeset, wrapped,
+and rasterized onto the canvas.</p>
+<h3 id="factors-that-influence-the-final-pointsize">Factors That
+Influence the Final Pointsize</h3>
+<ul>
+<li><strong>Word Length:</strong> If a single word is exceptionally long
+and hyphenation is not active, the pointsize must scale down so that the
+single word fits inside the target width, even if significant vertical
+space remains.</li>
+<li><strong>Aspect Ratio:</strong> A wide, short box limits pointsize
+based on the total line count and line height, whereas a narrow, tall
+box limits pointsize based on individual line widths.</li>
+<li><strong>Font Metrics:</strong> Line spacing (leading), glyph
+ascenders, and descenders vary between typefaces, directly shifting the
+computed bounding box and resulting in different pointsizes for
+different fonts in the exact same geometry.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

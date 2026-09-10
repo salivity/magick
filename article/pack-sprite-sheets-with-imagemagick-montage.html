@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack Sprite Sheets with ImageMagick Montage - magick</title>
+    <meta name="description" content="This guide explains how to combine multiple individual sprite frames into a single, optimized game texture sheet using ImageMagick's montage command. You will learn the essential command-line arguments to control grid layout, remove unwanted default bord">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/pack-sprite-sheets-with-imagemagick-montage">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pack Sprite Sheets with ImageMagick Montage - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/pack-sprite-sheets-with-imagemagick-montage" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to combine multiple individual sprite frames into a single, optimized game texture sheet using ImageMagick's montage command. You will learn the essential command-line arguments to control grid layout, remove unwanted default bord" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="pack-sprite-sheets-with-imagemagick-montage">Pack Sprite Sheets
+with ImageMagick Montage</h1>
+<p>This guide explains how to combine multiple individual sprite frames
+into a single, optimized game texture sheet using ImageMagick's
+<code>montage</code> command. You will learn the essential command-line
+arguments to control grid layout, remove unwanted default borders,
+preserve transparency, and force consistent frame dimensions for game
+engines.</p>
+<h2 id="basic-syntax-and-the-default-padding-problem">Basic Syntax and
+the Default Padding Problem</h2>
+<p>The <code>montage</code> tool takes a list of input images, tiles
+them into a grid, and outputs a combined image. By default,
+<code>montage</code> adds borders, margins, and resizes images. To build
+a clean game sprite sheet, you must override these defaults.</p>
+<p>The core command structure for game sprites is:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> frame_<span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-geometry</span> +0+0 spritesheet.png</span></code></pre></div>
+<ul>
+<li><code>frame_*.png</code>: The list of input sprites in sequential
+order.</li>
+<li><code>-background none</code>: Ensures the transparent areas of your
+PNG sprites remain transparent rather than filling with a default white
+background.</li>
+<li><code>-geometry +0+0</code>: Removes the default padding, borders,
+and margins between sprites while keeping their original
+dimensions.</li>
+</ul>
+<h2 id="controlling-grid-dimensions">Controlling Grid Dimensions</h2>
+<p>You can specify the exact layout of your sprite sheet using the
+<code>-tile</code> parameter:</p>
+<h3 id="fixed-column-count">Fixed Column Count</h3>
+<p>To arrange sprites into a specific number of columns (e.g., 4
+columns) and let the row count calculate automatically:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> 4x <span class="at">-geometry</span> +0+0 sheet.png</span></code></pre></div>
+<h3 id="fixed-grid-columns-x-rows">Fixed Grid (Columns x Rows)</h3>
+<p>To force a specific grid layout, such as 4 columns by 4 rows:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> 4x4 <span class="at">-geometry</span> +0+0 sheet.png</span></code></pre></div>
+<h3 id="horizontal-strip">Horizontal Strip</h3>
+<p>To create a single horizontal animation strip (useful for simple 2D
+game state animations):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> x1 <span class="at">-geometry</span> +0+0 strip_horizontal.png</span></code></pre></div>
+<h3 id="vertical-strip">Vertical Strip</h3>
+<p>To stack all frames into a single vertical column:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> 1x <span class="at">-geometry</span> +0+0 strip_vertical.png</span></code></pre></div>
+<h2 id="resizing-and-uniform-frame-dimensions">Resizing and Uniform
+Frame Dimensions</h2>
+<p>If your source images vary in size or need to be standardized to
+fixed frame boundaries (e.g., 64x64 pixels per cell), specify the width
+and height inside the <code>-geometry</code> argument:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> 8x <span class="at">-geometry</span> 64x64+0+0 sheet_64x64.png</span></code></pre></div>
+<p>If you want to resize sprites to fit within the box while preserving
+their aspect ratio without stretching, use the <code>&gt;</code> or
+<code>!</code> flags depending on your target dimensions:</p>
+<ul>
+<li><code>64x64!+0+0</code>: Forces every frame to exactly 64x64 pixels,
+ignoring aspect ratio.</li>
+<li><code>64x64+0+0</code>: Fits frames inside a 64x64 box while
+maintaining aspect ratio (centered automatically).</li>
+</ul>
+<h2 id="adding-uniform-padding-between-sprites">Adding Uniform Padding
+Between Sprites</h2>
+<p>Some game engines require texture bleeding margins (padding) to
+prevent edge bleeding artifacts during texture filtering. You can
+introduce spacing using the offsets in the <code>-geometry</code>
+flag:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="pp">*</span>.png <span class="at">-background</span> none <span class="at">-tile</span> 4x <span class="at">-geometry</span> +2+2 sheet_padded.png</span></code></pre></div>
+<p>This adds a 2-pixel gap horizontally and vertically around each
+sprite cell.</p>
+<h2 id="sequential-file-ordering">Sequential File Ordering</h2>
+<p><code>montage</code> processes files in the order they are passed. If
+your sprites are named numerically (e.g., <code>frame_1.png</code>,
+<code>frame_2.png</code>, <code>frame_10.png</code>), standard shell
+expansion may place <code>frame_10.png</code> before
+<code>frame_2.png</code>.</p>
+<p>Ensure your source files use zero-padded naming (e.g.,
+<code>frame_01.png</code>, <code>frame_02.png</code>,
+<code>frame_10.png</code>) or pass a sorted list directly:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">montage</span> <span class="va">$(</span><span class="fu">ls</span> <span class="at">-v</span> frame_<span class="pp">*</span>.png<span class="va">)</span> <span class="at">-background</span> none <span class="at">-geometry</span> +0+0 spritesheet.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

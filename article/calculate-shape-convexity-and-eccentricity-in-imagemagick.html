@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Shape Convexity and Eccentricity in ImageMagick - magick</title>
+    <meta name="description" content="This guide provides a straightforward methodology for calculating the convexity and eccentricity of 2D shapes using ImageMagick. By generating binary masks, retrieving spatial image moments, and measuring geometric boundaries relative to convex hulls, yo">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/calculate-shape-convexity-and-eccentricity-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Calculate Shape Convexity and Eccentricity in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/calculate-shape-convexity-and-eccentricity-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide provides a straightforward methodology for calculating the convexity and eccentricity of 2D shapes using ImageMagick. By generating binary masks, retrieving spatial image moments, and measuring geometric boundaries relative to convex hulls, yo" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="calculate-shape-convexity-and-eccentricity-in-imagemagick">Calculate
+Shape Convexity and Eccentricity in ImageMagick</h1>
+<p>This guide provides a straightforward methodology for calculating the
+convexity and eccentricity of 2D shapes using ImageMagick. By generating
+binary masks, retrieving spatial image moments, and measuring geometric
+boundaries relative to convex hulls, you can quantify morphological
+properties directly through the command line or within automated shell
+scripts.</p>
+<h2 id="1-preparing-the-binary-mask">1. Preparing the Binary Mask</h2>
+<p>To compute shape descriptors accurately, first isolate the target
+object into a clean, binary (black and white) image where the shape is
+white (foreground) and the background is black.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 50% <span class="at">-negate</span> binary_shape.png</span></code></pre></div>
+<p>Ensure the object of interest is fully segmented without stray
+noise.</p>
+<hr />
+<h2 id="2-calculating-eccentricity">2. Calculating Eccentricity</h2>
+<p>Eccentricity measures how much a shape deviates from being circular,
+ranging from <code>0</code> (a perfect circle) to approaching
+<code>1</code> (a straight line). In digital image processing,
+eccentricity is calculated using central image moments.</p>
+<h3 id="extracting-spatial-moments">Extracting Spatial Moments</h3>
+<p>ImageMagick provides the <code>-moments</code> operator to compute
+second-order central moments and ellipse axes:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary_shape.png <span class="at">-moments</span> moments.txt</span></code></pre></div>
+<p>Alternatively, output the moments directly to the console:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> <span class="at">-moments</span> binary_shape.png</span></code></pre></div>
+<p>Look for the <strong>Ellipse Axis</strong> values (Major Axis <span
+class="math inline">\(a\)</span> and Minor Axis <span
+class="math inline">\(b\)</span>) or the <strong>Centroid
+Moments</strong> in the output.</p>
+<h3 id="formula-and-calculation">Formula and Calculation</h3>
+<p>Using the major axis (<span class="math inline">\(a\)</span>) and
+minor axis (<span class="math inline">\(b\)</span>), calculate
+eccentricity (<span class="math inline">\(e\)</span>) with the
+formula:</p>
+<p><span class="math display">\[e = \sqrt{1 -
+\frac{b^2}{a^2}}\]</span></p>
+<p>You can compute this directly using ImageMagick's internal FX
+expression engine by querying the moment properties:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary_shape.png <span class="at">-format</span> <span class="st">&quot;%[fx:sqrt(1 - pow(%[moments:ellipse.axis.y]/%[moments:ellipse.axis.x], 2))]\n&quot;</span> info:</span></code></pre></div>
+<p><em>(Note: Ensure that the denominator corresponds to the larger
+axis).</em></p>
+<hr />
+<h2 id="3-calculating-convexity">3. Calculating Convexity</h2>
+<p>Convexity is the measure of a shape’s topological compactness,
+defined as the ratio between the area of the shape itself and the area
+of its minimum convex hull (the smallest convex polygon that completely
+encloses the shape):</p>
+<p><span class="math display">\[\text{Convexity} =
+\frac{\text{Area}_{\text{shape}}}{\text{Area}_{\text{convex\_hull}}}\]</span></p>
+<h3 id="step-a-measure-shape-area">Step A: Measure Shape Area</h3>
+<p>Calculate the pixel count of the target shape:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="va">SHAPE_AREA</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> binary_shape.png <span class="at">-format</span> <span class="st">&quot;%[fx:mean*w*h]&quot;</span> info:<span class="va">)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Shape Area: </span><span class="va">$SHAPE_AREA</span><span class="st">&quot;</span></span></code></pre></div>
+<h3 id="step-b-generate-the-convex-hull">Step B: Generate the Convex
+Hull</h3>
+<p>While ImageMagick does not have a single-flag convex hull generator,
+you can produce the minimum bounding convex polygon using ImageMagick's
+morphological operations or connected-component analysis combined with
+external polygon extraction (such as <code>potrace</code> or a Delaunay
+triangulator).</p>
+<p>Within native ImageMagick, an approximation can be obtained through
+iterative morphological closing or by extracting the boundary
+coordinates via connected components:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> binary_shape.png <span class="at">-define</span> connected-components:verbose=true <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-connected-components</span> 8 null:</span></code></pre></div>
+<h3 id="step-c-compute-the-ratio">Step C: Compute the Ratio</h3>
+<p>Once the area of the convex hull is determined
+(<code>HULL_AREA</code>), compute the final convexity index:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">CONVEXITY</span><span class="op">=</span><span class="va">$(</span><span class="ex">magick</span> <span class="at">-format</span> <span class="st">&quot;%[fx:</span><span class="va">$SHAPE_AREA</span><span class="st"> / </span><span class="va">$HULL_AREA</span><span class="st">]&quot;</span> info:<span class="va">)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Convexity: </span><span class="va">$CONVEXITY</span><span class="st">&quot;</span></span></code></pre></div>
+<p>A value of <code>1.0</code> indicates a completely convex object
+(e.g., a circle, square, or convex polygon), while lower values indicate
+indented or complex contours.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

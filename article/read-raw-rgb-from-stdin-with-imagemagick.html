@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read Raw RGB from Stdin with ImageMagick - magick</title>
+    <meta name="description" content="Reading raw RGB byte buffers from standard input (stdin) in ImageMagick allows you to process uncompressed pixel streams generated dynamically by external scripts, hardware capture devices, or video pipelines. Because raw pixel streams contain no header">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/read-raw-rgb-from-stdin-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Read Raw RGB from Stdin with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/read-raw-rgb-from-stdin-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Reading raw RGB byte buffers from standard input (stdin) in ImageMagick allows you to process uncompressed pixel streams generated dynamically by external scripts, hardware capture devices, or video pipelines. Because raw pixel streams contain no header" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="read-raw-rgb-from-stdin-with-imagemagick">Read Raw RGB from
+Stdin with ImageMagick</h1>
+<p>Reading raw RGB byte buffers from standard input (stdin) in
+ImageMagick allows you to process uncompressed pixel streams generated
+dynamically by external scripts, hardware capture devices, or video
+pipelines. Because raw pixel streams contain no header metadata, you
+must explicitly define the dimensions, color depth, and channel format
+before reading the input stream. This guide explains the exact command
+syntax, required parameters, and practical usage examples for piping raw
+buffers into ImageMagick.</p>
+<h3 id="basic-syntax">Basic Syntax</h3>
+<p>To read raw RGB bytes from stdin using ImageMagick 7 (or
+<code>convert</code> in ImageMagick 6), use the <code>rgb:-</code>
+format specifier combined with the <code>-size</code> and
+<code>-depth</code> options:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> <span class="op">&lt;</span>WIDTH<span class="op">&gt;</span>x<span class="op">&lt;</span>HEIGHT<span class="op">&gt;</span> -depth <span class="op">&lt;</span>BIT_DEPTH<span class="op">&gt;</span> rgb:- output.png</span></code></pre></div>
+<p>The hyphen (<code>-</code>) following the colon in <code>rgb:-</code>
+explicitly instructs ImageMagick to consume raw pixel data from standard
+input instead of reading from a file path.</p>
+<h3 id="required-parameters">Required Parameters</h3>
+<p>Raw byte streams contain only pixel values without headers describing
+image structure. You must provide the following parameters before the
+input specifier:</p>
+<ul>
+<li><strong><code>-size &lt;WIDTH&gt;x&lt;HEIGHT&gt;</code></strong>:
+Defines the exact pixel dimensions of the raw buffer (e.g.,
+<code>-size 1920x1080</code>). ImageMagick cannot infer resolution from
+raw byte counts.</li>
+<li><strong><code>-depth &lt;BITS&gt;</code></strong>: Specifies the
+color bit depth per channel, typically <code>8</code> for 8-bit (24-bit
+total RGB) or <code>16</code> for 16-bit buffers.</li>
+<li><strong><code>rgb:-</code></strong>: Sets the pixel layout.
+ImageMagick expects interleaved red, green, and blue bytes.</li>
+</ul>
+<h3 id="practical-examples">Practical Examples</h3>
+<h4 id="1-piping-from-python">1. Piping from Python</h4>
+<p>Generate raw RGB bytes using a standard Python script and pipe the
+buffer directly into ImageMagick to produce a PNG:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-c</span> <span class="st">&quot;import sys; sys.stdout.buffer.write(b&#39;\xFF\x00\x00&#39; * 100 * 100)&quot;</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 100x100 <span class="at">-depth</span> 8 rgb:- red_square.png</span></code></pre></div>
+<h4 id="2-handling-rgba-alpha-channel">2. Handling RGBA (Alpha
+Channel)</h4>
+<p>If your buffer includes an alpha channel (4 bytes per pixel for 8-bit
+depth), change the format specifier to <code>rgba:-</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> raw_frame.rgba <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 1280x720 <span class="at">-depth</span> 8 rgba:- output.png</span></code></pre></div>
+<h4 id="3-handling-bgr-format">3. Handling BGR Format</h4>
+<p>If the source produces bytes in Blue-Green-Red order (commonly used
+by OpenCV and Windows bitmaps), use <code>bgr:-</code> or
+<code>bgra:-</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> frame.bgr <span class="kw">|</span> <span class="ex">magick</span> <span class="at">-size</span> 640x480 <span class="at">-depth</span> 8 bgr:- output.jpg</span></code></pre></div>
+<h4 id="4-piping-from-ffmpeg">4. Piping from FFmpeg</h4>
+<p>Extract a raw frame from a video file directly into an ImageMagick
+pipeline without saving intermediate files to disk:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ffmpeg</span> <span class="at">-i</span> input.mp4 <span class="at">-vframes</span> 1 <span class="at">-f</span> rawvideo <span class="at">-pix_fmt</span> rgb24 <span class="at">-</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 1920x1080 <span class="at">-depth</span> 8 rgb:- frame.webp</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

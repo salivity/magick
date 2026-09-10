@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flatten PSD Layers to Image with ImageMagick - magick</title>
+    <meta name="description" content="This guide explains how to flatten all visible layers of an Adobe Photoshop (PSD) file into a single image format using ImageMagick. You will learn the exact command-line syntax needed for flattening, the difference between collapsing individual layers a">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/flatten-psd-layers-to-image-with-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Flatten PSD Layers to Image with ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/flatten-psd-layers-to-image-with-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to flatten all visible layers of an Adobe Photoshop (PSD) file into a single image format using ImageMagick. You will learn the exact command-line syntax needed for flattening, the difference between collapsing individual layers a" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="flatten-psd-layers-to-image-with-imagemagick">Flatten PSD Layers
+to Image with ImageMagick</h1>
+<p>This guide explains how to flatten all visible layers of an Adobe
+Photoshop (PSD) file into a single image format using ImageMagick. You
+will learn the exact command-line syntax needed for flattening, the
+difference between collapsing individual layers and extracting
+Photoshop's embedded composite image, and how to properly preserve
+transparency during conversion.</p>
+<h3 id="the-standard-flatten-command">The Standard Flatten Command</h3>
+<p>To merge all individual layers of a PSD file into a single flattened
+image, use the <code>-flatten</code> operator (or
+<code>-layers flatten</code> in ImageMagick 7).</p>
+<p><strong>ImageMagick 7 (recommended):</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd <span class="at">-flatten</span> output.png</span></code></pre></div>
+<p><strong>ImageMagick 6:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.psd <span class="at">-flatten</span> output.png</span></code></pre></div>
+<p>This command reads all the layers inside the PSD, composites them
+from bottom to top according to their layer offsets and blending modes,
+and exports the final result to your designated format (e.g.,
+<code>.png</code>, <code>.jpg</code>, <code>.webp</code>).</p>
+<hr />
+<h3 id="extracting-the-pre-rendered-composite-0">Extracting the
+Pre-Rendered Composite (<code>[0]</code>)</h3>
+<p>Photoshop files typically store a pre-rendered, flattened composite
+image as the very first layer (index <code>0</code>). If you want the
+exact view saved by Photoshop without forcing ImageMagick to
+re-calculate layer blend modes, select layer index <code>[0]</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd<span class="pp">[</span><span class="ss">0</span><span class="pp">]</span> output.png</span></code></pre></div>
+<p>Using <code>[0]</code> is significantly faster for large PSD files
+with numerous layers, as it skips processing each layer
+individually.</p>
+<hr />
+<h3 id="preserving-transparency">Preserving Transparency</h3>
+<p>By default, flattening onto certain formats may fill transparent
+areas with a default background color (usually white). To maintain a
+transparent background when exporting to PNG or WebP, specify
+<code>-background none</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.psd <span class="at">-background</span> none <span class="at">-flatten</span> output.png</span></code></pre></div>
+<hr />
+<h3 id="handling-hidden-layers">Handling Hidden Layers</h3>
+<p>If your PSD contains hidden layers, ImageMagick might include them
+depending on how the PSD was saved. If hidden layers are interfering
+with the <code>-flatten</code> command, using the composite index
+<code>[0]</code> is the most reliable method, as Photoshop's built-in
+composite only renders currently visible layers at the time of
+saving.</p>
+<hr />
+<h3 id="batch-flattening-multiple-psd-files">Batch Flattening Multiple
+PSD Files</h3>
+<p>To flatten an entire directory of PSD files into PNG format, use the
+<code>mogrify</code> command:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-format</span> png <span class="at">-flatten</span> <span class="pp">*</span>.psd</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

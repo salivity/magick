@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Delta E Color Distance in ImageMagick - magick</title>
+    <meta name="description" content="Delta E ($\Delta E$) measures the perceived difference between two colors based on human vision, typically evaluated within the CIELAB color space. This guide explains how to calculate Delta E (specifically CIE76) between corresponding pixels of two imag">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/calculate-delta-e-color-distance-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Calculate Delta E Color Distance in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/calculate-delta-e-color-distance-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Delta E ($\Delta E$) measures the perceived difference between two colors based on human vision, typically evaluated within the CIELAB color space. This guide explains how to calculate Delta E (specifically CIE76) between corresponding pixels of two imag" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="calculate-delta-e-color-distance-in-imagemagick">Calculate Delta
+E Color Distance in ImageMagick</h1>
+<p>Delta E (<span class="math inline">\(\Delta E\)</span>) measures the
+perceived difference between two colors based on human vision, typically
+evaluated within the CIELAB color space. This guide explains how to
+calculate Delta E (specifically CIE76) between corresponding pixels of
+two images using ImageMagick. You will learn how to produce both a
+visual per-pixel difference map and a quantitative statistical
+measurement across your images.</p>
+<h3 id="understanding-delta-e-in-imagemagick">Understanding Delta E in
+ImageMagick</h3>
+<p>Standard image difference algorithms (like Mean Squared Error in RGB)
+treat all color channels uniformly without accounting for human visual
+perception. Delta E resolves this by converting RGB coordinates into the
+perceptual CIELAB (<span class="math inline">\(L^*a^*b^*\)</span>)
+space.</p>
+<p>The standard CIE76 formula computes the Euclidean distance between
+two Lab colors:</p>
+<p><span class="math display">\[\Delta E^*_{ab} = \sqrt{(L_2 - L_1)^2 +
+(a_2 - a_1)^2 + (b_2 - b_1)^2}\]</span></p>
+<p>ImageMagick can perform this calculation either as a single overall
+value using the <code>compare</code> tool or on a pixel-by-pixel basis
+to output a Delta E map.</p>
+<hr />
+<h3 id="method-1-generating-a-per-pixel-delta-e-map">Method 1:
+Generating a Per-Pixel Delta E Map</h3>
+<p>To calculate the Euclidean color distance for every corresponding
+pixel and output a visual heat map or data image, use the
+<code>-fx</code> operator or composite arithmetic in ImageMagick 7.</p>
+<h4 id="using-the--fx-operator">Using the <code>-fx</code> Operator</h4>
+<p>The <code>-fx</code> command processes each pixel mathematically.
+When images are converted to Lab space, ImageMagick normalizes the
+channels internally between 0.0 and 1.0. To reflect standard Lab scaling
+(<span class="math inline">\(L^* \in [0, 100]\)</span>, <span
+class="math inline">\(a^*, b^* \in [-128, 127]\)</span>), apply channel
+multipliers:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png image2.png <span class="at">-colorspace</span> Lab <span class="at">-fx</span> <span class="st">&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">  dL = (u.r - v.r) * 100;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="st">  da = (u.g - v.g) * 255;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="st">  db = (u.b - v.b) * 255;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="st">  sqrt(dL*dL + da*da + db*db) / 100</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span> delta_e_map.png</span></code></pre></div>
+<ul>
+<li><code>u</code> refers to <code>image1.png</code> and <code>v</code>
+refers to <code>image2.png</code>.</li>
+<li><code>u.r</code>, <code>u.g</code>, and <code>u.b</code> represent
+the <span class="math inline">\(L^*\)</span>, <span
+class="math inline">\(a^*\)</span>, and <span
+class="math inline">\(b^*\)</span> channels, respectively.</li>
+<li>Dividing by 100 scales the Delta E values into a viewable grayscale
+range where brighter pixels represent higher perceptual
+differences.</li>
+</ul>
+<hr />
+<h3 id="method-2-measuring-global-delta-e-using-compare">Method 2:
+Measuring Global Delta E Using <code>compare</code></h3>
+<p>If you need a single statistical number representing the color
+distance across the entire image, use the <code>compare</code> command
+with the CIELAB colorspace and the <code>RMSE</code> (Root Mean Square
+Error) metric:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> RMSE <span class="at">-colorspace</span> Lab image1.png image2.png diff_visual.png</span></code></pre></div>
+<p>This outputs two values to the standard error stream:</p>
+<ol type="1">
+<li>The normalized distance (range <code>0.0</code> to
+<code>1.0</code>).</li>
+<li>The raw value in parentheses (dependent on your ImageMagick build's
+quantum depth, such as 8-bit or 16-bit).</li>
+</ol>
+<p>To interpret this as a rough average CIE76 <span
+class="math inline">\(\Delta E\)</span>:</p>
+<ul>
+<li>Multiply the normalized decimal value by <code>100</code> to get an
+approximation of the average Delta E across all pixels.</li>
+</ul>
+<hr />
+<h3 id="method-3-fast-channel-separation-with-pure-arithmetic">Method 3:
+Fast Channel Separation with Pure Arithmetic</h3>
+<p>The <code>-fx</code> operator can be slow on large images. For better
+performance on high-resolution files, separate the channels, perform
+difference arithmetic, and combine them using composite operators:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image1.png <span class="at">-colorspace</span> Lab lab1.mpc</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> image2.png <span class="at">-colorspace</span> Lab lab2.mpc</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> lab1.mpc lab2.mpc <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-separate</span> <span class="dt">\</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-evaluate</span> Multiply 100 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 1 <span class="at">-evaluate</span> Multiply 255 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 2 <span class="at">-evaluate</span> Multiply 255 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0-2 <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-clone</span> 0 <span class="at">-compose</span> Multiply <span class="at">-composite</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 1 <span class="at">-clone</span> 1 <span class="at">-compose</span> Multiply <span class="at">-composite</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 2 <span class="at">-clone</span> 2 <span class="at">-compose</span> Multiply <span class="at">-composite</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 0-2 <span class="dt">\</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">-evaluate-sequence</span> Add <span class="dt">\</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">-evaluate</span> Pow 0.5 <span class="dt">\</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  delta_e_distance.tiff</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> lab1.mpc lab1.cache lab2.mpc lab2.cache</span></code></pre></div>
+<p>Using 32-bit floating point output (such as <code>.tiff</code> with
+HDRI enabled) ensures raw Delta E numbers are preserved without clipping
+differences greater than standard display limits.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

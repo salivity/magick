@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick HWB Colorspace Explained - magick</title>
+    <meta name="description" content="This article explores how ImageMagick utilizes the HWB (Hue, Whiteness, Blackness) colorspace to define digital colors in a painter-friendly, intuitive format. By moving away from additive red, green, and blue values or the saturation-lightness coordinat">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hwb-colorspace-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick HWB Colorspace Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hwb-colorspace-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how ImageMagick utilizes the HWB (Hue, Whiteness, Blackness) colorspace to define digital colors in a painter-friendly, intuitive format. By moving away from additive red, green, and blue values or the saturation-lightness coordinat" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hwb-colorspace-explained">ImageMagick HWB Colorspace
+Explained</h1>
+<p>This article explores how ImageMagick utilizes the HWB (Hue,
+Whiteness, Blackness) colorspace to define digital colors in a
+painter-friendly, intuitive format. By moving away from additive red,
+green, and blue values or the saturation-lightness coordinates of HSL,
+ImageMagick’s <code>-colorspace HWB</code> modifier isolates a pure base
+pigment and adjusts its appearance by simply adding white and black.
+Below, we examine the mechanics of these whiteness and blackness
+metrics, their mathematical limits, and how ImageMagick maps them across
+its processing pipeline.</p>
+<h2 id="the-foundation-of-the-hwb-model">The Foundation of the HWB
+Model</h2>
+<p>The HWB model was developed in 1996 by Alvy Ray Smith as an intuitive
+alternative to HSV (Hue, Saturation, Value). While standard RGB
+coordinates describe how light blends on a screen, HWB models how an
+artist mixes paint on a palette.</p>
+<p>In this system, color is broken down into three distinct
+components:</p>
+<ul>
+<li><strong>Hue (<span class="math inline">\(H\)</span>):</strong>
+Represents the pure pigment or base chromatic wavelength (such as red,
+green, cyan, or yellow). In standard representations, this is measured
+along a standard 360-degree color wheel.</li>
+<li><strong>Whiteness (<span class="math inline">\(W\)</span>):</strong>
+The percentage of pure white tint added to the hue.</li>
+<li><strong>Blackness (<span class="math inline">\(B\)</span>):</strong>
+The percentage of pure black shade added to the hue.</li>
+</ul>
+<h2 id="how-whiteness-and-blackness-metrics-work">How Whiteness and
+Blackness Metrics Work</h2>
+<p>Rather than manipulating saturation and lightness curves that
+interact non-linearly, the whiteness and blackness channels in
+ImageMagick function as linear desaturating constraints.</p>
+<h3 id="1-independent-tinting-and-shading">1. Independent Tinting and
+Shading</h3>
+<ul>
+<li><strong>Increasing Whiteness:</strong> Drives the color toward pure
+white. A hue mixed with a high whiteness value and zero blackness
+creates a pastel or tint.</li>
+<li><strong>Increasing Blackness:</strong> Drives the color toward pure
+black. A hue mixed with a high blackness value and zero whiteness
+creates a deep shade.</li>
+<li><strong>Tones (Simultaneous <span class="math inline">\(W\)</span>
+and <span class="math inline">\(B\)</span>):</strong> Adding both white
+and black simultaneously creates intermediate, muted tones without
+shifting the underlying hue angle.</li>
+</ul>
+<h3 id="2-the-normalization-constraint-w--b-le-10">2. The Normalization
+Constraint (<span class="math inline">\(W + B \le 1.0\)</span>)</h3>
+<p>In a standard full-color state, the sum of whiteness and blackness is
+strictly less than 1.0 (or 100%). The remaining fraction, <span
+class="math inline">\(1 - (W + B)\)</span>, represents the amount of
+pure, saturated hue visible in the resulting pixel.</p>
+<p>When the sum of whiteness and blackness reaches or exceeds 1.0 (<span
+class="math inline">\(W + B \ge 1.0\)</span>), chromaticity is
+completely extinguished. The hue metric is ignored, and the color
+collapses into a neutral gray. ImageMagick normalizes the value so that
+the resulting gray shade is calculated precisely by the ratio of
+whiteness to total non-chromatic pigment:</p>
+<p><span class="math display">\[\text{Gray Level} = \frac{W}{W +
+B}\]</span></p>
+<p>If <span class="math inline">\(W = 1.0\)</span> and <span
+class="math inline">\(B = 0.0\)</span>, the output is pure white. If
+<span class="math inline">\(W = 0.0\)</span> and <span
+class="math inline">\(B = 1.0\)</span>, the output is pure black. If
+both are equal (such as <span class="math inline">\(0.5\)</span> each),
+the result is an exact 50% neutral gray.</p>
+<h2 id="imagemagick-channel-representation">ImageMagick Channel
+Representation</h2>
+<p>When invoking <code>-colorspace HWB</code> in an ImageMagick
+command:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-colorspace</span> HWB <span class="at">-separate</span> channels_%d.png</span></code></pre></div>
+<p>ImageMagick converts the image data into three grayscale channels
+representing the underlying raw values normalized to the build's quantum
+depth (such as Q8 or Q16):</p>
+<ul>
+<li><strong>Channel 0 (Hue):</strong> Represents the hue angle mapped
+across the quantum range (0 to 100%, where 0% is red, ~33% is green, and
+~67% is blue).</li>
+<li><strong>Channel 1 (Whiteness):</strong> A grayscale intensity map
+where black pixels signify 0% whiteness and white pixels represent 100%
+whiteness.</li>
+<li><strong>Channel 2 (Blackness):</strong> A grayscale intensity map
+where black pixels signify 0% blackness and white pixels represent 100%
+blackness.</li>
+</ul>
+<p>By isolating whiteness and blackness into direct linear channels,
+ImageMagick allows operations such as contrast adjustments, tinting, and
+shading without distorting color temperature or altering the underlying
+base hue.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

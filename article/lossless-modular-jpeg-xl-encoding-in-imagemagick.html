@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lossless Modular JPEG XL Encoding in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick achieves lossless JPEG XL (JXL) compression by routing image data through the reference library libjxl to generate a dedicated modular bitstream within the JXL format. Unlike the DCT-based VarDCT mode used for lossy photographic content, loss">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/lossless-modular-jpeg-xl-encoding-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Lossless Modular JPEG XL Encoding in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/lossless-modular-jpeg-xl-encoding-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick achieves lossless JPEG XL (JXL) compression by routing image data through the reference library libjxl to generate a dedicated modular bitstream within the JXL format. Unlike the DCT-based VarDCT mode used for lossy photographic content, loss" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="lossless-modular-jpeg-xl-encoding-in-imagemagick">Lossless
+Modular JPEG XL Encoding in ImageMagick</h1>
+<p>ImageMagick achieves lossless JPEG XL (JXL) compression by routing
+image data through the reference library <code>libjxl</code> to generate
+a dedicated modular bitstream within the JXL format. Unlike the
+DCT-based VarDCT mode used for lossy photographic content, lossless
+encoding automatically switches the architecture to JPEG XL’s Modular
+mode. This pipeline relies on reversible color transforms, localized
+spatial predictors, and Asymmetric Numeral System (ANS) entropy coding
+to compress raster data bit-for-bit without loss, packaging the results
+into a compliant raw codestream or an ISO Base Media File Format
+(ISOBMFF) container.</p>
+<h3 id="the-role-of-imagemagick-and-libjxl">The Role of ImageMagick and
+<code>libjxl</code></h3>
+<p>ImageMagick does not implement the core JPEG XL mathematical
+transforms natively. Instead, its internal delegate architecture acts as
+an abstraction layer that interfaces with <code>libjxl</code>.</p>
+<p>When a user invokes a command such as
+<code>magick input.png -quality 100 output.jxl</code>, ImageMagick
+recognizes the maximum quality setting and translates this into
+<code>libjxl</code> API calls. Specifically, it configures the encoder
+with a Butteraugli distance of <code>0.0</code> and triggers the
+lossless flag (<code>JxlEncoderSetFrameLossless</code>). This
+configuration forces the underlying encoder to bypass the lossy VarDCT
+engine entirely and direct all pixel processing to the Modular
+engine.</p>
+<p>Users can control modular performance characteristics directly from
+ImageMagick via definitions:</p>
+<ul>
+<li><code>-define jxl:effort=[1-9]</code>: Adjusts the computational
+heuristics for spatial tree generation and context modeling.</li>
+<li><code>-define jxl:modular=1</code>: Manually mandates the modular
+pipeline, even if working at non-default settings.</li>
+</ul>
+<h3 id="the-modular-engine-architecture">The Modular Engine
+Architecture</h3>
+<p>The JPEG XL Modular engine is an integer-based coding framework
+designed specifically for lossless graphics, non-photographic assets,
+alpha channels, and responsive sub-resolutions.</p>
+<p>When ImageMagick passes uncompressed pixel channels (such as 8-bit,
+16-bit, or floating-point RGBA buffers) to <code>libjxl</code>, the
+modular pipeline processes the data through a series of discrete,
+reversible stages:</p>
+<h4 id="1-reversible-color-transformations-rct">1. Reversible Color
+Transformations (RCT)</h4>
+<p>Standard color conversions (like lossy RGB to YCbCr) introduce
+rounding errors and floating-point drift. The Modular engine instead
+applies Reversible Color Transforms, such as reversible YCoCg-R, or
+derives dynamic, data-dependent color transforms using decision trees.
+This step decorrelates the color channels without altering the
+underlying integer fidelity.</p>
+<h4 id="2-squeeze-transforms">2. Squeeze Transforms</h4>
+<p>The modular mode can optionally apply reversible Haar-like transforms
+across horizontal and vertical dimensions (the "Squeeze" transform).
+This breaks the image into progressive resolution layers. While
+frequently disabled in pure lossless operations to minimize overhead,
+higher effort levels explore this step to improve spatial correlation in
+specific channel configurations.</p>
+<h4 id="3-spatial-prediction">3. Spatial Prediction</h4>
+<p>To remove intra-channel redundancy, the modular engine uses
+predictive coding on the decorrelated channels. Rather than storing
+literal pixel values, the encoder predicts the value of the current
+pixel based on its previously encoded neighbors (North, West,
+North-West) and records only the residual error (difference).</p>
+<p>Common predictors deployed by the modular engine include:</p>
+<ul>
+<li><strong>Zero/None</strong>: Useful for high-entropy or noisy
+regions.</li>
+<li><strong>Clamped Gradient (Median)</strong>: Calculates <span
+class="math inline">\(West + North - NorthWest\)</span>, clamping the
+result to maintain edge boundaries.</li>
+<li><strong>Weighted/Adaptive Predictors</strong>: Dynamically evaluated
+predictors selected via decision trees that adjust to gradients and
+directional edges.</li>
+</ul>
+<h4 id="4-context-trees-and-entropy-coding">4. Context Trees and Entropy
+Coding</h4>
+<p>The prediction residuals are processed using Asymmetric Numeral
+Systems (ANS), a modern alternative to traditional Huffman or arithmetic
+coding that pairs high throughput with optimal compression ratios.</p>
+<p>The modular engine constructs binary decision trees (Modular Trees)
+based on local properties—such as the gradient magnitude or values of
+neighboring pixels. These trees partition residuals into distinct
+contexts, allowing the ANS encoder to model the probability distribution
+of errors accurately. Higher effort levels configured in ImageMagick
+grant the tree search algorithm more time to find optimal splitting
+points, significantly reducing final file sizes.</p>
+<h3 id="packaging-into-the-jxl-container">Packaging into the JXL
+Container</h3>
+<p>Once the modular stream is finalized, ImageMagick packages the
+encoded bitstream into one of two container structures:</p>
+<ol type="1">
+<li><strong>Bare Codestream</strong>: If the image contains no external
+metadata (such as Exif, XMP, or custom color profiles), the stream is
+written directly with standard JXL framing markers
+(<code>0xFF0A</code>).</li>
+<li><strong>ISOBMFF Box-Based Container</strong>: When metadata
+preservation is required, ImageMagick creates a standard box structure
+starting with a JXL file header box (<code>ftyp jxl </code>). The raw
+modular codestream is placed within a <code>jbrd</code> (JPEG
+reconstruction data) or <code>jxli</code> / <code>jxlc</code>
+(codestream) box, while Exif, XMP, and ICC profiles are encapsulated
+within dedicated metadata boxes (<code>Exif</code>, <code>xml </code>,
+and standard color specification markers).</li>
+</ol>
+<p>This modular container workflow ensures that regardless of whether
+the source is a high-depth medical scan, digital art, or a simple
+photographic file, ImageMagick delivers a standard-compliant, fully
+lossless representation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

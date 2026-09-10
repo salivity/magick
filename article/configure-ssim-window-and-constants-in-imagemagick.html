@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure SSIM Window and Constants in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick enables precise structural similarity (SSIM) image comparisons by allowing users to adjust calculation parameters directly through command-line definitions. This guide explains how to customize the SSIM Gaussian window dimensions and stabilit">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/configure-ssim-window-and-constants-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Configure SSIM Window and Constants in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/configure-ssim-window-and-constants-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick enables precise structural similarity (SSIM) image comparisons by allowing users to adjust calculation parameters directly through command-line definitions. This guide explains how to customize the SSIM Gaussian window dimensions and stabilit" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="configure-ssim-window-and-constants-in-imagemagick">Configure
+SSIM Window and Constants in ImageMagick</h1>
+<p>ImageMagick enables precise structural similarity (SSIM) image
+comparisons by allowing users to adjust calculation parameters directly
+through command-line definitions. This guide explains how to customize
+the SSIM Gaussian window dimensions and stability constants (<span
+class="math inline">\(K_1\)</span> and <span
+class="math inline">\(K_2\)</span>) using ImageMagick's
+<code>-define</code> directives to tailor quality assessments to
+specific image analysis workflows.</p>
+<hr />
+<h3 id="basic-ssim-syntax-in-imagemagick">Basic SSIM Syntax in
+ImageMagick</h3>
+<p>To compute SSIM between two images, the <code>compare</code> command
+(or <code>magick compare</code> in ImageMagick 7) is executed with the
+<code>-metric SSIM</code> argument:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> SSIM reference.png distorted.png null:</span></code></pre></div>
+<hr />
+<h3 id="window-dimension-configuration">Window Dimension
+Configuration</h3>
+<p>The SSIM metric relies on a local Gaussian sliding window to evaluate
+luminance, contrast, and structural similarity across local
+neighborhoods. ImageMagick configures this window using two key
+parameters:</p>
+<ul>
+<li><strong><code>ssim:radius</code></strong>: Sets the radius of the
+Gaussian weighting window.</li>
+<li><strong><code>ssim:sigma</code></strong>: Sets the standard
+deviation (<span class="math inline">\(\sigma\)</span>) of the Gaussian
+weighting function.</li>
+</ul>
+<p>To modify the default window dimensions (default radius is derived
+from <span class="math inline">\(\sigma\)</span>, typically <span
+class="math inline">\(\sigma = 1.5\)</span>), use the following
+syntax:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> SSIM <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:radius=5 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:sigma=1.5 <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  reference.png distorted.png null:</span></code></pre></div>
+<p>A smaller window focuses more on micro-textures and high-frequency
+details, while a larger window evaluates broader structural changes
+across larger regions.</p>
+<hr />
+<h3 id="ssim-constant-configuration">SSIM Constant Configuration</h3>
+<p>SSIM uses two stabilizing constants, <span
+class="math inline">\(C_1\)</span> and <span
+class="math inline">\(C_2\)</span>, to prevent division-by-zero
+instability when local mean or variance is close to zero. These are
+calculated as:</p>
+<ul>
+<li><span class="math inline">\(C_1 = (K_1 \cdot L)^2\)</span></li>
+<li><span class="math inline">\(C_2 = (K_2 \cdot L)^2\)</span></li>
+</ul>
+<p><em>(where <span class="math inline">\(L\)</span> is the dynamic
+range of pixel values, automatically handled by ImageMagick according to
+quantum depth).</em></p>
+<p>You can adjust <span class="math inline">\(K_1\)</span> and <span
+class="math inline">\(K_2\)</span> using:</p>
+<ul>
+<li><strong><code>ssim:k1</code></strong>: Modifies the luminance
+stability constant (standard default is <code>0.01</code>).</li>
+<li><strong><code>ssim:k2</code></strong>: Modifies the
+contrast/structure stability constant (standard default is
+<code>0.03</code>).</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> SSIM <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:k1=0.01 <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:k2=0.03 <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  reference.png distorted.png null:</span></code></pre></div>
+<hr />
+<h3 id="complete-command-example">Complete Command Example</h3>
+<p>Combining window dimensions and constants in a single command:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> compare <span class="at">-metric</span> SSIM <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:radius=7 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:sigma=2.0 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:k1=0.01 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-define</span> ssim:k2=0.03 <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  reference.png distorted.png difference_map.png</span></code></pre></div>
+<p>This command outputs both the numerical SSIM score to the terminal
+and a visual difference map saved to
+<code>difference_map.png</code>.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

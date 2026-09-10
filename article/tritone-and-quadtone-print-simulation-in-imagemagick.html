@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tritone and Quadtone Print Simulation in ImageMagick - magick</title>
+    <meta name="description" content="Simulating tritone and quadtone prints in ImageMagick involves converting a base image to grayscale and remapping its tonal spectrum across three or four specific ink colors using a Color Look-Up Table (CLUT). This guide provides the exact command-line s">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/tritone-and-quadtone-print-simulation-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tritone and Quadtone Print Simulation in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/tritone-and-quadtone-print-simulation-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Simulating tritone and quadtone prints in ImageMagick involves converting a base image to grayscale and remapping its tonal spectrum across three or four specific ink colors using a Color Look-Up Table (CLUT). This guide provides the exact command-line s" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tritone-and-quadtone-print-simulation-in-imagemagick">Tritone
+and Quadtone Print Simulation in ImageMagick</h1>
+<p>Simulating tritone and quadtone prints in ImageMagick involves
+converting a base image to grayscale and remapping its tonal spectrum
+across three or four specific ink colors using a Color Look-Up Table
+(CLUT). This guide provides the exact command-line syntax to simulate
+multi-ink print techniques, allowing you to achieve authentic darkroom
+and fine-art press color toning.</p>
+<h3 id="understanding-multi-tone-color-look-up-tables">Understanding
+Multi-Tone Color Look-Up Tables</h3>
+<p>In traditional multi-tone printing, multiple inks are applied across
+specific tonal values (shadows, mid-tones, and highlights). In
+ImageMagick, this process is modeled by generating a 1-pixel wide
+gradient containing your target ink stops, then mapping that gradient
+onto a grayscale base image using the <code>-clut</code> operator.</p>
+<h3 id="tritone-simulation-syntax">Tritone Simulation Syntax</h3>
+<p>A tritone uses three ink colors: typically a deep tone for shadows, a
+tinted midtone, and a highlight color.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 1x256 gradient:<span class="st">&quot;#1a1105-#734f2d-#f5e6d3&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-clut</span> output_tritone.jpg</span></code></pre></div>
+<p><strong>Syntax breakdown:</strong></p>
+<ul>
+<li><code>input.jpg -colorspace Gray</code>: Strips original color data
+to create a clean luminosity map.</li>
+<li><code>\( -size 1x256 gradient:"#color1-#color2-#color3" \)</code>:
+Creates a 256-level color ramp.
+<ul>
+<li><code>#1a1105</code>: Deep shadow ink.</li>
+<li><code>#734f2d</code>: Midtone ink.</li>
+<li><code>#f5e6d3</code>: Highlight paper/ink tint.</li>
+</ul></li>
+<li><code>-clut</code>: Replaces the grayscale values of the main image
+with the corresponding colors from the generated gradient.</li>
+</ul>
+<h3 id="quadtone-simulation-syntax">Quadtone Simulation Syntax</h3>
+<p>A quadtone introduces four distinct ink ranges: deep shadows, dark
+midtones, light midtones, and paper base/highlights.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 1x256 gradient:<span class="st">&quot;#0a0a0f-#36454f-#8b8589-#fdfbf7&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-clut</span> output_quadtone.jpg</span></code></pre></div>
+<p><strong>Syntax breakdown:</strong></p>
+<ul>
+<li><code>#0a0a0f</code>: Primary shadow tone (e.g., carbon black).</li>
+<li><code>#36454f</code>: Dark midtone (e.g., cool slate gray).</li>
+<li><code>#8b8589</code>: Light midtone (e.g., warm gray).</li>
+<li><code>#fdfbf7</code>: Highlight tone (e.g., warm cotton rag
+base).</li>
+</ul>
+<h3 id="asymmetrical-tonal-distribution">Asymmetrical Tonal
+Distribution</h3>
+<p>By default, standard multi-stop gradients space color stops evenly.
+To bias ink saturation toward shadows or highlights, generate the
+gradient using non-linear interpolation or specific percentage stops
+using the <code>sparse-color</code> or <code>gradient</code> weighting
+parameters:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-size</span> 1x256 xc: <span class="at">-sparse-color</span> Barycentric <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="st">&quot;0,0 #0a0a0f  0,64 #36454f  0,160 #8b8589  0,255 #fdfbf7&quot;</span> <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-clut</span> output_asymmetric_quadtone.jpg</span></code></pre></div>
+<p>In this command, the coordinates define the vertical position (from 0
+to 255) where each ink reaches peak density, providing precise control
+over ink curves.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

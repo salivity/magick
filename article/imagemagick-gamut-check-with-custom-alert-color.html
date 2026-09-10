@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Gamut Check With Custom Alert Color - magick</title>
+    <meta name="description" content="Highlighting out-of-gamut pixels is a critical step in color proofing and print preparation workflows. This guide demonstrates how to detect colors that cannot be accurately reproduced in a target profile (such as a CMYK print space) and replace those pi">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-gamut-check-with-custom-alert-color">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Gamut Check With Custom Alert Color - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-gamut-check-with-custom-alert-color" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Highlighting out-of-gamut pixels is a critical step in color proofing and print preparation workflows. This guide demonstrates how to detect colors that cannot be accurately reproduced in a target profile (such as a CMYK print space) and replace those pi" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-gamut-check-with-custom-alert-color">ImageMagick
+Gamut Check With Custom Alert Color</h1>
+<p>Highlighting out-of-gamut pixels is a critical step in color proofing
+and print preparation workflows. This guide demonstrates how to detect
+colors that cannot be accurately reproduced in a target profile (such as
+a CMYK print space) and replace those pixels with a high-visibility
+custom alert color using ImageMagick.</p>
+<hr />
+<h3 id="the-gamut-check-strategy">The Gamut-Check Strategy</h3>
+<p>ImageMagick identifies out-of-gamut pixels by simulating a color
+transform round-trip:</p>
+<ol type="1">
+<li>Convert the original image (e.g., in sRGB) to the target profile
+(e.g., a specific CMYK profile), where out-of-gamut values are clipped
+or remapped.</li>
+<li>Convert that result back to the original color space.</li>
+<li>Compare the original image with the round-tripped image to generate
+a difference mask.</li>
+<li>Overlay a custom alert color (such as bright magenta, cyan, or neon
+green) on top of the original image wherever the difference exceeds a
+chosen tolerance threshold.</li>
+</ol>
+<hr />
+<h3 id="imagemagick-syntax">ImageMagick Syntax</h3>
+<p>To perform this operation in ImageMagick v7, use the following
+syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-profile</span> /path/to/sRGB.icc <span class="at">-profile</span> /path/to/target.icc <span class="at">-profile</span> /path/to/sRGB.icc <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0,1 <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="at">-colorspace</span> Gray <span class="at">-threshold</span> 1% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-delete</span> 1 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> <span class="at">-clone</span> 0 <span class="at">-fill</span> <span class="st">&quot;#FF00FF&quot;</span> <span class="at">-colorize</span> 100% <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-swap</span> 1,2 <span class="dt">\</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  output_gamut_alert.jpg</span></code></pre></div>
+<hr />
+<h3 id="syntax-breakdown">Syntax Breakdown</h3>
+<ul>
+<li><code>input.jpg</code>: The source image in its initial color
+space.</li>
+<li><code>\( +clone -profile sRGB.icc -profile target.icc -profile sRGB.icc \)</code>:
+Creates an in-memory copy, converts it into the destination profile
+(clipping out-of-gamut colors), and converts it back to sRGB.</li>
+<li><code>\( -clone 0,1 -compose Difference -composite -colorspace Gray -threshold 1% \)</code>:
+Compares the original image against the round-tripped version. Any pixel
+that shifted during the color conversion becomes white in the binary
+mask; matching pixels become black.</li>
+<li><code>-threshold 1%</code>: The tolerance level. Lower values (e.g.,
+<code>0.5%</code>) catch subtle shifts, while higher values (e.g.,
+<code>2%</code> to <code>5%</code>) only flag severe out-of-gamut
+clipping.</li>
+<li><code>-delete 1</code>: Removes the intermediate round-tripped image
+from the stack to free memory.</li>
+<li><code>\( -clone 0 -fill "#FF00FF" -colorize 100% \)</code>: Creates
+a solid layer of the custom alert color (hex code <code>#FF00FF</code>
+for magenta). Replace this value with any desired alert color, such as
+<code>#00FF00</code> for lime green.</li>
+<li><code>-swap 1,2 -composite</code>: Uses the threshold difference
+mask to composite the solid alert color over the original image.</li>
+</ul>
+<hr />
+<h3 id="exporting-the-mask-only">Exporting the Mask Only</h3>
+<p>If you only need a standalone black-and-white mask showing
+out-of-gamut areas (white pixels representing gamut warnings):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> +clone <span class="at">-profile</span> /path/to/sRGB.icc <span class="at">-profile</span> /path/to/target.icc <span class="at">-profile</span> /path/to/sRGB.icc <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-compose</span> Difference <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-threshold</span> 1% <span class="dt">\</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  gamut_mask.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

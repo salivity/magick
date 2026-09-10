@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compute Hypotenuse with ImageMagick -fx - magick</title>
+    <meta name="description" content="This article explains how to compute the hypotenuse of two distinct color channels in an image using the ImageMagick -fx operator. It details the mathematical syntax required by the expression parser, the channel reference notation, and provides direct c">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/compute-hypotenuse-with-imagemagick-fx">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Compute Hypotenuse with ImageMagick -fx - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/compute-hypotenuse-with-imagemagick-fx" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to compute the hypotenuse of two distinct color channels in an image using the ImageMagick -fx operator. It details the mathematical syntax required by the expression parser, the channel reference notation, and provides direct c" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="compute-hypotenuse-with-imagemagick--fx">Compute Hypotenuse with
+ImageMagick -fx</h1>
+<p>This article explains how to compute the hypotenuse of two distinct
+color channels in an image using the ImageMagick <code>-fx</code>
+operator. It details the mathematical syntax required by the expression
+parser, the channel reference notation, and provides direct command-line
+examples for both grayscale output and channel-specific assignments.</p>
+<h3 id="the--fx-hypotenuse-syntax">The <code>-fx</code> Hypotenuse
+Syntax</h3>
+<p>The <code>-fx</code> operator includes a built-in
+<code>hypot(x, y)</code> function that computes <span
+class="math inline">\(\sqrt{x^2 + y^2}\)</span>. To compute the
+hypotenuse of two color channels—such as the red and green channels—use
+the channel accessor properties on the primary image symbol
+<code>u</code>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fx</span> <span class="st">&quot;hypot(u.r, u.g)&quot;</span> output.png</span></code></pre></div>
+<p>If you prefer explicit exponentiation rather than the built-in
+function, the equivalent mathematical expression is:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fx</span> <span class="st">&quot;sqrt(u.r^2 + u.g^2)&quot;</span> output.png</span></code></pre></div>
+<h3 id="channel-notation">Channel Notation</h3>
+<p>ImageMagick normalizes channel values between <code>0.0</code> and
+<code>1.0</code>. In the <code>-fx</code> expression engine:</p>
+<ul>
+<li><code>u</code> refers to the first image in the current image
+sequence.</li>
+<li><code>.r</code>, <code>.g</code>, and <code>.b</code> select the
+red, green, and blue channels respectively.</li>
+<li>Alternatively, channel indices can be used: <code>u.p[0]</code> for
+red, <code>u.p[1]</code> for green, and <code>u.p[2]</code> for
+blue.</li>
+</ul>
+<p>For example, to compute the hypotenuse of the green and blue
+channels:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-fx</span> <span class="st">&quot;hypot(u.g, u.b)&quot;</span> output.png</span></code></pre></div>
+<h3 id="writing-the-result-to-a-specific-channel">Writing the Result to
+a Specific Channel</h3>
+<p>By default, running <code>-fx</code> applies the computed expression
+across all channels, resulting in a grayscale image. To compute the
+hypotenuse of two channels and write the result into a third channel
+(for instance, storing <span
+class="math inline">\(\text{hypot}(\text{red}, \text{green})\)</span>
+into the blue channel while preserving the others), restrict the
+operation using the <code>-channel</code> setting:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-channel</span> B <span class="at">-fx</span> <span class="st">&quot;hypot(u.r, u.g)&quot;</span> +channel output.png</span></code></pre></div>
+<p>In this command:</p>
+<ul>
+<li><code>-channel B</code> activates only the blue channel for
+modification.</li>
+<li><code>-fx "hypot(u.r, u.g)"</code> reads the original red and green
+values and writes the resulting scalar strictly to the active blue
+channel.</li>
+<li><code>+channel</code> resets channel targeting back to default
+behavior for subsequent operations or saving.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

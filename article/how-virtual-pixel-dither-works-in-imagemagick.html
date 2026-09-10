@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Virtual-Pixel Dither Works in ImageMagick - magick</title>
+    <meta name="description" content="ImageMagick's -virtual-pixel setting defines what color or pixel data exists outside the physical boundaries of an image during geometric transformations and convolutions. While traditional boundary methods rely on static colors or directional edge clamp">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-virtual-pixel-dither-works-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Virtual-Pixel Dither Works in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-virtual-pixel-dither-works-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick's -virtual-pixel setting defines what color or pixel data exists outside the physical boundaries of an image during geometric transformations and convolutions. While traditional boundary methods rely on static colors or directional edge clamp" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-virtual-pixel-dither-works-in-imagemagick">How Virtual-Pixel
+Dither Works in ImageMagick</h1>
+<p>ImageMagick's <code>-virtual-pixel</code> setting defines what color
+or pixel data exists outside the physical boundaries of an image during
+geometric transformations and convolutions. While traditional boundary
+methods rely on static colors or directional edge clamping, the
+<code>dither</code> option alters this behavior by introducing
+controlled pseudo-randomness into the coordinate mapping process. This
+article explains the technical mechanics behind how the
+<code>dither</code> virtual-pixel method randomizes edge sampling,
+eliminates repeating boundary artifacts, and alters image
+transformations.</p>
+<h3 id="the-role-of-virtual-pixels">The Role of Virtual Pixels</h3>
+<p>During operations such as blurring, rotation, perspective distortion,
+or displacement mapping, sampling kernels often look beyond the
+legitimate coordinate space <span class="math inline">\([0, width -
+1]\)</span> and <span class="math inline">\([0, height - 1]\)</span>.
+Without a defined behavior, these out-of-bounds references would cause
+memory access errors or sharp, undefined borders.</p>
+<p>ImageMagick provides several methods to handle these out-of-bounds
+queries:</p>
+<ul>
+<li><strong>Edge / Clamp:</strong> Samples the single nearest valid edge
+pixel, creating stretched streaks across outer boundaries.</li>
+<li><strong>Background / Black / White:</strong> Returns a static
+predefined color.</li>
+<li><strong>Tile / Mirror:</strong> Loops or reflects coordinates across
+the canvas.</li>
+<li><strong>Dither:</strong> Introduces pseudo-random sampling around
+the border region.</li>
+</ul>
+<h3 id="the-mechanics-of-dither-sampling">The Mechanics of Dither
+Sampling</h3>
+<p>When a coordinate query falls outside the bounds of the image, the
+<code>dither</code> method does not resolve to a fixed single pixel.
+Instead, it randomizes the source coordinate within a localized edge
+boundary.</p>
+<ol type="1">
+<li><strong>Boundary Interception:</strong> The sampling engine detects
+that the requested coordinate <span class="math inline">\((x,
+y)\)</span> lies outside the source image frame.</li>
+<li><strong>Pseudo-Random Displacement:</strong> Rather than simply
+clamping the coordinate to the exact outer edge <span
+class="math inline">\((x_{clamped}, y_{clamped})\)</span>, ImageMagick
+applies a pseudo-random offset generated by an internal random number
+generator.</li>
+<li><strong>Localized Neighborhood Selection:</strong> The randomized
+coordinate is pulled from a predefined neighborhood—typically a
+localized block (such as an area up to 32 pixels wide along the
+perimeter) adjacent to the edge where the request originated.</li>
+<li><strong>Value Assignment:</strong> The pixel data at this randomly
+chosen valid coordinate is returned to the filter kernel or distortion
+algorithm as the sampled virtual pixel.</li>
+</ol>
+<p>Because a pseudo-random number generator is called for every query,
+neighboring out-of-bounds coordinates rarely sample the same exact
+physical edge pixel.</p>
+<h3 id="why-dither-randomization-matters">Why Dither Randomization
+Matters</h3>
+<p>Standard virtual-pixel methods often generate noticeable geometric
+artifacts. For example, using <code>-virtual-pixel edge</code> with a
+polar distortion or severe perspective tilt will stretch the outer
+pixels into harsh, parallel streaks.</p>
+<p>Using <code>-virtual-pixel dither</code> replaces these uniform
+streaks with high-frequency noise:</p>
+<ul>
+<li><strong>Artifact Dispersion:</strong> The sharp directional banding
+of clamped pixels is broken down into a diffuse, stippled gradient.</li>
+<li><strong>Seamless Blurring:</strong> When applying large-radius blurs
+(<code>-blur</code> or <code>-gaussian-blur</code>), the dither method
+scatters the outer edge data, creating a softer, noisier transition that
+blends smoothly into surrounding transparent or solid canvases.</li>
+<li><strong>Procedural Masking:</strong> When generating displacement
+maps or texture synthesis masks, randomized edge values prevent
+repetitive geometric edges from reinforcing themselves across multiple
+transformation passes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

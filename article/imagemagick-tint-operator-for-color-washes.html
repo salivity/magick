@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Tint Operator for Color Washes - magick</title>
+    <meta name="description" content="This article explores how the ImageMagick -tint operator works to apply color washes to digital images. You will learn the mechanics behind this operator, how it selectively targets midtone luminance while preserving deep shadows and bright highlights, h">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-tint-operator-for-color-washes">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Tint Operator for Color Washes - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-tint-operator-for-color-washes" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how the ImageMagick -tint operator works to apply color washes to digital images. You will learn the mechanics behind this operator, how it selectively targets midtone luminance while preserving deep shadows and bright highlights, h" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-tint-operator-for-color-washes">ImageMagick Tint
+Operator for Color Washes</h1>
+<p>This article explores how the ImageMagick <code>-tint</code> operator
+works to apply color washes to digital images. You will learn the
+mechanics behind this operator, how it selectively targets midtone
+luminance while preserving deep shadows and bright highlights, how it
+differs from the <code>-colorize</code> operator, and how to implement
+it effectively in command-line image processing workflows.</p>
+<hr />
+<h3 id="how-the--tint-operator-works">How the <code>-tint</code>
+Operator Works</h3>
+<p>The <code>-tint</code> operator in ImageMagick applies a color wash
+by blending the current fill color (<code>-fill</code>) into an image
+based on each pixel's lightness level. Rather than applying a flat coat
+of color across the entire image, <code>-tint</code> uses the luminance
+of the source image as a weighting factor.</p>
+<p>The color application follows a specific tonal distribution:</p>
+<ul>
+<li><strong>Shadows (0% Lightness):</strong> Remain black or near-black
+with little to no color applied.</li>
+<li><strong>Midtones (50% Lightness):</strong> Receive the maximum
+concentration of the tint color.</li>
+<li><strong>Highlights (100% Lightness):</strong> Remain white or
+near-white with minimal tint.</li>
+</ul>
+<p>This behavior mimics photographic toning (such as sepia or cyanotype
+processing), where dark silver grains and bright paper bases retain
+their contrast while the mid-range grays absorb the chemical toner.</p>
+<hr />
+<h3 id="basic-syntax-and-parameters">Basic Syntax and Parameters</h3>
+<p>To use the <code>-tint</code> operator, you must define a fill color
+before invoking the tint command, followed by a percentage value
+representing the tint strength.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-fill</span> <span class="st">&quot;#336699&quot;</span> <span class="at">-tint</span> 100% output.jpg</span></code></pre></div>
+<ul>
+<li><strong><code>-fill &lt;color&gt;</code>:</strong> Defines the
+target wash color (can be a hex code, named color, or RGB value).</li>
+<li><strong><code>-tint &lt;percentage&gt;</code>:</strong> Specifies
+the strength of the tint effect. A value of <code>0%</code> leaves the
+image unchanged, while <code>100%</code> applies the maximum calculated
+tint to the midtones.</li>
+</ul>
+<hr />
+<h3 id="key-differences--tint-vs--colorize">Key Differences:
+<code>-tint</code> vs. <code>-colorize</code></h3>
+<p>While both operators modify image color, they handle luminance
+differently:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;"><code>-tint</code> Operator</th>
+<th style="text-align: left;"><code>-colorize</code> Operator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Highlight
+Preservation</strong></td>
+<td style="text-align: left;">Protects pure whites from tinting</td>
+<td style="text-align: left;">Overlays color across whites based on
+opacity</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Shadow Preservation</strong></td>
+<td style="text-align: left;">Keeps absolute blacks intact</td>
+<td style="text-align: left;">Colors over deep shadows unless
+masked</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tonal Application</strong></td>
+<td style="text-align: left;">Bell-curve distribution centered on
+midtones</td>
+<td style="text-align: left;">Uniform flat distribution across all
+tones</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Use Case</strong></td>
+<td style="text-align: left;">Toning, vintage effects, balanced color
+washes</td>
+<td style="text-align: left;">Solid overlays, color masking, tinting
+flat graphics</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="preparing-images-for-optimal-tinting">Preparing Images for
+Optimal Tinting</h3>
+<p>For the most predictable and vibrant results, the <code>-tint</code>
+operator is typically used on grayscale or desaturated images. When
+applied to full-color images, the existing hue values blend with the
+tint color, which can produce muddy or unexpected color shifts.</p>
+<p>To achieve clean single-tone or duotone washes, convert the image to
+grayscale before applying the tint:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-fill</span> <span class="st">&quot;goldenrod&quot;</span> <span class="at">-tint</span> 80% output.jpg</span></code></pre></div>
+<p>This workflow ensures that only the tonal luminosity drives the color
+wash, creating a uniform, professional photographic tone across the
+composition.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

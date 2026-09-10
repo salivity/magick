@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Non-Uniform Image Montages in ImageMagick - magick</title>
+    <meta name="description" content="Creating image montages with non-uniform, custom geometries in ImageMagick allows you to build complex collages where images have varied dimensions, aspect ratios, and specific coordinate positions. This guide demonstrates how to bypass the standard grid">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/custom-non-uniform-image-montages-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Custom Non-Uniform Image Montages in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/custom-non-uniform-image-montages-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Creating image montages with non-uniform, custom geometries in ImageMagick allows you to build complex collages where images have varied dimensions, aspect ratios, and specific coordinate positions. This guide demonstrates how to bypass the standard grid" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="custom-non-uniform-image-montages-in-imagemagick">Custom
+Non-Uniform Image Montages in ImageMagick</h1>
+<p>Creating image montages with non-uniform, custom geometries in
+ImageMagick allows you to build complex collages where images have
+varied dimensions, aspect ratios, and specific coordinate positions.
+This guide demonstrates how to bypass the standard grid constraints of
+the default <code>montage</code> tool by utilizing the
+<code>magick</code> command with canvas mapping, explicit sizing, and
+layer positioning to assemble fully customized layouts.</p>
+<hr />
+<h3 id="the-limitation-of-the-default-montage-command">The Limitation of
+the Default <code>montage</code> Command</h3>
+<p>The built-in <code>montage</code> command is designed primarily for
+regular, uniform grids. When applying <code>-geometry</code>,
+<code>montage</code> applies the same tile size and spacing to every
+image in the sequence. To achieve a non-uniform montage where individual
+images have unique widths, heights, and coordinates, you must use layer
+composition via the <code>magick</code> (or <code>convert</code> in
+ImageMagick 6) tool.</p>
+<hr />
+<h3 id="method-1-using--page-offsets-and--layers-merge">Method 1: Using
+<code>-page</code> Offsets and <code>-layers merge</code></h3>
+<p>The most efficient way to place images of varying sizes at specific
+positions is by combining sub-shell image processing, the
+<code>-page</code> offset operator, and <code>-layers merge</code>.</p>
+<h4 id="syntax-breakdown">Syntax Breakdown</h4>
+<ul>
+<li><strong>Parentheses <code>( ... )</code></strong>: Isolate each
+image to resize or crop it individually without affecting other
+images.</li>
+<li><strong><code>-page +X+Y</code></strong>: Defines the absolute pixel
+coordinates on the final canvas where the top-left corner of the image
+will be placed.</li>
+<li><strong><code>-background</code></strong>: Sets the canvas
+background color (e.g., <code>none</code>, <code>white</code>,
+<code>black</code>).</li>
+<li><strong><code>-layers merge</code></strong>: Merges all positioned
+layers into a single canvas that automatically sizes itself to fit the
+outermost coordinates.</li>
+</ul>
+<h4 id="example-command">Example Command</h4>
+<p>Suppose you want to create a canvas containing three differently
+sized images:</p>
+<ol type="1">
+<li><code>img1.jpg</code> resized to 400x400 at position (0, 0)</li>
+<li><code>img2.jpg</code> resized to 200x200 at position (400, 0)</li>
+<li><code>img3.jpg</code> resized to 200x200 at position (400, 200)</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +0+0 <span class="dt">\(</span> img1.jpg <span class="at">-resize</span> 400x400^ <span class="at">-gravity</span> center <span class="at">-extent</span> 400x400 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +400+0 <span class="dt">\(</span> img2.jpg <span class="at">-resize</span> 200x200^ <span class="at">-gravity</span> center <span class="at">-extent</span> 200x200 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-page</span> +400+200 <span class="dt">\(</span> img3.jpg <span class="at">-resize</span> 200x200^ <span class="at">-gravity</span> center <span class="at">-extent</span> 200x200 <span class="dt">\)</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-background</span> white <span class="at">-layers</span> merge custom_montage.jpg</span></code></pre></div>
+<hr />
+<h3 id="method-2-drawing-onto-an-explicit-base-canvas">Method 2: Drawing
+onto an Explicit Base Canvas</h3>
+<p>If you need a predefined canvas size with margins, borders, or
+specific empty areas, generate a blank base canvas first and composite
+the individual images onto it sequentially.</p>
+<h4 id="example-command-1">Example Command</h4>
+<p>To create an explicit 800x600 canvas and place two non-uniform images
+with exact coordinates:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 800x600 xc:white <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> img1.jpg <span class="at">-resize</span> 500x600^ <span class="at">-gravity</span> center <span class="at">-extent</span> 500x600 <span class="dt">\)</span> <span class="at">-geometry</span> +0+0 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">\(</span> img2.jpg <span class="at">-resize</span> 300x300^ <span class="at">-gravity</span> center <span class="at">-extent</span> 300x300 <span class="dt">\)</span> <span class="at">-geometry</span> +500+150 <span class="at">-composite</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  output_canvas.png</span></code></pre></div>
+<hr />
+<h3 id="key-geometry-controls">Key Geometry Controls</h3>
+<ul>
+<li><strong>Exact Fit with Cropping
+(<code>-resize WxH^ -gravity center -extent WxH</code>)</strong>:
+Ensures that images with varying aspect ratios completely fill their
+target dimensions without distortion.</li>
+<li><strong>Coordinate Positioning (<code>-geometry +X+Y</code> or
+<code>-page +X+Y</code>)</strong>: Determines the exact horizontal
+(<code>+X</code>) and vertical (<code>+Y</code>) offsets relative to the
+top-left corner <code>(0,0)</code>.</li>
+<li><strong>Negative Offsets</strong>: You can overlap images by
+providing negative offsets or coordinates that place images over
+existing ones in the stacking order.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

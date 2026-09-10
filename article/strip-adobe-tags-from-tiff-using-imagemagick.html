@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strip Adobe Tags from TIFF Using ImageMagick - magick</title>
+    <meta name="description" content="TIFF files processed in Adobe Photoshop often contain proprietary private tags—such as 8BIM image resource blocks, layer data, and XMP metadata—that can increase file sizes and cause parsing errors in non-Adobe software. This guide demonstrates how t">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/strip-adobe-tags-from-tiff-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Strip Adobe Tags from TIFF Using ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/strip-adobe-tags-from-tiff-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="TIFF files processed in Adobe Photoshop often contain proprietary private tags—such as 8BIM image resource blocks, layer data, and XMP metadata—that can increase file sizes and cause parsing errors in non-Adobe software. This guide demonstrates how t" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="strip-adobe-tags-from-tiff-using-imagemagick">Strip Adobe Tags
+from TIFF Using ImageMagick</h1>
+<p>TIFF files processed in Adobe Photoshop often contain proprietary
+private tags—such as 8BIM image resource blocks, layer data, and XMP
+metadata—that can increase file sizes and cause parsing errors in
+non-Adobe software. This guide demonstrates how to quickly identify and
+strip proprietary Adobe tags from TIFF files using ImageMagick, either
+completely or by targeting specific metadata profiles.</p>
+<h3 id="complete-metadata-removal-with--strip">Complete Metadata Removal
+with <code>-strip</code></h3>
+<p>The simplest and most effective way to eliminate all Adobe private
+tags, standard profiles, and embedded comments is the
+<code>-strip</code> operator. This command removes the Photoshop
+Resource Block (Tag 34377), ImageSourceData (Tag 37724), XMP packets,
+and ICC color profiles.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-strip</span> output.tif</span></code></pre></div>
+<p>For ImageMagick version 6, use:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.tif <span class="at">-strip</span> output.tif</span></code></pre></div>
+<h3 id="removing-only-adobe-8bim-metadata">Removing Only Adobe 8BIM
+Metadata</h3>
+<p>If you need to preserve standard EXIF or ICC color profiles while
+removing only Adobe-specific metadata (such as Photoshop paths, grids,
+and guides), use the <code>+profile</code> operator targeting the
+<code>8bim</code> profile.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif +profile <span class="st">&quot;8bim&quot;</span> output.tif</span></code></pre></div>
+<p>To remove both the Adobe 8BIM profile and Adobe XMP packets while
+leaving color profiles intact:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif +profile <span class="st">&quot;8bim&quot;</span> +profile <span class="st">&quot;xmp&quot;</span> output.tif</span></code></pre></div>
+<h3 id="discarding-photoshop-layers-and-extra-channels">Discarding
+Photoshop Layers and Extra Channels</h3>
+<p>Adobe Photoshop often stores proprietary multi-layer data inside TIFF
+Tag 37724 (<code>ImageSourceData</code>). Even when metadata profiles
+are stripped, this tag can remain if the TIFF was saved with layers
+enabled.</p>
+<p>To discard Photoshop layer data and save only the composite image,
+use the <code>-flatten</code> operator combined with the TIFF
+ignore-layers define:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.tif <span class="at">-define</span> tiff:ignore-layers=true <span class="at">-flatten</span> <span class="at">-strip</span> output.tif</span></code></pre></div>
+<h3 id="batch-processing-multiple-tiff-files">Batch Processing Multiple
+TIFF Files</h3>
+<p>To process an entire directory of TIFF files in place without
+manually naming each output file, use <code>mogrify</code>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-strip</span> <span class="pp">*</span>.tif</span></code></pre></div>
+<p><em>Note: The <code>mogrify</code> command overwrites the original
+files. Ensure you have backups before executing it.</em></p>
+<h3 id="verifying-the-tags-are-removed">Verifying the Tags Are
+Removed</h3>
+<p>You can verify that the Adobe private profiles and tags have been
+completely removed by inspecting the file with ImageMagick's
+<code>identify</code> tool:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-verbose</span> output.tif <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="at">-E</span> <span class="st">&quot;8bim|photoshop|xmp|profile&quot;</span></span></code></pre></div>
+<p>If the command returns no matches, all proprietary Adobe metadata
+blocks have been stripped from the TIFF file.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

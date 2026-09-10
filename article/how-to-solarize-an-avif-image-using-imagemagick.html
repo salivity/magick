@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Solarize an AVIF Image Using ImageMagick? - magick</title>
+    <meta name="description" content="Solarizing an image mimics a classic darkroom phenomenon—also known as the Sabattier effect—where exposed photo paper is briefly re-exposed to light during development, partially inverting the tones and creating distinctive glowing halos along edges.">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-solarize-an-avif-image-using-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Solarize an AVIF Image Using ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-solarize-an-avif-image-using-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Solarizing an image mimics a classic darkroom phenomenon—also known as the Sabattier effect—where exposed photo paper is briefly re-exposed to light during development, partially inverting the tones and creating distinctive glowing halos along edges." />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-solarize-an-avif-image-using-imagemagick">How to Solarize
+an AVIF Image Using ImageMagick?</h1>
+<p>Solarizing an image mimics a classic darkroom phenomenon—also known
+as the Sabattier effect—where exposed photo paper is briefly re-exposed
+to light during development, partially inverting the tones and creating
+distinctive glowing halos along edges. ImageMagick enables you to apply
+this surreal, high-contrast effect to modern AVIF (AV1 Image File) files
+directly from the command line using the <code>-solarize</code>
+operator. This guide details the exact syntax needed to process AVIF
+images, explains how the threshold parameter alters your output, and
+covers essential settings to maintain image quality.</p>
+<h2 id="prerequisites-and-avif-support">Prerequisites and AVIF
+Support</h2>
+<p>Before processing AVIF files, ensure your ImageMagick build has
+delegate support for the AVIF format (typically provided via
+<code>libheif</code>). You can verify your configuration by
+executing:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> within the
+<code>Delegates</code> list. In ImageMagick version 7, commands use the
+<code>magick</code> binary, whereas ImageMagick version 6 uses
+<code>convert</code>.</p>
+<h2 id="basic-command-syntax">Basic Command Syntax</h2>
+<p>The core operator for this effect is
+<code>-solarize &lt;threshold&gt;</code>. The threshold determines the
+cutoff point: any pixel with an intensity above the threshold value is
+inverted, while darker pixels remain unchanged. The threshold can be
+defined as an absolute value or, more commonly, as a percentage.</p>
+<p>To solarize an AVIF image and save the result back to AVIF:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-solarize</span> 50% output.avif</span></code></pre></div>
+<p>In ImageMagick 6, the equivalent command is:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.avif <span class="at">-solarize</span> 50% output.avif</span></code></pre></div>
+<h2 id="how-the-threshold-percentage-works">How the Threshold Percentage
+Works</h2>
+<p>Adjusting the percentage changes how much of the dynamic range
+undergoes tone inversion:</p>
+<ul>
+<li><strong>High Threshold (e.g., 70% to 90%):</strong> Only the
+brightest highlights are inverted, leaving midtones and shadows natural
+while creating subtle edge outlines around bright areas.</li>
+<li><strong>Mid Threshold (e.g., 50%):</strong> Half of the tonal range
+is flipped, producing the classic Sabattier darkroom look with prominent
+border effects and pronounced contrast.</li>
+<li><strong>Low Threshold (e.g., 10% to 30%):</strong> Nearly the entire
+image is inverted, approaching a negative image with only the deepest
+shadows retaining their original luminance values.</li>
+</ul>
+<p>For example, to produce a subtle solarization effect focused only on
+bright highlights:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-solarize</span> 75% output_subtle.avif</span></code></pre></div>
+<h2 id="preserving-color-and-quality">Preserving Color and Quality</h2>
+<p>Because AVIF employs modern, lossy compression by default, applying
+visual modifications and re-encoding can introduce compression artifacts
+unless compression settings are explicitly managed.</p>
+<h3 id="adjusting-quality">Adjusting Quality</h3>
+<p>Use the <code>-quality</code> flag to control AVIF compression
+fidelity. A range between 60 and 80 generally balances high fidelity
+with efficient file size:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-solarize</span> 60% <span class="at">-quality</span> 75 output.avif</span></code></pre></div>
+<h3 id="solarizing-luminance-only">Solarizing Luminance Only</h3>
+<p>By default, <code>-solarize</code> applies the threshold across each
+color channel independently, which often results in dramatic, unexpected
+shifts in hue. If your goal is to invert luminance while preserving
+original color relationships, convert the color space to HSL or Lab,
+isolate the lightness channel, apply the effect, and reconstruct the
+image:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-colorspace</span> HSL <span class="at">-channel</span> Lightness <span class="at">-solarize</span> 50% +channel <span class="at">-colorspace</span> sRGB output_luminance.avif</span></code></pre></div>
+<h2 id="batch-processing-multiple-avif-files">Batch Processing Multiple
+AVIF Files</h2>
+<p>To apply the same solarization setting across an entire directory of
+AVIF files, ImageMagick provides the <code>mogrify</code> tool. To
+overwrite all AVIF files in a folder:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-solarize</span> 50% <span class="pp">*</span>.avif</span></code></pre></div>
+<p>To avoid overwriting original files, specify an alternate destination
+directory using the <code>-path</code> option:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> solarized_results</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> mogrify <span class="at">-path</span> ./solarized_results <span class="at">-solarize</span> 50% <span class="pp">*</span>.avif</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

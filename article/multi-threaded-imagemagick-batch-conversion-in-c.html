@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Threaded ImageMagick Batch Conversion in C# - magick</title>
+    <meta name="description" content="This article provides a practical guide on performing high-performance, multi-threaded batch image conversions in C# using the Magick.NET library. You will learn how to configure ImageMagick's internal resource settings to prevent CPU contention, impleme">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/multi-threaded-imagemagick-batch-conversion-in-c">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Multi-Threaded ImageMagick Batch Conversion in C# - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/multi-threaded-imagemagick-batch-conversion-in-c" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on performing high-performance, multi-threaded batch image conversions in C# using the Magick.NET library. You will learn how to configure ImageMagick's internal resource settings to prevent CPU contention, impleme" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="multi-threaded-imagemagick-batch-conversion-in-c">Multi-Threaded
+ImageMagick Batch Conversion in C#</h1>
+<p>This article provides a practical guide on performing
+high-performance, multi-threaded batch image conversions in C# using the
+Magick.NET library. You will learn how to configure ImageMagick's
+internal resource settings to prevent CPU contention, implement
+asynchronous parallel processing with
+<code>Parallel.ForEachAsync</code>, and handle image cleanup to maximize
+throughput while preventing memory exhaustion.</p>
+<h3 id="1-install-the-magicknet-package">1. Install the Magick.NET
+Package</h3>
+<p>First, add the Magick.NET library to your C# project. The standard
+8-bit color depth version is typically sufficient for web images:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> add package Magick.NET-Q8-AnyCPU</span></code></pre></div>
+<h3 id="2-configure-internal-concurrency">2. Configure Internal
+Concurrency</h3>
+<p>By default, ImageMagick uses OpenMP to execute single image
+operations across multiple threads. When batch processing many images
+concurrently using C#'s parallel constructs, these internal threads
+fight for CPU time, causing severe thread contention and performance
+degradation.</p>
+<p>To achieve optimal throughput, restrict each ImageMagick operation to
+a single thread and manage the parallelism entirely inside your C#
+code:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> ImageMagick<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Disable ImageMagick&#39;s internal multithreading per image</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>ResourceLimits<span class="op">.</span><span class="fu">LimitThreads</span><span class="op">(</span><span class="dv">1</span><span class="op">);</span></span></code></pre></div>
+<h3 id="3-implement-the-multi-threaded-conversion-pipeline">3. Implement
+the Multi-Threaded Conversion Pipeline</h3>
+<p>Use <code>Parallel.ForEachAsync</code> to distribute conversion tasks
+across available CPU cores. Set <code>MaxDegreeOfParallelism</code> to
+the system processor count to prevent oversubscription.</p>
+<p>Here is the complete implementation for converting a directory of
+images (e.g., PNG, TIFF) to compressed WebP format:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode csharp"><code class="sourceCode cs"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">.</span><span class="fu">IO</span><span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">.</span><span class="fu">Linq</span><span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">.</span><span class="fu">Threading</span><span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> System<span class="op">.</span><span class="fu">Threading</span><span class="op">.</span><span class="fu">Tasks</span><span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> ImageMagick<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Program</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> async Task <span class="fu">Main</span><span class="op">(</span><span class="dt">string</span><span class="op">[]</span> args<span class="op">)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">string</span> inputDirectory <span class="op">=</span> @<span class="st">&quot;C:\Images\Input&quot;</span><span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">string</span> outputDirectory <span class="op">=</span> @<span class="st">&quot;C:\Images\Output&quot;</span><span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        Directory<span class="op">.</span><span class="fu">CreateDirectory</span><span class="op">(</span>outputDirectory<span class="op">);</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Limit internal threads so C# manages the concurrency</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        ResourceLimits<span class="op">.</span><span class="fu">LimitThreads</span><span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Retrieve all files to convert</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> supportedExtensions <span class="op">=</span> <span class="kw">new</span><span class="op">[]</span> <span class="op">{</span> <span class="st">&quot;.jpg&quot;</span><span class="op">,</span> <span class="st">&quot;.jpeg&quot;</span><span class="op">,</span> <span class="st">&quot;.png&quot;</span><span class="op">,</span> <span class="st">&quot;.tiff&quot;</span><span class="op">,</span> <span class="st">&quot;.bmp&quot;</span> <span class="op">};</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> imageFiles <span class="op">=</span> Directory<span class="op">.</span><span class="fu">EnumerateFiles</span><span class="op">(</span>inputDirectory<span class="op">)</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span><span class="fu">Where</span><span class="op">(</span>f <span class="op">=&gt;</span> supportedExtensions<span class="op">.</span><span class="fu">Contains</span><span class="op">(</span>Path<span class="op">.</span><span class="fu">GetExtension</span><span class="op">(</span>f<span class="op">).</span><span class="fu">ToLowerInvariant</span><span class="op">()))</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span><span class="fu">ToList</span><span class="op">();</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>        <span class="dt">var</span> parallelOptions <span class="op">=</span> <span class="kw">new</span> ParallelOptions</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>            MaxDegreeOfParallelism <span class="op">=</span> Environment<span class="op">.</span><span class="fu">ProcessorCount</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        <span class="op">};</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        await Parallel<span class="op">.</span><span class="fu">ForEachAsync</span><span class="op">(</span>imageFiles<span class="op">,</span> parallelOptions<span class="op">,</span> <span class="fu">async</span> <span class="op">(</span>filePath<span class="op">,</span> cancellationToken<span class="op">)</span> <span class="op">=&gt;</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>            await Task<span class="op">.</span><span class="fu">Run</span><span class="op">(()</span> <span class="op">=&gt;</span> <span class="fu">ConvertImage</span><span class="op">(</span>filePath<span class="op">,</span> outputDirectory<span class="op">),</span> cancellationToken<span class="op">);</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        Console<span class="op">.</span><span class="fu">WriteLine</span><span class="op">(</span><span class="st">&quot;Batch conversion completed.&quot;</span><span class="op">);</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="kw">static</span> <span class="dt">void</span> <span class="fu">ConvertImage</span><span class="op">(</span><span class="dt">string</span> inputPath<span class="op">,</span> <span class="dt">string</span> outputDirectory<span class="op">)</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>        <span class="kw">try</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>            <span class="dt">string</span> fileNameWithoutExt <span class="op">=</span> Path<span class="op">.</span><span class="fu">GetFileNameWithoutExtension</span><span class="op">(</span>inputPath<span class="op">);</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>            <span class="dt">string</span> outputPath <span class="op">=</span> Path<span class="op">.</span><span class="fu">Combine</span><span class="op">(</span>outputDirectory<span class="op">,</span> $<span class="st">&quot;{fileNameWithoutExt}.webp&quot;</span><span class="op">);</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>            <span class="co">// MagickImage instances are NOT thread-safe; instantiate per thread</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>            <span class="kw">using</span> <span class="dt">var</span> image <span class="op">=</span> <span class="kw">new</span> <span class="fu">MagickImage</span><span class="op">(</span>inputPath<span class="op">);</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Apply conversions and optimizations</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>            image<span class="op">.</span><span class="fu">Format</span> <span class="op">=</span> MagickFormat<span class="op">.</span><span class="fu">Webp</span><span class="op">;</span></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>            image<span class="op">.</span><span class="fu">Quality</span> <span class="op">=</span> <span class="dv">80</span><span class="op">;</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>            image<span class="op">.</span><span class="fu">Strip</span><span class="op">();</span> <span class="co">// Remove metadata (EXIF, profiles) to reduce file size</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>            image<span class="op">.</span><span class="fu">Write</span><span class="op">(</span>outputPath<span class="op">);</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>        <span class="kw">catch</span> <span class="op">(</span>Exception ex<span class="op">)</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>            Console<span class="op">.</span><span class="fu">WriteLine</span><span class="op">(</span>$<span class="st">&quot;Error processing {inputPath}: {ex.Message}&quot;</span><span class="op">);</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="key-performance-considerations">Key Performance
+Considerations</h3>
+<ul>
+<li><strong>Instance Isolation:</strong> Instances of
+<code>MagickImage</code> are not thread-safe. Always instantiate and
+dispose of a unique <code>MagickImage</code> within the executing
+thread. Never share an instance across multiple tasks.</li>
+<li><strong>Metadata Stripping:</strong> Calling
+<code>image.Strip()</code> removes color profiles, GPS data, and EXIF
+tags, which speeds up I/O and reduces the final file size.</li>
+<li><strong>Memory Management:</strong> High-resolution images consume
+substantial unmanaged memory. The <code>using</code> statement ensures
+native resources are freed immediately upon task completion rather than
+waiting for garbage collection.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Liquid Rescale Delegate Library Guide - magick</title>
+    <meta name="description" content="To use the liquid-rescale feature in ImageMagick, you must have the liblqr (Liquid Rescale Library) external delegate installed on your system. Liquid rescaling relies on seam carving technology to intelligently resize images without distorting the prima">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-liquid-rescale-delegate-library-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Liquid Rescale Delegate Library Guide - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-liquid-rescale-delegate-library-guide" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="To use the liquid-rescale feature in ImageMagick, you must have the liblqr (Liquid Rescale Library) external delegate installed on your system. Liquid rescaling relies on seam carving technology to intelligently resize images without distorting the prima" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-liquid-rescale-delegate-library-guide">ImageMagick
+Liquid Rescale Delegate Library Guide</h1>
+<p>To use the liquid-rescale feature in ImageMagick, you must have the
+<strong>liblqr</strong> (Liquid Rescale Library) external delegate
+installed on your system. Liquid rescaling relies on seam carving
+technology to intelligently resize images without distorting the primary
+subjects. This article explains what <code>liblqr</code> is, how
+ImageMagick utilizes it, and how to check, install, and configure this
+delegate on your machine.</p>
+<h3 id="the-required-delegate-liblqr">The Required Delegate: liblqr</h3>
+<p>The liquid-rescale functionality in ImageMagick is powered by
+<code>liblqr</code> (specifically <code>liblqr-1</code>). It is an
+open-source, C/C++ implementation of the seam carving algorithm designed
+by Shai Avidan and Ariel Shamir.</p>
+<p>Standard scaling operations alter every pixel uniformly, which often
+causes distortion or awkward stretching. The <code>liblqr</code> library
+calculates energy maps across an image to identify paths of least
+importance (seams) and removes or inserts them, enabling content-aware
+resizing directly within ImageMagick via the
+<code>-liquid-rescale</code> operator.</p>
+<h3 id="how-to-check-for-liblqr-support">How to Check for liblqr
+Support</h3>
+<p>You can determine whether your current ImageMagick build includes
+<code>liblqr</code> support by running the following command in your
+terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p><em>(Or <code>convert -version</code> for ImageMagick version
+6)</em></p>
+<p>Look at the <code>Delegates (built-in)</code> line in the output. If
+<code>lqr</code> is listed among the delegates, liquid-rescale is ready
+to use.</p>
+<p>Alternatively, you can query ImageMagick delegates directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> configure <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> <span class="st">&quot;delegates&quot;</span></span></code></pre></div>
+<h3 id="installing-liblqr">Installing liblqr</h3>
+<p>If <code>lqr</code> is missing from your configuration, you need to
+install the library package and recompile ImageMagick or install a
+precompiled binary that includes it.</p>
+<h4 id="ubuntu--debian">Ubuntu / Debian</h4>
+<p>Install the development package before compiling ImageMagick from
+source:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install liblqr-1-0-dev</span></code></pre></div>
+<h4 id="fedora--rhel--centos">Fedora / RHEL / CentOS</h4>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install liblqr-1-devel</span></code></pre></div>
+<h4 id="macos-via-homebrew">macOS (via Homebrew)</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install liblqr</span></code></pre></div>
+<h3 id="using-the-liquid-rescale-command">Using the Liquid-Rescale
+Command</h3>
+<p>Once the delegate is installed and enabled, you can perform
+content-aware image resizing using the <code>-liquid-rescale</code>
+parameter:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-liquid-rescale</span> 75x100% output.jpg</span></code></pre></div>
+<p>This command reduces the width of the image to 75% using seam carving
+while retaining the original height and preserving key focal points of
+the composition.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

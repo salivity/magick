@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Halftoning with ImageMagick Ordered Dither - magick</title>
+    <meta name="description" content="ImageMagick provides a powerful framework for generating stylized halftone patterns and vintage print aesthetics through its ordered dithering engine. By leveraging threshold maps, users can control how pixel intensities are converted into geometric dot">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/custom-halftoning-with-imagemagick-ordered-dither">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Custom Halftoning with ImageMagick Ordered Dither - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/custom-halftoning-with-imagemagick-ordered-dither" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides a powerful framework for generating stylized halftone patterns and vintage print aesthetics through its ordered dithering engine. By leveraging threshold maps, users can control how pixel intensities are converted into geometric dot" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="custom-halftoning-with-imagemagick-ordered-dither">Custom
+Halftoning with ImageMagick Ordered Dither</h1>
+<p>ImageMagick provides a powerful framework for generating stylized
+halftone patterns and vintage print aesthetics through its ordered
+dithering engine. By leveraging threshold maps, users can control how
+pixel intensities are converted into geometric dot clusters,
+crosshatches, or custom shapes. This guide explains how to define custom
+ordered dither matrices in ImageMagick's configuration files and apply
+them to images using the command line.</p>
+<h3 id="understanding-ordered-dithering-in-imagemagick">Understanding
+Ordered Dithering in ImageMagick</h3>
+<p>Ordered dithering works by comparing the intensity of each image
+pixel against a repeating threshold matrix (a 2D grid of numerical
+threshold values). If the pixel intensity is higher than the
+corresponding matrix value, it is quantized to a lighter tone;
+otherwise, it becomes darker.</p>
+<p>ImageMagick exposes this functionality through the
+<code>-ordered-dither</code> operator (or <code>-auto-threshold</code>
+depending on the use case). While ImageMagick includes pre-configured
+matrices (such as Bayer matrices <code>o8x8</code> or clustered dots
+<code>c5x5</code>), custom halftoning effects require defining a
+user-specified threshold matrix.</p>
+<hr />
+<h3 id="step-1-define-a-custom-threshold-matrix">Step 1: Define a Custom
+Threshold Matrix</h3>
+<p>Custom matrices are defined in an XML file named
+<code>thresholds.xml</code>. ImageMagick searches for this file in its
+configuration paths, including your local user directory:</p>
+<ul>
+<li><strong>Linux/macOS:</strong>
+<code>~/.config/ImageMagick/thresholds.xml</code> or
+<code>~/.magick/thresholds.xml</code></li>
+<li><strong>Windows:</strong>
+<code>%APPDATA%\ImageMagick\thresholds.xml</code></li>
+</ul>
+<p>Create or edit <code>thresholds.xml</code> to include your custom
+halftone pattern:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">thresholdmap</span> <span class="dt">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">thresholdmap</span> (threshold)+<span class="dt">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">threshold</span> (description,levels,divisor,matrix)<span class="dt">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">threshold</span> map CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">description</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">levels</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">divisor</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">matrix</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="dt">]&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">thresholdmap</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom_cluster_4x4&quot;</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 4x4 Clustered Dot Halftone&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span>&gt;1&lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">divisor</span>&gt;16&lt;/<span class="kw">divisor</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      12  5  6 13</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>       4  0  1  7</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>       3  2  8 14</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      11 10  9 15</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom_line_4x4&quot;</span>&gt;</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 4x4 Diagonal Line Screen&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span>&gt;1&lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">divisor</span>&gt;16&lt;/<span class="kw">divisor</span>&gt;</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>       1  5  9 13</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>       6 10 14  2</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>      11 15  3  7</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>      16  4  8 12</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">matrix</span>&gt;</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">thresholdmap</span>&gt;</span></code></pre></div>
+<h4 id="matrix-components-explained">Matrix Components Explained:</h4>
+<ul>
+<li><strong><code>map</code></strong>: The unique identifier used in the
+command-line interface.</li>
+<li><strong><code>divisor</code></strong>: The maximum value used to
+normalize the matrix values into floating-point numbers between
+<code>0</code> and <code>1</code>.</li>
+<li><strong><code>levels</code></strong>: The default number of
+intensity levels to dither across (typically <code>1</code> or
+<code>2</code> for pure 1-bit halftones).</li>
+<li><strong><code>matrix</code></strong>: The spatial arrangement of
+threshold values. The order and clustering of values determine whether
+the output appears as circular dots, diagonal lines, or stochastic
+noise.</li>
+</ul>
+<hr />
+<h3 id="step-2-apply-the-custom-dither-to-an-image">Step 2: Apply the
+Custom Dither to an Image</h3>
+<p>Once the matrix is registered, apply it using the <code>magick</code>
+command.</p>
+<h4 id="basic-monochrome-halftone">Basic Monochrome Halftone</h4>
+<p>To convert an image to grayscale and apply the custom cluster
+pattern:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-ordered-dither</span> custom_cluster_4x4 output.png</span></code></pre></div>
+<h4 id="multi-level-dithering">Multi-Level Dithering</h4>
+<p>You can specify the number of color quantization levels directly in
+the command by appending a level count to the map name:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-ordered-dither</span> custom_cluster_4x4,4 output.png</span></code></pre></div>
+<hr />
+<h3 id="step-3-cmyk-color-separation-halftoning">Step 3: CMYK Color
+Separation Halftoning</h3>
+<p>To achieve an offset-print visual effect, split the image into its
+CMYK channels, apply the ordered dither to each channel independently,
+and recombine them:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> CMYK <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> C <span class="at">-ordered-dither</span> custom_cluster_4x4 <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> M <span class="at">-ordered-dither</span> custom_cluster_4x4 <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> Y <span class="at">-ordered-dither</span> custom_cluster_4x4 <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-channel</span> K <span class="at">-ordered-dither</span> custom_cluster_4x4 <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  +channel <span class="at">-colorspace</span> sRGB cmyk_halftone.png</span></code></pre></div>
+<hr />
+<h3 id="step-4-scaling-matrix-size-for-visible-dot-effects">Step 4:
+Scaling Matrix Size for Visible Dot Effects</h3>
+<p>Because dither matrices operate at the single-pixel level, modern
+high-resolution images will produce extremely fine dots that appear
+smooth rather than stylized.</p>
+<p>To create prominent, poster-style halftone dots:</p>
+<ol type="1">
+<li>Downscale the image.</li>
+<li>Apply the ordered dither.</li>
+<li>Upscale the image using nearest-neighbor interpolation to preserve
+sharp dot edges.</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-resize</span> 25% <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-colorspace</span> Gray <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-ordered-dither</span> custom_cluster_4x4 <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-scale</span> 400% <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  large_dot_halftone.png</span></code></pre></div>
+<p>Using <code>-scale</code> (or <code>-filter point -resize</code>)
+ensures the pixelated halftone pattern remains crisp without introducing
+unwanted anti-aliasing blur.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

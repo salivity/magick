@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Baseline Alignment: NorthWest vs SouthWest - magick</title>
+    <meta name="description" content="When rendering text in ImageMagick, typographic baseline placement is heavily influenced by the chosen gravity setting. Because ImageMagick calculates text placement using the font's overall bounding box—defined by its ascent and descent metrics—it d">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-baseline-alignment-northwest-vs-southwest">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Baseline Alignment: NorthWest vs SouthWest - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-baseline-alignment-northwest-vs-southwest" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When rendering text in ImageMagick, typographic baseline placement is heavily influenced by the chosen gravity setting. Because ImageMagick calculates text placement using the font's overall bounding box—defined by its ascent and descent metrics—it d" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="imagemagick-baseline-alignment-northwest-vs-southwest">ImageMagick
+Baseline Alignment: NorthWest vs SouthWest</h1>
+<p>When rendering text in ImageMagick, typographic baseline placement is
+heavily influenced by the chosen gravity setting. Because ImageMagick
+calculates text placement using the font's overall bounding box—defined
+by its ascent and descent metrics—it does not anchor directly to the
+typographic baseline when gravity is active. Instead, switching between
+<code>NorthWest</code> and <code>SouthWest</code> gravity shifts the
+vertical reference point from the top of the font's ascent to the bottom
+of its descent, altering where the visual baseline ultimately falls on
+the canvas.</p>
+<h2 id="typographic-metrics-in-imagemagick">Typographic Metrics in
+ImageMagick</h2>
+<p>To understand how ImageMagick positions text, it is necessary to
+examine how digital typefaces define vertical space:</p>
+<ul>
+<li><strong>Baseline:</strong> The invisible horizontal line upon which
+most letters (like "x", "a", and "h") rest.</li>
+<li><strong>Ascent:</strong> The distance from the baseline to the
+highest point reached by capital letters or tall glyphs (such as "k" or
+"d").</li>
+<li><strong>Descent:</strong> The distance from the baseline down to the
+lowest point of descending glyphs (such as "g", "p", or "y").</li>
+<li><strong>Bounding Box Height:</strong> The total vertical span
+calculated as <code>Ascent + Descent</code> (often including additional
+line-gap padding defined by the font designer).</li>
+</ul>
+<h2 id="how-northwest-gravity-handles-alignment">How NorthWest Gravity
+Handles Alignment</h2>
+<p>When using <code>-gravity NorthWest</code>, the reference origin
+<code>(0,0)</code> is the top-left corner of the target canvas or
+bounding area.</p>
+<p>When you apply an offset like <code>-annotate +X+Y</code> or draw
+text using NorthWest gravity:</p>
+<ol type="1">
+<li>ImageMagick measures the maximum ascender height of the font.</li>
+<li>The top edge of the text's bounding box is placed at the specified
+<code>Y</code> coordinate.</li>
+<li>The baseline is pushed downward from the <code>Y</code> offset by
+the font's ascent distance: <span class="math display">\[\text{Baseline
+} Y = Y_{\text{offset}} + \text{Ascent}\]</span></li>
+</ol>
+<p>Because the anchor is at the top, strings rendered with different
+fonts—or even the same font at different point sizes—will have their
+baselines positioned at different vertical levels unless manually
+adjusted for their specific ascender metrics.</p>
+<h2 id="how-southwest-gravity-handles-alignment">How SouthWest Gravity
+Handles Alignment</h2>
+<p>When using <code>-gravity SouthWest</code>, the reference origin
+<code>(0,0)</code> shifts to the bottom-left corner of the canvas.</p>
+<p>When drawing text with SouthWest gravity:</p>
+<ol type="1">
+<li>ImageMagick measures the bottom limit of the font's descent.</li>
+<li>The bottom edge of the text's bounding box is anchored to the
+specified <code>Y</code> offset relative to the bottom of the
+canvas.</li>
+<li>The baseline is positioned above the anchor point by the font's
+descent value: <span class="math display">\[\text{Baseline Position} =
+\text{Canvas Height} - Y_{\text{offset}} - \text{Descent}\]</span></li>
+</ol>
+<p>With SouthWest gravity, any text line without descenders (e.g.,
+"TEST") still reserves space for descenders because ImageMagick utilizes
+the typeface's global font metrics rather than the per-character
+bounding box.</p>
+<h2 id="key-differences-for-baseline-positioning">Key Differences for
+Baseline Positioning</h2>
+<ul>
+<li><strong>Anchor Surface:</strong> <code>NorthWest</code> gravity
+anchors from the top down (measuring from the ascender line), while
+<code>SouthWest</code> gravity anchors from the bottom up (measuring
+from the descender line).</li>
+<li><strong>Consistent Multi-Font Baselines:</strong> If you are trying
+to align two different fonts on a shared baseline, neither
+<code>NorthWest</code> nor <code>SouthWest</code> gravity will do so
+automatically out of the box. Different fonts have different
+ascent-to-descent ratios. In <code>NorthWest</code>, variations in
+ascent will push the baselines out of sync; in <code>SouthWest</code>,
+variations in descent will cause the same issue.</li>
+<li><strong>Direct Baseline Control:</strong> If exact, manual baseline
+placement is required across varying fonts or sizes, omitting the
+<code>-gravity</code> option and using standard
+<code>-draw "text X,Y 'string'"</code> is often preferred. Without
+gravity active, ImageMagick natively treats the <code>Y</code>
+coordinate as the exact typographic baseline coordinate.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

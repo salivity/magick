@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Gaussian Blur an AVIF Image in ImageMagick? - magick</title>
+    <meta name="description" content="This guide explains how to apply a Gaussian blur to an AVIF (AV1 Image File Format) image using ImageMagick's command-line interface. You will learn the exact syntax required, how to configure the radius and sigma parameters to control blur intensity, an">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/how-to-gaussian-blur-an-avif-image-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Gaussian Blur an AVIF Image in ImageMagick? - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/how-to-gaussian-blur-an-avif-image-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This guide explains how to apply a Gaussian blur to an AVIF (AV1 Image File Format) image using ImageMagick's command-line interface. You will learn the exact syntax required, how to configure the radius and sigma parameters to control blur intensity, an" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-gaussian-blur-an-avif-image-in-imagemagick">How to
+Gaussian Blur an AVIF Image in ImageMagick?</h1>
+<p>This guide explains how to apply a Gaussian blur to an AVIF (AV1
+Image File Format) image using ImageMagick's command-line interface. You
+will learn the exact syntax required, how to configure the radius and
+sigma parameters to control blur intensity, and how to verify that your
+ImageMagick build includes proper AVIF support.</p>
+<h2 id="prerequisites-verifying-avif-support">Prerequisites: Verifying
+AVIF Support</h2>
+<p>Before processing AVIF files, ensure that your ImageMagick
+installation includes the <code>libheif</code> delegate, which enables
+reading and writing AVIF containers.</p>
+<p>Run the following command in your terminal:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-version</span></span></code></pre></div>
+<p>Look for <code>heic</code> or <code>avif</code> in the
+<code>Delegates (built-in)</code> output line. Alternatively, verify
+delegate registration directly:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> identify <span class="at">-list</span> format <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> avif</span></code></pre></div>
+<p>If the output lists <code>AVIF</code> with read (<code>r</code>) and
+write (<code>w</code>) support, your environment is ready. If AVIF
+support is missing, update ImageMagick or install <code>libheif</code>
+through your operating system's package manager.</p>
+<h2 id="the-basic-gaussian-blur-command">The Basic Gaussian Blur
+Command</h2>
+<p>ImageMagick provides the <code>-gaussian-blur</code> operator to
+apply a convolution matrix based on a Gaussian distribution.</p>
+<p>The basic command structure for modern ImageMagick (version 7 and
+later) is:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-gaussian-blur</span> {radius}x{sigma} output.avif</span></code></pre></div>
+<p>If you are using legacy ImageMagick (version 6), replace
+<code>magick</code> with <code>convert</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">convert</span> input.avif <span class="at">-gaussian-blur</span> {radius}x{sigma} output.avif</span></code></pre></div>
+<h2 id="understanding-radius-and-sigma">Understanding Radius and
+Sigma</h2>
+<p>The <code>-gaussian-blur</code> operator takes two geometry values
+formatted as <code>{radius}x{sigma}</code>:</p>
+<ul>
+<li><strong>Radius:</strong> The size of the convolution matrix kernel
+in pixels.</li>
+<li><strong>Sigma:</strong> The standard deviation of the Gaussian
+distribution, measured in pixels.</li>
+</ul>
+<p>Sigma is the primary control for the blur's visible strength. A
+higher sigma produces a softer, more diffuse blur.</p>
+<p>In most workflows, the radius should be set to <code>0</code>. When
+radius is <code>0</code>, ImageMagick automatically calculates an
+optimal kernel size based on sigma (typically about three times
+sigma):</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-gaussian-blur</span> 0x5 output.avif</span></code></pre></div>
+<p>In this example, <code>0x5</code> applies a moderate blur with an
+automatically selected radius and a standard deviation of 5 pixels.</p>
+<h2 id="practical-examples">Practical Examples</h2>
+<h3 id="subtle-blur-for-softening-background-noise">Subtle Blur for
+Softening Background Noise</h3>
+<p>Use a low sigma value between 1 and 2 to smooth minor compression
+artifacts or grain without losing core subject outlines:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-gaussian-blur</span> 0x1.5 blurred_subtle.avif</span></code></pre></div>
+<h3 id="heavy-blur-for-background-placeholders">Heavy Blur for
+Background Placeholders</h3>
+<p>Use a higher sigma value between 10 and 20 to obscure details, useful
+for generating low-quality image placeholders (LQIP) or UI
+backdrops:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-gaussian-blur</span> 0x15 blurred_heavy.avif</span></code></pre></div>
+<h3 id="controlling-avif-output-quality">Controlling AVIF Output
+Quality</h3>
+<p>AVIF encoding can be fine-tuned alongside the blur operator. Use the
+<code>-quality</code> flag to balance file size and compression
+efficiency:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.avif <span class="at">-gaussian-blur</span> 0x8 <span class="at">-quality</span> 65 blurred_compressed.avif</span></code></pre></div>
+<p>Setting quality between 50 and 70 generally provides high fidelity
+for blurred backgrounds while maintaining compact file sizes.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

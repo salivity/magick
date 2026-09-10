@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Complex Text Layout with Pango - magick</title>
+    <meta name="description" content="ImageMagick integrates the Pango text layout engine to render complex, multi-language typography and richly formatted text directly onto images. While standard ImageMagick drawing operations offer basic text rendering, leveraging Pango allows developers">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-complex-text-layout-with-pango">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Complex Text Layout with Pango - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-complex-text-layout-with-pango" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick integrates the Pango text layout engine to render complex, multi-language typography and richly formatted text directly onto images. While standard ImageMagick drawing operations offer basic text rendering, leveraging Pango allows developers" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-complex-text-layout-with-pango">ImageMagick Complex
+Text Layout with Pango</h1>
+<p>ImageMagick integrates the Pango text layout engine to render
+complex, multi-language typography and richly formatted text directly
+onto images. While standard ImageMagick drawing operations offer basic
+text rendering, leveraging Pango allows developers to handle
+bidirectional text, advanced font shaping, automatic line wrapping, and
+inline styling using a simple HTML-like markup language.</p>
+<h3 id="the-role-of-pango-in-imagemagick">The Role of Pango in
+ImageMagick</h3>
+<p>Standard text handling in ImageMagick through primitives like
+<code>label:</code> or <code>annotate</code> applies uniform styling to
+an entire text block. This approach struggles with mixed-style
+typography, complex non-Latin scripts, and advanced OpenType
+features.</p>
+<p>Pango acts as a delegate library for ImageMagick, providing:</p>
+<ul>
+<li><strong>Complex Script Shaping:</strong> Correct rendering for
+scripts requiring contextual glyph substitution and positioning, such as
+Arabic, Devanagari, and Thai.</li>
+<li><strong>Bidirectional (BiDi) Text:</strong> Native handling of mixed
+Left-to-Right (LTR) and Right-to-Left (RTL) languages using the Unicode
+Bidirectional Algorithm.</li>
+<li><strong>Inline Styling:</strong> Granular control over individual
+words or characters within a single string using markup tags.</li>
+<li><strong>Automated Layout:</strong> Robust text flow, line wrapping,
+and paragraph alignment.</li>
+</ul>
+<h3 id="pango-markup-syntax">Pango Markup Syntax</h3>
+<p>Pango uses an XML-like markup language to define text properties.
+Tags can be nested to combine formatting attributes.</p>
+<p>Common Pango tags and attributes include:</p>
+<ul>
+<li><strong><code>&lt;span&gt;</code></strong>: The primary container
+for inline attributes.
+<ul>
+<li><code>font_desc</code> or <code>font</code>: Specifies the font
+family, style, weight, and size (e.g.,
+<code>font="Helvetica Bold 14"</code>).</li>
+<li><code>foreground</code> or <code>fgcolor</code>: Sets the text color
+using color names or hex codes (e.g.,
+<code>foreground="#FF0000"</code>).</li>
+<li><code>background</code> or <code>bgcolor</code>: Sets the background
+highlight color behind the text.</li>
+<li><code>letter_spacing</code>: Adjusts tracking between characters in
+Pango units.</li>
+</ul></li>
+<li><strong><code>&lt;b&gt;</code> and <code>&lt;i&gt;</code></strong>:
+Quick tags for bold and italic styles.</li>
+<li><strong><code>&lt;u&gt;</code> and <code>&lt;s&gt;</code></strong>:
+Underline and strikethrough styling.</li>
+<li><strong><code>&lt;sup&gt;</code> and
+<code>&lt;sub&gt;</code></strong>: Superscript and subscript
+positioning.</li>
+</ul>
+<h3 id="invoking-pango-in-imagemagick">Invoking Pango in
+ImageMagick</h3>
+<p>To use Pango, ImageMagick provides the <code>pango:</code> input
+prefix. ImageMagick parses the string, passes it to the Pango library,
+and converts the rendered result into a standard raster layer.</p>
+<h4 id="direct-string-rendering">Direct String Rendering</h4>
+<p>You can pass inline Pango markup directly on the command line:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 400x200 pango:<span class="st">&quot;&lt;span font=&#39;Arial 16&#39;&gt;This is normal. &lt;b&gt;This is bold.&lt;/b&gt; &lt;span foreground=&#39;blue&#39;&gt;This is blue.&lt;/span&gt;&lt;/span&gt;&quot;</span> output.png</span></code></pre></div>
+<h4 id="rendering-from-a-file">Rendering from a File</h4>
+<p>For complex layouts or large blocks of text, you can reference an
+external file containing Pango markup:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-size</span> 600x <span class="at">-background</span> white pango:@document.txt output.png</span></code></pre></div>
+<h3 id="controlling-dimensions-and-text-flow">Controlling Dimensions and
+Text Flow</h3>
+<p>When rendering text with <code>pango:</code>, ImageMagick uses the
+<code>-size</code> option to determine bounding constraints:</p>
+<ul>
+<li><strong>Constrained Width and Height
+(<code>-size 500x300</code>):</strong> Pango fits and wraps the text
+within the defined bounding box.</li>
+<li><strong>Constrained Width Only (<code>-size 500x</code>):</strong>
+Pango automatically wraps the text at 500 pixels and dynamically adjusts
+the output height to accommodate the content.</li>
+<li><strong>Unconstrained (<code>-size</code> omitted):</strong> Pango
+renders the text on a single line unless explicit line breaks
+(<code>\n</code>) are provided in the source text.</li>
+</ul>
+<h3 id="system-requirements-and-compilation">System Requirements and
+Compilation</h3>
+<p>For Pango support to function in ImageMagick, the system must have
+Pango, Cairo, and HarfBuzz development libraries installed, and
+ImageMagick must be compiled with the <code>--with-pango</code> delegate
+flag enabled. You can verify support by checking the delegates list
+using the <code>magick -version</code> command.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

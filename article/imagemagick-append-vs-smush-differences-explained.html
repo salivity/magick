@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Append vs Smush Differences Explained - magick</title>
+    <meta name="description" content="ImageMagick provides two primary methods for joining multiple images together: the traditional append operator and the newer smush operator. While both operations can stitch images horizontally or vertically into a single output, they handle spacing, bou">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-append-vs-smush-differences-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Append vs Smush Differences Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-append-vs-smush-differences-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="ImageMagick provides two primary methods for joining multiple images together: the traditional append operator and the newer smush operator. While both operations can stitch images horizontally or vertically into a single output, they handle spacing, bou" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-append-vs-smush-differences-explained">ImageMagick
+Append vs Smush Differences Explained</h1>
+<p>ImageMagick provides two primary methods for joining multiple images
+together: the traditional <code>append</code> operator and the newer
+<code>smush</code> operator. While both operations can stitch images
+horizontally or vertically into a single output, they handle spacing,
+boundaries, and transparency differently. This article breaks down the
+technical and practical differences between <code>-append</code> and
+<code>-smush</code> to help you choose the right command for your image
+processing workflows.</p>
+<h3 id="understanding-the-append-operator">Understanding the Append
+Operator</h3>
+<p>The <code>append</code> operator joins images strictly edge-to-edge
+based on their total bounding dimensions.</p>
+<ul>
+<li><strong>Horizontal stacking:</strong> <code>+append</code> places
+images side-by-side from left to right.</li>
+<li><strong>Vertical stacking:</strong> <code>-append</code> stacks
+images on top of each other from top to bottom.</li>
+</ul>
+<p>When using <code>append</code>, ImageMagick treats each image as a
+solid rectangle. If images differ in width or height, the smaller images
+are padded with the current background color to match the largest image
+in the opposite dimension. The operator does not accept an offset
+argument; spacing can only be altered by manually adding margins or
+borders to individual frames prior to appending.</p>
+<h3 id="understanding-the-smush-operator">Understanding the Smush
+Operator</h3>
+<p>The <code>smush</code> operator is a smarter, content-aware
+alternative to <code>append</code>. Introduced to provide greater
+control over spacing, it attempts to overlap images until their opaque
+pixels collide, or it separates them by a specific distance.</p>
+<ul>
+<li><strong>Horizontal smushing:</strong>
+<code>+smush &lt;offset&gt;</code> joins images from left to right.</li>
+<li><strong>Vertical smushing:</strong>
+<code>-smush &lt;offset&gt;</code> joins images from top to bottom.</li>
+</ul>
+<p>Unlike <code>append</code>, <code>smush</code> requires an integer
+offset parameter:</p>
+<ul>
+<li>A <strong>positive offset</strong> (e.g., <code>+smush 10</code>)
+adds a fixed gap of 10 pixels between the images.</li>
+<li>An <strong>offset of zero</strong> (<code>+smush 0</code>) pushes
+the images together until their actual non-transparent pixels touch,
+regardless of transparent padding around the borders.</li>
+<li>A <strong>negative offset</strong> (e.g., <code>+smush -5</code>)
+forces the non-transparent portions of adjacent images to overlap by 5
+pixels.</li>
+</ul>
+<h3 id="key-differences">Key Differences</h3>
+<ol type="1">
+<li><strong>Parameter Requirements:</strong> <code>append</code> takes
+no arguments, whereas <code>smush</code> always requires a numerical
+distance offset.</li>
+<li><strong>Handling Transparency:</strong> <code>append</code> only
+considers the rectangular canvas boundaries of each file. In contrast,
+<code>smush</code> analyzes alpha channels and pushes transparent areas
+into one another until solid pixels meet.</li>
+<li><strong>Spacing Flexibility:</strong> With <code>append</code>,
+introducing gaps or overlapping elements requires pre-configuring
+borders or canvases. With <code>smush</code>, gaps and overlaps are
+directly controlled by specifying positive or negative pixel values in
+the command itself.</li>
+</ol>
+<h3 id="when-to-use-each">When to Use Each</h3>
+<p>Use <strong><code>append</code></strong> when you need predictable,
+fast tiling of rectangular images, charts, or photo grids where the
+outer canvas dimensions represent the intended layout edges.</p>
+<p>Use <strong><code>smush</code></strong> when working with irregularly
+shaped graphics, transparent PNGs, custom spacing between elements, or
+when you need tight packing without having to trim whitespace manually
+beforehand.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

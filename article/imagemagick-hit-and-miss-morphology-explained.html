@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageMagick Hit-and-Miss Morphology Explained - magick</title>
+    <meta name="description" content="This article provides an overview of the hit-and-miss morphological transformation in ImageMagick, explaining its core purpose, underlying mechanics, and practical applications. Readers will learn how this binary pattern-matching technique functions usin">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/imagemagick-hit-and-miss-morphology-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageMagick Hit-and-Miss Morphology Explained - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/imagemagick-hit-and-miss-morphology-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides an overview of the hit-and-miss morphological transformation in ImageMagick, explaining its core purpose, underlying mechanics, and practical applications. Readers will learn how this binary pattern-matching technique functions usin" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="imagemagick-hit-and-miss-morphology-explained">ImageMagick
+Hit-and-Miss Morphology Explained</h1>
+<p>This article provides an overview of the hit-and-miss morphological
+transformation in ImageMagick, explaining its core purpose, underlying
+mechanics, and practical applications. Readers will learn how this
+binary pattern-matching technique functions using structuring elements
+to detect specific pixel configurations, locate geometric features, and
+assist in advanced image processing tasks such as skeletonization,
+thinning, and feature extraction.</p>
+<h2 id="what-is-the-hit-and-miss-transform">What is the Hit-and-Miss
+Transform?</h2>
+<p>The Hit-and-Miss Transformation (HMT) is a fundamental mathematical
+morphology operation used primarily on binary images. It acts as a
+specialized shape-detection tool that searches an image for exact
+geometric configurations of foreground (white) and background (black)
+pixels based on a predefined template called a structuring element or
+kernel.</p>
+<p>In ImageMagick, the operation is executed using the
+<code>-morphology</code> operator with the <code>HitAndMiss</code> (or
+<code>HMT</code>) method.</p>
+<h2 id="primary-purpose-of-hit-and-miss">Primary Purpose of
+Hit-and-Miss</h2>
+<p>The primary purpose of the hit-and-miss transform is precise,
+localized pattern matching. While standard morphological operations like
+erosion and dilation look only for the presence of foreground pixels,
+the hit-and-miss operation looks for both the presence of foreground
+pixels ("hits") and the absence of pixels where background is expected
+("misses").</p>
+<p>A pixel in the output image is set to white (on) only if the
+structuring element matches the target pattern completely:</p>
+<ul>
+<li><strong>Hits:</strong> Foreground pixels in the image must align
+with the required foreground positions in the kernel.</li>
+<li><strong>Misses:</strong> Background pixels in the image must align
+with the required background positions in the kernel.</li>
+<li><strong>Don't Care:</strong> Certain positions in the kernel can be
+ignored, meaning they will not affect the match whether they are black
+or white.</li>
+</ul>
+<h2 id="common-use-cases-in-imagemagick">Common Use Cases in
+ImageMagick</h2>
+<p>ImageMagick provides several built-in kernels tailored for common
+hit-and-miss operations:</p>
+<h3 id="1-detecting-isolated-features">1. Detecting Isolated
+Features</h3>
+<p>Hit-and-miss can identify single-pixel artifacts, isolated dots, or
+small noise clusters within a binary mask. ImageMagick includes built-in
+kernels like <code>Peaks</code> to isolate single foreground pixels
+surrounded entirely by background.</p>
+<h3 id="2-identifying-line-endpoints-and-junctions">2. Identifying Line
+Endpoints and Junctions</h3>
+<p>In vectorized or thinned graphics, HMT is used to locate line
+endings, T-junctions, and cross-intersections. The <code>LineEnds</code>
+and <code>LineJunctions</code> kernels identify where strokes terminate
+or intersect.</p>
+<h3 id="3-thinning-and-skeletonization">3. Thinning and
+Skeletonization</h3>
+<p>Iterative hit-and-miss transformations form the backbone of thinning
+algorithms. By repeatedly identifying border pixels that match specific
+structural patterns and subtracting them, ImageMagick can reduce complex
+binary shapes down to 1-pixel-wide skeletons without breaking line
+connectivity (topological preservation).</p>
+<h3 id="4-corner-and-edge-detection">4. Corner and Edge Detection</h3>
+<p>By specifying directional kernels, HMT can find sharp corners (e.g.,
+top-left, bottom-right) or specific edge orientations across a binary
+silhouette.</p>
+<h3 id="5-custom-pattern-extraction">5. Custom Pattern Extraction</h3>
+<p>Users can define custom 2D matrix kernels using foreground
+(<code>1</code>), background (<code>0</code>), and wildcard/don't-care
+(<code>-</code>) symbols to locate unique shapes, symbols, or alignment
+markers in automated document and inspection pipelines.</p>
+<h2 id="basic-syntax-example">Basic Syntax Example</h2>
+<p>To run a predefined hit-and-miss search for line endpoints in
+ImageMagick:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> HitAndMiss LineEnds output.png</span></code></pre></div>
+<p>To apply a custom 3x3 kernel searching for a specific corner
+configuration:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.png <span class="at">-morphology</span> HitAndMiss <span class="st">&quot;3x3: 0,1,- 0,1,1 0,0,0&quot;</span> output.png</span></code></pre></div>
+<p>The hit-and-miss transformation serves as a foundational building
+block in ImageMagick for shape analysis, structural segmentation, and
+binary feature extraction.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

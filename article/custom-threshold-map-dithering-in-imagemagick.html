@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Threshold Map Dithering in ImageMagick - magick</title>
+    <meta name="description" content="Ordered dithering with custom threshold maps in ImageMagick allows you to create specific pixel patterns, crosshatches, or retro halftone effects by defining your own matrix values. This guide explains how to define a custom threshold map in ImageMagick'">
+    <link rel="canonical" href="https://salivity.github.io/magick/article/custom-threshold-map-dithering-in-imagemagick">
+    <link rel="search" type="application/opensearchdescription+xml" title="magick" href="/magick/opensearch.xml">
+    <link rel="icon" href="/magick/favicon.ico">
+    <link rel="stylesheet" href="/magick/css/style.css">
+    <link media="print" rel="stylesheet" href="/magick/css/print.css">
+    <script src="/magick/js/fuse.min.js"></script>
+    <script src="/magick/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Custom Threshold Map Dithering in ImageMagick - magick" />
+    <meta property="og:url" content="https://salivity.github.io/magick/article/custom-threshold-map-dithering-in-imagemagick" />
+    <meta property="og:image:url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/magick/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Ordered dithering with custom threshold maps in ImageMagick allows you to create specific pixel patterns, crosshatches, or retro halftone effects by defining your own matrix values. This guide explains how to define a custom threshold map in ImageMagick'" />
+    <link rel="manifest" href="/magick/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/magick/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>magick</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/magick/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="custom-threshold-map-dithering-in-imagemagick">Custom Threshold
+Map Dithering in ImageMagick</h1>
+<p>Ordered dithering with custom threshold maps in ImageMagick allows
+you to create specific pixel patterns, crosshatches, or retro halftone
+effects by defining your own matrix values. This guide explains how to
+define a custom threshold map in ImageMagick's configuration and apply
+it to an image using the <code>-ordered-dither</code> operator.</p>
+<h3 id="1-locate-or-create-the-thresholdsxml-file">1. Locate or Create
+the <code>thresholds.xml</code> File</h3>
+<p>ImageMagick loads custom ordered dither patterns from an XML
+configuration file named <code>thresholds.xml</code>. You can place this
+file in your user configuration directory so it does not overwrite
+system defaults:</p>
+<ul>
+<li><strong>Linux / macOS:</strong>
+<code>~/.config/ImageMagick/thresholds.xml</code> (or
+<code>~/.imagemagick/thresholds.xml</code>)</li>
+<li><strong>Windows:</strong>
+<code>%APPDATA%\ImageMagick\thresholds.xml</code></li>
+</ul>
+<h3 id="2-define-the-custom-matrix">2. Define the Custom Matrix</h3>
+<p>Open or create <code>thresholds.xml</code> and define your custom
+matrix within the <code>&lt;thresholds&gt;</code> root element.</p>
+<p>Here is an example defining a custom 2×2 matrix and a custom 4×4
+Bayer-style matrix:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span> <span class="ot">version=</span><span class="st">&quot;1.0&quot;</span> <span class="ot">encoding=</span><span class="st">&quot;UTF-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;!DOCTYPE</span> <span class="dt">thresholds</span> <span class="dt">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">thresholds</span> (threshold)+<span class="dt">&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">threshold</span> (description?,levels)<span class="dt">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">threshold</span> map CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">threshold</span> alias CDATA #IMPLIED<span class="dt">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">description</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ELEMENT</span> <span class="dt">levels</span> (#PCDATA)<span class="dt">&gt;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">levels</span> width CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">levels</span> height CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;!ATTLIST</span> <span class="dt">levels</span> divisor CDATA #REQUIRED<span class="dt">&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="dt">]&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">thresholds</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom2x2&quot;</span> <span class="ot">alias=</span><span class="st">&quot;c2&quot;</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 2x2 ordered dither matrix&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span> <span class="ot">width=</span><span class="st">&quot;2&quot;</span> <span class="ot">height=</span><span class="st">&quot;2&quot;</span> <span class="ot">divisor=</span><span class="st">&quot;4&quot;</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      1  3</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      4  2</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">threshold</span> <span class="ot">map=</span><span class="st">&quot;custom4x4&quot;</span> <span class="ot">alias=</span><span class="st">&quot;c4&quot;</span>&gt;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Custom 4x4 ordered dither matrix&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">levels</span> <span class="ot">width=</span><span class="st">&quot;4&quot;</span> <span class="ot">height=</span><span class="st">&quot;4&quot;</span> <span class="ot">divisor=</span><span class="st">&quot;16&quot;</span>&gt;</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>       1  9  3 11</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>      13  5 15  7</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>       4 12  2 10</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>      16  8 14  6</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">levels</span>&gt;</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">threshold</span>&gt;</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">thresholds</span>&gt;</span></code></pre></div>
+<ul>
+<li><strong><code>map</code></strong>: The unique identifier used to
+call the matrix in the command line.</li>
+<li><strong><code>width</code> and <code>height</code></strong>: The
+dimensions of your matrix grid.</li>
+<li><strong><code>divisor</code></strong>: The total normalization
+factor (typically <code>width × height</code>).</li>
+<li><strong><code>levels</code> content</strong>: The threshold values
+arranged in rows and columns.</li>
+</ul>
+<h3 id="3-verify-the-custom-map">3. Verify the Custom Map</h3>
+<p>Ensure ImageMagick detects your custom map by listing the available
+threshold maps:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> <span class="at">-list</span> threshold</span></code></pre></div>
+<p>Your custom names (<code>custom2x2</code>, <code>custom4x4</code>)
+should appear in the output list.</p>
+<h3 id="4-apply-the-dither-matrix-to-an-image">4. Apply the Dither
+Matrix to an Image</h3>
+<p>Use the <code>-ordered-dither</code> operator followed by your map
+name and the number of desired color levels.</p>
+<h4 id="1-bit-monochrome-dithering">1-Bit Monochrome Dithering</h4>
+<p>To produce a 2-level (black and white) image:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-colorspace</span> Gray <span class="at">-ordered-dither</span> custom2x2,2 output.png</span></code></pre></div>
+<h4 id="multi-level-color-dithering">Multi-Level Color Dithering</h4>
+<p>To dither individual RGB channels into specific quantization levels
+(e.g., 4 levels of Red, 4 levels of Green, 4 levels of Blue):</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom4x4,4,4,4 output.png</span></code></pre></div>
+<h4 id="web-safe-color-dithering">Web-Safe Color Dithering</h4>
+<p>To dither directly to standard color channels with uniform levels
+across Red, Green, and Blue:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">magick</span> input.jpg <span class="at">-ordered-dither</span> custom2x2 output.png</span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/magick'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/magick/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/magick/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
